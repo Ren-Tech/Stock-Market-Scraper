@@ -1,0 +1,121 @@
+{% extends "base.html" %} {% block title %}Current Affairs{% endblock %} {%
+block content %}
+<div class="container mt-4">
+  <!-- Mini Tab Navigation (Top Right) -->
+  <ul
+    class="nav nav-pills nav-fill bg-light rounded p-2 shadow-sm"
+    id="newsTabs"
+  >
+    <li class="nav-item">
+      <a class="nav-link active" data-tab="world" href="#">World</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-tab="north_america" href="#">North America</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-tab="europe" href="#">Europe</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-tab="asia" href="#">Asia</a>
+    </li>
+  </ul>
+
+  <!-- Two-Column Layout -->
+  <div class="row mt-4">
+    <!-- Left Column: Input Fields -->
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3">
+        <h6 class="text-center text-primary">Source URLs</h6>
+        <div id="sourceContainer">
+          {% for i in range(1, 6) %}
+          <div class="input-group mb-2">
+            <span class="input-group-text">#{{ i }}</span>
+            <input type="text" class="form-control" placeholder="Enter URL" />
+          </div>
+          {% endfor %}
+        </div>
+        <button
+          id="addSource"
+          class="btn btn-outline-primary btn-sm w-100 mt-2"
+        >
+          <i class="bi bi-plus-lg"></i> Add Source
+        </button>
+        <hr />
+        <label class="small">Update Frequency</label>
+        <select id="frequencyDropdown" class="form-select form-select-sm">
+          <option value="all">All</option>
+          <option value="2min">2 Min</option>
+          <option value="5min">5 Min</option>
+          <option value="10min">10 Min</option>
+          <option value="20min">20 Min</option>
+          <option value="30min">30 Min</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Right Column: Table -->
+    <div class="col-md-8">
+      <div class="card shadow-sm p-3">
+        <h6 class="text-center text-primary">News Feed</h6>
+        <table class="table table-hover">
+          <thead class="table-primary">
+            <tr>
+              <th>Content</th>
+              <th>URL</th>
+              <th>Image</th>
+            </tr>
+          </thead>
+          <tbody id="newsTableBody">
+            {% for i in range(1, 6) %}
+            <tr>
+              <td>News content {{ i }}.</td>
+              <td>
+                <a
+                  href="https://example.com"
+                  target="_blank"
+                  class="text-decoration-none text-primary"
+                  >example.com/{{ i }}</a
+                >
+              </td>
+              <td>
+                <img
+                  src="https://via.placeholder.com/100"
+                  class="rounded shadow"
+                  alt="News Image"
+                />
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let tabs = document.querySelectorAll("#newsTabs .nav-link");
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", function (e) {
+        e.preventDefault();
+        tabs.forEach((t) => t.classList.remove("active"));
+        this.classList.add("active");
+      });
+    });
+
+    document.getElementById("addSource").addEventListener("click", function () {
+      let sourceContainer = document.getElementById("sourceContainer");
+      let count =
+        sourceContainer.getElementsByClassName("input-group").length + 1;
+      let newSource = document.createElement("div");
+      newSource.classList.add("input-group", "mb-2");
+      newSource.innerHTML = `
+        <span class="input-group-text">#${count}</span>
+        <input type="text" class="form-control" placeholder="Enter URL">
+      `;
+      sourceContainer.appendChild(newSource);
+    });
+  });
+</script>
+{% endblock %}

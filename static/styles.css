@@ -1,0 +1,91 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+header {
+  background: #333;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+nav ul li {
+  margin: 0 15px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
+
+main {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.navbar {
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #343a40;
+}
+
+.container {
+  max-width: 1100px;
+}
+
+/* Left Column: Inputs */
+.form-label {
+  font-weight: bold;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.form-control-sm {
+  height: 30px;
+  font-size: 12px;
+  padding: 3px;
+}
+
+/* Frequency Dropdown */
+.form-select-sm {
+  height: 30px;
+  font-size: 12px;
+  padding: 2px;
+}
+
+/* Right Column: Output Table */
+h2.text-center {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 10px;
+  text-decoration: underline;
+}
+
+.table {
+  font-size: 14px;
+}
+
+th,
+td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+td img {
+  width: 70px;
+  height: 50px;
+  border-radius: 5px;
+}

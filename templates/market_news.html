@@ -1,0 +1,149 @@
+{% extends "base.html" %} {% block title %}Market News{% endblock %} {% block
+content %}
+<div class="container mt-4">
+  <!-- Stock Market Ticker -->
+  <div class="bg-dark text-white py-2 px-3 rounded shadow-sm mb-4">
+    <marquee behavior="scroll" direction="left" class="fw-bold">
+      📈 S&P 500: 4,521.42 (+1.2%) | 📉 NASDAQ: 13,754.34 (-0.5%) | 📈 Dow
+      Jones: 35,203.14 (+0.8%) | 💰 Bitcoin: $43,200 (+2.5%)
+    </marquee>
+  </div>
+
+  <div class="row">
+    <!-- Main News Section (Left) -->
+    <div class="col-lg-8">
+      <h2 class="fw-bold">📊 Market News & Insights</h2>
+
+      {% set news = [ {"title": "Stock Market Hits Record High", "link": "#",
+      "img": "https://via.placeholder.com/400", "desc": "Investor confidence
+      surges as major indices hit new highs."}, {"title": "Tech Stocks Rally as
+      AI Boom Continues", "link": "#", "img": "https://via.placeholder.com/400",
+      "desc": "AI-driven companies see massive gains, fueling a tech stock
+      rally."}, {"title": "Gold Prices Surge Amid Economic Uncertainty", "link":
+      "#", "img": "https://via.placeholder.com/400", "desc": "Gold prices hit
+      new highs as investors seek safe-haven assets."}, {"title": "Oil Prices
+      Drop Due to Supply Surplus", "link": "#", "img":
+      "https://via.placeholder.com/400", "desc": "Crude oil prices decline
+      sharply as global supply outweighs demand."}, {"title": "Crypto Market
+      Volatility Sparks Debate", "link": "#", "img":
+      "https://via.placeholder.com/400", "desc": "The crypto market sees massive
+      swings, raising concerns among investors."}, {"title": "Federal Reserve
+      Signals Interest Rate Cuts", "link": "#", "img":
+      "https://via.placeholder.com/400", "desc": "The Federal Reserve hints at
+      possible rate cuts to stabilize the economy."}, {"title": "Real Estate
+      Market Sees Unexpected Growth", "link": "#", "img":
+      "https://via.placeholder.com/400", "desc": "Housing prices are surging
+      despite rising interest rates."}, {"title": "Tech Giants Face Antitrust
+      Investigations", "link": "#", "img": "https://via.placeholder.com/400",
+      "desc": "Regulators tighten grip on tech monopolies amid growing
+      concerns."} ] %}
+
+      <div class="row">
+        {% for news_item in news %}
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm" style="border-radius: 10px">
+            <img
+              src="{{ news_item.img }}"
+              class="card-img-top"
+              alt="News Image"
+              style="height: 200px; object-fit: cover"
+            />
+            <div class="card-body">
+              <h5 class="card-title fw-bold">{{ news_item.title }}</h5>
+              <p class="card-text" style="font-size: 14px; color: #555">
+                {{ news_item.desc }}
+              </p>
+              <a
+                href="{{ news_item.link }}"
+                class="btn btn-primary btn-sm"
+                target="_blank"
+                >Read More</a
+              >
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Sidebar Section (Sticky) -->
+    <div class="col-lg-4">
+      <div class="sticky-top" style="top: 80px">
+        <!-- Trending News -->
+        <div class="p-3 bg-light rounded shadow-sm mb-4">
+          <h4 class="fw-bold">🔥 Trending Now</h4>
+          <ul class="list-unstyled">
+            <li class="mb-3">
+              <a href="#" class="text-dark fw-bold"
+                >💰 Bitcoin Surges Past $50,000</a
+              >
+            </li>
+            <li class="mb-3">
+              <a href="#" class="text-dark fw-bold"
+                >📊 S&P 500 Closes at Record High</a
+              >
+            </li>
+            <li class="mb-3">
+              <a href="#" class="text-dark fw-bold"
+                >🚗 Tesla Cybertruck Deliveries Begin</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Mini Stock Charts -->
+        <div class="p-3 bg-white rounded shadow-sm mb-4">
+          <h4 class="fw-bold">📈 Stock Performance</h4>
+          <img
+            src="https://via.placeholder.com/300x200"
+            class="w-100 mb-2"
+            alt="Stock Chart"
+          />
+          <img
+            src="https://via.placeholder.com/300x200"
+            class="w-100"
+            alt="Stock Chart"
+          />
+        </div>
+
+        <!-- User Comments -->
+        <div class="p-3 bg-light rounded shadow-sm">
+          <h4 class="fw-bold">🗣️ Community Reactions</h4>
+          <p><strong>John D.</strong>: "Tech stocks are on fire! 🚀"</p>
+          <p>
+            <strong>Lisa M.</strong>: "Gold is always a safe bet. Smart move."
+          </p>
+          <p>
+            <strong>Michael T.</strong>: "Federal Reserve’s decision will shape
+            2025!"
+          </p>
+          <a href="#" class="btn btn-sm btn-outline-primary">Join Discussion</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Market Data (Full-Width) -->
+  <div class="mt-4 p-4 bg-dark text-white text-center rounded shadow-sm">
+    <h4 class="fw-bold">📊 Live Market Data</h4>
+    <div class="d-flex justify-content-around flex-wrap">
+      <div>
+        <h6>🏦 Dow Jones</h6>
+        <p class="fw-bold">
+          35,203.14 <span class="text-success">(+0.8%)</span>
+        </p>
+      </div>
+      <div>
+        <h6>📈 NASDAQ</h6>
+        <p class="fw-bold">
+          13,754.34 <span class="text-danger">(-0.5%)</span>
+        </p>
+      </div>
+      <div>
+        <h6>💰 Bitcoin</h6>
+        <p class="fw-bold">$43,200 <span class="text-success">(+2.5%)</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
