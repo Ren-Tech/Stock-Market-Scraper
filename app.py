@@ -30,4 +30,5 @@ def sector_news():
     return render_template("sector_news.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Bind to 0.0.0.0 so it's accessible externally
+    app.run(host="0.0.0.0", port=8000)
