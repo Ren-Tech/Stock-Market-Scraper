@@ -1,5 +1,378 @@
-{% extends "base.html" %} {% block title %}Stocks{% endblock %} {% block content
-%}
-<h2>Stock Prices & Trends</h2>
-<p>Monitor stock prices, indices, and market trends.</p>
+{% extends "base.html" %} {% block title %} Stocks {% endblock %} {% block
+content %}
+<div class="container mt-4">
+  <h2>Stock Prices & Trends</h2>
+  <p>Monitor stock prices, indices, and market trends.</p>
+
+  <!-- Mini Tabs for Country Selection -->
+  <ul class="nav nav-pills nav-justified" id="marketTabs">
+    <li class="nav-item">
+      <a
+        class="nav-link active"
+        style="color: black"
+        data-bs-toggle="tab"
+        href="#us"
+        >🇺🇸 US</a
+      >
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#uk"
+        >🇬🇧 UK</a
+      >
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#ge"
+        >🇩🇪 GE</a
+      >
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#fr"
+        >🇫🇷 FR</a
+      >
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#jp"
+        >🇯🇵 JP</a
+      >
+    </li>
+  </ul>
+
+  <div class="tab-content mt-3">
+    <div class="tab-pane fade show active" id="us">
+      <div class="row">
+        <!-- Left Column: Category Selection -->
+        <div class="col-md-4">
+          <div class="p-3 bg-light text-dark rounded">
+            <h4>Market Overview</h4>
+            <div class="d-flex flex-column">
+              <button
+                class="btn btn-primary mb-2"
+                onclick="showCategory('gainers')"
+              >
+                Gainers & Losers
+              </button>
+              <button
+                class="btn btn-success mb-2"
+                onclick="showCategory('activities')"
+              >
+                Most Activities
+              </button>
+              <button
+                class="btn btn-warning mb-2"
+                onclick="showCategory('trends')"
+              >
+                Trends
+              </button>
+              <button
+                class="btn btn-danger mb-2"
+                onclick="showCategory('volatility')"
+              >
+                Volatility
+              </button>
+              <button
+                class="btn btn-secondary mb-2"
+                onclick="showCategory('all')"
+              >
+                ALL
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Category Content in Grid -->
+        <div class="col-md-8">
+          <div class="row">
+            <!-- Gainers & Losers Category -->
+            <div
+              id="gainers"
+              class="category-container bg-primary text-white p-3 rounded col-md-6"
+            >
+              <h5>Gainers & Losers</h5>
+              <p>Displaying top gainers and losers in the market.</p>
+
+              <!-- Table inside container -->
+              <div class="table-responsive">
+                <table class="table table-bordered mt-3">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>Company Name</th>
+                      <th>Ticker</th>
+                      <th>Sector</th>
+                      <th>Specialization</th>
+                      <th>Fray</th>
+                      <th>% Change</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>ABC Corp</td>
+                      <td>ABC</td>
+                      <td>Technology</td>
+                      <td>Software</td>
+                      <td>50%</td>
+                      <td class="text-success">+3.2%</td>
+                    </tr>
+                    <tr>
+                      <td>XYZ Inc</td>
+                      <td>XYZ</td>
+                      <td>Healthcare</td>
+                      <td>Biotech</td>
+                      <td>45%</td>
+                      <td class="text-success">+2.8%</td>
+                    </tr>
+                    <tr>
+                      <td>LMN Ltd</td>
+                      <td>LMN</td>
+                      <td>Finance</td>
+                      <td>Investment</td>
+                      <td>40%</td>
+                      <td class="text-danger">-1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>DEF Enterprises</td>
+                      <td>DEF</td>
+                      <td>Retail</td>
+                      <td>Fashion</td>
+                      <td>30%</td>
+                      <td class="text-success">+1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>PQR Group</td>
+                      <td>PQR</td>
+                      <td>Energy</td>
+                      <td>Oil & Gas</td>
+                      <td>25%</td>
+                      <td class="text-danger">-2.0%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Most Activities Category -->
+            <div
+              id="activities"
+              class="category-container bg-success text-white p-3 rounded col-md-6"
+            >
+              <h5>Most Activities</h5>
+              <p>Showing most active stocks in the market.</p>
+
+              <!-- Table inside container -->
+              <div class="table-responsive">
+                <table class="table table-bordered mt-3">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>Company Name</th>
+                      <th>Ticker</th>
+                      <th>Sector</th>
+                      <th>Specialization</th>
+                      <th>Fray</th>
+                      <th>% Change</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>ABC Corp</td>
+                      <td>ABC</td>
+                      <td>Technology</td>
+                      <td>Software</td>
+                      <td>50%</td>
+                      <td class="text-success">+3.2%</td>
+                    </tr>
+                    <tr>
+                      <td>XYZ Inc</td>
+                      <td>XYZ</td>
+                      <td>Healthcare</td>
+                      <td>Biotech</td>
+                      <td>45%</td>
+                      <td class="text-success">+2.8%</td>
+                    </tr>
+                    <tr>
+                      <td>LMN Ltd</td>
+                      <td>LMN</td>
+                      <td>Finance</td>
+                      <td>Investment</td>
+                      <td>40%</td>
+                      <td class="text-danger">-1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>DEF Enterprises</td>
+                      <td>DEF</td>
+                      <td>Retail</td>
+                      <td>Fashion</td>
+                      <td>30%</td>
+                      <td class="text-success">+1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>PQR Group</td>
+                      <td>PQR</td>
+                      <td>Energy</td>
+                      <td>Oil & Gas</td>
+                      <td>25%</td>
+                      <td class="text-danger">-2.0%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Market Trends Category -->
+            <div
+              id="trends"
+              class="category-container bg-warning text-dark p-3 rounded col-md-6"
+            >
+              <h5>Market Trends</h5>
+              <p>Market trends and analytics overview.</p>
+
+              <!-- Table inside container -->
+              <div class="table-responsive">
+                <table class="table table-bordered mt-3">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>Company Name</th>
+                      <th>Ticker</th>
+                      <th>Sector</th>
+                      <th>Specialization</th>
+                      <th>Fray</th>
+                      <th>% Change</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>ABC Corp</td>
+                      <td>ABC</td>
+                      <td>Technology</td>
+                      <td>Software</td>
+                      <td>50%</td>
+                      <td class="text-success">+3.2%</td>
+                    </tr>
+                    <tr>
+                      <td>XYZ Inc</td>
+                      <td>XYZ</td>
+                      <td>Healthcare</td>
+                      <td>Biotech</td>
+                      <td>45%</td>
+                      <td class="text-success">+2.8%</td>
+                    </tr>
+                    <tr>
+                      <td>LMN Ltd</td>
+                      <td>LMN</td>
+                      <td>Finance</td>
+                      <td>Investment</td>
+                      <td>40%</td>
+                      <td class="text-danger">-1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>DEF Enterprises</td>
+                      <td>DEF</td>
+                      <td>Retail</td>
+                      <td>Fashion</td>
+                      <td>30%</td>
+                      <td class="text-success">+1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>PQR Group</td>
+                      <td>PQR</td>
+                      <td>Energy</td>
+                      <td>Oil & Gas</td>
+                      <td>25%</td>
+                      <td class="text-danger">-2.0%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Volatility Category -->
+            <div
+              id="volatility"
+              class="category-container bg-danger text-white p-3 rounded col-md-6"
+            >
+              <h5>Volatile Stocks</h5>
+              <p>Stocks with the highest price fluctuations.</p>
+
+              <!-- Table inside container -->
+              <div class="table-responsive">
+                <table class="table table-bordered mt-3">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>Company Name</th>
+                      <th>Ticker</th>
+                      <th>Sector</th>
+                      <th>Specialization</th>
+                      <th>Fray</th>
+                      <th>% Change</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>ABC Corp</td>
+                      <td>ABC</td>
+                      <td>Technology</td>
+                      <td>Software</td>
+                      <td>50%</td>
+                      <td class="text-success">+3.2%</td>
+                    </tr>
+                    <tr>
+                      <td>XYZ Inc</td>
+                      <td>XYZ</td>
+                      <td>Healthcare</td>
+                      <td>Biotech</td>
+                      <td>45%</td>
+                      <td class="text-success">+2.8%</td>
+                    </tr>
+                    <tr>
+                      <td>LMN Ltd</td>
+                      <td>LMN</td>
+                      <td>Finance</td>
+                      <td>Investment</td>
+                      <td>40%</td>
+                      <td class="text-danger">-1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>DEF Enterprises</td>
+                      <td>DEF</td>
+                      <td>Retail</td>
+                      <td>Fashion</td>
+                      <td>30%</td>
+                      <td class="text-success">+1.5%</td>
+                    </tr>
+                    <tr>
+                      <td>PQR Group</td>
+                      <td>PQR</td>
+                      <td>Energy</td>
+                      <td>Oil & Gas</td>
+                      <td>25%</td>
+                      <td class="text-danger">-2.0%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Similar code for other countries can be added here (UK, GE, FR, etc.) -->
+  </div>
+</div>
+
+<script>
+  // Function to show and hide category containers
+  function showCategory(category) {
+    const categories = ["gainers", "activities", "trends", "volatility", "all"];
+    categories.forEach(function (cat) {
+      const categoryDiv = document.getElementById(cat);
+      if (cat === category || category === "all") {
+        categoryDiv.style.display = "block";
+      } else {
+        categoryDiv.style.display = "none";
+      }
+    });
+  }
+
+  // Initialize category view
+  showCategory("all");
+</script>
 {% endblock %}
