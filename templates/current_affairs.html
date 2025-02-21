@@ -1,5 +1,6 @@
 {% extends "base.html" %} {% block title %}Current Affairs{% endblock %} {%
 block content %}
+
 <div class="container mt-4">
   <!-- Mini Tab Navigation (Top Right) -->
   <ul
@@ -7,7 +8,10 @@ block content %}
     id="newsTabs"
   >
     <li class="nav-item">
-      <a class="nav-link active" data-tab="world" href="#">World</a>
+      <a class="nav-link active" data-tab="all" href="#">All</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-tab="world" href="#">World</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" data-tab="north_america" href="#">North America</a>
@@ -25,20 +29,29 @@ block content %}
     <!-- Left Column: Input Fields -->
     <div class="col-md-4">
       <div class="card shadow-sm p-3">
-        <h6 class="text-center text-primary">Source URLs</h6>
+        <h6 class="text-center text-primary">Stock Symbols</h6>
         <div id="sourceContainer">
           {% for i in range(1, 6) %}
           <div class="input-group mb-2">
             <span class="input-group-text">#{{ i }}</span>
-            <input type="text" class="form-control" placeholder="Enter URL" />
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Enter STOCK SYMBOL AAPL/TSLA"
+            />
           </div>
           {% endfor %}
         </div>
+        <!-- Submit Button -->
+        <button id="submitSources" class="btn btn-primary btn-sm w-100 mt-2">
+          <i class="bi bi-check-lg"></i> Submit
+        </button>
+        <!-- Add Source Button -->
         <button
           id="addSource"
           class="btn btn-outline-primary btn-sm w-100 mt-2"
         >
-          <i class="bi bi-plus-lg"></i> Add Source
+          <i class="bi bi-plus-lg"></i> Add Symbol
         </button>
         <hr />
         <label class="small">Update Frequency</label>
@@ -66,97 +79,27 @@ block content %}
             </tr>
           </thead>
           <tbody id="newsTableBody">
-            <!-- Dummy Data Rows -->
-            <tr>
-              <td>Global warming is accelerating and affecting ecosystems.</td>
+            {% for news in news_data %}
+            <tr data-category="{{ news.category }}">
+              <td>{{ news.content }}</td>
               <td>
                 <a
-                  href="https://example.com/world-news"
+                  href="{{ news.url }}"
                   target="_blank"
                   class="text-decoration-none text-primary"
-                  >example.com/world-news</a
+                  >{{ news.url }}</a
                 >
               </td>
               <td>
                 <img
-                  src="https://via.placeholder.com/100"
+                  src="{{ news.image_url }}"
                   class="rounded shadow"
                   alt="News Image"
+                  width="100"
                 />
               </td>
             </tr>
-            <tr>
-              <td>New tech gadgets launched this year at CES 2025.</td>
-              <td>
-                <a
-                  href="https://example.com/tech-news"
-                  target="_blank"
-                  class="text-decoration-none text-primary"
-                  >example.com/tech-news</a
-                >
-              </td>
-              <td>
-                <img
-                  src="https://via.placeholder.com/100"
-                  class="rounded shadow"
-                  alt="News Image"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>Breaking: Economic forecast for the next decade.</td>
-              <td>
-                <a
-                  href="https://example.com/economy-news"
-                  target="_blank"
-                  class="text-decoration-none text-primary"
-                  >example.com/economy-news</a
-                >
-              </td>
-              <td>
-                <img
-                  src="https://via.placeholder.com/100"
-                  class="rounded shadow"
-                  alt="News Image"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>New vaccine breakthrough in clinical trials.</td>
-              <td>
-                <a
-                  href="https://example.com/health-news"
-                  target="_blank"
-                  class="text-decoration-none text-primary"
-                  >example.com/health-news</a
-                >
-              </td>
-              <td>
-                <img
-                  src="https://via.placeholder.com/100"
-                  class="rounded shadow"
-                  alt="News Image"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>Global summit to address climate change solutions.</td>
-              <td>
-                <a
-                  href="https://example.com/summit-news"
-                  target="_blank"
-                  class="text-decoration-none text-primary"
-                  >example.com/summit-news</a
-                >
-              </td>
-              <td>
-                <img
-                  src="https://via.placeholder.com/100"
-                  class="rounded shadow"
-                  alt="News Image"
-                />
-              </td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -172,21 +115,52 @@ block content %}
         e.preventDefault();
         tabs.forEach((t) => t.classList.remove("active"));
         this.classList.add("active");
+
+        let selectedCategory = this.getAttribute("data-tab");
+        document.querySelectorAll("#newsTableBody tr").forEach((row) => {
+          if (
+            selectedCategory === "all" ||
+            row.getAttribute("data-category") === selectedCategory
+          ) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
       });
     });
 
+    // Add new stock symbol input field
     document.getElementById("addSource").addEventListener("click", function () {
       let sourceContainer = document.getElementById("sourceContainer");
       let count =
         sourceContainer.getElementsByClassName("input-group").length + 1;
       let newSource = document.createElement("div");
       newSource.classList.add("input-group", "mb-2");
-      newSource.innerHTML = `
-        <span class="input-group-text">#${count}</span>
-        <input type="text" class="form-control" placeholder="Enter URL">
-      `;
+      newSource.innerHTML = `<span class="input-group-text">#${count}</span>
+      <input type="text" class="form-control" placeholder="Enter STOCK SYMBOL">`;
       sourceContainer.appendChild(newSource);
     });
+
+    // Submit button functionality
+    document
+      .getElementById("submitSources")
+      .addEventListener("click", function () {
+        let symbols = [];
+        document.querySelectorAll("#sourceContainer input").forEach((input) => {
+          if (input.value.trim() !== "") {
+            symbols.push(input.value.trim());
+          }
+        });
+
+        if (symbols.length > 0) {
+          alert("Submitted Symbols: " + symbols.join(", "));
+          // Replace alert with actual API call
+        } else {
+          alert("Please enter at least one stock symbol before submitting.");
+        }
+      });
   });
 </script>
+
 {% endblock %}

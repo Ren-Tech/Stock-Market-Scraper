@@ -21,11 +21,12 @@ nav ul {
 
 nav ul li {
   margin: 0 15px;
+  color: black;
 }
 
 nav ul li a {
   text-decoration: none;
-  color: white;
+  color: black;
   font-weight: bold;
 }
 
