@@ -1,6 +1,5 @@
-{% extends "base.html" %} {% block title %}Current Affairs{% endblock %} {%
+{% extends "base.html" %} {% block title %} Current Affairs {% endblock %} {%
 block content %}
-
 <div class="container mt-4">
   <!-- Mini Tab Navigation (Top Right) -->
   <ul
@@ -30,39 +29,40 @@ block content %}
     <div class="col-md-4">
       <div class="card shadow-sm p-3">
         <h6 class="text-center text-primary">Stock Symbols</h6>
-        <div id="sourceContainer">
-          {% for i in range(1, 6) %}
-          <div class="input-group mb-2">
-            <span class="input-group-text">#{{ i }}</span>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Enter STOCK SYMBOL AAPL/TSLA"
-            />
+        <form method="POST">
+          <div id="sourceContainer">
+            {% for i in range(1, 6) %}
+            <div class="input-group mb-2">
+              <span class="input-group-text">#{{ i }}</span>
+              <input
+                type="text"
+                name="stock_symbols"
+                class="form-control"
+                placeholder="Enter STOCK SYMBOL AAPL/TSLA"
+                value="{{ symbols[i-1] if symbols and i <= symbols|length else '' }}"
+              />
+            </div>
+            {% endfor %}
           </div>
-          {% endfor %}
-        </div>
-        <!-- Submit Button -->
-        <button id="submitSources" class="btn btn-primary btn-sm w-100 mt-2">
-          <i class="bi bi-check-lg"></i> Submit
-        </button>
-        <!-- Add Source Button -->
-        <button
-          id="addSource"
-          class="btn btn-outline-primary btn-sm w-100 mt-2"
-        >
-          <i class="bi bi-plus-lg"></i> Add Symbol
-        </button>
-        <hr />
-        <label class="small">Update Frequency</label>
-        <select id="frequencyDropdown" class="form-select form-select-sm">
-          <option value="all">All</option>
-          <option value="2min">2 Min</option>
-          <option value="5min">5 Min</option>
-          <option value="10min">10 Min</option>
-          <option value="20min">20 Min</option>
-          <option value="30min">30 Min</option>
-        </select>
+          <!-- Submit Button -->
+          <button
+            id="submitSources"
+            type="submit"
+            class="btn btn-primary btn-sm w-100 mt-2"
+          >
+            <i class="bi bi-check-lg"></i> Submit
+          </button>
+          <hr />
+          <label class="small">Update Frequency</label>
+          <select id="frequencyDropdown" class="form-select form-select-sm">
+            <option value="all">All</option>
+            <option value="2min">2 Min</option>
+            <option value="5min">5 Min</option>
+            <option value="10min">10 Min</option>
+            <option value="20min">20 Min</option>
+            <option value="30min">30 Min</option>
+          </select>
+        </form>
       </div>
     </div>
 
@@ -82,13 +82,16 @@ block content %}
             {% for news in news_data %}
             <tr data-category="{{ news.category }}">
               <td>{{ news.content }}</td>
+              <!-- Title for content -->
               <td>
                 <a
                   href="{{ news.url }}"
                   target="_blank"
                   class="text-decoration-none text-primary"
-                  >{{ news.url }}</a
                 >
+                  {{ news.url }}
+                  <!-- Article URL -->
+                </a>
               </td>
               <td>
                 <img
@@ -97,9 +100,24 @@ block content %}
                   alt="News Image"
                   width="100"
                 />
+                <!-- Image for article -->
               </td>
             </tr>
-            {% endfor %}
+            {% endfor %} {% if stock_data %} {% for symbol, data in
+            stock_data.items() %}
+            <tr>
+              <td colspan="3" class="text-center text-primary">
+                <strong>Stock Data for {{ symbol }}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>Stock Data (Last 5 Days)</td>
+              <td colspan="2">
+                <pre>{{ data.to_string() }}</pre>
+                <!-- Display stock data -->
+              </td>
+            </tr>
+            {% endfor %} {% endif %}
           </tbody>
         </table>
       </div>
@@ -138,29 +156,9 @@ block content %}
       let newSource = document.createElement("div");
       newSource.classList.add("input-group", "mb-2");
       newSource.innerHTML = `<span class="input-group-text">#${count}</span>
-      <input type="text" class="form-control" placeholder="Enter STOCK SYMBOL">`;
+      <input type="text" name="stock_symbols" class="form-control" placeholder="Enter STOCK SYMBOL">`;
       sourceContainer.appendChild(newSource);
     });
-
-    // Submit button functionality
-    document
-      .getElementById("submitSources")
-      .addEventListener("click", function () {
-        let symbols = [];
-        document.querySelectorAll("#sourceContainer input").forEach((input) => {
-          if (input.value.trim() !== "") {
-            symbols.push(input.value.trim());
-          }
-        });
-
-        if (symbols.length > 0) {
-          alert("Submitted Symbols: " + symbols.join(", "));
-          // Replace alert with actual API call
-        } else {
-          alert("Please enter at least one stock symbol before submitting.");
-        }
-      });
   });
 </script>
-
 {% endblock %}

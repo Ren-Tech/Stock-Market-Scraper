@@ -1,44 +1,39 @@
+import yfinance as yf
 import requests
 from bs4 import BeautifulSoup
-import yfinance as yf
 
-def get_stock_market_news(stock_symbol="AAPL"):
-    """
-    Scrapes stock-related news from CNBC based on a stock symbol.
-    """
-    url = f"https://www.cnbc.com/quotes/{stock_symbol}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
+# Function to get stock market news from Yahoo Finance
+def get_stock_market_news():
+    url = "https://finance.yahoo.com/quote/%5EGSPC?p=%5EGSPC"  # Replace with the desired stock index URL or ticker
+    response = requests.get(url)
     
     if response.status_code != 200:
         return []
 
-    soup = BeautifulSoup(response.text, "html.parser")
-    news_list = []
+    soup = BeautifulSoup(response.content, "html.parser")
 
-    articles = soup.find_all("div", class_="LatestNews-headlineWrapper", limit=5)
-    for article in articles:
-        title_tag = article.find("a")
-        if title_tag:
-            title = title_tag.text.strip()
-            link = title_tag["href"]
-            image = "https://via.placeholder.com/100"  # Placeholder image
-            news_list.append({"title": title, "link": link, "image": image})
+    # Find the relevant news articles (adjust the selector based on the website structure)
+    news_items = soup.find_all("li", class_="js-stream-content")
 
-    return news_list
+    news = []
 
-def get_stock_info(stock_symbol):
-    """
-    Fetches stock details using yfinance.
-    """
-    try:
-        stock = yf.Ticker(stock_symbol)
-        info = stock.info
-        return {
-            "name": info.get("shortName", "N/A"),
-            "price": info.get("regularMarketPrice", "N/A"),
-            "currency": info.get("currency", "USD"),
-        }
-    except Exception as e:
-        print("Error fetching stock data:", e)
-        return None
+    for item in news_items:
+        title = item.find("h3").get_text() if item.find("h3") else "No Title"
+        link = "https://finance.yahoo.com" + item.find("a")["href"] if item.find("a") else "#"
+        image = item.find("img")["src"] if item.find("img") else None
+        content = item.find("p").get_text() if item.find("p") else "No Content"
+
+        news.append({
+            "title": title,
+            "link": link,
+            "image": image,
+            "content": content
+        })
+
+    return news
+
+# Function to fetch stock data using yfinance
+def get_stock_data(ticker):
+    stock = yf.Ticker(ticker)
+    stock_data = stock.history(period="5d")  # Get data for the last 5 days
+    return stock_data

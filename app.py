@@ -1,39 +1,79 @@
-from flask import Flask, render_template, request, jsonify
-from scraping import get_stock_market_news, get_stock_info
+from flask import Flask, render_template, request
+from scraping import get_stock_market_news, get_stock_data  # Import the functions
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-@app.route("/current_affairs")
+@app.route("/", methods=["GET", "POST"])
 def current_affairs():
-    news = get_stock_market_news()
-    return render_template("current_affairs.html", news=news)
+    news_data = get_stock_market_news()  # Fetch stock market news
+    symbols = []
+    stock_data = None
+    if request.method == "POST":
+        # Get the submitted stock symbols from the form
+        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols")]
+        # Fetch stock data for each submitted symbol
+        stock_data = {}
+        for symbol in symbols:
+            stock_data[symbol] = get_stock_data(symbol)  # Get stock data using yfinance
 
-@app.route("/market_news")
+        return render_template("current_affairs.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+    
+    return render_template("current_affairs.html", news_data=news_data, stock_data=None, symbols=symbols)
+
+@app.route("/market_news", methods=["GET", "POST"])
 def market_news():
-    news = get_stock_market_news()
-    return render_template("market_news.html", news=news)
+    news_data = get_stock_market_news()  # Fetch stock market news
+    symbols = []
+    stock_data = None
+    if request.method == "POST":
+        # Get the submitted stock symbols from the form
+        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols")]
+        # Fetch stock data for each submitted symbol
+        stock_data = {}
+        for symbol in symbols:
+            stock_data[symbol] = get_stock_data(symbol)  # Get stock data using yfinance
 
-@app.route("/calendar")
+        return render_template("market_news.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+    
+    return render_template("market_news.html", news_data=news_data, stock_data=None, symbols=symbols)
+
+@app.route("/calendar", methods=["GET", "POST"])
 def calendar():
-    return render_template("calendar.html")
+    return render_template("calendar.html")  # Static calendar page (no dynamic data)
 
 @app.route("/stocks", methods=["GET", "POST"])
 def stocks():
+    news_data = get_stock_market_news()  # Fetch stock market news
+    symbols = []
+    stock_data = None
     if request.method == "POST":
-        stock_symbol = request.form.get("stock_symbol", "AAPL").upper()
-        news = get_stock_market_news(stock_symbol)
-        stock_info = get_stock_info(stock_symbol)
-        return jsonify({"news": news, "stock_info": stock_info})
+        # Get the submitted stock symbols from the form
+        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols")]
+        # Fetch stock data for each submitted symbol
+        stock_data = {}
+        for symbol in symbols:
+            stock_data[symbol] = get_stock_data(symbol)  # Get stock data using yfinance
 
-    return render_template("stocks.html")
+        return render_template("stocks.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+    
+    return render_template("stocks.html", news_data=news_data, stock_data=None, symbols=symbols)
 
-@app.route("/sector_news")
+@app.route("/sector_news", methods=["GET", "POST"])
 def sector_news():
-    return render_template("sector_news.html")
+    news_data = get_stock_market_news()  # Fetch stock market news
+    symbols = []
+    stock_data = None
+    if request.method == "POST":
+        # Get the submitted stock symbols from the form
+        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols")]
+        # Fetch stock data for each submitted symbol
+        stock_data = {}
+        for symbol in symbols:
+            stock_data[symbol] = get_stock_data(symbol)  # Get stock data using yfinance
+
+        return render_template("sector_news.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+    
+    return render_template("sector_news.html", news_data=news_data, stock_data=None, symbols=symbols)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000)
