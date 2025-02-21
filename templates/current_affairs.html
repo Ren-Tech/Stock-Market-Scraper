@@ -64,62 +64,98 @@ block content %}
           </select>
         </form>
       </div>
+
+      <!-- Stock Data Display -->
+      {% if stock_data %}
+      <div class="card shadow-sm p-3 mt-4">
+        <h6 class="text-center text-primary">Stock Data</h6>
+        {% for symbol, data in stock_data.items() %} {% if not data.empty %}
+        <div class="mb-4">
+          <h6 class="border-bottom pb-2">
+            {{ symbol }} Stock Data (Last 5 Days)
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Open</th>
+                  <th>High</th>
+                  <th>Low</th>
+                  <th>Close</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for index, row in data.iterrows() %}
+                <tr>
+                  <td>{{ index.strftime('%Y-%m-%d') }}</td>
+                  <td>{{ "%.2f"|format(row['Open']) }}</td>
+                  <td>{{ "%.2f"|format(row['High']) }}</td>
+                  <td>{{ "%.2f"|format(row['Low']) }}</td>
+                  <td>{{ "%.2f"|format(row['Close']) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+          No data available for {{ symbol }}
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+      {% endif %}
     </div>
 
-    <!-- Right Column: Table -->
+    <!-- Right Column: News -->
     <div class="col-md-8">
       <div class="card shadow-sm p-3">
         <h6 class="text-center text-primary">News Feed</h6>
-        <table class="table table-hover">
-          <thead class="table-primary">
-            <tr>
-              <th>Content</th>
-              <th>URL</th>
-              <th>Image</th>
-            </tr>
-          </thead>
-          <tbody id="newsTableBody">
-            {% for news in news_data %}
-            <tr data-category="{{ news.category }}">
-              <td>{{ news.content }}</td>
-              <!-- Title for content -->
-              <td>
-                <a
-                  href="{{ news.url }}"
-                  target="_blank"
-                  class="text-decoration-none text-primary"
-                >
-                  {{ news.url }}
-                  <!-- Article URL -->
-                </a>
-              </td>
-              <td>
-                <img
-                  src="{{ news.image_url }}"
-                  class="rounded shadow"
-                  alt="News Image"
-                  width="100"
-                />
-                <!-- Image for article -->
-              </td>
-            </tr>
-            {% endfor %} {% if stock_data %} {% for symbol, data in
-            stock_data.items() %}
-            <tr>
-              <td colspan="3" class="text-center text-primary">
-                <strong>Stock Data for {{ symbol }}</strong>
-              </td>
-            </tr>
-            <tr>
-              <td>Stock Data (Last 5 Days)</td>
-              <td colspan="2">
-                <pre>{{ data.to_string() }}</pre>
-                <!-- Display stock data -->
-              </td>
-            </tr>
-            {% endfor %} {% endif %}
-          </tbody>
-        </table>
+        <div class="row" id="newsItems">
+          {% for news in news_data %}
+          <div class="col-md-12 mb-3" data-category="{{ news.category }}">
+            <div class="card">
+              <div class="row g-0">
+                <div class="col-md-4">
+                  <img
+                    src="{{ news.image }}"
+                    class="img-fluid rounded-start"
+                    alt="News Image"
+                    style="height: 100%; object-fit: cover"
+                  />
+                </div>
+                <div class="col-md-8">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ news.title }}</h5>
+                    <p class="card-text small">{{ news.content }}</p>
+                    <div class="d-flex justify-content-between">
+                      <a
+                        href="{{ news.link }}"
+                        target="_blank"
+                        class="btn btn-sm btn-outline-primary"
+                        >Read More</a
+                      >
+                      <a
+                        href="{{ news.link }}"
+                        target="_blank"
+                        class="text-primary fw-bold"
+                        style="font-size: 14px"
+                      >
+                        {{ news.link[:30] }}...
+                      </a>
+
+                      <span class="badge bg-secondary"
+                        >{{ news.category|capitalize }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
       </div>
     </div>
   </div>
@@ -127,6 +163,7 @@ block content %}
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // Category filtering
     let tabs = document.querySelectorAll("#newsTabs .nav-link");
     tabs.forEach((tab) => {
       tab.addEventListener("click", function (e) {
@@ -135,30 +172,47 @@ block content %}
         this.classList.add("active");
 
         let selectedCategory = this.getAttribute("data-tab");
-        document.querySelectorAll("#newsTableBody tr").forEach((row) => {
-          if (
-            selectedCategory === "all" ||
-            row.getAttribute("data-category") === selectedCategory
-          ) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
-          }
-        });
+        document
+          .querySelectorAll("#newsItems > div[data-category]")
+          .forEach((row) => {
+            if (
+              selectedCategory === "all" ||
+              row.getAttribute("data-category") === selectedCategory
+            ) {
+              row.style.display = "";
+            } else {
+              row.style.display = "none";
+            }
+          });
       });
     });
 
-    // Add new stock symbol input field
-    document.getElementById("addSource").addEventListener("click", function () {
-      let sourceContainer = document.getElementById("sourceContainer");
-      let count =
-        sourceContainer.getElementsByClassName("input-group").length + 1;
-      let newSource = document.createElement("div");
-      newSource.classList.add("input-group", "mb-2");
-      newSource.innerHTML = `<span class="input-group-text">#${count}</span>
-      <input type="text" name="stock_symbols" class="form-control" placeholder="Enter STOCK SYMBOL">`;
-      sourceContainer.appendChild(newSource);
-    });
+    // Auto-refresh based on frequency dropdown
+    const frequencyDropdown = document.getElementById("frequencyDropdown");
+    let refreshInterval;
+
+    function setupRefreshInterval() {
+      // Clear any existing interval
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+
+      // Set up new interval based on selection
+      const selectedValue = frequencyDropdown.value;
+      if (selectedValue !== "all") {
+        const minutes = parseInt(selectedValue.replace("min", ""));
+        const milliseconds = minutes * 60 * 1000;
+
+        refreshInterval = setInterval(() => {
+          // Automatically submit the form
+          document.getElementById("submitSources").click();
+        }, milliseconds);
+      }
+    }
+
+    // Set up initial interval and add change listener
+    setupRefreshInterval();
+    frequencyDropdown.addEventListener("change", setupRefreshInterval);
   });
 </script>
 {% endblock %}
