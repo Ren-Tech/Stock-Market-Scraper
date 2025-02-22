@@ -1,378 +1,228 @@
-{% extends "base.html" %} {% block title %} Stocks {% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Stock Prices & Trends{% endblock %}
+{% block content %}
 <div class="container mt-4">
-  <h2>Stock Prices & Trends</h2>
-  <p>Monitor stock prices, indices, and market trends.</p>
+  <h2 class="text-center mb-4">Stock Prices & Trends</h2>
 
-  <!-- Mini Tabs for Country Selection -->
-  <ul class="nav nav-pills nav-justified" id="marketTabs">
-    <li class="nav-item">
-      <a
-        class="nav-link active"
-        style="color: black"
-        data-bs-toggle="tab"
-        href="#us"
-        >🇺🇸 US</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#uk"
-        >🇬🇧 UK</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#ge"
-        >🇩🇪 GE</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#fr"
-        >🇫🇷 FR</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" style="color: black" data-bs-toggle="tab" href="#jp"
-        >🇯🇵 JP</a
-      >
-    </li>
-  </ul>
-
-  <div class="tab-content mt-3">
-    <div class="tab-pane fade show active" id="us">
-      <div class="row">
-        <!-- Left Column: Category Selection -->
-        <div class="col-md-4">
-          <div class="p-3 bg-light text-dark rounded">
-            <h4>Market Overview</h4>
-            <div class="d-flex flex-column">
-              <button
-                class="btn btn-primary mb-2"
-                onclick="showCategory('gainers')"
-              >
-                Gainers & Losers
-              </button>
-              <button
-                class="btn btn-success mb-2"
-                onclick="showCategory('activities')"
-              >
-                Most Activities
-              </button>
-              <button
-                class="btn btn-warning mb-2"
-                onclick="showCategory('trends')"
-              >
-                Trends
-              </button>
-              <button
-                class="btn btn-danger mb-2"
-                onclick="showCategory('volatility')"
-              >
-                Volatility
-              </button>
-              <button
-                class="btn btn-secondary mb-2"
-                onclick="showCategory('all')"
-              >
-                ALL
-              </button>
-            </div>
-          </div>
+  <!-- Search Form -->
+  <div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+      <form method="POST" class="d-flex justify-content-between">
+        <input
+          type="text"
+          name="stock_symbols"
+          class="form-control me-2"
+          placeholder="Enter stock symbols (comma separated)"
+          value="{{ ','.join(symbols) if symbols else '' }}"
+        />
+        <div class="d-flex">
+          <button type="submit" class="btn btn-primary me-2">Search</button>
+          <button type="button" class="btn btn-outline-secondary">
+            <a
+              href="{{ url_for('stock_reports') }}"
+              class="btn btn-outline-secondary"
+            >
+              <i class="bi bi-file-earmark-text"></i> Report
+            </a>
+          </button>
         </div>
+      </form>
+    </div>
+  </div>
 
-        <!-- Right Column: Category Content in Grid -->
-        <div class="col-md-8">
-          <div class="row">
-            <!-- Gainers & Losers Category -->
-            <div
-              id="gainers"
-              class="category-container bg-primary text-white p-3 rounded col-md-6"
+  <!-- Mini Tabs -->
+  <div class="d-flex justify-content-around mt-3">
+    <div
+      class="p-3 text-white rounded shadow-sm"
+      style="background-color: #dc3545; cursor: pointer"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)';"
+      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+    >
+      Failers
+    </div>
+    <div
+      class="p-3 text-white rounded shadow-sm"
+      style="background-color: #28a745; cursor: pointer"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)';"
+      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+    >
+      Gainers
+    </div>
+    <div
+      class="p-3 text-white rounded shadow-sm"
+      style="background-color: #007bff; cursor: pointer"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)';"
+      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+    >
+      Most Activities
+    </div>
+    <div
+      class="p-3 text-white rounded shadow-sm"
+      style="background-color: #fd7e14; cursor: pointer"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)';"
+      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+    >
+      Sector Trends
+    </div>
+    <div
+      class="p-3 text-white rounded shadow-sm"
+      style="background-color: #6f42c1; cursor: pointer"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)';"
+      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+    >
+      Volatility
+    </div>
+  </div>
+
+  <script>
+    function updateFrequency(tableId, selectedValue) {
+      document.getElementById(tableId + "-selected").innerText = selectedValue;
+    }
+  </script>
+
+  <!-- Loop through categories -->
+  {% for category, color in [('Failers', 'danger'), ('Gainers', 'success'),
+  ('Most Activities', 'primary'), ('Sector Trends', 'warning'), ('Volatility',
+  'secondary')] %}
+
+  <div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="text-{{ color }}">{{ category }}</h3>
+
+      <!-- Frequency Dropdown -->
+      <div class="dropdown">
+        <button
+          class="btn btn-outline-{{ color }} dropdown-toggle"
+          type="button"
+          id="{{ category }}-dropdown"
+          data-bs-toggle="dropdown"
+          style="transition: background-color 0.3s"
+        >
+          Frequency: <span id="{{ category }}-selected">Day</span>
+        </button>
+        <ul class="dropdown-menu">
+          {% for time in ["15mins", "30mins", "1hr", "3hr", "5hr", "6hr", "8hr",
+          "Day"] %}
+          <li>
+            <a
+              class="dropdown-item"
+              href="#"
+              onclick="updateFrequency('{{ category }}', '{{ time }}')"
             >
-              <h5>Gainers & Losers</h5>
-              <p>Displaying top gainers and losers in the market.</p>
-
-              <!-- Table inside container -->
-              <div class="table-responsive">
-                <table class="table table-bordered mt-3">
-                  <thead class="thead-dark">
-                    <tr>
-                      <th>Company Name</th>
-                      <th>Ticker</th>
-                      <th>Sector</th>
-                      <th>Specialization</th>
-                      <th>Fray</th>
-                      <th>% Change</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>ABC Corp</td>
-                      <td>ABC</td>
-                      <td>Technology</td>
-                      <td>Software</td>
-                      <td>50%</td>
-                      <td class="text-success">+3.2%</td>
-                    </tr>
-                    <tr>
-                      <td>XYZ Inc</td>
-                      <td>XYZ</td>
-                      <td>Healthcare</td>
-                      <td>Biotech</td>
-                      <td>45%</td>
-                      <td class="text-success">+2.8%</td>
-                    </tr>
-                    <tr>
-                      <td>LMN Ltd</td>
-                      <td>LMN</td>
-                      <td>Finance</td>
-                      <td>Investment</td>
-                      <td>40%</td>
-                      <td class="text-danger">-1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>DEF Enterprises</td>
-                      <td>DEF</td>
-                      <td>Retail</td>
-                      <td>Fashion</td>
-                      <td>30%</td>
-                      <td class="text-success">+1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>PQR Group</td>
-                      <td>PQR</td>
-                      <td>Energy</td>
-                      <td>Oil & Gas</td>
-                      <td>25%</td>
-                      <td class="text-danger">-2.0%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Most Activities Category -->
-            <div
-              id="activities"
-              class="category-container bg-success text-white p-3 rounded col-md-6"
-            >
-              <h5>Most Activities</h5>
-              <p>Showing most active stocks in the market.</p>
-
-              <!-- Table inside container -->
-              <div class="table-responsive">
-                <table class="table table-bordered mt-3">
-                  <thead class="thead-dark">
-                    <tr>
-                      <th>Company Name</th>
-                      <th>Ticker</th>
-                      <th>Sector</th>
-                      <th>Specialization</th>
-                      <th>Fray</th>
-                      <th>% Change</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>ABC Corp</td>
-                      <td>ABC</td>
-                      <td>Technology</td>
-                      <td>Software</td>
-                      <td>50%</td>
-                      <td class="text-success">+3.2%</td>
-                    </tr>
-                    <tr>
-                      <td>XYZ Inc</td>
-                      <td>XYZ</td>
-                      <td>Healthcare</td>
-                      <td>Biotech</td>
-                      <td>45%</td>
-                      <td class="text-success">+2.8%</td>
-                    </tr>
-                    <tr>
-                      <td>LMN Ltd</td>
-                      <td>LMN</td>
-                      <td>Finance</td>
-                      <td>Investment</td>
-                      <td>40%</td>
-                      <td class="text-danger">-1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>DEF Enterprises</td>
-                      <td>DEF</td>
-                      <td>Retail</td>
-                      <td>Fashion</td>
-                      <td>30%</td>
-                      <td class="text-success">+1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>PQR Group</td>
-                      <td>PQR</td>
-                      <td>Energy</td>
-                      <td>Oil & Gas</td>
-                      <td>25%</td>
-                      <td class="text-danger">-2.0%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Market Trends Category -->
-            <div
-              id="trends"
-              class="category-container bg-warning text-dark p-3 rounded col-md-6"
-            >
-              <h5>Market Trends</h5>
-              <p>Market trends and analytics overview.</p>
-
-              <!-- Table inside container -->
-              <div class="table-responsive">
-                <table class="table table-bordered mt-3">
-                  <thead class="thead-dark">
-                    <tr>
-                      <th>Company Name</th>
-                      <th>Ticker</th>
-                      <th>Sector</th>
-                      <th>Specialization</th>
-                      <th>Fray</th>
-                      <th>% Change</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>ABC Corp</td>
-                      <td>ABC</td>
-                      <td>Technology</td>
-                      <td>Software</td>
-                      <td>50%</td>
-                      <td class="text-success">+3.2%</td>
-                    </tr>
-                    <tr>
-                      <td>XYZ Inc</td>
-                      <td>XYZ</td>
-                      <td>Healthcare</td>
-                      <td>Biotech</td>
-                      <td>45%</td>
-                      <td class="text-success">+2.8%</td>
-                    </tr>
-                    <tr>
-                      <td>LMN Ltd</td>
-                      <td>LMN</td>
-                      <td>Finance</td>
-                      <td>Investment</td>
-                      <td>40%</td>
-                      <td class="text-danger">-1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>DEF Enterprises</td>
-                      <td>DEF</td>
-                      <td>Retail</td>
-                      <td>Fashion</td>
-                      <td>30%</td>
-                      <td class="text-success">+1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>PQR Group</td>
-                      <td>PQR</td>
-                      <td>Energy</td>
-                      <td>Oil & Gas</td>
-                      <td>25%</td>
-                      <td class="text-danger">-2.0%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Volatility Category -->
-            <div
-              id="volatility"
-              class="category-container bg-danger text-white p-3 rounded col-md-6"
-            >
-              <h5>Volatile Stocks</h5>
-              <p>Stocks with the highest price fluctuations.</p>
-
-              <!-- Table inside container -->
-              <div class="table-responsive">
-                <table class="table table-bordered mt-3">
-                  <thead class="thead-dark">
-                    <tr>
-                      <th>Company Name</th>
-                      <th>Ticker</th>
-                      <th>Sector</th>
-                      <th>Specialization</th>
-                      <th>Fray</th>
-                      <th>% Change</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>ABC Corp</td>
-                      <td>ABC</td>
-                      <td>Technology</td>
-                      <td>Software</td>
-                      <td>50%</td>
-                      <td class="text-success">+3.2%</td>
-                    </tr>
-                    <tr>
-                      <td>XYZ Inc</td>
-                      <td>XYZ</td>
-                      <td>Healthcare</td>
-                      <td>Biotech</td>
-                      <td>45%</td>
-                      <td class="text-success">+2.8%</td>
-                    </tr>
-                    <tr>
-                      <td>LMN Ltd</td>
-                      <td>LMN</td>
-                      <td>Finance</td>
-                      <td>Investment</td>
-                      <td>40%</td>
-                      <td class="text-danger">-1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>DEF Enterprises</td>
-                      <td>DEF</td>
-                      <td>Retail</td>
-                      <td>Fashion</td>
-                      <td>30%</td>
-                      <td class="text-success">+1.5%</td>
-                    </tr>
-                    <tr>
-                      <td>PQR Group</td>
-                      <td>PQR</td>
-                      <td>Energy</td>
-                      <td>Oil & Gas</td>
-                      <td>25%</td>
-                      <td class="text-danger">-2.0%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+              {{ time }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
       </div>
     </div>
 
-    <!-- Similar code for other countries can be added here (UK, GE, FR, etc.) -->
+    <!-- Stock Data Table -->
+    <table class="table table-bordered table-striped table-hover">
+      <thead class="table-{{ color }}">
+        <tr>
+          <th>NO</th>
+          <th>Company</th>
+          <th>Ticker</th>
+          <th>Open</th>
+          <th>Latest</th>
+          <th>Country</th>
+          <th>Exchange</th>
+          <th>Sector</th>
+          <th>Specialization</th>
+          <th>Frequency</th>
+          <th>% Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if not stock_data %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No stock data available. Please search for symbols above.
+          </td>
+        </tr>
+        {% else %} {% if category == 'Failers' %} {% set found = false %} {% for
+        ticker, data in stock_data.items() %} {% if not data.empty and
+        (data['Close'].iloc[-1] - data['Open'].iloc[0]) / data['Open'].iloc[0] *
+        100 < 0 %} {% set found = true %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ticker }}</td>
+          <td>{{ ticker }}</td>
+          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+          <td>USA</td>
+          <td>NYSE</td>
+          <td>Technology</td>
+          <td>General</td>
+          <td>{{ category }}</td>
+          <td class="text-danger">
+            {{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+            data['Open'].iloc[0] * 100) }}%
+          </td>
+        </tr>
+        {% endif %} {% endfor %} {% if not found %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No declining stocks found in current data.
+          </td>
+        </tr>
+        {% endif %} {% elif category == 'Gainers' %} {% set found = false %} {%
+        for ticker, data in stock_data.items() %} {% if not data.empty and
+        (data['Close'].iloc[-1] - data['Open'].iloc[0]) / data['Open'].iloc[0] *
+        100 > 0 %} {% set found = true %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ticker }}</td>
+          <td>{{ ticker }}</td>
+          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+          <td>USA</td>
+          <td>NASDAQ</td>
+          <td>Technology</td>
+          <td>General</td>
+          <td>{{ category }}</td>
+          <td class="text-success">
+            +{{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+            data['Open'].iloc[0] * 100) }}%
+          </td>
+        </tr>
+        {% endif %} {% endfor %} {% if not found %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No gaining stocks found in current data.
+          </td>
+        </tr>
+        {% endif %} {% elif category == 'Most Activities' %} {% set found =
+        false %} {% for ticker, data in stock_data.items() %} {% if not
+        data.empty and data['Volume'].sum() > 0 %} {% set found = true %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ticker }}</td>
+          <td>{{ ticker }}</td>
+          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+          <td>USA</td>
+          <td>NYSE</td>
+          <td>Technology</td>
+          <td>General</td>
+          <td>{{ category }}</td>
+          <td
+            class="{{ 'text-success' if (data['Close'].iloc[-1] - data['Open'].iloc[0]) > 0 else 'text-danger' }}"
+          >
+            {{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+            data['Open'].iloc[0] * 100) }}%
+          </td>
+        </tr>
+        {% endif %} {% endfor %} {% if not found %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No activities found in the stock data.
+          </td>
+        </tr>
+        {% endif %} {% endif %} {% endif %}
+      </tbody>
+    </table>
   </div>
+  {% endfor %}
 </div>
-
-<script>
-  // Function to show and hide category containers
-  function showCategory(category) {
-    const categories = ["gainers", "activities", "trends", "volatility", "all"];
-    categories.forEach(function (cat) {
-      const categoryDiv = document.getElementById(cat);
-      if (cat === category || category === "all") {
-        categoryDiv.style.display = "block";
-      } else {
-        categoryDiv.style.display = "none";
-      }
-    });
-  }
-
-  // Initialize category view
-  showCategory("all");
-</script>
 {% endblock %}

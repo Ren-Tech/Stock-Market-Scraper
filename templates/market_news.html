@@ -95,8 +95,8 @@ content %}
         <span class="mx-3">
           <span class="fw-bold">{{ symbol }}</span>: {{
           "%.2f"|format(data['Close'].iloc[-1]) }} {% set price_change =
-          (data['Close'].iloc[-1] -
-          data['Close'].iloc[-2])/data['Close'].iloc[-2] * 100 %}
+          (data['Close'].iloc[-1] - data['Close'].iloc[-2]) /
+          data['Close'].iloc[-2] * 100 %}
           <span
             class="{% if price_change > 0 %}price-change-positive{% else %}price-change-negative{% endif %}"
           >
@@ -153,7 +153,7 @@ content %}
         <div class="p-3 bg-light rounded shadow-sm mb-4">
           <h4 class="fw-bold mb-3">🔥 Trending Now</h4>
           <ul class="list-unstyled">
-            {% for trending_news in news_data[:3] %}
+            {% for trending_news in news_data[:5] %}
             <li class="trending-item mb-3">
               <a href="{{ trending_news.link }}" class="text-dark">
                 <div class="d-flex align-items-center">
@@ -173,7 +173,7 @@ content %}
           </ul>
         </div>
 
-        <!-- Stock Performance -->
+        <!-- Stock Performance (Optional) -->
         <div class="p-3 bg-white rounded shadow-sm mb-4">
           <h4 class="fw-bold mb-3">📈 Stock Performance</h4>
           {% for symbol, data in stock_data.items() %} {% if not data.empty %}
@@ -186,7 +186,7 @@ content %}
                     >{{ "%.2f"|format(data['Close'].iloc[-1]) }}</span
                   >
                   {% set price_change = (data['Close'].iloc[-1] -
-                  data['Close'].iloc[-2])/data['Close'].iloc[-2] * 100 %}
+                  data['Close'].iloc[-2]) / data['Close'].iloc[-2] * 100 %}
                   <span
                     class="{% if price_change > 0 %}price-change-positive{% else %}price-change-negative{% endif %}"
                   >
@@ -209,4 +209,5 @@ content %}
     </div>
   </div>
 </div>
+
 {% endblock %}

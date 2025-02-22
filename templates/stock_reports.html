@@ -1,0 +1,269 @@
+{% extends "base.html" %} {% block title %}Stock Market Analysis Report{%
+endblock %} {% block content %}
+<div class="container mt-4">
+  <!-- Country Category Tabs -->
+  <div class="mb-4">
+    <ul class="nav nav-pills nav-justified" id="countryTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          data-bs-toggle="pill"
+          data-bs-target="#us"
+          type="button"
+        >
+          🇺🇸 US
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="pill"
+          data-bs-target="#uk"
+          type="button"
+        >
+          🇬🇧 UK
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="pill"
+          data-bs-target="#ge"
+          type="button"
+        >
+          🇩🇪 GE
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="pill"
+          data-bs-target="#fr"
+          type="button"
+        >
+          🇫🇷 FR
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="pill"
+          data-bs-target="#jp"
+          type="button"
+        >
+          🇯🇵 JP
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="pill"
+          data-bs-target="#pi"
+          type="button"
+        >
+          🌏 PI
+        </button>
+      </li>
+    </ul>
+  </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Stock Market Analysis Report</h2>
+    <div class="text-muted">
+      Generated on: {{ datetime.now().strftime('%Y-%m-%d %H:%M') }}
+    </div>
+  </div>
+
+  <!-- Report Summary section remains the same -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h4>Executive Summary</h4>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="border rounded p-3 text-center">
+            <h6>Total Stocks Analyzed</h6>
+            <h3>{{ stock_data|length }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-3 text-center">
+            <h6>Gainers</h6>
+            <h3 class="text-success">
+              {% set gainers = namespace(count=0) %} {% for ticker, data in
+              stock_data.items() %} {% if not data.empty and
+              (data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+              data['Open'].iloc[0] * 100 > 0 %} {% set gainers.count =
+              gainers.count + 1 %} {% endif %} {% endfor %} {{ gainers.count }}
+            </h3>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-3 text-center">
+            <h6>Decliners</h6>
+            <h3 class="text-danger">
+              {% set decliners = namespace(count=0) %} {% for ticker, data in
+              stock_data.items() %} {% if not data.empty and
+              (data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+              data['Open'].iloc[0] * 100 < 0 %} {% set decliners.count =
+              decliners.count + 1 %} {% endif %} {% endfor %} {{ decliners.count
+              }}
+            </h3>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-3 text-center">
+            <h6>Average Volume</h6>
+            <h3>
+              {% set total_volume = namespace(sum=0, count=0) %} {% for ticker,
+              data in stock_data.items() %} {% if not data.empty %} {% set
+              total_volume.sum = total_volume.sum + data['Volume'].mean() %} {%
+              set total_volume.count = total_volume.count + 1 %} {% endif %} {%
+              endfor %} {{ '{:,.0f}'.format(total_volume.sum /
+              total_volume.count if total_volume.count > 0 else 0) }}
+            </h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Updated Top Gainers Report -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">Top Gainers</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Company Name</th>
+              <th>Ticker</th>
+              <th>Sector</th>
+              <th>Specialization</th>
+              <th>Open</th>
+              <th>Close</th>
+              <th>Change (%)</th>
+              <th>Volume</th>
+              <th>FRGY</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticker, data in stock_data.items() %} {% if not data.empty
+            and (data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+            data['Open'].iloc[0] * 100 > 0 %}
+            <tr>
+              <td>{{ data.get('Company_Name', ticker + ' Inc') }}</td>
+              <td>{{ ticker }}</td>
+              <td>{{ data.get('Sector', 'Technology') }}</td>
+              <td>{{ data.get('Specialization', 'General') }}</td>
+              <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+              <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+              <td class="text-success">
+                +{{ "%.2f"|format((data['Close'].iloc[-1] -
+                data['Open'].iloc[0]) / data['Open'].iloc[0] * 100) }}%
+              </td>
+              <td>{{ '{:,.0f}'.format(data['Volume'].mean()) }}</td>
+              <td>{{ data.get('FRGY', '24h') }}</td>
+            </tr>
+            {% endif %} {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Updated Top Decliners Report -->
+  <div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+      <h5 class="mb-0">Top Decliners</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Company Name</th>
+              <th>Ticker</th>
+              <th>Sector</th>
+              <th>Specialization</th>
+              <th>Open</th>
+              <th>Close</th>
+              <th>Change (%)</th>
+              <th>Volume</th>
+              <th>FRGY</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticker, data in stock_data.items() %} {% if not data.empty
+            and (data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+            data['Open'].iloc[0] * 100 < 0 %}
+            <tr>
+              <td>{{ data.get('Company_Name', ticker + ' Inc') }}</td>
+              <td>{{ ticker }}</td>
+              <td>{{ data.get('Sector', 'Technology') }}</td>
+              <td>{{ data.get('Specialization', 'General') }}</td>
+              <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+              <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+              <td class="text-danger">
+                {{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0])
+                / data['Open'].iloc[0] * 100) }}%
+              </td>
+              <td>{{ '{:,.0f}'.format(data['Volume'].mean()) }}</td>
+              <td>{{ data.get('FRGY', '24h') }}</td>
+            </tr>
+            {% endif %} {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Updated Most Active Stocks -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Most Active Stocks</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Company Name</th>
+              <th>Ticker</th>
+              <th>Sector</th>
+              <th>Specialization</th>
+              <th>Open</th>
+              <th>Close</th>
+              <th>Change (%)</th>
+              <th>Volume</th>
+              <th>FRGY</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticker, data in
+            stock_data.items()|sort(attribute='1.Volume.mean()', reverse=True)
+            %} {% if not data.empty %}
+            <tr>
+              <td>{{ data.get('Company_Name', ticker + ' Inc') }}</td>
+              <td>{{ ticker }}</td>
+              <td>{{ data.get('Sector', 'Technology') }}</td>
+              <td>{{ data.get('Specialization', 'General') }}</td>
+              <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+              <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+              <td
+                class="{{ 'text-success' if (data['Close'].iloc[-1] - data['Open'].iloc[0]) > 0 else 'text-danger' }}"
+              >
+                {{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0])
+                / data['Open'].iloc[0] * 100) }}%
+              </td>
+              <td>{{ '{:,.0f}'.format(data['Volume'].mean()) }}</td>
+              <td>{{ data.get('FRGY', '24h') }}</td>
+            </tr>
+            {% endif %} {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
