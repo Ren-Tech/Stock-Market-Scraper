@@ -23,16 +23,35 @@ block content %}
     </li>
   </ul>
 
+  <!-- Toggle Button for Search Panel -->
+  <button
+    id="toggleSearch"
+    class="btn btn-sm btn-outline-primary mt-3 {% if news_data %} visible {% else %} d-none {% endif %}"
+  >
+    <i class="bi bi-arrow-right-circle"></i> Show Search
+  </button>
+
   <!-- Two-Column Layout -->
   <div class="row mt-4">
-    <!-- Left Column: Input Fields -->
-    <div class="col-md-4">
-      <div class="card shadow-sm p-3">
+    <!-- Left Column: Input Fields (Hidden after submitting) -->
+    <div
+      class="col-md-4"
+      id="leftColumn"
+      {%
+      if
+      news_data
+      %}
+      style="display: none"
+      {%
+      endif
+      %}
+    >
+      <div class="card shadow-sm p-3" id="stockFormCard">
         <h6 class="text-center text-primary">Stock Symbols</h6>
-        <form method="POST">
+        <form method="POST" id="stockForm">
           <div id="sourceContainer">
             {% for i in range(1, 6) %}
-            <div class="input-group mb-2">
+            <div class="input-group mb-2 source-field">
               <span class="input-group-text">#{{ i }}</span>
               <input
                 type="text"
@@ -44,6 +63,16 @@ block content %}
             </div>
             {% endfor %}
           </div>
+
+          <!-- Add Source Button -->
+          <button
+            id="addSourceBtn"
+            type="button"
+            class="btn btn-outline-secondary btn-sm w-100 mb-3"
+          >
+            <i class="bi bi-plus-circle"></i> Add Source
+          </button>
+
           <!-- Submit Button -->
           <button
             id="submitSources"
@@ -64,57 +93,21 @@ block content %}
           </select>
         </form>
       </div>
-
-      <!-- Stock Data Display -->
-      {% if stock_data %}
-      <div class="card shadow-sm p-3 mt-4">
-        <h6 class="text-center text-primary">Stock Data</h6>
-        {% for symbol, data in stock_data.items() %} {% if not data.empty %}
-        <div class="mb-4">
-          <h6 class="border-bottom pb-2">
-            {{ symbol }} Stock Data (Last 5 Days)
-          </h6>
-          <div class="table-responsive">
-            <table class="table table-sm table-striped">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Open</th>
-                  <th>High</th>
-                  <th>Low</th>
-                  <th>Close</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for index, row in data.iterrows() %}
-                <tr>
-                  <td>{{ index.strftime('%Y-%m-%d') }}</td>
-                  <td>{{ "%.2f"|format(row['Open']) }}</td>
-                  <td>{{ "%.2f"|format(row['High']) }}</td>
-                  <td>{{ "%.2f"|format(row['Low']) }}</td>
-                  <td>{{ "%.2f"|format(row['Close']) }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        {% else %}
-        <div class="alert alert-warning">
-          No data available for {{ symbol }}
-        </div>
-        {% endif %} {% endfor %}
-      </div>
-      {% endif %}
     </div>
 
     <!-- Right Column: News -->
-    <div class="col-md-8">
-      <div class="card shadow-sm p-3">
+    <div
+      class="col-md-{% if news_data %}12{% else %}8{% endif %}"
+      id="newsColumn"
+    >
+      <div class="card shadow-sm p-3" id="newsCard">
         <h6 class="text-center text-primary">News Feed</h6>
         <div class="row" id="newsItems">
           {% for news in news_data %}
-          <div class="col-md-12 mb-3" data-category="{{ news.category }}">
+          <div
+            class="col-md-{% if news_data %}6{% else %}12{% endif %} mb-3"
+            data-category="{{ news.category }}"
+          >
             <div class="card">
               <div class="row g-0">
                 <div class="col-md-4">
@@ -163,7 +156,120 @@ block content %}
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Category filtering
+    let stockForm = document.querySelector("form");
+    let leftColumn = document.querySelector("#leftColumn"); // Left column (search form)
+    let newsColumn = document.querySelector("#newsColumn"); // News column
+    let newsItems = document.querySelector("#newsItems");
+    let toggleButton = document.querySelector("#toggleSearch"); // Toggle button
+    let addSourceBtn = document.querySelector("#addSourceBtn"); // Add source button
+    let sourceContainer = document.querySelector("#sourceContainer"); // Source container
+
+    // Function to add new source field
+    addSourceBtn.addEventListener("click", function () {
+      // Count existing fields to determine next number
+      const existingFields = document.querySelectorAll(".source-field").length;
+      const nextNum = existingFields + 1;
+
+      // Create new input group
+      const newField = document.createElement("div");
+      newField.className = "input-group mb-2 source-field";
+      newField.innerHTML = `
+          <span class="input-group-text">#${nextNum}</span>
+          <input
+            type="text"
+            name="stock_symbols"
+            class="form-control"
+            placeholder="Enter AAPL, TSLA, etc."
+          />
+          <button type="button" class="btn btn-outline-danger remove-field">
+            <i class="bi bi-x"></i>
+          </button>
+        `;
+
+      // Add field to container
+      sourceContainer.appendChild(newField);
+
+      // Add event listener to remove button
+      newField
+        .querySelector(".remove-field")
+        .addEventListener("click", function () {
+          newField.remove();
+          // Renumber remaining fields
+          renumberFields();
+        });
+    });
+
+    // Function to renumber fields after removal
+    function renumberFields() {
+      const fields = document.querySelectorAll(".source-field");
+      fields.forEach((field, index) => {
+        field.querySelector(".input-group-text").textContent = `#${index + 1}`;
+      });
+    }
+
+    // Toggle search panel visibility
+    toggleButton.addEventListener("click", function () {
+      const isSearchVisible = leftColumn.style.display !== "none";
+
+      if (isSearchVisible) {
+        // Hide search panel
+        leftColumn.style.display = "none";
+        toggleButton.innerHTML =
+          '<i class="bi bi-arrow-right-circle"></i> Show Search';
+
+        // Make news take full width
+        newsColumn.className = "col-md-12";
+
+        // Switch to 2-column layout for news items
+        document.querySelectorAll("#newsItems > div").forEach((item) => {
+          item.className = item.className.replace("col-md-12", "col-md-6");
+        });
+      } else {
+        // Show search panel
+        leftColumn.style.display = "block";
+        toggleButton.innerHTML =
+          '<i class="bi bi-arrow-left-circle"></i> Hide Search';
+
+        // Reduce news width
+        newsColumn.className = "col-md-8";
+
+        // Switch to 1-column layout for news items
+        document.querySelectorAll("#newsItems > div").forEach((item) => {
+          item.className = item.className.replace("col-md-6", "col-md-12");
+        });
+      }
+    });
+
+    // Submit form and hide stock section
+    stockForm.addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent default submission
+
+      // Hide the left column (search form)
+      if (leftColumn) {
+        leftColumn.style.display = "none";
+      }
+
+      // Expand news column to full width
+      if (newsColumn) {
+        newsColumn.className = "col-md-12";
+      }
+
+      // Make news items display in a grid with 2 columns
+      document.querySelectorAll("#newsItems > div").forEach((item) => {
+        item.className = item.className.replace("col-md-12", "col-md-6");
+      });
+
+      // Show toggle button
+      toggleButton.classList.remove("d-none");
+      toggleButton.classList.add("visible");
+      toggleButton.innerHTML =
+        '<i class="bi bi-arrow-right-circle"></i> Show Search';
+
+      // Continue with form submission
+      this.submit();
+    });
+
+    // Category filtering for news
     let tabs = document.querySelectorAll("#newsTabs .nav-link");
     tabs.forEach((tab) => {
       tab.addEventListener("click", function (e) {
