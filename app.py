@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
 from datetime import datetime
@@ -111,7 +111,8 @@ def stocks():
             if not data.empty:
                 stock_data[symbol] = data
         except Exception as e:
-            logger.error(f"Error fetching stock data for {symbol}: {str(e)}")
+            # Log error (You should define logger or use print for debugging)
+            print(f"Error fetching stock data for {symbol}: {str(e)}")
     
     # Also get news related to these stocks
     news_data = []
@@ -121,15 +122,72 @@ def stocks():
                 symbol_news = get_stock_specific_news(symbol)
                 news_data.extend(symbol_news)
             except Exception as e:
-                logger.error(f"Error fetching news for {symbol}: {str(e)}")
+                print(f"Error fetching news for {symbol}: {str(e)}")
     
     return render_template("stocks.html", 
                           stock_data=stock_data, 
                           news_data=news_data, 
-                          symbols=symbols)
-# @app.route("/stocks", methods=["GET", "POST"])
-# def stocks():
-#     return render_template("stocks.html")
+                          symbols=symbols,
+                          datetime=datetime)
+
+# New route for AJAX requests to update stock data
+@app.route("/stocks_data", methods=["POST"])
+def stocks_data():
+    try:
+        # Initialize variables
+        symbols = []
+        stock_data = {}
+        
+        # Get symbols from form input
+        symbol_input = request.form.get("stock_symbols", "")
+        if symbol_input:
+            # Split by comma and clean up each symbol
+            symbols = [s.strip().upper() for s in symbol_input.split(",") if s.strip()]
+        else:
+            # Default symbols if none provided
+            symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA"]
+        
+        # Fetch stock data for each symbol
+        for symbol in symbols:
+            try:
+                data = get_stock_data(symbol)
+                if not data.empty:
+                    stock_data[symbol] = data
+            except Exception as e:
+                print(f"Error fetching stock data for {symbol}: {str(e)}")
+        
+        # Get news data (optional for AJAX updates)
+        news_data = []
+        if symbols:
+            for symbol in symbols[:3]:
+                try:
+                    symbol_news = get_stock_specific_news(symbol)
+                    news_data.extend(symbol_news)
+                except Exception as e:
+                    print(f"Error fetching news for {symbol}: {str(e)}")
+        
+        # Render only the content portion
+        html_content = render_template("stocks.html", 
+                                      stock_data=stock_data, 
+                                      news_data=news_data, 
+                                      symbols=symbols,
+                                      datetime=datetime)
+        
+        # Extract container div content from rendered HTML
+        # This is a simple approach - for more complex cases, you might use BeautifulSoup
+        start_idx = html_content.find('<div class="container')
+        end_idx = html_content.rfind('</div>') + 6
+        container_html = html_content[start_idx:end_idx]
+        
+        return jsonify({
+            'success': True,
+            'html': container_html
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
     
 @app.route("/sector_news", methods=["GET", "POST"])
 def sector_news():
