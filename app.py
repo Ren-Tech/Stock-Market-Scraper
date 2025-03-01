@@ -131,6 +131,7 @@ def stocks():
                           datetime=datetime)
 
 # New route for AJAX requests to update stock data
+
 @app.route("/stocks_data", methods=["POST"])
 def stocks_data():
     try:
@@ -214,8 +215,16 @@ def sector_news():
                     stock_data[symbol] = get_stock_data(symbol)
                 except Exception as e:
                     stock_data[symbol] = pd.DataFrame()
+
+
     
     return render_template("sector_news.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+
+@app.route("/simulation", methods=["GET", "POST"])
+def simulation():
+    # Here you can handle any logic for the simulation page if needed
+    return render_template("simulation.html")  # Make sure to create this template
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)

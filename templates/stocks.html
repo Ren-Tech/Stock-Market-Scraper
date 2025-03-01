@@ -34,15 +34,15 @@
 
   <!-- Auto-update status indicators -->
   <div class="text-center mb-3">
-    <small class="text-muted"
-      >Next update in <span id="update-countdown">10:00</span></small
-    >
+    <small class="text-muted">
+      Next update in <span id="update-countdown">10:00</span>
+    </small>
   </div>
   <div class="text-muted text-center mt-2 mb-4">
     Last updated:
-    <span id="last-update-time"
-      >{{ datetime.now().strftime('%I:%M:%S %p') }}</span
-    >
+    <span id="last-update-time">
+      {{ datetime.now().strftime('%I:%M:%S %p') }}
+    </span>
   </div>
 
   <!-- Mini Tabs -->
@@ -99,7 +99,6 @@
   {% for category, color in [('Failers', 'danger'), ('Gainers', 'success'),
   ('Most Activities', 'primary'), ('Sector Trends', 'warning'), ('Volatility',
   'secondary')] %}
-
   <div class="mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="text-{{ color }}">{{ category }}</h3>
@@ -157,35 +156,10 @@
           </td>
         </tr>
         {% else %} {% if category == 'Failers' %} {% set found = false %} {% for
-        ticker, data in stock_data.items() %} {% if not data.empty and
-        (data['Close'].iloc[-1] - data['Open'].iloc[0]) / data['Open'].iloc[0] *
-        100 < 0 %} {% set found = true %}
-        <tr>
-          <td>{{ loop.index }}</td>
-          <td>{{ ticker }}</td>
-          <td>{{ ticker }}</td>
-          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
-          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
-          <td>USA</td>
-          <td>NYSE</td>
-          <td>Technology</td>
-          <td>General</td>
-          <td>{{ category }}</td>
-          <td class="text-danger">
-            {{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0]) /
-            data['Open'].iloc[0] * 100) }}%
-          </td>
-        </tr>
-        {% endif %} {% endfor %} {% if not found %}
-        <tr>
-          <td colspan="11" class="text-center">
-            No declining stocks found in current data.
-          </td>
-        </tr>
-        {% endif %} {% elif category == 'Gainers' %} {% set found = false %} {%
-        for ticker, data in stock_data.items() %} {% if not data.empty and
-        (data['Close'].iloc[-1] - data['Open'].iloc[0]) / data['Open'].iloc[0] *
-        100 > 0 %} {% set found = true %}
+        ticker, data in stock_data.items() %} {% if not data.empty %} {% set
+        change = (data['Close'].iloc[-1] - data['Open'].iloc[0]) /
+        data['Open'].iloc[0] * 100 %} {% if change < -5 %} {% set found = true
+        %}
         <tr>
           <td>{{ loop.index }}</td>
           <td>{{ ticker }}</td>
@@ -197,20 +171,19 @@
           <td>Technology</td>
           <td>General</td>
           <td>{{ category }}</td>
-          <td class="text-success">
-            +{{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0]) /
-            data['Open'].iloc[0] * 100) }}%
-          </td>
+          <td class="text-danger">{{ "%.2f"|format(change) }}%</td>
         </tr>
-        {% endif %} {% endfor %} {% if not found %}
+        {% endif %} {% endif %} {% endfor %} {% if not found %}
         <tr>
           <td colspan="11" class="text-center">
-            No gaining stocks found in current data.
+            No failing stocks found in current data.
           </td>
         </tr>
-        {% endif %} {% elif category == 'Most Activities' %} {% set found =
+        {% endif %} {% endif %} {% if category == 'Gainers' %} {% set found =
         false %} {% for ticker, data in stock_data.items() %} {% if not
-        data.empty and data['Volume'].sum() > 0 %} {% set found = true %}
+        data.empty %} {% set change = (data['Close'].iloc[-1] -
+        data['Open'].iloc[0]) / data['Open'].iloc[0] * 100 %} {% if change > 5
+        %} {% set found = true %}
         <tr>
           <td>{{ loop.index }}</td>
           <td>{{ ticker }}</td>
@@ -218,21 +191,89 @@
           <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
           <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
           <td>USA</td>
-          <td>NYSE</td>
+          <td>NASDAQ</td>
           <td>Technology</td>
           <td>General</td>
           <td>{{ category }}</td>
-          <td
-            class="{{ 'text-success' if (data['Close'].iloc[-1] - data['Open'].iloc[0]) > 0 else 'text-danger' }}"
-          >
-            {{ "%.2f"|format((data['Close'].iloc[-1] - data['Open'].iloc[0]) /
-            data['Open'].iloc[0] * 100) }}%
-          </td>
+          <td class="text-success">{{ "%.2f"|format(change) }}%</td>
         </tr>
-        {% endif %} {% endfor %} {% if not found %}
+        {% endif %} {% endif %} {% endfor %} {% if not found %}
         <tr>
           <td colspan="11" class="text-center">
-            No activities found in the stock data.
+            No gaining stocks found in current data.
+          </td>
+        </tr>
+        {% endif %} {% endif %} {% if category == 'Most Activities' %} {% set
+        found = false %} {% for ticker, data in stock_data.items() %} {% if not
+        data.empty %} {% set activity = data['Volume'].sum() %} {% if activity >
+        10000000 %} {% set found = true %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ticker }}</td>
+          <td>{{ ticker }}</td>
+          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+          <td>USA</td>
+          <td>NASDAQ</td>
+          <td>Technology</td>
+          <td>General</td>
+          <td>{{ category }}</td>
+          <td class="text-info">{{ activity }} shares</td>
+        </tr>
+        {% endif %} {% endif %} {% endfor %} {% if not found %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No active stocks found in current data.
+          </td>
+        </tr>
+        {% endif %} {% endif %} {% if category == 'Sector Trends' %} {% set
+        found = false %} {% for ticker, data in stock_data.items() %} {% if not
+        data.empty %} {% set change = (data['Close'].iloc[-1] -
+        data['Open'].iloc[0]) / data['Open'].iloc[0] * 100 %} {% set sector =
+        'Technology' %}
+        <!-- Example, you can modify based on your dataset -->
+        {% if sector == 'Technology' %} {% set found = true %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ticker }}</td>
+          <td>{{ ticker }}</td>
+          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+          <td>USA</td>
+          <td>NASDAQ</td>
+          <td>{{ sector }}</td>
+          <td>General</td>
+          <td>{{ category }}</td>
+          <td class="text-warning">{{ "%.2f"|format(change) }}%</td>
+        </tr>
+        {% endif %} {% endif %} {% endfor %} {% if not found %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No sector trends found in current data.
+          </td>
+        </tr>
+        {% endif %} {% endif %} {% if category == 'Volatility' %} {% set found =
+        false %} {% for ticker, data in stock_data.items() %} {% if not
+        data.empty %} {% set volatility = (data['Close'].std() /
+        data['Close'].mean()) * 100 %} {% if volatility > 2 %} {% set found =
+        true %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ticker }}</td>
+          <td>{{ ticker }}</td>
+          <td>${{ "%.2f"|format(data['Open'].iloc[0]) }}</td>
+          <td>${{ "%.2f"|format(data['Close'].iloc[-1]) }}</td>
+          <td>USA</td>
+          <td>NASDAQ</td>
+          <td>Technology</td>
+          <td>General</td>
+          <td>{{ category }}</td>
+          <td class="text-secondary">{{ "%.2f"|format(volatility) }}%</td>
+        </tr>
+        {% endif %} {% endif %} {% endfor %} {% if not found %}
+        <tr>
+          <td colspan="11" class="text-center">
+            No volatility stocks found in current data.
           </td>
         </tr>
         {% endif %} {% endif %} {% endif %}
@@ -242,116 +283,26 @@
   {% endfor %}
 </div>
 
-<!-- Auto-refresh JavaScript -->
 <script>
-  // Function to update stock data using AJAX
-  function updateStockData() {
-    // Get current symbols from the input field
-    const symbolsInput = document.querySelector('input[name="stock_symbols"]');
-    const symbols = symbolsInput ? symbolsInput.value : "";
-
-    // Create a FormData object to mimic the form submission
-    const formData = new FormData();
-    formData.append("stock_symbols", symbols);
-
-    // Send AJAX request to get updated data
-    fetch('{{ url_for("stocks_data") }}', {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          // Replace the entire container with the new HTML
-          document.querySelector(".container").innerHTML = data.html;
-
-          // Reinitialize the event listeners and functions
-          initializePage();
-
-          console.log(
-            "Stock data updated at " + new Date().toLocaleTimeString()
-          );
-        } else {
-          console.error("Error updating stock data:", data.error);
-        }
-
-        // Reset timer
-        window.nextUpdateTime = new Date().getTime() + 600000;
-        updateCountdown();
-      })
-      .catch((error) => {
-        console.error("Error updating stock data:", error);
-      });
-  }
-
-  // Set up regular updates every 10 minutes (600000 milliseconds)
-  let updateInterval;
-
-  function startAutoUpdates() {
-    // Clear any existing interval
-    if (updateInterval) {
-      clearInterval(updateInterval);
-    }
-
-    // Set new interval
-    updateInterval = setInterval(updateStockData, 600000);
-
-    // Initialize next update time
-    window.nextUpdateTime = new Date().getTime() + 600000;
-
-    // Start countdown
-    updateCountdown();
-  }
-
-  // Update countdown timer
+  // Countdown function for automatic updates
   function updateCountdown() {
     const countdownElement = document.getElementById("update-countdown");
-    if (!countdownElement) return;
-
-    // Get remaining seconds until next update
     const currentTime = new Date().getTime();
-    const nextUpdateTime = window.nextUpdateTime;
-    const remainingTime = Math.max(
-      0,
-      Math.floor((nextUpdateTime - currentTime) / 1000)
-    );
+    const timeLeft = window.nextUpdateTime - currentTime;
+    const minutesLeft = Math.floor(timeLeft / 60000);
+    const secondsLeft = Math.floor((timeLeft % 60000) / 1000);
 
-    // Format as minutes:seconds
-    const minutes = Math.floor(remainingTime / 60);
-    const seconds = remainingTime % 60;
-    countdownElement.textContent = `${minutes}:${
-      seconds < 10 ? "0" + seconds : seconds
-    }`;
-
-    // Refresh countdown every second
-    if (remainingTime > 0) {
-      setTimeout(updateCountdown, 1000);
-    }
+    countdownElement.innerText =
+      String(minutesLeft).padStart(2, "0") +
+      ":" +
+      String(secondsLeft).padStart(2, "0");
   }
 
-  // Initialize page elements and event listeners
-  function initializePage() {
-    // Add event listener to refresh button
-    const refreshButton = document.querySelector(".refresh-btn");
-    if (refreshButton) {
-      refreshButton.addEventListener("click", function () {
-        updateStockData();
-      });
-    }
-
-    // Initialize frequency dropdowns
-    window.updateFrequency = function (tableId, selectedValue) {
-      const element = document.getElementById(tableId + "-selected");
-      if (element) {
-        element.innerText = selectedValue;
-      }
-    };
-  }
-
-  // Initialize everything when DOM is loaded
-  document.addEventListener("DOMContentLoaded", function () {
-    initializePage();
-    startAutoUpdates();
-  });
+  // Initialize the page
+  window.onload = function () {
+    window.nextUpdateTime = new Date().getTime() + 600000; // 10 minutes
+    updateCountdown();
+    setInterval(updateCountdown, 1000); // Update every second
+  };
 </script>
 {% endblock %}

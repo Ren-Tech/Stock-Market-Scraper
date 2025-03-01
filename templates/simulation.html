@@ -1,5 +1,70 @@
-{% extends "base.html" %} {% block title %}Simulaion{% endblock %} {% block
-content %}
-<h2>Simulation</h2>
-<p>Stay updated on different stock market with simulation charts.</p>
-{% endblock %}
+{% extends "base.html" %} {% block title %} Simulation Trading {% endblock %} {%
+block content %}
+<h2>Stock Market Trading Simulation</h2>
+<p>
+  Stay updated on different stock markets and try your hand at virtual trading
+  with real-time data.
+</p>
+
+<!-- Form to enter stock symbols -->
+<form method="POST">
+  <label for="stock_symbols">Enter stock symbols (comma separated):</label>
+  <input type="text" id="stock_symbols" name="stock_symbols" required />
+  <button type="submit">Simulate Trading</button>
+</form>
+
+<!-- Display Stock Data -->
+{% if stock_data %}
+<h3>Stock Data</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Price</th>
+      <th>Change</th>
+      <th>Volume</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for symbol, data in stock_data.items() %}
+    <tr>
+      <td><strong>{{ symbol }}</strong></td>
+      <td>{{ data['price'] }}</td>
+      <td>{{ data['change'] }}</td>
+      <td>{{ data['volume'] }}</td>
+      <td>
+        <!-- Trading Actions -->
+        <form
+          method="POST"
+          action="{{ url_for('execute_trade', symbol=symbol) }}"
+        >
+          <input
+            type="number"
+            name="quantity"
+            placeholder="Quantity"
+            required
+            min="1"
+          />
+          <button type="submit" name="action" value="buy">Buy</button>
+          <button type="submit" name="action" value="sell">Sell</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Display News Data -->
+{% if news_data %}
+<h3>Stock Market News</h3>
+<ul>
+  {% for news in news_data %}
+  <li>
+    {{ news['date'] }} - <strong>{{ news['headline'] }}</strong>: {{
+    news['summary'] }}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %} {% endblock %}
