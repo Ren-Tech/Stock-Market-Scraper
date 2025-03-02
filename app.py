@@ -36,15 +36,15 @@ def current_affairs():
     "https://www.cnbc.com/world/?region=world",
     "https://uk.finance.yahoo.com/topic/news",
     "https://www.ft.com/",
-    "https://news.sky.com/world/",
-    "https://www.france24.com/en/",
-    "https://www.dw.com/en/top-stories/s-9097",
-    "https://www.bbc.co.uk/news/world/",
-    "https://www.reuters.com/",
-    "https://www.aljazeera.com/news/",
-    "https://lemonde.fr/en/",
-    "https://www.japantimes.co.jp/news/",
-    "https://www.manilatimes.net/world",
+    # "https://news.sky.com/world/",
+    # "https://www.france24.com/en/",
+    # "https://www.dw.com/en/top-stories/s-9097",
+    # "https://www.bbc.co.uk/news/world/",
+    # "https://www.reuters.com/",
+    # "https://www.aljazeera.com/news/",
+    # "https://lemonde.fr/en/",
+    # "https://www.japantimes.co.jp/news/",
+    # "https://www.manilatimes.net/world",
 
     ]
 
@@ -213,8 +213,7 @@ def stock_reports():
     "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "NVDA", "GOOG", "BABA",
     "INTC", "AMD", "PYPL", "SPY", "BRK-B", "V", "WMT", "DIS", "JNJ", "GE", "INTU", "ADBE",
     "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
-    "LMT", "CAT", "BA", "COST", "MS", "DHR", "MMM", "ISRG", "AMD", "F", "KO", "PEP", "CVS",
-    "PYPL", "MA", "TM", "HD", "ZTS", "BLK", "AMT", "UNH", "COP", "RTX", "WFC", "AXP", "TRV",
+
 
 ]
  # Default symbols
@@ -243,8 +242,7 @@ def stocks():
            "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "NVDA", "GOOG", "BABA",
     "INTC", "AMD", "PYPL", "SPY", "BRK-B", "V", "WMT", "DIS", "JNJ", "GE", "INTU", "ADBE",
     "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
-    "LMT", "CAT", "BA", "COST", "MS", "DHR", "MMM", "ISRG", "AMD", "F", "KO", "PEP", "CVS",
-    "PYPL", "MA", "TM", "HD", "ZTS", "BLK", "AMT", "UNH", "COP", "RTX", "WFC", "AXP", "TRV",
+
   
     ]
     
@@ -382,4 +380,4 @@ def simulation():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(debug=False)
