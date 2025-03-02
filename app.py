@@ -4,6 +4,7 @@ from scraping import get_stock_market_news, get_stock_data, get_stock_specific_n
 from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
+import os
 app = Flask(__name__)
 
 def assign_category(text):
