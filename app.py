@@ -36,15 +36,15 @@ def current_affairs():
     "https://www.cnbc.com/world/?region=world",
     "https://uk.finance.yahoo.com/topic/news",
     "https://www.ft.com/",
-    # "https://news.sky.com/world/",
-    # "https://www.france24.com/en/",
-    # "https://www.dw.com/en/top-stories/s-9097",
-    # "https://www.bbc.co.uk/news/world/",
-    # "https://www.reuters.com/",
-    # "https://www.aljazeera.com/news/",
-    # "https://lemonde.fr/en/",
-    # "https://www.japantimes.co.jp/news/",
-    # "https://www.manilatimes.net/world",
+    "https://news.sky.com/world/",
+    "https://www.france24.com/en/",
+    "https://www.dw.com/en/top-stories/s-9097",
+    "https://www.bbc.co.uk/news/world/",
+    "https://www.reuters.com/",
+    "https://www.aljazeera.com/news/",
+    "https://lemonde.fr/en/",
+    "https://www.japantimes.co.jp/news/",
+    "https://www.manilatimes.net/world",
 
     ]
 
@@ -380,4 +380,4 @@ def simulation():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(host="0.0.0.0", port=8000)
