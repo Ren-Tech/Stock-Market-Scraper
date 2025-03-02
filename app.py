@@ -2,39 +2,180 @@ from flask import Flask, render_template, request, jsonify
 import pandas as pd
 from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
 from datetime import datetime
+from bs4 import BeautifulSoup
+import requests
 app = Flask(__name__)
+
+def assign_category(text):
+    """Assign a news category based on text content"""
+    text = text.lower()
+    
+    # Simple keyword-based categorization
+    if any(word in text for word in ['europe', 'eu', 'european', 'brexit', 'uk', 'germany', 'france']):
+        return 'europe'
+    elif any(word in text for word in ['asia', 'china', 'japan', 'india', 'korea']):
+        return 'asia'
+    elif any(word in text for word in ['america', 'us', 'usa', 'united states', 'canada', 'mexico']):
+        return 'north_america'
+    else:
+        return 'world'  # Default category
 
 @app.route("/", methods=["GET", "POST"])
 def current_affairs():
-    symbols = []
-    stock_data = {}
-    news_data = []  # Start with empty news
-    
-    if request.method == "POST":
-        # Get the submitted stock symbols from the form
-        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols") if symbol.strip()]
-        
-        if symbols:
-            # Get stock-specific news only when symbols are provided
-            combined_news = []
-            for symbol in symbols:
-                symbol_news = get_stock_specific_news(symbol)
-                combined_news.extend(symbol_news)
-            
-            news_data = combined_news if combined_news else []
-            
-            # Fetch stock data for each submitted symbol
-            for symbol in symbols:
-                try:
-                    stock_data[symbol] = get_stock_data(symbol)
-                except Exception as e:
-                    stock_data[symbol] = pd.DataFrame()
-        else:
-            # If no symbols provided, show empty news
-            news_data = []
-    
-    return render_template("current_affairs.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+    urls = []
+    news_data = []
+    error_messages = []
 
+    # Default top news sources if user doesn't provide any
+    default_news_sources = [
+    "https://www.wsj.com/world",
+    "https://www.nytimes.com/section/world",
+    "https://edition.cnn.com/",
+    "https://www.bbc.co.uk/news/world",
+    "https://www.msnbc.com/",
+    "https://www.cnbc.com/world/?region=world",
+    "https://uk.finance.yahoo.com/topic/news",
+    "https://www.ft.com/",
+    "https://news.sky.com/world/",
+    "https://www.france24.com/en/",
+    "https://www.dw.com/en/top-stories/s-9097",
+    "https://www.bbc.co.uk/news/world/",
+    "https://www.reuters.com/",
+    "https://www.aljazeera.com/news/",
+    "https://lemonde.fr/en/",
+    "https://www.japantimes.co.jp/news/",
+    "https://www.manilatimes.net/world",
+
+    ]
+
+    if request.method == "POST":
+        urls = [url.strip() for url in request.form.getlist("web_urls") if url.strip()]
+        
+        # If no URLs provided, use defaults
+        if not urls:
+            urls = default_news_sources
+    else:
+        # For initial page load, use defaults
+        urls = default_news_sources
+
+    # Scrape each URL with improved error handling
+    for url in urls:
+        try:
+            response = requests.get(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }, timeout=10)
+            
+            # Check if request was successful
+            if response.status_code != 200:
+                error_messages.append(f"Failed to access {url}: Status code {response.status_code}")
+                continue
+                
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # More robust scraping with multiple fallback methods
+            # Method 1: Try meta tags
+            try:
+                title = soup.find('title').text
+                content_meta = soup.find('meta', {'name': 'description'})
+                content = content_meta['content'] if content_meta else ""
+                image_meta = soup.find('meta', {'property': 'og:image'})
+                image = image_meta['content'] if image_meta else ""
+                
+                # If we got good data, add it
+                if title and content:
+                    # Determine category based on content
+                    category = assign_category(title + " " + content)
+                    
+                    news_data.append({
+                        'title': title,
+                        'content': content[:200] + "..." if len(content) > 200 else content,
+                        'image': image or "/static/images/default_news.jpg",  # Use default if no image
+                        'link': url,
+                        'category': category,
+                        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    continue  # If successful, move to next URL
+            except Exception as e:
+                print(f"Meta tag scraping failed for {url}: {str(e)}")
+                # Continue to next method...
+                
+            # Method 2: Look for news articles and headlines
+            try:
+                # Common selectors for news sites
+                article_selectors = ['article', '.story', '.news-item', '.article', 
+                                   'div[data-testid="story"]', '.story-body']
+                headline_selectors = ['h1', 'h2', 'h3', '.headline', '.title']
+                
+                # Try to find articles
+                for article_selector in article_selectors:
+                    articles = soup.select(article_selector)
+                    if articles:
+                        # Get up to 3 articles from this source
+                        for article in articles[:3]:
+                            # Find headline
+                            headline = None
+                            for headline_selector in headline_selectors:
+                                headline_elem = article.select_one(headline_selector)
+                                if headline_elem:
+                                    headline = headline_elem.text.strip()
+                                    break
+                                    
+                            if not headline:
+                                continue
+                                
+                            # Find content
+                            content_elem = article.select_one('p')
+                            content = content_elem.text.strip() if content_elem else ""
+                            
+                            # Find image
+                            img = article.select_one('img')
+                            image = img['src'] if img and 'src' in img.attrs else ""
+                            
+                            # Find link
+                            link_elem = article.select_one('a')
+                            if link_elem and 'href' in link_elem.attrs:
+                                article_url = link_elem['href']
+                                # Handle relative URLs
+                                if article_url.startswith('/'):
+                                    article_url = url.rstrip('/') + article_url
+                            else:
+                                article_url = url
+                                
+                            # Determine category based on content
+                            category = assign_category(headline + " " + content)
+                            
+                            news_data.append({
+                                'title': headline,
+                                'content': content[:200] + "..." if len(content) > 200 else content,
+                                'image': image or "/static/images/default_news.jpg",
+                                'link': article_url,
+                                'category': category,
+                                'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            })
+                        
+                        if len(news_data) > 0:  # If we found articles, break
+                            break
+            except Exception as e:
+                print(f"Article scraping failed for {url}: {str(e)}")
+                error_messages.append(f"Could not extract news from {url}")
+                
+        except requests.exceptions.RequestException as e:
+            error_messages.append(f"Failed to connect to {url}: {str(e)}")
+        except Exception as e:
+            error_messages.append(f"Error processing {url}: {str(e)}")
+
+    # Sort news by date (most recent first)
+    news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
+    
+    # Print diagnostics to help with debugging
+    print(f"URLs processed: {len(urls)}")
+    print(f"News items found: {len(news_data)}")
+    print(f"Errors encountered: {len(error_messages)}")
+    
+    return render_template("current_affairs.html", 
+                         news_data=news_data, 
+                         urls=urls, 
+                         error_messages=error_messages)
 @app.route("/market_news", methods=["GET", "POST"])
 def market_news():
     # Fetch a broader set of market news, possibly from various sources
@@ -68,7 +209,21 @@ def calendar():
 @app.route('/stock_reports')
 def stock_reports():
     # Get the stock data from the main stocks page
-    symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA"]  # Default symbols
+    symbols = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "NVDA", "GOOG", "BABA",
+    "INTC", "AMD", "PYPL", "SPY", "BRK-B", "V", "WMT", "DIS", "JNJ", "GE", "INTU", "ADBE",
+    "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
+    "LMT", "CAT", "BA", "COST", "MS", "DHR", "MMM", "ISRG", "AMD", "F", "KO", "PEP", "CVS",
+    "PYPL", "MA", "TM", "HD", "ZTS", "BLK", "AMT", "UNH", "COP", "RTX", "WFC", "AXP", "TRV",
+    "SLB", "MELI", "TMO", "NKE", "VZ", "EL", "INTC", "HSBC", "BNS", "LVS", "SPG", "SBUX",
+    "MRK", "TXN", "NEE", "QCOM", "WBA", "AMGN", "AIG", "CHL", "LRCX", "KHC", "KMI", "FIS",
+    "NSC", "GM", "DUK", "AIG", "STZ", "SCHW", "KMB", "WFC", "MTB", "ETN", "CTSH", "AON",
+    "CME", "RTN", "BA", "BAX", "APD", "MSCI", "CB", "INTU", "BBY", "JNJ", "WDC", "HCA",
+    "REGN", "TGT", "PEP", "NTES", "FISV", "SYK", "ABT", "AVGO", "GILD", "AMAT", "BMO",
+    "PGR", "SYY", "OXY", "MCO", "MSCI", "SBUX", "ZM", "SHOP", "EBAY", "INTU", "VLO", "CVX",
+    "BHP", "CLX", "UNP", "C", "KSU", "FSLR", "RIG", "PSX", "COST", "CHTR"
+]
+ # Default symbols
     stock_data = {}
     
     for symbol in symbols:
@@ -89,8 +244,21 @@ def stocks():
     symbols = []
     stock_data = {}
     
-    # Default symbols for the initial page load
-    default_symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA"]
+    # Define default symbols here (same as you already have in the code)
+    default_symbols = [
+           "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "NVDA", "GOOG", "BABA",
+    "INTC", "AMD", "PYPL", "SPY", "BRK-B", "V", "WMT", "DIS", "JNJ", "GE", "INTU", "ADBE",
+    "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
+    "LMT", "CAT", "BA", "COST", "MS", "DHR", "MMM", "ISRG", "AMD", "F", "KO", "PEP", "CVS",
+    "PYPL", "MA", "TM", "HD", "ZTS", "BLK", "AMT", "UNH", "COP", "RTX", "WFC", "AXP", "TRV",
+    "SLB", "MELI", "TMO", "NKE", "VZ", "EL", "INTC", "HSBC", "BNS", "LVS", "SPG", "SBUX",
+    "MRK", "TXN", "NEE", "QCOM", "WBA", "AMGN", "AIG", "CHL", "LRCX", "KHC", "KMI", "FIS",
+    "NSC", "GM", "DUK", "AIG", "STZ", "SCHW", "KMB", "WFC", "MTB", "ETN", "CTSH", "AON",
+    "CME", "RTN", "BA", "BAX", "APD", "MSCI", "CB", "INTU", "BBY", "JNJ", "WDC", "HCA",
+    "REGN", "TGT", "PEP", "NTES", "FISV", "SYK", "ABT", "AVGO", "GILD", "AMAT", "BMO",
+    "PGR", "SYY", "OXY", "MCO", "MSCI", "SBUX", "ZM", "SHOP", "EBAY", "INTU", "VLO", "CVX",
+    "BHP", "CLX", "UNP", "C", "KSU", "FSLR", "RIG", "PSX", "COST", "CHTR"
+    ]
     
     if request.method == "POST":
         # Get symbols from form input
@@ -111,7 +279,6 @@ def stocks():
             if not data.empty:
                 stock_data[symbol] = data
         except Exception as e:
-            # Log error (You should define logger or use print for debugging)
             print(f"Error fetching stock data for {symbol}: {str(e)}")
     
     # Also get news related to these stocks

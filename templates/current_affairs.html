@@ -23,6 +23,18 @@ block content %}
     </li>
   </ul>
 
+  <!-- Error Display Area -->
+  {% if error_messages %}
+  <div class="alert alert-danger mt-3">
+    <strong>Errors:</strong>
+    <ul class="mb-0">
+      {% for error in error_messages %}
+      <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   <!-- Toggle Button for Search Panel -->
   <button
     id="toggleSearch"
@@ -46,19 +58,19 @@ block content %}
       endif
       %}
     >
-      <div class="card shadow-sm p-3" id="stockFormCard">
-        <h6 class="text-center text-primary">Stock Symbols</h6>
-        <form method="POST" id="stockForm">
+      <div class="card shadow-sm p-3" id="urlFormCard">
+        <h6 class="text-center text-primary">Web URLs</h6>
+        <form method="POST" id="urlForm">
           <div id="sourceContainer">
-            {% for i in range(1, 6) %}
+            {% for i in range(1, 17) %}
             <div class="input-group mb-2 source-field">
               <span class="input-group-text">#{{ i }}</span>
               <input
                 type="text"
-                name="stock_symbols"
+                name="web_urls"
                 class="form-control"
-                placeholder="Enter AAPL, TSLA, etc."
-                value="{{ symbols[i-1] if symbols and i <= symbols|length else '' }}"
+                placeholder="Enter URL"
+                value="{{ urls[i-1] if urls and i <= urls|length else '' }}"
               />
             </div>
             {% endfor %}
@@ -142,7 +154,7 @@ block content %}
       <div class="card shadow-sm p-3" id="newsCard">
         <h6 class="text-center text-primary">News Feed</h6>
         <div class="row" id="newsItems">
-          {% for news in news_data %}
+          {% if news_data %} {% for news in news_data %}
           <div
             class="col-md-{% if news_data %}6{% else %}12{% endif %} mb-3"
             data-category="{{ news.category }}"
@@ -155,6 +167,7 @@ block content %}
                     class="img-fluid rounded-start"
                     alt="News Image"
                     style="height: 100%; object-fit: cover"
+                    onerror="this.src='/static/images/default_news.jpg';"
                   />
                 </div>
                 <div class="col-md-8">
@@ -168,25 +181,38 @@ block content %}
                         class="btn btn-sm btn-outline-primary"
                         >Read More</a
                       >
-                      <a
-                        href="{{ news.link }}"
-                        target="_blank"
-                        class="text-primary fw-bold"
-                        style="font-size: 14px"
-                      >
-                        {{ news.link[:30] }}...
-                      </a>
-
                       <span class="badge bg-secondary"
                         >{{ news.category|capitalize }}</span
                       >
+                    </div>
+                    <div class="mt-2">
+                      <small class="text-muted">
+                        <a
+                          href="{{ news.link }}"
+                          target="_blank"
+                          class="text-muted text-truncate d-inline-block"
+                          style="max-width: 200px"
+                        >
+                          {{ news.link }}
+                        </a>
+                      </small>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          {% endfor %}
+          {% endfor %} {% else %}
+          <div class="col-12 text-center py-5">
+            <p>No news data available. Submit the form to fetch news.</p>
+            {% if request.method == "POST" and not news_data %}
+            <div class="alert alert-warning">
+              No news could be fetched from the provided URLs. Please check the
+              URLs or try again later.
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -195,7 +221,7 @@ block content %}
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    let stockForm = document.querySelector("form");
+    let urlForm = document.querySelector("form");
     let leftColumn = document.querySelector("#leftColumn"); // Left column (search form)
     let newsColumn = document.querySelector("#newsColumn"); // News column
     let newsItems = document.querySelector("#newsItems");
@@ -227,9 +253,9 @@ block content %}
             <span class="input-group-text">#${nextNum}</span>
             <input
               type="text"
-              name="stock_symbols"
+              name="web_urls"
               class="form-control"
-              placeholder="Enter AAPL, TSLA, etc."
+              placeholder="Enter URL"
             />
             <button type="button" class="btn btn-outline-danger remove-field">
               <i class="bi bi-x"></i>
@@ -291,7 +317,7 @@ block content %}
     });
 
     // Submit form and hide stock section
-    stockForm.addEventListener("submit", function (e) {
+    urlForm.addEventListener("submit", function (e) {
       e.preventDefault(); // Prevent default submission
 
       // Hide the left column (search form)
@@ -367,7 +393,7 @@ block content %}
         // Fetch new data by submitting the form
         fetch(window.location.href, {
           method: "POST",
-          body: new FormData(stockForm),
+          body: new FormData(urlForm),
         })
           .then((response) => response.text())
           .then((html) => {
