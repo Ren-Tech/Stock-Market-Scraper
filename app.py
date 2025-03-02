@@ -215,13 +215,7 @@ def stock_reports():
     "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
     "LMT", "CAT", "BA", "COST", "MS", "DHR", "MMM", "ISRG", "AMD", "F", "KO", "PEP", "CVS",
     "PYPL", "MA", "TM", "HD", "ZTS", "BLK", "AMT", "UNH", "COP", "RTX", "WFC", "AXP", "TRV",
-    "SLB", "MELI", "TMO", "NKE", "VZ", "EL", "INTC", "HSBC", "BNS", "LVS", "SPG", "SBUX",
-    "MRK", "TXN", "NEE", "QCOM", "WBA", "AMGN", "AIG", "CHL", "LRCX", "KHC", "KMI", "FIS",
-    "NSC", "GM", "DUK", "AIG", "STZ", "SCHW", "KMB", "WFC", "MTB", "ETN", "CTSH", "AON",
-    "CME", "RTN", "BA", "BAX", "APD", "MSCI", "CB", "INTU", "BBY", "JNJ", "WDC", "HCA",
-    "REGN", "TGT", "PEP", "NTES", "FISV", "SYK", "ABT", "AVGO", "GILD", "AMAT", "BMO",
-    "PGR", "SYY", "OXY", "MCO", "MSCI", "SBUX", "ZM", "SHOP", "EBAY", "INTU", "VLO", "CVX",
-    "BHP", "CLX", "UNP", "C", "KSU", "FSLR", "RIG", "PSX", "COST", "CHTR"
+
 ]
  # Default symbols
     stock_data = {}
@@ -251,13 +245,7 @@ def stocks():
     "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
     "LMT", "CAT", "BA", "COST", "MS", "DHR", "MMM", "ISRG", "AMD", "F", "KO", "PEP", "CVS",
     "PYPL", "MA", "TM", "HD", "ZTS", "BLK", "AMT", "UNH", "COP", "RTX", "WFC", "AXP", "TRV",
-    "SLB", "MELI", "TMO", "NKE", "VZ", "EL", "INTC", "HSBC", "BNS", "LVS", "SPG", "SBUX",
-    "MRK", "TXN", "NEE", "QCOM", "WBA", "AMGN", "AIG", "CHL", "LRCX", "KHC", "KMI", "FIS",
-    "NSC", "GM", "DUK", "AIG", "STZ", "SCHW", "KMB", "WFC", "MTB", "ETN", "CTSH", "AON",
-    "CME", "RTN", "BA", "BAX", "APD", "MSCI", "CB", "INTU", "BBY", "JNJ", "WDC", "HCA",
-    "REGN", "TGT", "PEP", "NTES", "FISV", "SYK", "ABT", "AVGO", "GILD", "AMAT", "BMO",
-    "PGR", "SYY", "OXY", "MCO", "MSCI", "SBUX", "ZM", "SHOP", "EBAY", "INTU", "VLO", "CVX",
-    "BHP", "CLX", "UNP", "C", "KSU", "FSLR", "RIG", "PSX", "COST", "CHTR"
+  
     ]
     
     if request.method == "POST":
