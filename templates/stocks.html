@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Stock Prices & Trends{% endblock %}
+{% extends "base.html" %} {% block title %} Stock Prices & Trends {% endblock %}
 {% block content %}
 <div class="container mt-4">
   <h2 class="text-center mb-4">Stock Prices & Trends</h2>
@@ -7,13 +7,59 @@
   <div class="row mb-4">
     <div class="col-md-8 mx-auto">
       <form method="POST" class="d-flex justify-content-between">
-        <input
-          type="text"
-          name="stock_symbols"
-          class="form-control me-2"
-          placeholder="Enter stock symbols (comma separated)"
-          value="{{ ','.join(symbols) if symbols else '' }}"
-        />
+        <div class="d-flex flex-grow-1">
+          <!-- Symbols Dropdown -->
+          <div class="dropdown me-2">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="symbolsDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Symbols
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="symbolsDropdown">
+              {% for symbol, company in [ ("AAPL", "Apple Inc."), ("MSFT",
+              "Microsoft Corporation"), ("GOOGL", "Alphabet Inc."), ("AMZN",
+              "Amazon.com Inc."), ("META", "Meta Platforms Inc."), ("TSLA",
+              "Tesla Inc."), ("NFLX", "Netflix Inc."), ("NVDA", "NVIDIA
+              Corporation"), ("GOOG", "Alphabet Inc."), ("BABA", "Alibaba Group
+              Holding Limited"), ("INTC", "Intel Corporation"), ("AMD",
+              "Advanced Micro Devices Inc."), ("PYPL", "PayPal Holdings Inc."),
+              ("SPY", "SPDR S&P 500 ETF Trust"), ("BRK-B", "Berkshire Hathaway
+              Inc."), ("V", "Visa Inc."), ("WMT", "Walmart Inc."), ("DIS", "The
+              Walt Disney Company"), ("JNJ", "Johnson & Johnson"), ("GE",
+              "General Electric Company"), ("INTU", "Intuit Inc."), ("ADBE",
+              "Adobe Inc."), ("BA", "The Boeing Company"), ("XOM", "Exxon Mobil
+              Corporation"), ("T", "AT&T Inc."), ("ORCL", "Oracle Corporation"),
+              ("CSCO", "Cisco Systems Inc."), ("PFE", "Pfizer Inc."), ("UPS",
+              "United Parcel Service Inc."), ("MCD", "McDonald's Corporation"),
+              ("CVX", "Chevron Corporation"), ("BIDU", "Baidu Inc."), ("GS",
+              "The Goldman Sachs Group Inc.") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <input
+            type="text"
+            name="stock_symbols"
+            id="stockSymbolsInput"
+            class="form-control me-2 flex-grow-1"
+            placeholder="Enter stock symbols (comma separated)"
+            value=""
+          />
+        </div>
         <div class="d-flex">
           <button type="submit" class="btn btn-primary me-2">Search</button>
           <button type="button" class="btn btn-outline-secondary refresh-btn">
@@ -92,6 +138,18 @@
   <script>
     function updateFrequency(tableId, selectedValue) {
       document.getElementById(tableId + "-selected").innerText = selectedValue;
+    }
+
+    function addSymbolToSearch(symbol) {
+      const input = document.getElementById("stockSymbolsInput");
+      const currentSymbols = input.value
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s);
+      if (!currentSymbols.includes(symbol)) {
+        currentSymbols.push(symbol);
+        input.value = currentSymbols.join(", ");
+      }
     }
   </script>
 
