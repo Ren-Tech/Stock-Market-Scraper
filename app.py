@@ -232,12 +232,7 @@ def market_news():
     # Initialize stock symbols (e.g., major indices)
     stock_symbols = [
    
-    "TSLA",  # Tesla Inc.
-    "NVDA",  # NVIDIA Corporation
-    "META",  # Meta (Facebook)
-    "BRK.B",  # Berkshire Hathaway Inc.
-    "JNJ",  # Johnson & Johnson
-    "JPM",  # JPMorgan Chase & Co.
+  
     "V",  # Visa Inc.
     "WMT",  # Walmart Inc.
     "PG",  # Procter & Gamble Co.
