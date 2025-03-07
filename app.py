@@ -20,33 +20,174 @@ def assign_category(text):
         return 'north_america'
     else:
         return 'world'  # Default category
-
+def fetch_top_news(url, max_articles=10):
+    """Fetch top news articles from a given URL
+    
+    Args:
+        url (str): The URL of the news website
+        max_articles (int): Maximum number of articles to fetch
+        
+    Returns:
+        list: List of news article dictionaries
+    """
+    news_items = []
+    try:
+        response = requests.get(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }, timeout=10)
+        
+        if response.status_code != 200:
+            return []
+            
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Common article container selectors across news sites
+        article_selectors = [
+            'article', '.story', '.news-item', '.article', 
+            'div[data-testid="story"]', '.story-body', '.card',
+            '.news-card', '.news-package', '.article-card',
+            'li.js-stream-content', '.post', '.entry'
+        ]
+        
+        # Try each selector to find article containers
+        articles = []
+        for selector in article_selectors:
+            found_articles = soup.select(selector)
+            if found_articles and len(found_articles) >= 3:
+                articles = found_articles
+                break
+                
+        # If we didn't find articles with specific selectors, try a broader approach
+        if not articles:
+            # Look for div or li elements with certain classes
+            articles = soup.find_all(['div', 'li'], class_=lambda c: c and any(
+                keyword in str(c).lower() for keyword in 
+                ['article', 'story', 'news', 'headline', 'entry', 'post']
+            ))
+            
+        # If still no articles, look for headings with links
+        if not articles:
+            headings = soup.select('h1 a, h2 a, h3 a')
+            articles = [h.parent.parent for h in headings if h.parent and h.parent.parent]
+        
+        # Process each found article
+        count = 0
+        processed_links = set()  # To avoid duplicates
+        
+        for article in articles:
+            if count >= max_articles:
+                break
+                
+            # Extract title - check multiple heading tags and common title classes
+            title = None
+            for heading in ['h1', 'h2', 'h3', 'h4', '.headline', '.title', '[data-test="title"]']:
+                title_elem = article.select_one(heading)
+                if title_elem:
+                    title = title_elem.get_text().strip()
+                    break
+            
+            # If we still don't have a title, look for any linked text that might be a title
+            if not title:
+                link_elem = article.select_one('a')
+                if link_elem:
+                    title = link_elem.get_text().strip()
+            
+            if not title or len(title) < 5:  # Avoid items with no/very short titles
+                continue
+                
+            # Extract link
+            link = None
+            link_elem = article.select_one('a')
+            if link_elem and 'href' in link_elem.attrs:
+                link = link_elem['href']
+                # Handle relative URLs
+                if link.startswith('/'):
+                    base_url = "/".join(url.split('/')[:3])  # Get domain part
+                    link = base_url + link
+                elif not link.startswith('http'):
+                    continue  # Skip invalid links
+            else:
+                continue  # Skip if no link
+                
+            # Skip if we already processed this link
+            if link in processed_links:
+                continue
+            processed_links.add(link)
+                
+            # Extract image
+            image = None
+            img_elem = article.select_one('img')
+            if img_elem and 'src' in img_elem.attrs:
+                image = img_elem['src']
+                # Handle relative URLs
+                if image.startswith('/'):
+                    base_url = "/".join(url.split('/')[:3])  # Get domain part
+                    image = base_url + image
+            
+            # If no image, try to find picture element or background image
+            if not image:
+                picture = article.select_one('picture source')
+                if picture and 'srcset' in picture.attrs:
+                    srcset = picture['srcset'].split(',')[0].strip().split(' ')[0]
+                    image = srcset
+                    
+            # Default image if none found
+            if not image:
+                image = "/static/images/default_news.jpg"
+                
+            # Extract content/summary
+            content = None
+            content_selectors = ['p', '.summary', '.description', '.excerpt', '[data-test="description"]']
+            for selector in content_selectors:
+                content_elem = article.select_one(selector)
+                if content_elem:
+                    content = content_elem.get_text().strip()
+                    break
+                    
+            # If no content found, try to get summary from meta tags
+            if not content and title:
+                meta_desc = soup.find('meta', {'name': 'description'})
+                if meta_desc and 'content' in meta_desc.attrs:
+                    content = meta_desc['content']
+            
+            # Default content if none found
+            if not content:
+                content = f"Read the latest news from {url.split('/')[2]}."
+                
+            # Determine category
+            category = assign_category(title + " " + (content or ""))
+            
+            # Add to results
+            news_items.append({
+                'title': title,
+                'content': content[:200] + "..." if content and len(content) > 200 else content,
+                'image': image,
+                'link': link,
+                'category': category,
+                'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'source': url.split('/')[2]  # Extract domain as source
+            })
+            count += 1
+            
+    except Exception as e:
+        print(f"Error fetching news from {url}: {str(e)}")
+        
+    return news_items
 @app.route("/", methods=["GET", "POST"])
 def current_affairs():
     urls = []
     news_data = []
     error_messages = []
 
-    # Default top news sources if user doesn't provide any
+    # Default top news sources
     default_news_sources = [
-    "https://www.wsj.com/world",
-    "https://www.nytimes.com/section/world",
-    "https://edition.cnn.com/",
-    "https://www.bbc.co.uk/news/world",
-    "https://www.msnbc.com/",
-    "https://www.cnbc.com/world/?region=world",
-    "https://uk.finance.yahoo.com/topic/news",
-    # "https://www.ft.com/",
-    # "https://news.sky.com/world/",
-    # "https://www.france24.com/en/",
-    # "https://www.dw.com/en/top-stories/s-9097",
-    # "https://www.bbc.co.uk/news/world/",
-    # "https://www.reuters.com/",
-    # "https://www.aljazeera.com/news/",
-    # "https://lemonde.fr/en/",
-    # "https://www.japantimes.co.jp/news/",
-    # "https://www.manilatimes.net/world",
-
+        "https://www.wsj.com/world",
+        "https://www.nytimes.com/section/world",
+        "https://edition.cnn.com/",
+        "https://www.bbc.co.uk/news/world",
+        "https://www.msnbc.com/",
+        "https://www.cnbc.com/world/?region=world",
+        "https://uk.finance.yahoo.com/topic/news",
     ]
 
     if request.method == "POST":
@@ -59,109 +200,15 @@ def current_affairs():
         # For initial page load, use defaults
         urls = default_news_sources
 
-    # Scrape each URL with improved error handling
+    # Scrape each URL using our improved function
     for url in urls:
         try:
-            response = requests.get(url, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }, timeout=10)
-            
-            # Check if request was successful
-            if response.status_code != 200:
-                error_messages.append(f"Failed to access {url}: Status code {response.status_code}")
-                continue
-                
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # More robust scraping with multiple fallback methods
-            # Method 1: Try meta tags
-            try:
-                title = soup.find('title').text
-                content_meta = soup.find('meta', {'name': 'description'})
-                content = content_meta['content'] if content_meta else ""
-                image_meta = soup.find('meta', {'property': 'og:image'})
-                image = image_meta['content'] if image_meta else ""
-                
-                # If we got good data, add it
-                if title and content:
-                    # Determine category based on content
-                    category = assign_category(title + " " + content)
-                    
-                    news_data.append({
-                        'title': title,
-                        'content': content[:200] + "..." if len(content) > 200 else content,
-                        'image': image or "/static/images/default_news.jpg",  # Use default if no image
-                        'link': url,
-                        'category': category,
-                        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    })
-                    continue  # If successful, move to next URL
-            except Exception as e:
-                print(f"Meta tag scraping failed for {url}: {str(e)}")
-                # Continue to next method...
-                
-            # Method 2: Look for news articles and headlines
-            try:
-                # Common selectors for news sites
-                article_selectors = ['article', '.story', '.news-item', '.article', 
-                                   'div[data-testid="story"]', '.story-body']
-                headline_selectors = ['h1', 'h2', 'h3', '.headline', '.title']
-                
-                # Try to find articles
-                for article_selector in article_selectors:
-                    articles = soup.select(article_selector)
-                    if articles:
-                        # Get up to 3 articles from this source
-                        for article in articles[:3]:
-                            # Find headline
-                            headline = None
-                            for headline_selector in headline_selectors:
-                                headline_elem = article.select_one(headline_selector)
-                                if headline_elem:
-                                    headline = headline_elem.text.strip()
-                                    break
-                                    
-                            if not headline:
-                                continue
-                                
-                            # Find content
-                            content_elem = article.select_one('p')
-                            content = content_elem.text.strip() if content_elem else ""
-                            
-                            # Find image
-                            img = article.select_one('img')
-                            image = img['src'] if img and 'src' in img.attrs else ""
-                            
-                            # Find link
-                            link_elem = article.select_one('a')
-                            if link_elem and 'href' in link_elem.attrs:
-                                article_url = link_elem['href']
-                                # Handle relative URLs
-                                if article_url.startswith('/'):
-                                    article_url = url.rstrip('/') + article_url
-                            else:
-                                article_url = url
-                                
-                            # Determine category based on content
-                            category = assign_category(headline + " " + content)
-                            
-                            news_data.append({
-                                'title': headline,
-                                'content': content[:200] + "..." if len(content) > 200 else content,
-                                'image': image or "/static/images/default_news.jpg",
-                                'link': article_url,
-                                'category': category,
-                                'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            })
-                        
-                        if len(news_data) > 0:  # If we found articles, break
-                            break
-            except Exception as e:
-                print(f"Article scraping failed for {url}: {str(e)}")
+            # Fetch top 10 news from each source
+            source_news = fetch_top_news(url, max_articles=10)
+            if source_news:
+                news_data.extend(source_news)
+            else:
                 error_messages.append(f"Could not extract news from {url}")
-                
-        except requests.exceptions.RequestException as e:
-            error_messages.append(f"Failed to connect to {url}: {str(e)}")
         except Exception as e:
             error_messages.append(f"Error processing {url}: {str(e)}")
 
