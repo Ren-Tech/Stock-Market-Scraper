@@ -1,5 +1,116 @@
-{% extends "base.html" %} {% block title %}Sector News{% endblock %} {% block
-content %}
-<h2>Sector News</h2>
-<p>Stay updated on different stock market sectors.</p>
+{% extends "base.html" %}
+
+{% block title %}Sector News{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Sector Selection Form -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Sector Analysis</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('sector_news') }}">
+                <div class="form-group">
+                    <label for="sector">Select Market Sector:</label>
+                    <select class="form-control" id="sector" name="sector" onchange="this.form.submit()">
+                        {% for sector_key, sector_stocks in sectors.items() %}
+                            <option value="{{ sector_key }}" {% if sector_key == selected_sector %}selected{% endif %}>
+                                {{ sector_key|capitalize }} ({{ sector_stocks|length }} stocks)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sector Stocks -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h3 class="mb-0">{{ selected_sector|capitalize }} Stocks</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Price</th>
+                                    <th>Change</th>
+                                    <th>Volume</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for symbol in symbols %}
+                                    {% if symbol in stock_data and stock_data[symbol] is not none and stock_data[symbol].empty is defined and not stock_data[symbol].empty %}
+                                        {% set data = stock_data[symbol] %}
+                                        <tr>
+                                            <td><strong>{{ symbol }}</strong></td>
+                                            <td>${{ "%.2f"|format(data['Close'].iloc[-1]) if data['Close'] is defined and data['Close'].iloc is defined else 'N/A' }}</td>
+                                            {% if data['Close'] is defined and data['Close'].iloc is defined and data['Close'].size > 1 %}
+                                                {% set current_price = data['Close'].iloc[-1]|float %}
+                                                {% set prev_price = data['Close'].iloc[-2]|float %}
+                                                {% set price_change = current_price - prev_price %}
+                                                {% set percent_change = (price_change / prev_price * 100)|float if prev_price != 0 else 0 %}
+                                                <td class="{% if price_change > 0 %}text-success{% elif price_change < 0 %}text-danger{% endif %}">
+                                                    {{ "%.2f"|format(price_change) }} ({{ "%.2f"|format(percent_change) }}%)
+                                                </td>
+                                            {% else %}
+                                                <td>N/A</td>
+                                            {% endif %}
+                                            <td>{{ '{:,}'.format(data['Volume'].iloc[-1]|int) if data['Volume'] is defined and data['Volume'].iloc is defined else 'N/A' }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sector News -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Latest {{ selected_sector|capitalize }} News</h3>
+                </div>
+                <div class="card-body">
+                    {% if news_data %}
+                        <div class="row">
+                            {% for news in news_data %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ news.title }}</h5>
+                                            <p class="card-text small">{{ news.content }}</p>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    Source: {{ news.source }}
+                                                    {% if news.date %}
+                                                        | {{ news.date }}
+                                                    {% endif %}
+                                                </small>
+                                            </p>
+                                            <a href="{{ news.link }}" class="btn btn-sm btn-outline-primary" target="_blank">Read More</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No recent news available for this sector.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

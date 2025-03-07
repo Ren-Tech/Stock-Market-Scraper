@@ -1,5 +1,27 @@
 {% extends "base.html" %} {% block title %} Stock Prices & Trends {% endblock %}
 {% block content %}
+<style>
+  .scrollable-dropdown {
+    max-height: 200px; /* Adjust the height as needed */
+    overflow-y: auto;
+  }
+
+  .scrollable-dropdown::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollable-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  .scrollable-dropdown::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  .scrollable-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+</style>
 <div class="container mt-4">
   <h2 class="text-center mb-4">Stock Prices & Trends</h2>
 
@@ -19,7 +41,10 @@
             >
               Symbols
             </button>
-            <ul class="dropdown-menu" aria-labelledby="symbolsDropdown">
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="symbolsDropdown"
+            >
               {% for symbol, company in [ ("AAPL", "Apple Inc."), ("MSFT",
               "Microsoft Corporation"), ("GOOGL", "Alphabet Inc."), ("AMZN",
               "Amazon.com Inc."), ("META", "Meta Platforms Inc."), ("TSLA",

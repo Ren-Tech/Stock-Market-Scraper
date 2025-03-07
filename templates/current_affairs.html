@@ -77,6 +77,7 @@ block content %}
           </div>
 
           <!-- Add Source Button -->
+          <!-- Original Add Source Button preserved -->
           <button
             id="addSourceBtn"
             type="button"
@@ -85,17 +86,17 @@ block content %}
             <i class="bi bi-plus-circle"></i> Add Source
           </button>
 
-          <!-- Submit Button -->
-          <button
-            id="submitSources"
-            type="submit"
-            class="btn btn-primary btn-sm w-100 mt-2"
+          <select
+            id="frequencyDropdown"
+            class="form-select form-select-sm mb-3"
           >
-            <i class="bi bi-check-lg"></i> Submit
-          </button>
-          <hr />
-
-          <!-- Auto-refresh controls -->
+            <option value="2min">2 Min</option>
+            <option value="5min">5 Min</option>
+            <option value="10min">10 Min</option>
+            <option value="20min">20 Min</option>
+            <option value="30min">30 Min</option>
+          </select>
+          <!-- MOVED: Auto-refresh controls - now positioned before submit button -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <label class="small mb-0">Update Frequency</label>
             <div class="d-flex">
@@ -119,15 +120,16 @@ block content %}
             </div>
           </div>
 
-          <select id="frequencyDropdown" class="form-select form-select-sm">
-            <option value="2min">2 Min</option>
-            <option value="5min">5 Min</option>
-            <option value="10min">10 Min</option>
-            <option value="20min">20 Min</option>
-            <option value="30min">30 Min</option>
-          </select>
+          <!-- Modified Submit Button with new JS validation -->
+          <button
+            id="submitSources"
+            type="submit"
+            class="btn btn-primary btn-sm w-100 mt-2"
+          >
+            <i class="bi bi-check-lg"></i> Submit
+          </button>
 
-          <!-- Auto-refresh status indicator -->
+          <!-- Auto-refresh status indicator (unchanged) -->
           <div id="refreshStatus" class="small text-center mt-2 d-none">
             <span class="badge bg-success">
               <i class="bi bi-arrow-repeat"></i>
@@ -222,12 +224,13 @@ block content %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     let urlForm = document.querySelector("form");
-    let leftColumn = document.querySelector("#leftColumn"); // Left column (search form)
-    let newsColumn = document.querySelector("#newsColumn"); // News column
+    let leftColumn = document.querySelector("#leftColumn");
+    let newsColumn = document.querySelector("#newsColumn");
     let newsItems = document.querySelector("#newsItems");
-    let toggleButton = document.querySelector("#toggleSearch"); // Toggle button
-    let addSourceBtn = document.querySelector("#addSourceBtn"); // Add source button
-    let sourceContainer = document.querySelector("#sourceContainer"); // Source container
+    let toggleButton = document.querySelector("#toggleSearch");
+    let addSourceBtn = document.querySelector("#addSourceBtn");
+    let sourceContainer = document.querySelector("#sourceContainer");
+    let submitButton = document.querySelector("#submitSources");
 
     // Auto-refresh controls
     const startBtn = document.getElementById("startAutoRefresh");
@@ -250,17 +253,17 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-            <span class="input-group-text">#${nextNum}</span>
-            <input
-              type="text"
-              name="web_urls"
-              class="form-control"
-              placeholder="Enter URL"
-            />
-            <button type="button" class="btn btn-outline-danger remove-field">
-              <i class="bi bi-x"></i>
-            </button>
-          `;
+      <span class="input-group-text">#${nextNum}</span>
+      <input
+        type="text"
+        name="web_urls"
+        class="form-control"
+        placeholder="Enter URL"
+      />
+      <button type="button" class="btn btn-outline-danger remove-field">
+        <i class="bi bi-x"></i>
+      </button>
+    `;
 
       // Add field to container
       sourceContainer.appendChild(newField);
@@ -316,9 +319,15 @@ block content %}
       }
     });
 
-    // Submit form and hide stock section
+    // Submit form with validation to ensure frequency is selected
     urlForm.addEventListener("submit", function (e) {
       e.preventDefault(); // Prevent default submission
+
+      // Get selected frequency (at form submission time)
+      const selectedFrequency = frequencyDropdown.value;
+
+      // Store the selected frequency in case we need it after form submission
+      localStorage.setItem("selectedFrequency", selectedFrequency);
 
       // Hide the left column (search form)
       if (leftColumn) {
@@ -459,6 +468,13 @@ block content %}
         startAutoRefresh();
       }
     });
+
+    // Initialize with previously selected frequency if available
+    const savedFrequency = localStorage.getItem("selectedFrequency");
+    if (savedFrequency) {
+      frequencyDropdown.value = savedFrequency;
+      minutesDisplay.textContent = parseInt(savedFrequency.replace("min", ""));
+    }
   });
 </script>
 {% endblock %}

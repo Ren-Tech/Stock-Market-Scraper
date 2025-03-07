@@ -1,0 +1,151 @@
+{% extends "base.html" %} {% block title %}Philippine Stocks | Financial
+Dashboard{% endblock %} {% block content %}
+<div class="container mt-4">
+  <h1 class="text-center mb-4">Philippine Stock Market</h1>
+
+  <!-- Search Form -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('ph_stocks') }}">
+        <div class="form-group">
+          <label for="stock_symbols"
+            >Enter PSE Stock Symbols (comma-separated):</label
+          >
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              id="stock_symbols"
+              name="stock_symbols"
+              placeholder="e.g. JFC, BDO, ALI, SM"
+              value="{{ ','.join(symbols) if symbols else '' }}"
+            />
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+          </div>
+          <small class="form-text text-muted"
+            >Enter Philippine stock symbols to get specific data, or leave blank
+            to see top stocks.</small
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if error_message %}
+  <div class="alert alert-danger">{{ error_message }}</div>
+  {% endif %}
+
+  <!-- Stock Data Table -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Philippine Stock Quotes</h5>
+    </div>
+    <div class="card-body table-responsive">
+      {% if stocks_data %}
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Change</th>
+            <th>% Change</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Volume</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stock in stocks_data %}
+          <tr>
+            <td>{{ stock.symbol }}</td>
+            <td>{{ stock.name }}</td>
+            <td>{{ stock.last_price }}</td>
+            <td
+              class="{{ 'text-success' if '-' not in stock.change else 'text-danger' }}"
+            >
+              {{ stock.change }}
+            </td>
+            <td
+              class="{{ 'text-success' if '-' not in stock.change_pct else 'text-danger' }}"
+            >
+              {{ stock.change_pct }}
+            </td>
+            <td>{{ stock.high }}</td>
+            <td>{{ stock.low }}</td>
+            <td>{{ stock.volume }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-info">
+        No stock data available. Please try a different search or check back
+        later.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- News Section -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Philippine Stock Market News</h5>
+        </div>
+        <div class="card-body">
+          {% if news_data %}
+          <div class="row">
+            {% for news in news_data %}
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="row g-0">
+                  <div class="col-md-4">
+                    <img
+                      src="{{ news.image }}"
+                      class="img-fluid rounded-start"
+                      alt="{{ news.title }}"
+                      style="height: 100%; object-fit: cover"
+                    />
+                  </div>
+                  <div class="col-md-8">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ news.title }}</h5>
+                      <p class="card-text">{{ news.content }}</p>
+                      <a
+                        href="{{ news.link }}"
+                        target="_blank"
+                        class="btn btn-sm btn-primary"
+                        >Read More</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="alert alert-info">
+            No news available at this time. Please check back later.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  // Optional: Add any JavaScript functionality here
+  $(document).ready(function () {
+    // Example: Add auto-refresh functionality
+    // setTimeout(function() {
+    //     location.reload();
+    // }, 300000); // Refresh every 5 minutes
+  });
+</script>
+{% endblock %}

@@ -77,11 +77,107 @@ content %}
     animation: pulse 2s infinite;
     color: #ef4444;
   }
+
+  /* Modern Layout Enhancements */
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .stock-ticker {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .news-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .news-card img {
+    height: 200px;
+    object-fit: cover;
+  }
+
+  .news-card .card-body {
+    padding: 20px;
+  }
+
+  .news-card .card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .news-card .card-text {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .news-card .btn-primary {
+    background-color: #1e3c72;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .trending-item {
+    padding: 10px;
+    border-radius: 8px;
+    background: white;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .trending-item:hover {
+    background: #f1f1f1;
+  }
+
+  .stock-card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .stock-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .stock-card h6 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .stock-card .card-body {
+    padding: 10px;
+  }
+
+  .stock-card .fw-bold {
+    font-size: 1.1rem;
+  }
+
+  .stock-card .text-muted {
+    font-size: 0.8rem;
+  }
 </style>
 
 <div class="container mt-4">
   <!-- Stock Market Ticker with Animation -->
-  <div class="stock-ticker bg-dark text-white py-2 px-3 rounded shadow-sm mb-4">
+  <div class="stock-ticker">
     <div class="ticker-wrap" style="overflow: hidden">
       <div
         class="ticker-content"
@@ -115,19 +211,18 @@ content %}
       <div class="row">
         {% for news_item in news_data %}
         <div class="col-md-6 mb-4">
-          <div class="news-card card shadow-sm" style="border-radius: 10px">
+          <div class="news-card card">
             <img
               src="{{ news_item.image }}"
               class="card-img-top"
               alt="{{ news_item.title }}"
-              style="height: 200px; object-fit: cover"
               loading="lazy"
             />
             <div class="card-body">
               <div
                 class="d-flex justify-content-between align-items-start mb-2"
               >
-                <h5 class="card-title fw-bold">{{ news_item.title }}</h5>
+                <h5 class="card-title">{{ news_item.title }}</h5>
                 <span class="badge bg-primary"
                   >{{ news_item.category|replace('_', ' ')|title }}</span
                 >
@@ -154,7 +249,7 @@ content %}
           <h4 class="fw-bold mb-3">🔥 Trending Now</h4>
           <ul class="list-unstyled">
             {% for trending_news in news_data[:5] %}
-            <li class="trending-item mb-3">
+            <li class="trending-item">
               <a href="{{ trending_news.link }}" class="text-dark">
                 <div class="d-flex align-items-center">
                   <div class="flex-shrink-0">
@@ -177,7 +272,7 @@ content %}
         <div class="p-3 bg-white rounded shadow-sm mb-4">
           <h4 class="fw-bold mb-3">📈 Stock Performance</h4>
           {% for symbol, data in stock_data.items() %} {% if not data.empty %}
-          <div class="stock-card mb-4">
+          <div class="stock-card">
             <h6 class="mb-2">{{ symbol }}</h6>
             <div class="card">
               <div class="card-body p-2">

@@ -230,7 +230,25 @@ def market_news():
     news_data = get_stock_market_news()  # Get stock news data
     
     # Initialize stock symbols (e.g., major indices)
-    stock_symbols = ["^DJI", "^IXIC", "^GSPC"]  # Dow Jones, NASDAQ, S&P 500
+    stock_symbols = [
+   
+    "TSLA",  # Tesla Inc.
+    "NVDA",  # NVIDIA Corporation
+    "META",  # Meta (Facebook)
+    "BRK.B",  # Berkshire Hathaway Inc.
+    "JNJ",  # Johnson & Johnson
+    "JPM",  # JPMorgan Chase & Co.
+    "V",  # Visa Inc.
+    "WMT",  # Walmart Inc.
+    "PG",  # Procter & Gamble Co.
+    "DIS",  # Walt Disney Company
+    "NFLX",  # Netflix Inc.
+    "AMD",  # Advanced Micro Devices
+    "INTC",  # Intel Corporation
+    "BA",  # Boeing Company
+    "XOM",  # ExxonMobil Corporation
+]
+
     stock_data = {}
     
     # Allow users to add additional stock symbols via form submission
@@ -393,33 +411,91 @@ def stocks_data():
     
 @app.route("/sector_news", methods=["GET", "POST"])
 def sector_news():
-    symbols = []
-    stock_data = {}
-    news_data = []  # Start with empty news
+    # Define sectors with their constituent stocks
+    sectors = {
+        "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
+        "healthcare": ["JNJ", "PFE", "UNH", "ABBV", "MRK"],
+        "finance": ["JPM", "BAC", "GS", "WFC", "C", "V", "MA"],
+        "consumer": ["AMZN", "WMT", "HD", "MCD", "SBUX", "NKE", "DIS"],
+        "energy": ["XOM", "CVX", "COP", "BP", "SLB"],
+        "industrial": ["GE", "BA", "CAT", "MMM", "UPS"]
+    }
     
-    if request.method == "POST":
-        # Get the submitted stock symbols from the form
-        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols") if symbol.strip()]
+    # Default to technology sector if none selected
+    selected_sector = "technology"
+    
+    # Handle form submission
+    if request.method == "POST" and "sector" in request.form:
+        selected_sector = request.form.get("sector")
+    elif request.method == "GET" and "sector" in request.args:
+        selected_sector = request.args.get("sector")
         
-        if symbols:
-            # Get stock-specific news only when symbols are provided
-            combined_news = []
-            for symbol in symbols:
-                symbol_news = get_stock_specific_news(symbol)
-                combined_news.extend(symbol_news)
-            
-            news_data = combined_news if combined_news else []
-            
-            # Fetch stock data for each submitted symbol
-            for symbol in symbols:
-                try:
-                    stock_data[symbol] = get_stock_data(symbol)
-                except Exception as e:
-                    stock_data[symbol] = pd.DataFrame()
-
-
+    # Safety check - ensure the selected sector exists
+    if selected_sector not in sectors:
+        selected_sector = "technology"  # Default fallback
     
-    return render_template("sector_news.html", news_data=news_data, stock_data=stock_data, symbols=symbols)
+    # Get symbols for the selected sector
+    symbols = sectors.get(selected_sector, [])
+    
+    # Initialize empty news data
+    sector_news = []
+    
+    # Try to fetch news if we have the function available
+    try:
+        # First try to get general market news
+        try:
+            market_news = get_stock_market_news()
+            if market_news:
+                sector_news.extend(market_news)
+        except Exception as e:
+            print(f"Error fetching market news: {str(e)}")
+        
+        # Then try to get specific stock news (limit to 3 stocks to avoid too many requests)
+        for symbol in symbols[:3]:
+            try:
+                symbol_news = get_stock_specific_news(symbol)
+                if symbol_news:
+                    sector_news.extend(symbol_news)
+            except Exception as e:
+                print(f"Error fetching news for {symbol}: {str(e)}")
+    except Exception as e:
+        print(f"Error with news functions: {str(e)}")
+    
+    # Initialize empty stock data
+    stock_data = {}
+    
+    # Try to fetch stock data if we have the function available
+    try:
+        for symbol in symbols:
+            try:
+                data = get_stock_data(symbol)
+                if data is not None and not data.empty:
+                    stock_data[symbol] = data
+            except Exception as e:
+                print(f"Error fetching stock data for {symbol}: {str(e)}")
+    except Exception as e:
+        print(f"Error with stock data function: {str(e)}")
+    
+    # Deduplicate news based on title
+    unique_news = []
+    seen_titles = set()
+    
+    for news in sector_news:
+        # Skip if news item doesn't have a title
+        if not isinstance(news, dict) or "title" not in news:
+            continue
+            
+        if news["title"] not in seen_titles:
+            seen_titles.add(news["title"])
+            unique_news.append(news)
+    
+    # Return the template with all data we've gathered
+    return render_template("sector_news.html", 
+                         sectors=sectors,
+                         selected_sector=selected_sector,
+                         news_data=unique_news[:20],  # Limit to first 20 news items
+                         stock_data=stock_data,
+                         symbols=symbols)
 
 @app.route("/simulation", methods=["GET", "POST"])
 def simulation():
