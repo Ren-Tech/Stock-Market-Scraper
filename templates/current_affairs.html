@@ -77,7 +77,6 @@ block content %}
           </div>
 
           <!-- Add Source Button -->
-          <!-- Original Add Source Button preserved -->
           <button
             id="addSourceBtn"
             type="button"
@@ -86,50 +85,32 @@ block content %}
             <i class="bi bi-plus-circle"></i> Add Source
           </button>
 
-          <select
-            id="frequencyDropdown"
-            class="form-select form-select-sm mb-3"
-          >
-            <option value="2min">2 Min</option>
-            <option value="5min">5 Min</option>
-            <option value="10min">10 Min</option>
-            <option value="20min">20 Min</option>
-            <option value="30min">30 Min</option>
-          </select>
-          <!-- MOVED: Auto-refresh controls - now positioned before submit button -->
+          <!-- Update Frequency Selection -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <label class="small mb-0">Update Frequency</label>
-            <div class="d-flex">
-              <button
-                id="startAutoRefresh"
-                type="button"
-                class="btn btn-sm btn-success me-1"
-                title="Start Auto-refresh"
-              >
-                <i class="bi bi-play-fill"></i>
-              </button>
-              <button
-                id="stopAutoRefresh"
-                type="button"
-                class="btn btn-sm btn-danger"
-                title="Stop Auto-refresh"
-                disabled
-              >
-                <i class="bi bi-stop-fill"></i>
-              </button>
-            </div>
+            <select
+              id="frequencyDropdown"
+              class="form-select form-select-sm"
+              style="width: 70%"
+            >
+              <option value="2min">2 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="10min">10 Min</option>
+              <option value="20min">20 Min</option>
+              <option value="30min">30 Min</option>
+            </select>
           </div>
 
-          <!-- Modified Submit Button with new JS validation -->
+          <!-- Submit Button (now also starts auto-refresh) -->
           <button
             id="submitSources"
             type="submit"
             class="btn btn-primary btn-sm w-100 mt-2"
           >
-            <i class="bi bi-check-lg"></i> Submit
+            <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
           </button>
 
-          <!-- Auto-refresh status indicator (unchanged) -->
+          <!-- Auto-refresh status indicator -->
           <div id="refreshStatus" class="small text-center mt-2 d-none">
             <span class="badge bg-success">
               <i class="bi bi-arrow-repeat"></i>
@@ -232,9 +213,7 @@ block content %}
     let sourceContainer = document.querySelector("#sourceContainer");
     let submitButton = document.querySelector("#submitSources");
 
-    // Auto-refresh controls
-    const startBtn = document.getElementById("startAutoRefresh");
-    const stopBtn = document.getElementById("stopAutoRefresh");
+    // Auto-refresh elements
     const frequencyDropdown = document.getElementById("frequencyDropdown");
     const refreshStatus = document.getElementById("refreshStatus");
     const refreshProgress = document.getElementById("refreshProgress");
@@ -245,35 +224,30 @@ block content %}
 
     // Function to add new source field
     addSourceBtn.addEventListener("click", function () {
-      // Count existing fields to determine next number
       const existingFields = document.querySelectorAll(".source-field").length;
       const nextNum = existingFields + 1;
 
-      // Create new input group
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-      <span class="input-group-text">#${nextNum}</span>
-      <input
-        type="text"
-        name="web_urls"
-        class="form-control"
-        placeholder="Enter URL"
-      />
-      <button type="button" class="btn btn-outline-danger remove-field">
-        <i class="bi bi-x"></i>
-      </button>
-    `;
+        <span class="input-group-text">#${nextNum}</span>
+        <input
+          type="text"
+          name="web_urls"
+          class="form-control"
+          placeholder="Enter URL"
+        />
+        <button type="button" class="btn btn-outline-danger remove-field">
+          <i class="bi bi-x"></i>
+        </button>
+      `;
 
-      // Add field to container
       sourceContainer.appendChild(newField);
 
-      // Add event listener to remove button
       newField
         .querySelector(".remove-field")
         .addEventListener("click", function () {
           newField.remove();
-          // Renumber remaining fields
           renumberFields();
         });
     });
@@ -291,67 +265,126 @@ block content %}
       const isSearchVisible = leftColumn.style.display !== "none";
 
       if (isSearchVisible) {
-        // Hide search panel
         leftColumn.style.display = "none";
         toggleButton.innerHTML =
           '<i class="bi bi-arrow-right-circle"></i> Show Search';
-
-        // Make news take full width
         newsColumn.className = "col-md-12";
-
-        // Switch to 2-column layout for news items
         document.querySelectorAll("#newsItems > div").forEach((item) => {
           item.className = item.className.replace("col-md-12", "col-md-6");
         });
       } else {
-        // Show search panel
         leftColumn.style.display = "block";
         toggleButton.innerHTML =
           '<i class="bi bi-arrow-left-circle"></i> Hide Search';
-
-        // Reduce news width
         newsColumn.className = "col-md-8";
-
-        // Switch to 1-column layout for news items
         document.querySelectorAll("#newsItems > div").forEach((item) => {
           item.className = item.className.replace("col-md-6", "col-md-12");
         });
       }
     });
 
-    // Submit form with validation to ensure frequency is selected
+    // Auto-refresh functionality
+    function startAutoRefresh() {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+        clearInterval(progressInterval);
+      }
+
+      const selectedValue = frequencyDropdown.value;
+      const minutes = parseInt(selectedValue.replace("min", ""));
+      const milliseconds = minutes * 60 * 1000;
+
+      minutesDisplay.textContent = minutes;
+      refreshStatus.classList.remove("d-none");
+
+      refreshInterval = setInterval(() => {
+        fetch(window.location.href, {
+          method: "POST",
+          body: new FormData(urlForm),
+        })
+          .then((response) => response.text())
+          .then((html) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const newNewsItems = doc.querySelector("#newsItems");
+
+            if (newNewsItems) {
+              newsItems.innerHTML = newNewsItems.innerHTML;
+            }
+
+            refreshProgress.style.width = "0%";
+          })
+          .catch((error) => {
+            console.error("Error refreshing news:", error);
+          });
+      }, milliseconds);
+
+      const updateProgress = () => {
+        const step = 100 / (minutes * 60);
+        let currentProgress = 0;
+
+        progressInterval = setInterval(() => {
+          currentProgress += step;
+          if (currentProgress > 100) currentProgress = 0;
+          refreshProgress.style.width = currentProgress + "%";
+        }, 1000);
+      };
+
+      updateProgress();
+    }
+
+    function stopAutoRefresh() {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+        clearInterval(progressInterval);
+        refreshInterval = null;
+        progressInterval = null;
+      }
+
+      refreshStatus.classList.add("d-none");
+      refreshProgress.style.width = "0%";
+    }
+
+    // Update minutes display when frequency changes
+    frequencyDropdown.addEventListener("change", function () {
+      const minutes = parseInt(this.value.replace("min", ""));
+      minutesDisplay.textContent = minutes;
+
+      if (refreshStatus.classList.contains("d-none") === false) {
+        stopAutoRefresh();
+        startAutoRefresh();
+      }
+    });
+
+    // Submit form with validation and start auto-refresh
     urlForm.addEventListener("submit", function (e) {
-      e.preventDefault(); // Prevent default submission
+      e.preventDefault();
 
-      // Get selected frequency (at form submission time)
       const selectedFrequency = frequencyDropdown.value;
-
-      // Store the selected frequency in case we need it after form submission
       localStorage.setItem("selectedFrequency", selectedFrequency);
 
-      // Hide the left column (search form)
       if (leftColumn) {
         leftColumn.style.display = "none";
       }
 
-      // Expand news column to full width
       if (newsColumn) {
         newsColumn.className = "col-md-12";
       }
 
-      // Make news items display in a grid with 2 columns
       document.querySelectorAll("#newsItems > div").forEach((item) => {
         item.className = item.className.replace("col-md-12", "col-md-6");
       });
 
-      // Show toggle button
       toggleButton.classList.remove("d-none");
       toggleButton.classList.add("visible");
       toggleButton.innerHTML =
         '<i class="bi bi-arrow-right-circle"></i> Show Search';
 
-      // Continue with form submission
       this.submit();
+
+      setTimeout(function () {
+        startAutoRefresh();
+      }, 1000);
     });
 
     // Category filtering for news
@@ -376,97 +409,6 @@ block content %}
             }
           });
       });
-    });
-
-    // Auto-refresh functionality
-    function startAutoRefresh() {
-      // Clear any existing intervals
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        clearInterval(progressInterval);
-      }
-
-      // Get selected frequency
-      const selectedValue = frequencyDropdown.value;
-      const minutes = parseInt(selectedValue.replace("min", ""));
-      const milliseconds = minutes * 60 * 1000;
-
-      // Update display
-      minutesDisplay.textContent = minutes;
-      refreshStatus.classList.remove("d-none");
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-
-      // Set up refresh interval
-      refreshInterval = setInterval(() => {
-        // Fetch new data by submitting the form
-        fetch(window.location.href, {
-          method: "POST",
-          body: new FormData(urlForm),
-        })
-          .then((response) => response.text())
-          .then((html) => {
-            // Extract news items from the response
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            const newNewsItems = doc.querySelector("#newsItems");
-
-            if (newNewsItems) {
-              // Replace news items with new content
-              newsItems.innerHTML = newNewsItems.innerHTML;
-            }
-
-            // Reset progress bar
-            refreshProgress.style.width = "0%";
-          })
-          .catch((error) => {
-            console.error("Error refreshing news:", error);
-          });
-      }, milliseconds);
-
-      // Progress bar animation
-      const updateProgress = () => {
-        const step = 100 / (minutes * 60); // Progress per second
-        let currentProgress = 0;
-
-        progressInterval = setInterval(() => {
-          currentProgress += step;
-          if (currentProgress > 100) currentProgress = 0;
-          refreshProgress.style.width = currentProgress + "%";
-        }, 1000);
-      };
-
-      updateProgress();
-    }
-
-    function stopAutoRefresh() {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        clearInterval(progressInterval);
-        refreshInterval = null;
-        progressInterval = null;
-      }
-
-      refreshStatus.classList.add("d-none");
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      refreshProgress.style.width = "0%";
-    }
-
-    // Add event listeners for auto-refresh controls
-    startBtn.addEventListener("click", startAutoRefresh);
-    stopBtn.addEventListener("click", stopAutoRefresh);
-
-    // Update minutes display when frequency changes
-    frequencyDropdown.addEventListener("change", function () {
-      const minutes = parseInt(this.value.replace("min", ""));
-      minutesDisplay.textContent = minutes;
-
-      // If auto-refresh is active, restart with new time
-      if (startBtn.disabled) {
-        stopAutoRefresh();
-        startAutoRefresh();
-      }
     });
 
     // Initialize with previously selected frequency if available
