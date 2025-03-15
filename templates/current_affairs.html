@@ -15,6 +15,28 @@ block content %}
   .nav-link:hover {
     color: white !important; /* Darker on hover for better contrast */
   }
+
+  .timer-container {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 3px 8px;
+    border: 1px solid #dee2e6;
+  }
+
+  .timer-display {
+    margin: 0 8px;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .timer-btn {
+    padding: 1px 6px;
+    font-size: 0.8rem;
+  }
 </style>
 <div class="container mt-4">
   <!-- Mini Tab Navigation (Top Right) -->
@@ -51,13 +73,28 @@ block content %}
   </div>
   {% endif %}
 
-  <!-- Toggle Button for Search Panel -->
-  <button
-    id="toggleSearch"
-    class="btn btn-sm btn-outline-primary mt-3 {% if news_data %} visible {% else %} d-none {% endif %}"
+  <!-- Toggle Button for Search Panel and Timer Controls -->
+  <div
+    class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}"
   >
-    <i class="bi bi-arrow-right-circle"></i> Show Search
-  </button>
+    <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-arrow-right-circle"></i> Show Search
+    </button>
+
+    <!-- Timer Container -->
+    <div class="timer-container">
+      <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
+        <i class="bi bi-play-fill"></i>
+      </button>
+      <span id="countdownDisplay" class="timer-display">--:--</span>
+      <button
+        id="timerReset"
+        class="btn btn-sm btn-outline-secondary timer-btn"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+    </div>
+  </div>
 
   <!-- Two-Column Layout -->
   <div class="row mt-4">
@@ -235,8 +272,57 @@ block content %}
     const refreshProgress = document.getElementById("refreshProgress");
     const minutesDisplay = document.getElementById("minutesDisplay");
 
+    // Timer elements
+    const timerToggle = document.getElementById("timerToggle");
+    const timerReset = document.getElementById("timerReset");
+    const countdownDisplay = document.getElementById("countdownDisplay");
+
     let refreshInterval;
     let progressInterval;
+    let countdownInterval;
+    let timerIsActive = false;
+    let secondsRemaining = 0;
+
+    // Format time as MM:SS
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
+
+    // Timer toggle functionality
+    timerToggle.addEventListener("click", function () {
+      if (timerIsActive) {
+        // Stop timer
+        stopAutoRefresh();
+        timerIsActive = false;
+        this.classList.remove("btn-danger");
+        this.classList.add("btn-success");
+        this.innerHTML = '<i class="bi bi-play-fill"></i>';
+      } else {
+        // Start timer
+        startAutoRefresh();
+        timerIsActive = true;
+        this.classList.remove("btn-success");
+        this.classList.add("btn-danger");
+        this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+      }
+    });
+
+    // Timer reset functionality
+    timerReset.addEventListener("click", function () {
+      if (timerIsActive) {
+        stopAutoRefresh();
+        startAutoRefresh();
+      } else {
+        // Just reset the display without starting
+        const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
+        secondsRemaining = minutes * 60;
+        countdownDisplay.textContent = formatTime(secondsRemaining);
+      }
+    });
 
     // Function to add new source field
     addSourceBtn.addEventListener("click", function () {
@@ -246,17 +332,17 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-        <span class="input-group-text">#${nextNum}</span>
-        <input
-          type="text"
-          name="web_urls"
-          class="form-control"
-          placeholder="Enter URL"
-        />
-        <button type="button" class="btn btn-outline-danger remove-field">
-          <i class="bi bi-x"></i>
-        </button>
-      `;
+          <span class="input-group-text">#${nextNum}</span>
+          <input
+            type="text"
+            name="web_urls"
+            class="form-control"
+            placeholder="Enter URL"
+          />
+          <button type="button" class="btn btn-outline-danger remove-field">
+            <i class="bi bi-x"></i>
+          </button>
+        `;
 
       sourceContainer.appendChild(newField);
 
@@ -304,6 +390,7 @@ block content %}
       if (refreshInterval) {
         clearInterval(refreshInterval);
         clearInterval(progressInterval);
+        clearInterval(countdownInterval);
       }
 
       const selectedValue = frequencyDropdown.value;
@@ -312,6 +399,19 @@ block content %}
 
       minutesDisplay.textContent = minutes;
       refreshStatus.classList.remove("d-none");
+
+      // Initialize countdown timer
+      secondsRemaining = minutes * 60;
+      countdownDisplay.textContent = formatTime(secondsRemaining);
+
+      // Start countdown interval
+      countdownInterval = setInterval(() => {
+        secondsRemaining--;
+        if (secondsRemaining <= 0) {
+          secondsRemaining = minutes * 60;
+        }
+        countdownDisplay.textContent = formatTime(secondsRemaining);
+      }, 1000);
 
       refreshInterval = setInterval(() => {
         fetch(window.location.href, {
@@ -329,6 +429,10 @@ block content %}
             }
 
             refreshProgress.style.width = "0%";
+            // Reset countdown timerrefreshProgress.style.width = "0%";
+            // Reset countdown timer
+            secondsRemaining = minutes * 60;
+            countdownDisplay.textContent = formatTime(secondsRemaining);
           })
           .catch((error) => {
             console.error("Error refreshing news:", error);
@@ -353,12 +457,15 @@ block content %}
       if (refreshInterval) {
         clearInterval(refreshInterval);
         clearInterval(progressInterval);
+        clearInterval(countdownInterval);
         refreshInterval = null;
         progressInterval = null;
+        countdownInterval = null;
       }
 
       refreshStatus.classList.add("d-none");
       refreshProgress.style.width = "0%";
+      // Keep the last timer value displayed when paused
     }
 
     // Update minutes display when frequency changes
@@ -366,7 +473,17 @@ block content %}
       const minutes = parseInt(this.value.replace("min", ""));
       minutesDisplay.textContent = minutes;
 
+      // Update countdown timer to reflect new frequency
+      secondsRemaining = minutes * 60;
+      countdownDisplay.textContent = formatTime(secondsRemaining);
+
       if (refreshStatus.classList.contains("d-none") === false) {
+        stopAutoRefresh();
+        startAutoRefresh();
+      }
+
+      // If timer is active, restart it with new time
+      if (timerIsActive) {
         stopAutoRefresh();
         startAutoRefresh();
       }
@@ -399,7 +516,12 @@ block content %}
       this.submit();
 
       setTimeout(function () {
+        // Start auto-refresh and activate timer
         startAutoRefresh();
+        timerIsActive = true;
+        timerToggle.classList.remove("btn-success");
+        timerToggle.classList.add("btn-danger");
+        timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
       }, 1000);
     });
 
@@ -432,6 +554,28 @@ block content %}
     if (savedFrequency) {
       frequencyDropdown.value = savedFrequency;
       minutesDisplay.textContent = parseInt(savedFrequency.replace("min", ""));
+
+      // Initialize countdown display with saved frequency
+      const minutes = parseInt(savedFrequency.replace("min", ""));
+      secondsRemaining = minutes * 60;
+      countdownDisplay.textContent = formatTime(secondsRemaining);
+    } else {
+      // Initialize with default frequency
+      const defaultMinutes = parseInt(
+        frequencyDropdown.value.replace("min", "")
+      );
+      secondsRemaining = defaultMinutes * 60;
+      countdownDisplay.textContent = formatTime(secondsRemaining);
+    }
+
+    // If there's news data, display the timer but don't start it automatically
+    if (
+      document.querySelectorAll("#newsItems > div[data-category]").length > 0
+    ) {
+      const timerContainer = document.querySelector(".timer-container");
+      if (timerContainer) {
+        timerContainer.style.display = "inline-flex";
+      }
     }
   });
 </script>
