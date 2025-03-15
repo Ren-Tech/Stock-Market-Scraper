@@ -292,6 +292,73 @@ block content %}
         .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
 
+    // Function to save URLs to local storage
+    function saveUrlsToLocalStorage() {
+      const urlInputs = document.querySelectorAll('input[name="web_urls"]');
+      const urls = Array.from(urlInputs).map((input) => input.value);
+      localStorage.setItem("currentAffairsUrls", JSON.stringify(urls));
+    }
+
+    // Function to load URLs from local storage
+    function loadUrlsFromLocalStorage() {
+      const savedUrls = localStorage.getItem("currentAffairsUrls");
+      if (savedUrls) {
+        const urls = JSON.parse(savedUrls);
+        const urlInputs = document.querySelectorAll('input[name="web_urls"]');
+
+        // Fill existing fields with saved URLs
+        urlInputs.forEach((input, index) => {
+          if (index < urls.length) {
+            input.value = urls[index];
+          }
+        });
+
+        // Add more fields if needed
+        if (urls.length > urlInputs.length) {
+          for (let i = urlInputs.length; i < urls.length; i++) {
+            addSourceField(urls[i]);
+          }
+        }
+      }
+    }
+
+    // Function to add new source field with optional value
+    function addSourceField(value = "") {
+      const existingFields = document.querySelectorAll(".source-field").length;
+      const nextNum = existingFields + 1;
+
+      const newField = document.createElement("div");
+      newField.className = "input-group mb-2 source-field";
+      newField.innerHTML = `
+      <span class="input-group-text">#${nextNum}</span>
+      <input
+        type="text"
+        name="web_urls"
+        class="form-control"
+        placeholder="Enter URL"
+        value="${value}"
+      />
+      <button type="button" class="btn btn-outline-danger remove-field">
+        <i class="bi bi-x"></i>
+      </button>
+    `;
+
+      sourceContainer.appendChild(newField);
+
+      newField
+        .querySelector(".remove-field")
+        .addEventListener("click", function () {
+          newField.remove();
+          renumberFields();
+          saveUrlsToLocalStorage();
+        });
+
+      // Add input event listener to save on change
+      newField
+        .querySelector('input[name="web_urls"]')
+        .addEventListener("input", saveUrlsToLocalStorage);
+    }
+
     // Timer toggle functionality
     timerToggle.addEventListener("click", function () {
       if (timerIsActive) {
@@ -324,34 +391,15 @@ block content %}
       }
     });
 
-    // Function to add new source field
+    // Add event listener to all existing URL inputs
+    document.querySelectorAll('input[name="web_urls"]').forEach((input) => {
+      input.addEventListener("input", saveUrlsToLocalStorage);
+    });
+
+    // Function to add new source field (button handler)
     addSourceBtn.addEventListener("click", function () {
-      const existingFields = document.querySelectorAll(".source-field").length;
-      const nextNum = existingFields + 1;
-
-      const newField = document.createElement("div");
-      newField.className = "input-group mb-2 source-field";
-      newField.innerHTML = `
-          <span class="input-group-text">#${nextNum}</span>
-          <input
-            type="text"
-            name="web_urls"
-            class="form-control"
-            placeholder="Enter URL"
-          />
-          <button type="button" class="btn btn-outline-danger remove-field">
-            <i class="bi bi-x"></i>
-          </button>
-        `;
-
-      sourceContainer.appendChild(newField);
-
-      newField
-        .querySelector(".remove-field")
-        .addEventListener("click", function () {
-          newField.remove();
-          renumberFields();
-        });
+      addSourceField();
+      saveUrlsToLocalStorage();
     });
 
     // Function to renumber fields after removal
@@ -429,7 +477,6 @@ block content %}
             }
 
             refreshProgress.style.width = "0%";
-            // Reset countdown timerrefreshProgress.style.width = "0%";
             // Reset countdown timer
             secondsRemaining = minutes * 60;
             countdownDisplay.textContent = formatTime(secondsRemaining);
@@ -472,6 +519,7 @@ block content %}
     frequencyDropdown.addEventListener("change", function () {
       const minutes = parseInt(this.value.replace("min", ""));
       minutesDisplay.textContent = minutes;
+      localStorage.setItem("selectedFrequency", this.value);
 
       // Update countdown timer to reflect new frequency
       secondsRemaining = minutes * 60;
@@ -495,6 +543,9 @@ block content %}
 
       const selectedFrequency = frequencyDropdown.value;
       localStorage.setItem("selectedFrequency", selectedFrequency);
+
+      // Save the URLs to local storage
+      saveUrlsToLocalStorage();
 
       if (leftColumn) {
         leftColumn.style.display = "none";
@@ -577,6 +628,9 @@ block content %}
         timerContainer.style.display = "inline-flex";
       }
     }
+
+    // Load saved URLs when the page loads
+    loadUrlsFromLocalStorage();
   });
 </script>
 {% endblock %}
