@@ -2,7 +2,7 @@
 block content %}
 <style>
   .nav-link {
-    color: grey !important; /* Default color when not clicked */
+    color: black !important; /* Default color when not clicked */
     font-weight: 500;
     transition: all 0.3s ease;
   }
@@ -13,7 +13,7 @@ block content %}
   }
 
   .nav-link:hover {
-    color: white !important; /* Darker on hover for better contrast */
+    color: green !important; /* Darker on hover for better contrast */
   }
 
   .timer-container {
@@ -282,6 +282,17 @@ block content %}
     let countdownInterval;
     let timerIsActive = false;
     let secondsRemaining = 0;
+    let announcementMade = false;
+
+    // Function to announce page refresh using text-to-speech
+    function announceRefresh() {
+      if ("speechSynthesis" in window) {
+        const announcement = new SpeechSynthesisUtterance(
+          "Page will now be refreshed"
+        );
+        window.speechSynthesis.speak(announcement);
+      }
+    }
 
     // Format time as MM:SS
     function formatTime(seconds) {
@@ -451,13 +462,21 @@ block content %}
       // Initialize countdown timer
       secondsRemaining = minutes * 60;
       countdownDisplay.textContent = formatTime(secondsRemaining);
+      announcementMade = false;
 
       // Start countdown interval
       countdownInterval = setInterval(() => {
         secondsRemaining--;
+
+        // When countdown reaches 0, make the voice announcement
         if (secondsRemaining <= 0) {
+          if (!announcementMade) {
+            announceRefresh();
+            announcementMade = true;
+          }
           secondsRemaining = minutes * 60;
         }
+
         countdownDisplay.textContent = formatTime(secondsRemaining);
       }, 1000);
 
@@ -480,6 +499,7 @@ block content %}
             // Reset countdown timer
             secondsRemaining = minutes * 60;
             countdownDisplay.textContent = formatTime(secondsRemaining);
+            announcementMade = false;
           })
           .catch((error) => {
             console.error("Error refreshing news:", error);
