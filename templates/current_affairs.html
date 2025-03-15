@@ -1,5 +1,21 @@
 {% extends "base.html" %} {% block title %} Current Affairs {% endblock %} {%
 block content %}
+<style>
+  .nav-link {
+    color: grey !important; /* Default color when not clicked */
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .nav-link.active {
+    color: white !important; /* White when active */
+    background-color: #007bff !important; /* Bootstrap primary color */
+  }
+
+  .nav-link:hover {
+    color: black !important; /* Darker on hover for better contrast */
+  }
+</style>
 <div class="container mt-4">
   <!-- Mini Tab Navigation (Top Right) -->
   <ul
