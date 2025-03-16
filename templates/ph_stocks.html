@@ -26,7 +26,7 @@ Dashboard{% endblock %} {% block content %}
           </div>
           <small class="form-text text-muted"
             >Enter Philippine stock symbols to get specific data, or leave blank
-            to see top stocks.</small
+            to see all stocks.</small
           >
         </div>
       </form>
@@ -37,56 +37,64 @@ Dashboard{% endblock %} {% block content %}
   <div class="alert alert-danger">{{ error_message }}</div>
   {% endif %}
 
-  <!-- Stock Data Table -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5>Philippine Stock Quotes</h5>
-    </div>
-    <div class="card-body table-responsive">
-      {% if stocks_data %}
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Change</th>
-            <th>% Change</th>
-            <th>High</th>
-            <th>Low</th>
-            <th>Volume</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for stock in stocks_data %}
-          <tr>
-            <td>{{ stock.symbol }}</td>
-            <td>{{ stock.name }}</td>
-            <td>{{ stock.last_price }}</td>
-            <td
-              class="{{ 'text-success' if '-' not in stock.change else 'text-danger' }}"
-            >
-              {{ stock.change }}
-            </td>
-            <td
-              class="{{ 'text-success' if '-' not in stock.change_pct else 'text-danger' }}"
+  <!-- Stock Data Cards -->
+  <div class="mb-4">
+    <h5 class="mb-3">Philippine Stock Quotes</h5>
+
+    {% if stocks_data %}
+    <div class="row">
+      {% for stock in stocks_data %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h5 class="mb-0">{{ stock.symbol }}</h5>
+            <span
+              class="badge {{ 'bg-success' if '-' not in stock.change_pct else 'bg-danger' }}"
             >
               {{ stock.change_pct }}
-            </td>
-            <td>{{ stock.high }}</td>
-            <td>{{ stock.low }}</td>
-            <td>{{ stock.volume }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="alert alert-info">
-        No stock data available. Please try a different search or check back
-        later.
+            </span>
+          </div>
+          <div class="card-body">
+            <h6 class="card-subtitle mb-3 text-muted">{{ stock.name }}</h6>
+            <div class="row">
+              <div class="col-6">
+                <p class="mb-1">
+                  <strong>Price:</strong> ₱{{ stock.last_price }}
+                </p>
+                <p class="mb-1">
+                  <strong>Change:</strong>
+                  <span
+                    class="{{ 'text-success' if '-' not in stock.change else 'text-danger' }}"
+                  >
+                    {{ stock.change }}
+                  </span>
+                </p>
+                <p class="mb-1"><strong>High:</strong> ₱{{ stock.high }}</p>
+              </div>
+              <div class="col-6">
+                <p class="mb-1"><strong>Low:</strong> ₱{{ stock.low }}</p>
+                <p class="mb-1"><strong>Volume:</strong> {{ stock.volume }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
+            <a href="#" class="btn btn-sm btn-outline-secondary"
+              >Add to Watchlist</a
+            >
+          </div>
+        </div>
       </div>
-      {% endif %}
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="alert alert-info">
+      No stock data available. Please try a different search or check back
+      later.
+    </div>
+    {% endif %}
   </div>
 
   <!-- News Section -->

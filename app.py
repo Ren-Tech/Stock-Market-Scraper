@@ -492,6 +492,87 @@ def sector_news():
                          stock_data=stock_data,
                          symbols=symbols)
 
+
+@app.route("/ph_stocks", methods=["GET", "POST"])
+def ph_stocks():
+    symbols = []
+    stocks_data = []
+    news_data = []
+    error_message = None
+    
+    # Sample Philippine stock data (20 stocks)
+    sample_stocks = [
+        {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "248.60", "change": "+2.80", "change_pct": "+1.14%", "high": "250.20", "low": "245.40", "volume": "1,245,600"},
+        {"symbol": "SM", "name": "SM Investments Corporation", "last_price": "962.00", "change": "+5.50", "change_pct": "+0.57%", "high": "965.00", "low": "952.50", "volume": "352,810"},
+        {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "34.20", "change": "-0.30", "change_pct": "-0.87%", "high": "34.60", "low": "34.10", "volume": "2,541,300"},
+        {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "145.70", "change": "+1.20", "change_pct": "+0.83%", "high": "146.50", "low": "144.50", "volume": "875,400"},
+        {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "39.10", "change": "+0.45", "change_pct": "+1.16%", "high": "39.30", "low": "38.65", "volume": "1,658,900"},
+        {"symbol": "AC", "name": "Ayala Corporation", "last_price": "765.00", "change": "-5.00", "change_pct": "-0.65%", "high": "770.00", "low": "762.00", "volume": "126,450"},
+        {"symbol": "BPI", "name": "Bank of the Philippine Islands", "last_price": "112.50", "change": "+0.70", "change_pct": "+0.63%", "high": "113.00", "low": "111.50", "volume": "532,800"},
+        {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,536.00", "change": "-8.00", "change_pct": "-0.52%", "high": "1,545.00", "low": "1,530.00", "volume": "54,360"},
+        {"symbol": "MER", "name": "Manila Electric Company", "last_price": "384.20", "change": "+2.20", "change_pct": "+0.58%", "high": "386.00", "low": "380.80", "volume": "92,150"},
+        {"symbol": "URC", "name": "Universal Robina Corporation", "last_price": "132.10", "change": "-1.40", "change_pct": "-1.05%", "high": "133.50", "low": "131.80", "volume": "423,850"},
+        {"symbol": "ICT", "name": "International Container Terminal Services, Inc.", "last_price": "265.80", "change": "+3.60", "change_pct": "+1.37%", "high": "266.20", "low": "262.40", "volume": "156,780"},
+        {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "2.86", "change": "+0.04", "change_pct": "+1.42%", "high": "2.87", "low": "2.83", "volume": "5,842,300"},
+        {"symbol": "BLOOM", "name": "Bloomberry Resorts Corporation", "last_price": "8.96", "change": "-0.13", "change_pct": "-1.43%", "high": "9.10", "low": "8.95", "volume": "1,234,500"},
+        {"symbol": "MPI", "name": "Metro Pacific Investments Corporation", "last_price": "4.25", "change": "+0.07", "change_pct": "+1.67%", "high": "4.27", "low": "4.20", "volume": "3,125,700"},
+        {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "578.50", "change": "-3.50", "change_pct": "-0.60%", "high": "582.00", "low": "575.00", "volume": "45,320"},
+        {"symbol": "RLC", "name": "Robinsons Land Corporation", "last_price": "16.94", "change": "+0.24", "change_pct": "+1.44%", "high": "16.98", "low": "16.70", "volume": "865,400"},
+        {"symbol": "DMC", "name": "DMCI Holdings, Inc.", "last_price": "11.26", "change": "-0.08", "change_pct": "-0.71%", "high": "11.36", "low": "11.22", "volume": "954,300"},
+        {"symbol": "AGI", "name": "Alliance Global Group, Inc.", "last_price": "10.84", "change": "+0.16", "change_pct": "+1.50%", "high": "10.88", "low": "10.70", "volume": "1,423,600"},
+        {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,112.00", "change": "-14.00", "change_pct": "-0.66%", "high": "2,126.00", "low": "2,106.00", "volume": "18,520"},
+        {"symbol": "PGOLD", "name": "Puregold Price Club, Inc.", "last_price": "36.85", "change": "+0.35", "change_pct": "+0.96%", "high": "37.00", "low": "36.50", "volume": "254,700"}
+    ]
+    
+    # Sample news data
+    sample_news = [
+        {
+            "title": "Philippine Stock Market Closes Higher on Economic Optimism",
+            "content": "The Philippine Stock Exchange index closed higher today as investors remain optimistic about economic recovery despite global challenges.",
+            "image": "https://via.placeholder.com/150",
+            "link": "#"
+        },
+        {
+            "title": "Jollibee Foods Corporation Reports Strong Q1 Earnings",
+            "content": "JFC announced better-than-expected first quarter results, with domestic sales up 15% year-over-year.",
+            "image": "https://via.placeholder.com/150",
+            "link": "#"
+        },
+        {
+            "title": "SM Investments Expands Retail Footprint in Provincial Areas",
+            "content": "SM plans to open 15 new stores in emerging provincial markets by the end of the year.",
+            "image": "https://via.placeholder.com/150",
+            "link": "#"
+        },
+        {
+            "title": "Ayala Land Launches New Sustainable Development Project",
+            "content": "ALI introduces eco-friendly residential development in Cavite featuring renewable energy solutions.",
+            "image": "https://via.placeholder.com/150",
+            "link": "#"
+        }
+    ]
+    
+    if request.method == "POST":
+        stock_symbols_input = request.form.get("stock_symbols", "")
+        if stock_symbols_input.strip():
+            symbols = [s.strip().upper() for s in stock_symbols_input.split(",")]
+            # Filter stocks based on user input
+            stocks_data = [stock for stock in sample_stocks if stock["symbol"] in symbols]
+            if not stocks_data:
+                error_message = "No matching stocks found. Please check your symbols and try again."
+        else:
+            # If no input, show all stocks
+            stocks_data = sample_stocks
+            symbols = [stock["symbol"] for stock in sample_stocks]
+    else:
+        # For GET requests, show all stocks
+        stocks_data = sample_stocks
+        symbols = [stock["symbol"] for stock in sample_stocks]
+    
+    # Always include news data
+    news_data = sample_news
+    
+    return render_template("ph_stocks.html", stocks_data=stocks_data, news_data=news_data, symbols=symbols, error_message=error_message)
 @app.route("/simulation", methods=["GET", "POST"])
 def simulation():
     # Here you can handle any logic for the simulation page if needed
