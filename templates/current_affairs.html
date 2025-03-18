@@ -293,6 +293,23 @@ block content %}
     let secondsRemaining = 0;
     let announcementMade = false;
 
+    // Function to save timer state to local storage
+    function saveTimerState() {
+      localStorage.setItem("timerIsActive", timerIsActive);
+      localStorage.setItem("secondsRemaining", secondsRemaining);
+    }
+
+    // Function to load timer state from local storage
+    function loadTimerState() {
+      const savedTimerIsActive = localStorage.getItem("timerIsActive");
+      const savedSecondsRemaining = localStorage.getItem("secondsRemaining");
+
+      if (savedTimerIsActive !== null) {
+        timerIsActive = savedTimerIsActive === "true";
+        secondsRemaining = parseInt(savedSecondsRemaining, 10);
+      }
+    }
+
     // Function to announce page refresh using text-to-speech
     function announceRefresh() {
       if ("speechSynthesis" in window) {
@@ -350,18 +367,18 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-      <span class="input-group-text">#${nextNum}</span>
-      <input
-        type="text"
-        name="web_urls"
-        class="form-control"
-        placeholder="Enter URL"
-        value="${value}"
-      />
-      <button type="button" class="btn btn-outline-danger remove-field">
-        <i class="bi bi-x"></i>
-      </button>
-    `;
+        <span class="input-group-text">#${nextNum}</span>
+        <input
+          type="text"
+          name="web_urls"
+          class="form-control"
+          placeholder="Enter URL"
+          value="${value}"
+        />
+        <button type="button" class="btn btn-outline-danger remove-field">
+          <i class="bi bi-x"></i>
+        </button>
+      `;
 
       sourceContainer.appendChild(newField);
 
@@ -396,6 +413,7 @@ block content %}
         this.classList.add("btn-danger");
         this.innerHTML = '<i class="bi bi-pause-fill"></i>';
       }
+      saveTimerState();
     });
 
     // Timer reset functionality
@@ -409,6 +427,7 @@ block content %}
         secondsRemaining = minutes * 60;
         countdownDisplay.textContent = formatTime(secondsRemaining);
       }
+      saveTimerState();
     });
 
     // Add event listener to all existing URL inputs
@@ -469,7 +488,9 @@ block content %}
       refreshStatus.classList.remove("d-none");
 
       // Initialize countdown timer
-      secondsRemaining = minutes * 60;
+      if (secondsRemaining <= 0) {
+        secondsRemaining = minutes * 60;
+      }
       countdownDisplay.textContent = formatTime(secondsRemaining);
       announcementMade = false;
 
@@ -487,6 +508,7 @@ block content %}
         }
 
         countdownDisplay.textContent = formatTime(secondsRemaining);
+        saveTimerState(); // Save timer state on each tick
       }, 1000);
 
       refreshInterval = setInterval(() => {
@@ -509,6 +531,7 @@ block content %}
             secondsRemaining = minutes * 60;
             countdownDisplay.textContent = formatTime(secondsRemaining);
             announcementMade = false;
+            saveTimerState(); // Save timer state after refresh
           })
           .catch((error) => {
             console.error("Error refreshing news:", error);
@@ -541,7 +564,18 @@ block content %}
 
       refreshStatus.classList.add("d-none");
       refreshProgress.style.width = "0%";
-      // Keep the last timer value displayed when paused
+      saveTimerState(); // Save timer state when stopped
+    }
+
+    // Load timer state when the page loads
+    loadTimerState();
+
+    // If the timer was active, start it again
+    if (timerIsActive) {
+      startAutoRefresh();
+      timerToggle.classList.remove("btn-success");
+      timerToggle.classList.add("btn-danger");
+      timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
     }
 
     // Update minutes display when frequency changes
@@ -602,6 +636,7 @@ block content %}
         timerToggle.classList.remove("btn-success");
         timerToggle.classList.add("btn-danger");
         timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        saveTimerState(); // Save timer state after starting
       }, 1000);
     });
 
