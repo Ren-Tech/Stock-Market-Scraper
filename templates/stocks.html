@@ -21,6 +21,10 @@
   .scrollable-dropdown::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
+
+  .region-dropdown {
+    margin-right: 8px;
+  }
 </style>
 <div class="container mt-4">
   <h2 class="text-center mb-4">Stock Prices & Trends</h2>
@@ -30,38 +34,24 @@
     <div class="col-md-8 mx-auto">
       <form method="POST" class="d-flex justify-content-between">
         <div class="d-flex flex-grow-1">
-          <!-- Symbols Dropdown -->
-          <div class="dropdown me-2">
+          <!-- North America Dropdown -->
+          <div class="dropdown region-dropdown">
             <button
               class="btn btn-secondary dropdown-toggle"
               type="button"
-              id="symbolsDropdown"
+              id="northAmericaDropdown"
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Symbols
+              North America
             </button>
             <ul
               class="dropdown-menu scrollable-dropdown"
-              aria-labelledby="symbolsDropdown"
+              aria-labelledby="northAmericaDropdown"
             >
               {% for symbol, company in [ ("AAPL", "Apple Inc."), ("MSFT",
               "Microsoft Corporation"), ("GOOGL", "Alphabet Inc."), ("AMZN",
-              "Amazon.com Inc."), ("META", "Meta Platforms Inc."), ("TSLA",
-              "Tesla Inc."), ("NFLX", "Netflix Inc."), ("NVDA", "NVIDIA
-              Corporation"), ("GOOG", "Alphabet Inc."), ("BABA", "Alibaba Group
-              Holding Limited"), ("INTC", "Intel Corporation"), ("AMD",
-              "Advanced Micro Devices Inc."), ("PYPL", "PayPal Holdings Inc."),
-              ("SPY", "SPDR S&P 500 ETF Trust"), ("BRK-B", "Berkshire Hathaway
-              Inc."), ("V", "Visa Inc."), ("WMT", "Walmart Inc."), ("DIS", "The
-              Walt Disney Company"), ("JNJ", "Johnson & Johnson"), ("GE",
-              "General Electric Company"), ("INTU", "Intuit Inc."), ("ADBE",
-              "Adobe Inc."), ("BA", "The Boeing Company"), ("XOM", "Exxon Mobil
-              Corporation"), ("T", "AT&T Inc."), ("ORCL", "Oracle Corporation"),
-              ("CSCO", "Cisco Systems Inc."), ("PFE", "Pfizer Inc."), ("UPS",
-              "United Parcel Service Inc."), ("MCD", "McDonald's Corporation"),
-              ("CVX", "Chevron Corporation"), ("BIDU", "Baidu Inc."), ("GS",
-              "The Goldman Sachs Group Inc.") ] %}
+              "Amazon.com Inc."), ("JPM", "JPMorgan Chase & Co.") ] %}
               <li>
                 <a class="dropdown-item" href="#">
                   <input
@@ -70,36 +60,249 @@
                     value="{{ symbol }}"
                     onclick="addSymbolToSearch('{{ symbol }}')"
                   />
-                  {{ symbol }} - {{ company }}
+                  {{ symbol }} - {{ company }} (USA)
                 </a>
               </li>
               {% endfor %}
             </ul>
           </div>
-          <input
-            type="text"
-            name="stock_symbols"
-            id="stockSymbolsInput"
-            class="form-control me-2 flex-grow-1"
-            placeholder="Enter stock symbols (comma separated)"
-            value=""
-          />
-        </div>
-        <div class="d-flex">
-          <button type="submit" class="btn btn-primary me-2">Search</button>
-          <button type="button" class="btn btn-outline-secondary refresh-btn">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-          </button>
-          <button type="button" class="btn btn-outline-secondary">
-            <a
-              href="{{ url_for('stock_reports') }}"
-              class="btn btn-outline-secondary"
+
+          <!-- South America Dropdown -->
+          <div class="dropdown region-dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="southAmericaDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
             >
-              <i class="bi bi-file-earmark-text"></i> Report
-            </a>
-          </button>
+              South America
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="southAmericaDropdown"
+            >
+              {% for symbol, company in [ ("VALE", "Vale S.A."), ("PBR",
+              "Petróleo Brasileiro S.A."), ("ITUB", "Itaú Unibanco Holding
+              S.A."), ("BBD", "Banco Bradesco S.A."), ("CIG", "Companhia
+              Energética de Minas Gerais") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }} (Brazil)
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Europe Dropdown -->
+          <div class="dropdown region-dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="europeDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Europe
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="europeDropdown"
+            >
+              {% for symbol, company, country in [ ("SAP", "SAP SE", "Germany"),
+              ("AZN", "AstraZeneca PLC", "UK"), ("SHEL", "Shell plc",
+              "UK/Netherlands"), ("ASML", "ASML Holding N.V.", "Netherlands"),
+              ("NSRGY", "Nestlé S.A.", "Switzerland") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }} ({{ country }})
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Asia Dropdown -->
+          <div class="dropdown region-dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="asiaDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Asia
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="asiaDropdown"
+            >
+              {% for symbol, company, country in [ ("BABA", "Alibaba Group
+              Holding Limited", "China"), ("TSM", "Taiwan Semiconductor
+              Manufacturing Company", "Taiwan"), ("9988.HK", "Alibaba Group
+              Holding Limited", "Hong Kong"), ("7203.T", "Toyota Motor
+              Corporation", "Japan"), ("005930.KS", "Samsung Electronics Co.,
+              Ltd.", "South Korea") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }} ({{ country }})
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Africa Dropdown -->
+          <div class="dropdown region-dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="africaDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Africa
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="africaDropdown"
+            >
+              {% for symbol, company, country in [ ("NPSNY", "Naspers Limited",
+              "South Africa"), ("SSL", "Sasol Limited", "South Africa"),
+              ("AFLT.JO", "African Rainbow Minerals", "South Africa"),
+              ("MTNJ.JO", "MTN Group Limited", "South Africa"), ("SBKJ.JO",
+              "Standard Bank Group Limited", "South Africa") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }} ({{ country }})
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Australia Dropdown -->
+          <div class="dropdown region-dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="australiaDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Australia
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="australiaDropdown"
+            >
+              {% for symbol, company in [ ("BHP", "BHP Group Limited"), ("RIO",
+              "Rio Tinto Group"), ("CBA.AX", "Commonwealth Bank of Australia"),
+              ("WBC.AX", "Westpac Banking Corporation"), ("NAB.AX", "National
+              Australia Bank Limited") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }} (Australia)
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- MENA Dropdown -->
+          <div class="dropdown region-dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="menaDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              MENA
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="menaDropdown"
+            >
+              {% for symbol, company, country in [ ("ARAMCO.SR", "Saudi Arabian
+              Oil Company", "Saudi Arabia"), ("QAR.QA", "Qatar National Bank",
+              "Qatar"), ("FAB.AE", "First Abu Dhabi Bank", "UAE"), ("2222.SR",
+              "Saudi Arabian Mining Company", "Saudi Arabia"), ("ENBD.DU",
+              "Emirates NBD Bank", "UAE") ] %}
+              <li>
+                <a class="dropdown-item" href="#">
+                  <input
+                    type="radio"
+                    name="symbol"
+                    value="{{ symbol }}"
+                    onclick="addSymbolToSearch('{{ symbol }}')"
+                  />
+                  {{ symbol }} - {{ company }} ({{ country }})
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
       </form>
+
+      <!-- Stock Symbol Input Field and Buttons -->
+      <div class="d-flex mt-3">
+        <input
+          type="text"
+          name="stock_symbols"
+          id="stockSymbolsInput"
+          class="form-control me-2 flex-grow-1"
+          placeholder="Enter stock symbols (comma separated)"
+          value=""
+        />
+        <button type="submit" class="btn btn-primary me-2">Search</button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary refresh-btn me-2"
+        >
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+        <button type="button" class="btn btn-outline-secondary">
+          <a
+            href="{{ url_for('stock_reports') }}"
+            class="btn btn-outline-secondary"
+          >
+            <i class="bi bi-file-earmark-text"></i> Report
+          </a>
+        </button>
+      </div>
     </div>
   </div>
 
