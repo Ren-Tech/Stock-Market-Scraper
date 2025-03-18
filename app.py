@@ -181,7 +181,6 @@ def current_affairs():
 
     # Default top news sources
     default_news_sources = [
-        "https://www.wsj.com/world",
         "https://www.nytimes.com/section/world",
         "https://edition.cnn.com/",
         "https://www.bbc.co.uk/news/world",
