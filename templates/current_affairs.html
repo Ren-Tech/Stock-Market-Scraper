@@ -37,6 +37,36 @@ block content %}
     padding: 1px 6px;
     font-size: 0.8rem;
   }
+
+  /* Styles for featured/trending news */
+  .trending-news-section {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 1rem;
+  }
+
+  .trending-label {
+    display: inline-block;
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .featured-news-card {
+    border-left: 4px solid #007bff;
+    margin-bottom: 1rem;
+  }
+
+  /* Responsive grid adjustments */
+  @media (min-width: 1200px) {
+    .news-grid-item {
+      flex: 0 0 33.333333%;
+      max-width: 33.333333%;
+    }
+  }
 </style>
 <div class="container mt-4">
   <!-- Mini Tab Navigation (Top Right) -->
@@ -133,6 +163,7 @@ block content %}
                 class="form-control"
                 placeholder="Enter URL"
                 value="{{ urls[i-1] if urls and i <= urls|length else '' }}"
+                data-source-order="{{ i }}"
               />
             </div>
             {% endfor %}
@@ -198,13 +229,63 @@ block content %}
     >
       <div class="card shadow-sm p-3" id="newsCard">
         <h6 class="text-center text-primary">News Feed</h6>
+
+        {% if news_data %}
+        <!-- Trending/Top News Section -->
+        <div class="trending-news-section" id="trendingNews">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+              <span class="trending-label">Trending</span> Top Stories
+            </h5>
+          </div>
+
+          <!-- Featured News Items (Top 5 stories) -->
+          {% for i in range(5) %} {% if news_data|length > i %}
+          <div class="card mb-3 featured-news-card">
+            <div class="row g-0">
+              <div class="col-md-5">
+                <img
+                  src="{{ news_data[i].image }}"
+                  class="img-fluid rounded-start"
+                  alt="Featured News"
+                  style="height: 100%; object-fit: cover"
+                  onerror="this.src='/static/images/default_news.jpg';"
+                />
+              </div>
+              <div class="col-md-7">
+                <div class="card-body">
+                  <h4 class="card-title">{{ news_data[i].title }}</h4>
+                  <p class="card-text">{{ news_data[i].content }}</p>
+                  <div class="d-flex justify-content-between">
+                    <a
+                      href="{{ news_data[i].link }}"
+                      target="_blank"
+                      class="btn btn-primary"
+                      >Read Full Story</a
+                    >
+                    <span class="badge bg-primary"
+                      >{{ news_data[i].category|capitalize }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %} {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Regular News Grid -->
         <div class="row" id="newsItems">
-          {% if news_data %} {% for news in news_data %}
+          {% if news_data %} {% for news in news_data %} {% if loop.index0 >= 5
+          %}
+          <!-- Skip the first 5 items as they're shown in the featured section -->
           <div
-            class="col-md-{% if news_data %}6{% else %}12{% endif %} mb-3"
+            class="col-md-6 col-xl-4 mb-3 news-grid-item"
             data-category="{{ news.category }}"
+            data-source-url="{{ news.source_url }}"
           >
-            <div class="card">
+            <div class="card h-100">
               <div class="row g-0">
                 <div class="col-md-4">
                   <img
@@ -247,7 +328,7 @@ block content %}
               </div>
             </div>
           </div>
-          {% endfor %} {% else %}
+          {% endif %} {% endfor %} {% else %}
           <div class="col-12 text-center py-5">
             <p>No news data available. Submit the form to fetch news.</p>
             {% if request.method == "POST" and not news_data %}
@@ -292,6 +373,98 @@ block content %}
     let timerIsActive = false;
     let secondsRemaining = 0;
     let announcementMade = false;
+    let urlSourceOrder = {};
+
+    // Store the URL order for sorting news items
+    function storeUrlOrder() {
+      const urlInputs = document.querySelectorAll('input[name="web_urls"]');
+      urlInputs.forEach((input, index) => {
+        if (input.value) {
+          // Extract domain or use full URL
+          try {
+            const url = new URL(input.value);
+            const domain = url.hostname;
+            urlSourceOrder[domain] = index;
+          } catch (e) {
+            // If URL is invalid, just use the input value
+            urlSourceOrder[input.value] = index;
+          }
+        }
+      });
+    }
+
+    // Sort news items based on source URL order
+    function sortNewsBySourceOrder() {
+      const newsContainer = document.getElementById("newsItems");
+      const trendingContainer = document.getElementById("trendingNews");
+
+      if (!newsContainer || !trendingContainer) return;
+
+      // Get and sort all news items (including trending)
+      const allNewsItems = Array.from(
+        document.querySelectorAll("[data-source-url]")
+      );
+
+      allNewsItems.sort((a, b) => {
+        const urlA = a.getAttribute("data-source-url");
+        const urlB = b.getAttribute("data-source-url");
+
+        // Extract domains
+        let domainA, domainB;
+        try {
+          domainA = new URL(urlA).hostname;
+        } catch (e) {
+          domainA = urlA;
+        }
+
+        try {
+          domainB = new URL(urlB).hostname;
+        } catch (e) {
+          domainB = urlB;
+        }
+
+        // Get order (default to high number if not found)
+        const orderA =
+          urlSourceOrder[domainA] !== undefined ? urlSourceOrder[domainA] : 999;
+        const orderB =
+          urlSourceOrder[domainB] !== undefined ? urlSourceOrder[domainB] : 999;
+
+        return orderA - orderB;
+      });
+
+      // Get first 5 for trending section
+      const topFive = allNewsItems.slice(0, 5);
+      const rest = allNewsItems.slice(5);
+
+      // Clear and repopulate trending section
+      const trendingContent = document.querySelector("#trendingNews .d-flex");
+      if (trendingContent) {
+        let trendingParent = trendingContent.parentNode;
+        // Keep the heading
+        while (trendingParent.childNodes.length > 1) {
+          trendingParent.removeChild(trendingParent.lastChild);
+        }
+
+        // Add top 5 items
+        topFive.forEach((item) => {
+          const clone = item.cloneNode(true);
+          clone.classList.add("featured-news-card");
+          clone.classList.remove(
+            "col-md-6",
+            "col-xl-4",
+            "mb-3",
+            "news-grid-item"
+          );
+          trendingParent.appendChild(clone);
+        });
+      }
+
+      // Clear and repopulate regular news grid
+      newsContainer.innerHTML = "";
+      rest.forEach((item) => {
+        newsContainer.appendChild(item);
+      });
+    }
 
     // Function to save timer state to local storage
     function saveTimerState() {
@@ -334,6 +507,8 @@ block content %}
       const urlInputs = document.querySelectorAll('input[name="web_urls"]');
       const urls = Array.from(urlInputs).map((input) => input.value);
       localStorage.setItem("currentAffairsUrls", JSON.stringify(urls));
+      // Also store URL order
+      storeUrlOrder();
     }
 
     // Function to load URLs from local storage
@@ -357,6 +532,8 @@ block content %}
           }
         }
       }
+      // Store URL order
+      storeUrlOrder();
     }
 
     // Function to add new source field with optional value
@@ -367,18 +544,19 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-        <span class="input-group-text">#${nextNum}</span>
-        <input
-          type="text"
-          name="web_urls"
-          class="form-control"
-          placeholder="Enter URL"
-          value="${value}"
-        />
-        <button type="button" class="btn btn-outline-danger remove-field">
-          <i class="bi bi-x"></i>
-        </button>
-      `;
+          <span class="input-group-text">#${nextNum}</span>
+          <input
+            type="text"
+            name="web_urls"
+            class="form-control"
+            placeholder="Enter URL"
+            value="${value}"
+            data-source-order="${nextNum}"
+          />
+          <button type="button" class="btn btn-outline-danger remove-field">
+            <i class="bi bi-x"></i>
+          </button>
+        `;
 
       sourceContainer.appendChild(newField);
 
@@ -446,6 +624,9 @@ block content %}
       const fields = document.querySelectorAll(".source-field");
       fields.forEach((field, index) => {
         field.querySelector(".input-group-text").textContent = `#${index + 1}`;
+        field
+          .querySelector('input[name="web_urls"]')
+          .setAttribute("data-source-order", index + 1);
       });
     }
 
@@ -458,16 +639,23 @@ block content %}
         toggleButton.innerHTML =
           '<i class="bi bi-arrow-right-circle"></i> Show Search';
         newsColumn.className = "col-md-12";
-        document.querySelectorAll("#newsItems > div").forEach((item) => {
-          item.className = item.className.replace("col-md-12", "col-md-6");
+
+        // Preserve the 3-column layout on large screens
+        document.querySelectorAll(".news-grid-item").forEach((item) => {
+          item.className = item.className.replace(
+            /col-md-\d+/g,
+            "col-md-6 col-xl-4"
+          );
         });
       } else {
         leftColumn.style.display = "block";
         toggleButton.innerHTML =
           '<i class="bi bi-arrow-left-circle"></i> Hide Search';
         newsColumn.className = "col-md-8";
-        document.querySelectorAll("#newsItems > div").forEach((item) => {
-          item.className = item.className.replace("col-md-6", "col-md-12");
+
+        // Adjust to 2-column layout when sidebar is visible
+        document.querySelectorAll(".news-grid-item").forEach((item) => {
+          item.className = item.className.replace(/col-md-\d+/g, "col-md-12");
         });
       }
     });
@@ -520,10 +708,35 @@ block content %}
           .then((html) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
+
+            // Update both trending news and regular news grid
+            const newTrendingNews = doc.querySelector("#trendingNews");
             const newNewsItems = doc.querySelector("#newsItems");
+
+            if (newTrendingNews) {
+              const trendingNewsSection =
+                document.querySelector("#trendingNews");
+              if (trendingNewsSection) {
+                trendingNewsSection.innerHTML = newTrendingNews.innerHTML;
+              }
+            }
 
             if (newNewsItems) {
               newsItems.innerHTML = newNewsItems.innerHTML;
+
+              // Sort news by source URL order
+              sortNewsBySourceOrder();
+
+              // Reapply column classes after refresh
+              const isSearchVisible = leftColumn.style.display !== "none";
+              if (!isSearchVisible) {
+                document.querySelectorAll(".news-grid-item").forEach((item) => {
+                  item.className = item.className.replace(
+                    /col-md-\d+/g,
+                    "col-md-6 col-xl-4"
+                  );
+                });
+              }
             }
 
             refreshProgress.style.width = "0%";
@@ -532,6 +745,9 @@ block content %}
             countdownDisplay.textContent = formatTime(secondsRemaining);
             announcementMade = false;
             saveTimerState(); // Save timer state after refresh
+
+            // Apply category filtering
+            applyCurrentCategoryFilter();
           })
           .catch((error) => {
             console.error("Error refreshing news:", error);
@@ -618,10 +834,6 @@ block content %}
         newsColumn.className = "col-md-12";
       }
 
-      document.querySelectorAll("#newsItems > div").forEach((item) => {
-        item.className = item.className.replace("col-md-12", "col-md-6");
-      });
-
       toggleButton.classList.remove("d-none");
       toggleButton.classList.add("visible");
       toggleButton.innerHTML =
@@ -640,6 +852,43 @@ block content %}
       }, 1000);
     });
 
+    // Keep track of current active category
+    let currentActiveCategory = "all";
+
+    // Function to apply current category filter
+    function applyCurrentCategoryFilter() {
+      document
+        .querySelectorAll("#newsItems > div[data-category]")
+        .forEach((row) => {
+          if (
+            currentActiveCategory === "all" ||
+            row.getAttribute("data-category") === currentActiveCategory
+          ) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+
+      // Also handle featured news item based on category
+      const featuredNews = document.querySelector(".featured-news-card");
+      if (featuredNews) {
+        const category = featuredNews
+          .querySelector(".badge")
+          .textContent.toLowerCase();
+        if (
+          currentActiveCategory !== "all" &&
+          category !== currentActiveCategory
+        ) {
+          document.querySelector(".trending-news-section").style.display =
+            "none";
+        } else {
+          document.querySelector(".trending-news-section").style.display =
+            "block";
+        }
+      }
+    }
+
     // Category filtering for news
     let tabs = document.querySelectorAll("#newsTabs .nav-link");
     tabs.forEach((tab) => {
@@ -648,19 +897,8 @@ block content %}
         tabs.forEach((t) => t.classList.remove("active"));
         this.classList.add("active");
 
-        let selectedCategory = this.getAttribute("data-tab");
-        document
-          .querySelectorAll("#newsItems > div[data-category]")
-          .forEach((row) => {
-            if (
-              selectedCategory === "all" ||
-              row.getAttribute("data-category") === selectedCategory
-            ) {
-              row.style.display = "";
-            } else {
-              row.style.display = "none";
-            }
-          });
+        currentActiveCategory = this.getAttribute("data-tab");
+        applyCurrentCategoryFilter();
       });
     });
 

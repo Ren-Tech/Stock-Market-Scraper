@@ -214,13 +214,20 @@ def current_affairs():
     # Sort news by date (most recent first)
     news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
     
+    # Get top 5 stories
+    top_5_stories = news_data[:5]
+    
+    # Sort news by web URL
+    news_data_sorted_by_url = sorted(news_data, key=lambda x: x.get('link', ''))
+    
     # Print diagnostics to help with debugging
     print(f"URLs processed: {len(urls)}")
     print(f"News items found: {len(news_data)}")
     print(f"Errors encountered: {len(error_messages)}")
     
     return render_template("current_affairs.html", 
-                         news_data=news_data, 
+                         news_data=news_data_sorted_by_url, 
+                         top_5_stories=top_5_stories,
                          urls=urls, 
                          error_messages=error_messages)
 @app.route("/market_news", methods=["GET", "POST"])
