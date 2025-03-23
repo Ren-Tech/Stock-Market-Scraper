@@ -277,13 +277,10 @@ def calendar():
 def stock_reports():
     # Get the stock data from the main stocks page
     symbols = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "NVDA", "GOOG", "BABA",
-    "INTC", "AMD", "PYPL", "SPY", "BRK-B", "V", "WMT", "DIS", "JNJ", "GE", "INTU", "ADBE",
-    "NVDA", "BA", "XOM", "T", "ORCL", "CSCO", "PFE", "UPS", "MCD", "CVX", "BIDU", "GS",
-
-
-]
- # Default symbols
+       "WMT", "DIS", "JNJ", "GE", "INTU", "ADBE",
+        "NVDA", "BA", "XOM", "T", "ORCL", "BIDU", "GS",
+    ]
+    
     stock_data = {}
     
     for symbol in symbols:
