@@ -1,10 +1,12 @@
 {% extends "base.html" %} {% block title %}Philippine Stocks | Financial
 Dashboard{% endblock %} {% block content %}
 <div class="container mt-4">
-  <h1 class="text-center mb-4">Philippine Stock Market</h1>
+  <h1 class="text-center mb-4 animate__animated animate__fadeIn">
+    Philippine Stock Market
+  </h1>
 
   <!-- Search Form -->
-  <div class="card mb-4">
+  <div class="card mb-4 animate__animated animate__fadeInUp">
     <div class="card-body">
       <form method="POST" action="{{ url_for('ph_stocks') }}">
         <div class="form-group">
@@ -24,28 +26,32 @@ Dashboard{% endblock %} {% block content %}
               <button class="btn btn-primary" type="submit">Search</button>
             </div>
           </div>
-          <small class="form-text text-muted"
-            >Enter Philippine stock symbols to get specific data, or leave blank
-            to see all stocks.</small
-          >
+          <small class="form-text text-muted">
+            Enter Philippine stock symbols to get specific data, or leave blank
+            to see all stocks.
+          </small>
         </div>
       </form>
     </div>
   </div>
 
   {% if error_message %}
-  <div class="alert alert-danger">{{ error_message }}</div>
+  <div class="alert alert-danger animate__animated animate__shakeX">
+    {{ error_message }}
+  </div>
   {% endif %}
 
   <!-- Stock Data Cards -->
   <div class="mb-4">
-    <h5 class="mb-3">Philippine Stock Quotes</h5>
+    <h5 class="mb-3 animate__animated animate__fadeIn">
+      Philippine Stock Quotes
+    </h5>
 
     {% if stocks_data %}
     <div class="row">
       {% for stock in stocks_data %}
       <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
+        <div class="card h-100 animate__animated animate__fadeInUp">
           <div
             class="card-header d-flex justify-content-between align-items-center"
           >
@@ -90,7 +96,7 @@ Dashboard{% endblock %} {% block content %}
       {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info">
+    <div class="alert alert-info animate__animated animate__fadeIn">
       No stock data available. Please try a different search or check back
       later.
     </div>
@@ -100,7 +106,7 @@ Dashboard{% endblock %} {% block content %}
   <!-- News Section -->
   <div class="row">
     <div class="col-12">
-      <div class="card mb-4">
+      <div class="card mb-4 animate__animated animate__fadeInUp">
         <div class="card-header">
           <h5>Philippine Stock Market News</h5>
         </div>
@@ -109,7 +115,7 @@ Dashboard{% endblock %} {% block content %}
           <div class="row">
             {% for news in news_data %}
             <div class="col-md-6 mb-3">
-              <div class="card h-100">
+              <div class="card h-100 animate__animated animate__fadeIn">
                 <div class="row g-0">
                   <div class="col-md-4">
                     <img
@@ -137,7 +143,7 @@ Dashboard{% endblock %} {% block content %}
             {% endfor %}
           </div>
           {% else %}
-          <div class="alert alert-info">
+          <div class="alert alert-info animate__animated animate__fadeIn">
             No news available at this time. Please check back later.
           </div>
           {% endif %}
@@ -147,9 +153,25 @@ Dashboard{% endblock %} {% block content %}
   </div>
 </div>
 {% endblock %} {% block scripts %}
+<!-- Include animate.css for animations -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+/>
+
+<!-- Optional: Add any JavaScript functionality here -->
 <script>
-  // Optional: Add any JavaScript functionality here
   $(document).ready(function () {
+    // Example: Add hover effects to cards
+    $(".card").hover(
+      function () {
+        $(this).addClass("shadow-lg");
+      },
+      function () {
+        $(this).removeClass("shadow-lg");
+      }
+    );
+
     // Example: Add auto-refresh functionality
     // setTimeout(function() {
     //     location.reload();
