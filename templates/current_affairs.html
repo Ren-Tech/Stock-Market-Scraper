@@ -372,6 +372,7 @@ block content %}
     let countdownInterval;
     let timerIsActive = false;
     let secondsRemaining = 0;
+    let lastTimerCheckpoint = Date.now(); // Add timestamp to track when timer was last saved
     let announcementMade = false;
     let urlSourceOrder = {};
 
@@ -466,22 +467,53 @@ block content %}
       });
     }
 
-    // Function to save timer state to local storage
+    // Function to save timer state to local storage with timestamp
     function saveTimerState() {
       localStorage.setItem("timerIsActive", timerIsActive);
       localStorage.setItem("secondsRemaining", secondsRemaining);
+      localStorage.setItem("lastTimerCheckpoint", Date.now());
     }
 
     // Function to load timer state from local storage
     function loadTimerState() {
       const savedTimerIsActive = localStorage.getItem("timerIsActive");
       const savedSecondsRemaining = localStorage.getItem("secondsRemaining");
+      const savedTimerCheckpoint = localStorage.getItem("lastTimerCheckpoint");
 
       if (savedTimerIsActive !== null) {
         timerIsActive = savedTimerIsActive === "true";
-        secondsRemaining = parseInt(savedSecondsRemaining, 10);
+
+        // Calculate how much time has passed since the timer state was saved
+        if (savedTimerCheckpoint && timerIsActive) {
+          const elapsedTime = Math.floor(
+            (Date.now() - parseInt(savedTimerCheckpoint)) / 1000
+          );
+          secondsRemaining = Math.max(
+            0,
+            parseInt(savedSecondsRemaining, 10) - elapsedTime
+          );
+
+          // If timer ran out while page was closed, reset it to the selected frequency
+          if (secondsRemaining <= 0) {
+            const minutes = parseInt(
+              frequencyDropdown.value.replace("min", "")
+            );
+            secondsRemaining = minutes * 60;
+          }
+        } else {
+          secondsRemaining = parseInt(savedSecondsRemaining, 10);
+        }
+
+        // Update the display immediately
+        countdownDisplay.textContent = formatTime(secondsRemaining);
       }
     }
+
+    // Periodically save timer state while page is open
+    setInterval(saveTimerState, 5000);
+
+    // Save timer state when page is about to unload
+    window.addEventListener("beforeunload", saveTimerState);
 
     // Function to announce page refresh using text-to-speech
     function announceRefresh() {
@@ -544,19 +576,19 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-          <span class="input-group-text">#${nextNum}</span>
-          <input
-            type="text"
-            name="web_urls"
-            class="form-control"
-            placeholder="Enter URL"
-            value="${value}"
-            data-source-order="${nextNum}"
-          />
-          <button type="button" class="btn btn-outline-danger remove-field">
-            <i class="bi bi-x"></i>
-          </button>
-        `;
+        <span class="input-group-text">#${nextNum}</span>
+        <input
+          type="text"
+          name="web_urls"
+          class="form-control"
+          placeholder="Enter URL"
+          value="${value}"
+          data-source-order="${nextNum}"
+        />
+        <button type="button" class="btn btn-outline-danger remove-field">
+          <i class="bi bi-x"></i>
+        </button>
+      `;
 
       sourceContainer.appendChild(newField);
 
