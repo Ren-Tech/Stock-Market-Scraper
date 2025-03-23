@@ -21,6 +21,28 @@
   .scrollable-dropdown::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
+
+  .selected-symbols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .symbol-tag {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .symbol-tag .remove-symbol {
+    margin-left: 5px;
+    cursor: pointer;
+    color: #dc3545;
+  }
 </style>
 <div class="container mt-4">
   <h2 class="text-center mb-4">Stock Prices & Trends</h2>
@@ -28,12 +50,12 @@
   <!-- Search Form -->
   <div class="row mb-4">
     <div class="col-md-8 mx-auto">
-      <form method="POST" class="d-flex justify-content-between">
-        <div class="d-flex flex-grow-1">
+      <form method="POST" class="d-flex flex-column">
+        <div class="d-flex mb-2">
           <!-- Regional Dropdowns -->
-          <div class="d-flex me-2">
+          <div class="d-flex flex-wrap">
             <!-- North America Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -54,12 +76,11 @@
                 Corporation"), ("INTC", "Intel Corporation"), ("AMD", "Advanced
                 Micro Devices Inc.") ] %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -69,7 +90,7 @@
             </div>
 
             <!-- South America Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -88,12 +109,11 @@
                 S.A."), ("CIG", "Companhia Energética de Minas Gerais"), ("GGB",
                 "Gerdau S.A.") ] %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -103,7 +123,7 @@
             </div>
 
             <!-- Europe Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -121,12 +141,11 @@
                 PLC"), ("BP", "BP p.l.c."), ("UL", "Unilever PLC"), ("SIEGY",
                 "Siemens AG"), ("SHELLH", "Shell plc") ] %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -136,7 +155,7 @@
             </div>
 
             <!-- Asia Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -156,12 +175,11 @@
                 ("HMC", "Honda Motor Co., Ltd."), ("TM", "Toyota Motor
                 Corporation") ] %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -171,7 +189,7 @@
             </div>
 
             <!-- Africa Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -190,12 +208,11 @@
                 "Sasol Limited"), ("NPSNY", "Naspers Limited"), ("GOLD",
                 "Barrick Gold Corporation") ] %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -205,7 +222,7 @@
             </div>
 
             <!-- Australia Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -225,12 +242,11 @@
                 ("ANZBY", "Australia and New Zealand Banking Group Limited") ]
                 %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -240,7 +256,7 @@
             </div>
 
             <!-- MENA Dropdown -->
-            <div class="dropdown me-2">
+            <div class="dropdown me-2 mb-2">
               <button
                 class="btn btn-secondary dropdown-toggle"
                 type="button"
@@ -259,12 +275,11 @@
                 "Emaar Properties PJSC"), ("FAB.AD", "First Abu Dhabi Bank"),
                 ("SABIC.SR", "Saudi Basic Industries Corporation") ] %}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <a class="dropdown-item" href="javascript:void(0)">
                     <input
-                      type="radio"
-                      name="symbol"
+                      type="checkbox"
                       value="{{ symbol }}"
-                      onclick="addSymbolToSearch('{{ symbol }}')"
+                      onclick="toggleSymbol('{{ symbol }}', '{{ company }}')"
                     />
                     {{ symbol }} - {{ company }}
                   </a>
@@ -273,29 +288,35 @@
               </ul>
             </div>
           </div>
-
-          <input
-            type="text"
-            name="stock_symbols"
-            id="stockSymbolsInput"
-            class="form-control me-2"
-            placeholder="Enter stock symbols (comma separated)"
-            value=""
-          />
         </div>
-        <div class="d-flex">
+
+        <!-- Selected Symbols Display Area -->
+        <div class="selected-symbols mb-2" id="selectedSymbolsDisplay">
+          <!-- Selected symbols will appear here as tags -->
+        </div>
+
+        <!-- Hidden Input to Store Selected Symbols -->
+        <input
+          type="hidden"
+          name="stock_symbols"
+          id="stockSymbolsInput"
+          value=""
+        />
+
+        <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary me-2">Search</button>
-          <button type="button" class="btn btn-outline-secondary refresh-btn">
+          <button
+            type="button"
+            class="btn btn-outline-secondary refresh-btn me-2"
+          >
             <i class="bi bi-arrow-clockwise"></i> Refresh
           </button>
-          <button type="button" class="btn btn-outline-secondary">
-            <a
-              href="{{ url_for('stock_reports') }}"
-              class="btn btn-outline-secondary"
-            >
-              <i class="bi bi-file-earmark-text"></i> Report
-            </a>
-          </button>
+          <a
+            href="{{ url_for('stock_reports') }}"
+            class="btn btn-outline-secondary"
+          >
+            <i class="bi bi-file-earmark-text"></i> Report
+          </a>
         </div>
       </form>
     </div>
@@ -359,20 +380,57 @@
   </div>
 
   <script>
-    function updateFrequency(tableId, selectedValue) {
-      document.getElementById(tableId + "-selected").innerText = selectedValue;
+    // Store selected symbols
+    let selectedSymbols = [];
+
+    // Toggle symbol selection
+    function toggleSymbol(symbol, company) {
+      const index = selectedSymbols.findIndex((item) => item.symbol === symbol);
+
+      if (index === -1) {
+        // Add symbol if not already selected
+        selectedSymbols.push({ symbol, company });
+      } else {
+        // Remove symbol if already selected
+        selectedSymbols.splice(index, 1);
+      }
+
+      // Update the display and hidden input
+      updateSymbolDisplay();
     }
 
-    function addSymbolToSearch(symbol) {
-      const input = document.getElementById("stockSymbolsInput");
-      const currentSymbols = input.value
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => s);
-      if (!currentSymbols.includes(symbol)) {
-        currentSymbols.push(symbol);
-        input.value = currentSymbols.join(", ");
-      }
+    // Remove a symbol
+    function removeSymbol(symbol) {
+      selectedSymbols = selectedSymbols.filter(
+        (item) => item.symbol !== symbol
+      );
+      updateSymbolDisplay();
+    }
+
+    // Update the symbol display area and hidden input
+    function updateSymbolDisplay() {
+      const displayArea = document.getElementById("selectedSymbolsDisplay");
+      const hiddenInput = document.getElementById("stockSymbolsInput");
+
+      // Clear the display area
+      displayArea.innerHTML = "";
+
+      // Add each symbol as a tag
+      selectedSymbols.forEach((item) => {
+        const tag = document.createElement("div");
+        tag.className = "symbol-tag";
+        tag.innerHTML = `
+          ${item.symbol} <span class="remove-symbol" onclick="removeSymbol('${item.symbol}')">&times;</span>
+        `;
+        displayArea.appendChild(tag);
+      });
+
+      // Update the hidden input with comma-separated symbols
+      hiddenInput.value = selectedSymbols.map((item) => item.symbol).join(",");
+    }
+
+    function updateFrequency(tableId, selectedValue) {
+      document.getElementById(tableId + "-selected").innerText = selectedValue;
     }
   </script>
 
@@ -584,6 +642,9 @@
     window.nextUpdateTime = new Date().getTime() + 600000; // 10 minutes
     updateCountdown();
     setInterval(updateCountdown, 1000); // Update every second
+
+    // Initialize selected symbols display
+    updateSymbolDisplay();
   };
 </script>
 {% endblock %}
