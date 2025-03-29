@@ -84,35 +84,367 @@ block content %}
       %}
     >
       <div class="card shadow-sm p-3" id="urlFormCard">
-        <h6 class="text-center text-primary">Web URLs</h6>
+        <h6 class="text-center text-primary">Web URLs by Region</h6>
         <form method="POST" id="urlForm">
-          <div id="sourceContainer">
-            {% for i in range(1, 17) %}
-            <div class="input-group mb-2 source-field">
-              <span class="input-group-text">#{{ i }}</span>
-              <input
-                type="text"
-                name="web_urls"
-                class="form-control"
-                placeholder="Enter URL"
-                value="{{ urls[i-1] if urls and i <= urls|length else '' }}"
-                data-source-order="{{ i }}"
-              />
+          <!-- Region-specific URL inputs -->
+          <div class="accordion" id="regionAccordion">
+            <!-- World -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseWorld"
+                >
+                  World
+                </button>
+              </h2>
+              <div
+                id="collapseWorld"
+                class="accordion-collapse collapse show"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="worldContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="world_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.world[i-1] if urls.world and i <= urls.world|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="world"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
             </div>
-            {% endfor %}
+
+            <!-- North America -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseNorthAmerica"
+                >
+                  North America
+                </button>
+              </h2>
+              <div
+                id="collapseNorthAmerica"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="northAmericaContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="north_america_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.north_america[i-1] if urls.north_america and i <= urls.north_america|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="north_america"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- South America -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseSouthAmerica"
+                >
+                  South America
+                </button>
+              </h2>
+              <div
+                id="collapseSouthAmerica"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="southAmericaContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="south_america_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.south_america[i-1] if urls.south_america and i <= urls.south_america|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="south_america"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Europe -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseEurope"
+                >
+                  Europe
+                </button>
+              </h2>
+              <div
+                id="collapseEurope"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="europeContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="europe_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.europe[i-1] if urls.europe and i <= urls.europe|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="europe"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Asia -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseAsia"
+                >
+                  Asia
+                </button>
+              </h2>
+              <div
+                id="collapseAsia"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="asiaContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="asia_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.asia[i-1] if urls.asia and i <= urls.asia|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="asia"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Africa -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseAfrica"
+                >
+                  Africa
+                </button>
+              </h2>
+              <div
+                id="collapseAfrica"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="africaContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="africa_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.africa[i-1] if urls.africa and i <= urls.africa|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="africa"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Australia -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseAustralia"
+                >
+                  Australia
+                </button>
+              </h2>
+              <div
+                id="collapseAustralia"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="australiaContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="australia_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.australia[i-1] if urls.australia and i <= urls.australia|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="australia"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- MENA -->
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseMENA"
+                >
+                  MENA
+                </button>
+              </h2>
+              <div
+                id="collapseMENA"
+                class="accordion-collapse collapse"
+                data-bs-parent="#regionAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="menaContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="mena_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.mena[i-1] if urls.mena and i <= urls.mena|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-region="mena"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Add Source Button -->
-          <button
-            id="addSourceBtn"
-            type="button"
-            class="btn btn-outline-secondary btn-sm w-100 mb-3"
-          >
-            <i class="bi bi-plus-circle"></i> Add Source
-          </button>
-
           <!-- Update Frequency Selection -->
-          <div class="d-flex align-items-center justify-content-between mb-2">
+          <div
+            class="d-flex align-items-center justify-content-between mb-2 mt-3"
+          >
             <label class="small mb-0">Update Frequency</label>
             <select
               id="frequencyDropdown"
@@ -285,8 +617,6 @@ block content %}
     let newsColumn = document.querySelector("#newsColumn");
     let newsItems = document.querySelector("#newsItems");
     let toggleButton = document.querySelector("#toggleSearch");
-    let addSourceBtn = document.querySelector("#addSourceBtn");
-    let sourceContainer = document.querySelector("#sourceContainer");
     let submitButton = document.querySelector("#submitSources");
 
     // Auto-refresh elements
@@ -305,29 +635,94 @@ block content %}
     let countdownInterval;
     let timerIsActive = false;
     let secondsRemaining = 0;
-    let lastTimerCheckpoint = Date.now(); // Add timestamp to track when timer was last saved
+    let lastTimerCheckpoint = Date.now();
     let announcementMade = false;
     let urlSourceOrder = {};
 
-    // Store the URL order for sorting news items
-    function storeUrlOrder() {
-      const urlInputs = document.querySelectorAll('input[name="web_urls"]');
-      urlInputs.forEach((input, index) => {
-        if (input.value) {
-          // Extract domain or use full URL
-          try {
-            const url = new URL(input.value);
-            const domain = url.hostname;
-            urlSourceOrder[domain] = index;
-          } catch (e) {
-            // If URL is invalid, just use the input value
-            urlSourceOrder[input.value] = index;
-          }
-        }
+    // Function to add new source field for a specific region
+    function addSourceField(region, value = "") {
+      const container = document.getElementById(`${region}Container`);
+      const existingFields = container.querySelectorAll(".source-field").length;
+      const nextNum = existingFields + 1;
+
+      const newField = document.createElement("div");
+      newField.className = "input-group mb-2 source-field";
+      newField.innerHTML = `
+        <span class="input-group-text">#${nextNum}</span>
+        <input
+          type="text"
+          name="${region}_urls"
+          class="form-control"
+          placeholder="Enter URL"
+          value="${value}"
+          data-source-order="${nextNum}"
+        />
+        <button type="button" class="btn btn-outline-danger remove-field">
+          <i class="bi bi-x"></i>
+        </button>
+      `;
+
+      container.appendChild(newField);
+
+      newField
+        .querySelector(".remove-field")
+        .addEventListener("click", function () {
+          newField.remove();
+          renumberFields(container);
+          saveUrlsToLocalStorage();
+        });
+
+      // Add input event listener to save on change
+      newField
+        .querySelector('input[name^="' + region + '"]')
+        .addEventListener("input", saveUrlsToLocalStorage);
+    }
+
+    // Function to renumber fields after removal for a specific container
+    function renumberFields(container) {
+      const fields = container.querySelectorAll(".source-field");
+      fields.forEach((field, index) => {
+        field.querySelector(".input-group-text").textContent = `#${index + 1}`;
+        field
+          .querySelector('input[type="text"]')
+          .setAttribute("data-source-order", index + 1);
       });
     }
 
-    // Sort news items based on source URL order
+    // Store the URL order for sorting news items
+    function storeUrlOrder() {
+      const regions = [
+        "world",
+        "north_america",
+        "south_america",
+        "europe",
+        "asia",
+        "africa",
+        "australia",
+        "mena",
+      ];
+
+      urlSourceOrder = {};
+
+      regions.forEach((region) => {
+        const inputs = document.querySelectorAll(
+          `input[name="${region}_urls"]`
+        );
+        inputs.forEach((input, index) => {
+          if (input.value) {
+            try {
+              const url = new URL(input.value);
+              const domain = url.hostname;
+              urlSourceOrder[domain] = { region, order: index };
+            } catch (e) {
+              urlSourceOrder[input.value] = { region, order: index };
+            }
+          }
+        });
+      });
+    }
+
+    // Sort news items based on source URL order and region
     function sortNewsBySourceOrder() {
       const newsContainer = document.getElementById("newsItems");
       const trendingContainer = document.getElementById("trendingNews");
@@ -342,6 +737,8 @@ block content %}
       allNewsItems.sort((a, b) => {
         const urlA = a.getAttribute("data-source-url");
         const urlB = b.getAttribute("data-source-url");
+        const categoryA = a.getAttribute("data-category");
+        const categoryB = b.getAttribute("data-category");
 
         // Extract domains
         let domainA, domainB;
@@ -358,12 +755,36 @@ block content %}
         }
 
         // Get order (default to high number if not found)
-        const orderA =
-          urlSourceOrder[domainA] !== undefined ? urlSourceOrder[domainA] : 999;
-        const orderB =
-          urlSourceOrder[domainB] !== undefined ? urlSourceOrder[domainB] : 999;
+        const orderA = urlSourceOrder[domainA] || {
+          region: categoryA,
+          order: 999,
+        };
+        const orderB = urlSourceOrder[domainB] || {
+          region: categoryB,
+          order: 999,
+        };
 
-        return orderA - orderB;
+        // First sort by region (to match the accordion order)
+        const regionOrder = [
+          "world",
+          "north_america",
+          "south_america",
+          "europe",
+          "asia",
+          "africa",
+          "australia",
+          "mena",
+        ];
+
+        const regionIndexA = regionOrder.indexOf(orderA.region);
+        const regionIndexB = regionOrder.indexOf(orderB.region);
+
+        if (regionIndexA !== regionIndexB) {
+          return regionIndexA - regionIndexB;
+        }
+
+        // Then sort by order within the region
+        return orderA.order - orderB.order;
       });
 
       // Get first 5 for trending section
@@ -469,9 +890,27 @@ block content %}
 
     // Function to save URLs to local storage
     function saveUrlsToLocalStorage() {
-      const urlInputs = document.querySelectorAll('input[name="web_urls"]');
-      const urls = Array.from(urlInputs).map((input) => input.value);
-      localStorage.setItem("currentAffairsUrls", JSON.stringify(urls));
+      const regions = [
+        "world",
+        "north_america",
+        "south_america",
+        "europe",
+        "asia",
+        "africa",
+        "australia",
+        "mena",
+      ];
+
+      const savedUrls = {};
+
+      regions.forEach((region) => {
+        const inputs = document.querySelectorAll(
+          `input[name="${region}_urls"]`
+        );
+        savedUrls[region] = Array.from(inputs).map((input) => input.value);
+      });
+
+      localStorage.setItem("currentAffairsUrls", JSON.stringify(savedUrls));
       // Also store URL order
       storeUrlOrder();
     }
@@ -481,62 +920,47 @@ block content %}
       const savedUrls = localStorage.getItem("currentAffairsUrls");
       if (savedUrls) {
         const urls = JSON.parse(savedUrls);
-        const urlInputs = document.querySelectorAll('input[name="web_urls"]');
+        const regions = [
+          "world",
+          "north_america",
+          "south_america",
+          "europe",
+          "asia",
+          "africa",
+          "australia",
+          "mena",
+        ];
 
-        // Fill existing fields with saved URLs
-        urlInputs.forEach((input, index) => {
-          if (index < urls.length) {
-            input.value = urls[index];
+        regions.forEach((region) => {
+          if (urls[region]) {
+            const container = document.getElementById(`${region}Container`);
+            // Clear existing fields beyond the first 4
+            const existingFields = container.querySelectorAll(".source-field");
+            for (let i = 4; i < existingFields.length; i++) {
+              existingFields[i].remove();
+            }
+
+            // Fill existing fields
+            const inputs = container.querySelectorAll(
+              'input[name^="' + region + '"]'
+            );
+            inputs.forEach((input, index) => {
+              if (index < urls[region].length) {
+                input.value = urls[region][index];
+              }
+            });
+
+            // Add additional fields if needed
+            if (urls[region].length > 4) {
+              for (let i = 4; i < urls[region].length; i++) {
+                addSourceField(region, urls[region][i]);
+              }
+            }
           }
         });
-
-        // Add more fields if needed
-        if (urls.length > urlInputs.length) {
-          for (let i = urlInputs.length; i < urls.length; i++) {
-            addSourceField(urls[i]);
-          }
-        }
       }
       // Store URL order
       storeUrlOrder();
-    }
-
-    // Function to add new source field with optional value
-    function addSourceField(value = "") {
-      const existingFields = document.querySelectorAll(".source-field").length;
-      const nextNum = existingFields + 1;
-
-      const newField = document.createElement("div");
-      newField.className = "input-group mb-2 source-field";
-      newField.innerHTML = `
-        <span class="input-group-text">#${nextNum}</span>
-        <input
-          type="text"
-          name="web_urls"
-          class="form-control"
-          placeholder="Enter URL"
-          value="${value}"
-          data-source-order="${nextNum}"
-        />
-        <button type="button" class="btn btn-outline-danger remove-field">
-          <i class="bi bi-x"></i>
-        </button>
-      `;
-
-      sourceContainer.appendChild(newField);
-
-      newField
-        .querySelector(".remove-field")
-        .addEventListener("click", function () {
-          newField.remove();
-          renumberFields();
-          saveUrlsToLocalStorage();
-        });
-
-      // Add input event listener to save on change
-      newField
-        .querySelector('input[name="web_urls"]')
-        .addEventListener("input", saveUrlsToLocalStorage);
     }
 
     // Timer toggle functionality
@@ -573,27 +997,19 @@ block content %}
       saveTimerState();
     });
 
-    // Add event listener to all existing URL inputs
-    document.querySelectorAll('input[name="web_urls"]').forEach((input) => {
+    // Add event listeners to all "Add Source" buttons
+    document.querySelectorAll(".add-source-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const region = this.getAttribute("data-region");
+        addSourceField(region);
+        saveUrlsToLocalStorage();
+      });
+    });
+
+    // Add event listeners to all existing URL inputs
+    document.querySelectorAll('input[name$="_urls"]').forEach((input) => {
       input.addEventListener("input", saveUrlsToLocalStorage);
     });
-
-    // Function to add new source field (button handler)
-    addSourceBtn.addEventListener("click", function () {
-      addSourceField();
-      saveUrlsToLocalStorage();
-    });
-
-    // Function to renumber fields after removal
-    function renumberFields() {
-      const fields = document.querySelectorAll(".source-field");
-      fields.forEach((field, index) => {
-        field.querySelector(".input-group-text").textContent = `#${index + 1}`;
-        field
-          .querySelector('input[name="web_urls"]')
-          .setAttribute("data-source-order", index + 1);
-      });
-    }
 
     // Toggle search panel visibility
     toggleButton.addEventListener("click", function () {

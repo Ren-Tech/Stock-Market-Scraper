@@ -1,164 +1,701 @@
 {% extends "base.html" %} {% block title %}Market Calendar{% endblock %} {%
 block content %}
-<div class="container">
-  <h2>Market Calendar</h2>
-  <p class="subtitle">Upcoming financial events and earnings reports.</p>
+<div class="market-calendar-container">
+  <div class="calendar-header">
+    <div class="header-content">
+      <h1>Market Calendar</h1>
+      <p class="subtitle">
+        Track upcoming financial events and earnings reports
+      </p>
+    </div>
+    <div class="header-illustration">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+        <path fill="#3B82F6" d="M40 30h120v140H40z" />
+        <path fill="#EFF6FF" d="M50 40h100v120H50z" />
+        <path fill="#3B82F6" d="M50 40h100v20H50z" />
+        <rect x="60" y="70" width="30" height="20" rx="2" fill="#10B981" />
+        <rect x="60" y="100" width="30" height="20" rx="2" fill="#F59E0B" />
+        <rect x="110" y="70" width="30" height="20" rx="2" fill="#EF4444" />
+        <rect x="110" y="100" width="30" height="20" rx="2" fill="#8B5CF6" />
+      </svg>
+    </div>
+  </div>
 
   <!-- Filters and Search Bar -->
-  <div class="filters">
-    <label for="event-type">Filter by:</label>
-    <select id="event-type">
-      <option value="all">All Events</option>
-      <option value="earnings">Earnings Reports</option>
-      <option value="dividends">Dividends</option>
-      <option value="splits">Stock Splits</option>
-      <option value="ipo">IPOs</option>
-    </select>
-    <input
-      type="text"
-      id="search-input"
-      placeholder="Search by symbol or event..."
-    />
-    <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+  <div class="control-panel">
+    <div class="search-box">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="search-icon"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search by symbol (e.g. AAPL, MSFT)"
+        autocomplete="off"
+      />
+      <div class="search-results" id="symbol-search-results"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-dropdown">
+        <label for="event-type">Event Type</label>
+        <div class="custom-select">
+          <select id="event-type">
+            <option value="all">All Events</option>
+            <option value="earnings">Earnings Reports</option>
+            <option value="dividends">Dividends</option>
+            <option value="splits">Stock Splits</option>
+            <option value="ipo">IPOs</option>
+          </select>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="select-arrow"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div class="filter-dropdown">
+        <label for="time-frame">Time Frame</label>
+        <div class="custom-select">
+          <select id="time-frame">
+            <option value="upcoming">Upcoming</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="select-arrow"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <button class="filter-btn" id="apply-filters">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="filter-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Apply Filters
+      </button>
+    </div>
   </div>
 
   <!-- Calendar Table -->
-  <table class="calendar-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Event</th>
-        <th>Symbol</th>
-        <th>Type</th>
-        <th>Details</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="calendar-body">
-      <!-- Example Data (Replace with dynamic data from Flask) -->
-      <tr>
-        <td>2023-10-25</td>
-        <td>Apple Inc. Earnings Report</td>
-        <td>AAPL</td>
-        <td>Earnings</td>
-        <td>Q4 2023 Earnings Release</td>
-        <td>
-          <button class="btn btn-info" onclick="viewDetails('AAPL')">
-            View
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td>2023-10-26</td>
-        <td>Microsoft Corporation Earnings Report</td>
-        <td>MSFT</td>
-        <td>Earnings</td>
-        <td>Q4 2023 Earnings Release</td>
-        <td>
-          <button class="btn btn-info" onclick="viewDetails('MSFT')">
-            View
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td>2023-10-27</td>
-        <td>Tesla Inc. Earnings Report</td>
-        <td>TSLA</td>
-        <td>Earnings</td>
-        <td>Q4 2023 Earnings Release</td>
-        <td>
-          <button class="btn btn-info" onclick="viewDetails('TSLA')">
-            View
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td>2023-10-30</td>
-        <td>Amazon.com Inc. Earnings Report</td>
-        <td>AMZN</td>
-        <td>Earnings</td>
-        <td>Q4 2023 Earnings Release</td>
-        <td>
-          <button class="btn btn-info" onclick="viewDetails('AMZN')">
-            View
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td>2023-11-01</td>
-        <td>Alphabet Inc. Earnings Report</td>
-        <td>GOOGL</td>
-        <td>Earnings</td>
-        <td>Q4 2023 Earnings Release</td>
-        <td>
-          <button class="btn btn-info" onclick="viewDetails('GOOGL')">
-            View
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="calendar-table-container">
+    <table class="calendar-table">
+      <thead>
+        <tr>
+          <th class="sortable" data-sort="date">
+            Date/Time
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="sort-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </th>
+          <th class="sortable" data-sort="event">
+            Event
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="sort-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </th>
+          <th class="sortable" data-sort="symbol">
+            Symbol
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="sort-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </th>
+          <th>Type</th>
+          <th>Details</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="calendar-body">
+        {% for event in calendar_events %}
+        <tr
+          data-symbol="{{ event.symbol }}"
+          data-type="{{ event.type }}"
+          data-date="{{ event.date }}"
+        >
+          <td>
+            <div class="date-cell">
+              <div class="date">{{ event.date|datetimeformat('%b %d') }}</div>
+              <div class="time">
+                {{ event.time if event.time else 'All Day' }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="event-cell">
+              {% if event.type == 'earnings' %}
+              <div class="event-icon earnings-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"
+                  />
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="event-info">
+                <div class="event-title">{{ event.company }} Earnings</div>
+                <div class="event-subtitle">{{ event.quarter }} Release</div>
+              </div>
+              {% elif event.type == 'dividend' %}
+              <div class="event-icon dividend-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="event-info">
+                <div class="event-title">{{ event.company }} Dividend</div>
+                <div class="event-subtitle">Payment Date</div>
+              </div>
+              {% elif event.type == 'split' %}
+              <div class="event-icon split-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="event-info">
+                <div class="event-title">{{ event.company }} Stock Split</div>
+                <div class="event-subtitle">Effective Date</div>
+              </div>
+              {% elif event.type == 'ipo' %}
+              <div class="event-icon ipo-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="event-info">
+                <div class="event-title">{{ event.company }} IPO</div>
+                <div class="event-subtitle">Pricing Date</div>
+              </div>
+              {% else %}
+              <div class="event-icon default-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="event-info">
+                <div class="event-title">
+                  {{ event.event if event.event else event.company }} Event
+                </div>
+                <div class="event-subtitle">Market Event</div>
+              </div>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="symbol-cell">
+              <span class="symbol-tag">{{ event.symbol }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="type-cell">
+              {% if event.type == 'earnings' %}
+              <span class="type-badge earnings-badge">Earnings</span>
+              {% elif event.type == 'dividend' %}
+              <span class="type-badge dividend-badge">Dividend</span>
+              {% elif event.type == 'split' %}
+              <span class="type-badge split-badge">Split</span>
+              {% elif event.type == 'ipo' %}
+              <span class="type-badge ipo-badge">IPO</span>
+              {% else %}
+              <span class="type-badge default-badge"
+                >{{ event.type|capitalize }}</span
+              >
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="details-cell">
+              {% if event.type == 'earnings' %}
+              <div class="detail-item">
+                <span class="detail-label">Period:</span>
+                <span class="detail-value">{{ event.quarter }}</span>
+              </div>
+              {% elif event.type == 'dividend' %}
+              <div class="detail-item">
+                <span class="detail-label">Amount:</span>
+                <span class="detail-value">${{ event.amount }}</span>
+              </div>
+              {% elif event.type == 'split' %}
+              <div class="detail-item">
+                <span class="detail-label">Ratio:</span>
+                <span class="detail-value">{{ event.ratio }}</span>
+              </div>
+              {% elif event.type == 'ipo' %}
+              <div class="detail-item">
+                <span class="detail-label">Price Range:</span>
+                <span class="detail-value">{{ event.price_range }}</span>
+              </div>
+              {% elif event.impact %}
+              <div class="detail-item">
+                <span class="detail-label">Impact:</span>
+                <span class="detail-value impact-{{ event.impact|lower }}"
+                  >{{ event.impact }}</span
+                >
+              </div>
+              {% else %}
+              <div class="detail-item">
+                <span class="detail-value">Market Event</span>
+              </div>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <button
+              class="action-btn view-btn"
+              onclick="viewDetails('{{ event.symbol }}', '{{ event.date }}')"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              View
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
   <!-- Pagination -->
-  <div class="pagination">
-    <button class="btn btn-secondary" onclick="prevPage()">Previous</button>
-    <span id="page-info">Page 1 of 3</span>
-    <button class="btn btn-secondary" onclick="nextPage()">Next</button>
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Showing <span id="showing-from">1</span>-<span id="showing-to">10</span>
+      of <span id="total-items">{{ calendar_events|length }}</span> events
+    </div>
+    <div class="pagination-controls">
+      <button class="pagination-btn prev-btn" id="prev-page" disabled>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Previous
+      </button>
+      <div class="page-numbers" id="page-numbers">
+        <!-- Page numbers will be inserted here by JavaScript -->
+      </div>
+      <button class="pagination-btn next-btn" id="next-page">
+        Next
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Earnings Details Modal -->
+  <div id="earningsModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+      <div class="modal-header">
+        <h3 id="modal-title">Earnings Details</h3>
+        <div class="modal-subtitle" id="modal-subtitle"></div>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading earnings data...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn secondary-btn" onclick="closeModal()">
+          Close
+        </button>
+        <button class="modal-btn primary-btn" id="view-company-btn">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path
+              fill-rule="evenodd"
+              d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          View Company
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- JavaScript for Interactivity -->
 <script>
-  let currentPage = 1;
-  const rowsPerPage = 5;
-  const rows = document.querySelectorAll("#calendar-body tr");
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initialize variables
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let allRows = Array.from(document.querySelectorAll("#calendar-body tr"));
+    let filteredRows = [...allRows];
+    let sortDirection = { date: "asc", event: "asc", symbol: "asc" };
+    let currentSort = null;
+
+    // Initialize pagination
+    updatePagination();
+
+    // Apply filters when button is clicked
+    document
+      .getElementById("apply-filters")
+      .addEventListener("click", applyFilters);
+
+    // Apply filters when Enter is pressed in search
+    document
+      .getElementById("search-input")
+      .addEventListener("keyup", function (e) {
+        if (e.key === "Enter") {
+          applyFilters();
+        }
+      });
+
+    // Symbol search functionality
+    const searchInput = document.getElementById("search-input");
+    const searchResults = document.getElementById("symbol-search-results");
+
+    searchInput.addEventListener("input", function () {
+      const query = this.value.trim().toLowerCase();
+      searchResults.innerHTML = "";
+
+      if (query.length < 2) return;
+
+      // Get unique symbols from the table
+      const symbols = [...new Set(allRows.map((row) => row.dataset.symbol))];
+
+      // Filter matching symbols
+      const matches = symbols
+        .filter((symbol) => symbol.toLowerCase().includes(query))
+        .slice(0, 5); // Limit to 5 results
+
+      // Display results
+      if (matches.length > 0) {
+        matches.forEach((symbol) => {
+          const resultItem = document.createElement("div");
+          resultItem.className = "search-result-item";
+          resultItem.textContent = symbol;
+          resultItem.addEventListener("click", function () {
+            searchInput.value = symbol;
+            searchResults.innerHTML = "";
+            applyFilters();
+          });
+          searchResults.appendChild(resultItem);
+        });
+        searchResults.style.display = "block";
+      }
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener("click", function (e) {
+      if (!searchInput.contains(e.target)) {
+        searchResults.style.display = "none";
+      }
+    });
+
+    // Pagination buttons
+    document.getElementById("prev-page").addEventListener("click", prevPage);
+    document.getElementById("next-page").addEventListener("click", nextPage);
+
+    // Sortable columns
+    document.querySelectorAll(".sortable").forEach((header) => {
+      header.addEventListener("click", function () {
+        const column = this.dataset.sort;
+        sortTable(column);
+      });
+    });
+  });
 
   // Function to apply filters
   function applyFilters() {
     const eventType = document.getElementById("event-type").value.toLowerCase();
+    const timeFrame = document.getElementById("time-frame").value.toLowerCase();
     const searchQuery = document
       .getElementById("search-input")
       .value.trim()
       .toLowerCase();
 
-    rows.forEach((row) => {
-      const type = row
-        .querySelector("td:nth-child(4)")
-        .textContent.toLowerCase();
-      const symbol = row
-        .querySelector("td:nth-child(3)")
-        .textContent.toLowerCase();
-      const event = row
-        .querySelector("td:nth-child(2)")
-        .textContent.toLowerCase();
+    // Get today's date for time frame filtering
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      const matchesType = eventType === "all" || type === eventType;
-      const matchesSearch =
-        symbol.includes(searchQuery) || event.includes(searchQuery);
+    filteredRows = Array.from(
+      document.querySelectorAll("#calendar-body tr")
+    ).filter((row) => {
+      const rowType = row.dataset.type;
+      const rowSymbol = row.dataset.symbol.toLowerCase();
+      const rowDate = new Date(row.dataset.date);
+      rowDate.setHours(0, 0, 0, 0);
 
-      if (matchesType && matchesSearch) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
+      // Filter by event type
+      const typeMatch = eventType === "all" || rowType === eventType;
+
+      // Filter by search query
+      const searchMatch = searchQuery === "" || rowSymbol.includes(searchQuery);
+
+      // Filter by time frame
+      let timeMatch = true;
+      if (timeFrame === "today") {
+        timeMatch = rowDate.getTime() === today.getTime();
+      } else if (timeFrame === "week") {
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        timeMatch = rowDate >= weekStart && rowDate <= weekEnd;
+      } else if (timeFrame === "month") {
+        timeMatch =
+          rowDate.getMonth() === today.getMonth() &&
+          rowDate.getFullYear() === today.getFullYear();
       }
+
+      return typeMatch && searchMatch && timeMatch;
     });
 
+    // Reset to first page
     currentPage = 1;
+
+    // Reapply current sort if one exists
+    if (currentSort) {
+      sortTable(currentSort);
+    } else {
+      updatePagination();
+    }
+  }
+
+  // Function to sort table
+  function sortTable(column) {
+    currentSort = column;
+
+    // Toggle sort direction
+    sortDirection[column] = sortDirection[column] === "asc" ? "desc" : "asc";
+
+    // Update sort icons
+    document.querySelectorAll(".sort-icon").forEach((icon) => {
+      icon.style.display = "none";
+    });
+
+    const currentHeader = document.querySelector(
+      `.sortable[data-sort="${column}"]`
+    );
+    const currentIcon = currentHeader.querySelector(".sort-icon");
+    currentIcon.style.display = "inline-block";
+    currentIcon.style.transform =
+      sortDirection[column] === "asc" ? "rotate(0deg)" : "rotate(180deg)";
+
+    // Sort the rows
+    filteredRows.sort((a, b) => {
+      let aValue, bValue;
+
+      if (column === "date") {
+        aValue = new Date(a.dataset.date);
+        bValue = new Date(b.dataset.date);
+      } else if (column === "event") {
+        aValue = a.querySelector(".event-title").textContent.toLowerCase();
+        bValue = b.querySelector(".event-title").textContent.toLowerCase();
+      } else if (column === "symbol") {
+        aValue = a.dataset.symbol.toLowerCase();
+        bValue = b.dataset.symbol.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection[column] === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection[column] === "asc" ? 1 : -1;
+      return 0;
+    });
+
     updatePagination();
   }
 
   // Function to update pagination
   function updatePagination() {
-    const visibleRows = Array.from(rows).filter(
-      (row) => row.style.display !== "none"
-    );
-    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+    const totalItems = filteredRows.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
 
-    document.getElementById(
-      "page-info"
-    ).textContent = `Page ${currentPage} of ${totalPages}`;
+    // Update showing X-Y of Z
+    const from = (currentPage - 1) * rowsPerPage + 1;
+    const to = Math.min(currentPage * rowsPerPage, totalItems);
+    document.getElementById("showing-from").textContent = from;
+    document.getElementById("showing-to").textContent = to;
+    document.getElementById("total-items").textContent = totalItems;
 
-    visibleRows.forEach((row, index) => {
+    // Update pagination buttons
+    document.getElementById("prev-page").disabled = currentPage === 1;
+    document.getElementById("next-page").disabled = currentPage === totalPages;
+
+    // Update page numbers
+    const pageNumbers = document.getElementById("page-numbers");
+    pageNumbers.innerHTML = "";
+
+    // Always show first page
+    addPageNumber(1, currentPage === 1);
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "page-ellipsis";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+
+    // Show current page and neighbors
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
+      addPageNumber(i, i === currentPage);
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "page-ellipsis";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+
+    // Always show last page if different from first
+    if (totalPages > 1) {
+      addPageNumber(totalPages, currentPage === totalPages);
+    }
+
+    // Show/hide rows based on current page
+    filteredRows.forEach((row, index) => {
       if (
         index >= (currentPage - 1) * rowsPerPage &&
         index < currentPage * rowsPerPage
@@ -170,20 +707,29 @@ block content %}
     });
   }
 
-  // Function to go to the next page
-  function nextPage() {
-    const visibleRows = Array.from(rows).filter(
-      (row) => row.style.display !== "none"
-    );
-    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+  // Helper function to add page number to pagination
+  function addPageNumber(page, isActive) {
+    const pageNumbers = document.getElementById("page-numbers");
+    const pageElement = document.createElement("button");
+    pageElement.className = `page-number ${isActive ? "active" : ""}`;
+    pageElement.textContent = page;
+    pageElement.addEventListener("click", () => {
+      currentPage = page;
+      updatePagination();
+    });
+    pageNumbers.appendChild(pageElement);
+  }
 
+  // Function to go to next page
+  function nextPage() {
+    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
     if (currentPage < totalPages) {
       currentPage++;
       updatePagination();
     }
   }
 
-  // Function to go to the previous page
+  // Function to go to previous page
   function prevPage() {
     if (currentPage > 1) {
       currentPage--;
@@ -191,144 +737,1177 @@ block content %}
     }
   }
 
-  // Function to view details
-  function viewDetails(symbol) {
-    alert(`Viewing details for ${symbol}`);
+  // Function to view earnings details
+  async function viewDetails(symbol, date) {
+    const modal = document.getElementById("earningsModal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalSubtitle = document.getElementById("modal-subtitle");
+    const modalBody = document.getElementById("modal-body");
+    const viewCompanyBtn = document.getElementById("view-company-btn");
+
+    // Show loading state
+    modalBody.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading earnings data...</p>
+      </div>
+    `;
+
+    // Show modal
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    // Set company symbol in view button
+    viewCompanyBtn.onclick = function () {
+      window.open(`/stock/${symbol}`, "_blank");
+    };
+
+    try {
+      // Simulate API call (replace with actual fetch)
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Mock data - replace with actual API response
+      const mockEarningsData = {
+        symbol: symbol,
+        date: date,
+        company: `${symbol} Company`,
+        quarter: "Q2 2023",
+        estimatedEps: 1.45,
+        actualEps: 1.52,
+        estimatedRevenue: 82.34,
+        actualRevenue: 83.71,
+        surprisePercentage: 4.8,
+        yearAgoEps: 1.32,
+        yearAgoRevenue: 76.52,
+        grossMargin: 0.42,
+        operatingMargin: 0.28,
+        netIncome: 18.2,
+        yoyGrowth: 0.092,
+        highlights: [
+          "Strong performance in cloud services division",
+          "Enterprise sales grew 15% year-over-year",
+          "International revenue exceeded expectations",
+          "New product line contributed 5% to total revenue",
+        ],
+        guidance:
+          "Company expects Q3 revenue between $85.5B and $87.0B, with EPS in the range of $1.60 to $1.75, reflecting continued growth in core markets.",
+      };
+
+      // Update modal content
+      modalTitle.textContent = `${mockEarningsData.company} Earnings Report`;
+      modalSubtitle.textContent = `${mockEarningsData.quarter} | Reported on ${date}`;
+
+      // Create HTML for earnings data
+      modalBody.innerHTML = `
+        <div class="earnings-summary">
+          <div class="summary-card eps-card">
+            <h4>Earnings Per Share (EPS)</h4>
+            <div class="summary-grid">
+              <div class="metric">
+                <span class="metric-label">Estimate</span>
+                <span class="metric-value">${mockEarningsData.estimatedEps.toFixed(
+                  2
+                )}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Actual</span>
+                <span class="metric-value ${
+                  mockEarningsData.actualEps > mockEarningsData.estimatedEps
+                    ? "positive"
+                    : "negative"
+                }">
+                  ${mockEarningsData.actualEps.toFixed(2)}
+                </span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Surprise</span>
+                <span class="metric-value ${
+                  mockEarningsData.surprisePercentage > 0
+                    ? "positive"
+                    : "negative"
+                }">
+                  ${mockEarningsData.surprisePercentage > 0 ? "+" : ""}${
+        mockEarningsData.surprisePercentage
+      }%
+                </span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Year Ago</span>
+                <span class="metric-value">${mockEarningsData.yearAgoEps.toFixed(
+                  2
+                )}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-card revenue-card">
+            <h4>Revenue</h4>
+            <div class="summary-grid">
+              <div class="metric">
+                <span class="metric-label">Estimate</span>
+                <span class="metric-value">$${mockEarningsData.estimatedRevenue.toFixed(
+                  2
+                )}B</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Actual</span>
+                <span class="metric-value ${
+                  mockEarningsData.actualRevenue >
+                  mockEarningsData.estimatedRevenue
+                    ? "positive"
+                    : "negative"
+                }">
+                  $${mockEarningsData.actualRevenue.toFixed(2)}B
+                </span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Growth</span>
+                <span class="metric-value ${
+                  mockEarningsData.yoyGrowth > 0 ? "positive" : "negative"
+                }">
+                  ${(mockEarningsData.yoyGrowth * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Year Ago</span>
+                <span class="metric-value">$${mockEarningsData.yearAgoRevenue.toFixed(
+                  2
+                )}B</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="earnings-details">
+          <div class="detail-section">
+            <h4>Key Metrics</h4>
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <span class="metric-name">Gross Margin</span>
+                <span class="metric-value">${(
+                  mockEarningsData.grossMargin * 100
+                ).toFixed(1)}%</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-name">Operating Margin</span>
+                <span class="metric-value">${(
+                  mockEarningsData.operatingMargin * 100
+                ).toFixed(1)}%</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-name">Net Income</span>
+                <span class="metric-value">$${mockEarningsData.netIncome.toFixed(
+                  1
+                )}B</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Highlights</h4>
+            <ul class="highlights-list">
+              ${mockEarningsData.highlights
+                .map((highlight) => `<li>${highlight}</li>`)
+                .join("")}
+            </ul>
+          </div>
+
+          <div class="detail-section">
+            <h4>Forward Guidance</h4>
+            <div class="guidance-text">
+              <p>${mockEarningsData.guidance}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error("Error loading earnings data:", error);
+      modalBody.innerHTML = `
+        <div class="error-state">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          <h4>Failed to load earnings data</h4>
+          <p>Please try again later or check your connection.</p>
+          <button class="modal-btn retry-btn" onclick="viewDetails('${symbol}', '${date}')">
+            Retry
+          </button>
+        </div>
+      `;
+    }
   }
 
-  // Initialize pagination
-  updatePagination();
+  // Function to close modal
+  function closeModal() {
+    const modal = document.getElementById("earningsModal");
+    modal.style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+
+  // Close modal when pressing Escape
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeModal();
+    }
+  });
 </script>
 
-<!-- CSS Styling -->
 <style>
+  /* Base Styles */
   :root {
-    --primary: #2a52be;
-    --primary-light: #3a62ce;
-    --secondary: #222831;
-    --success: #10b981;
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #2563eb;
+    --secondary: #10b981;
     --danger: #ef4444;
     --warning: #f59e0b;
+    --info: #8b5cf6;
     --light: #f3f4f6;
     --dark: #111827;
-    --gray: #6b7280;
-    --card-bg: #ffffff;
-    --body-bg: #f9fafb;
+    --gray-100: #f9fafb;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --positive: #10b981;
+    --negative: #ef4444;
+    --earnings: #3b82f6;
+    --dividend: #10b981;
+    --split: #f59e0b;
+    --ipo: #8b5cf6;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --radius-sm: 0.125rem;
+    --radius: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-full: 9999px;
   }
 
-  .container {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.5;
+    color: var(--gray-800);
+    background-color: var(--gray-100);
+  }
+
+  /* Container Styles */
+  .market-calendar-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 2rem 1.5rem;
   }
 
-  h2 {
+  /* Header Styles */
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .header-content h1 {
     font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark);
     margin-bottom: 0.5rem;
-    color: var(--secondary);
   }
 
   .subtitle {
     font-size: 1rem;
-    color: var(--gray);
-    margin-bottom: 2rem;
+    color: var(--gray-500);
   }
 
-  .filters {
+  .header-illustration svg {
+    width: 120px;
+    height: auto;
+  }
+
+  /* Control Panel Styles */
+  .control-panel {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
   }
 
-  .filters label {
-    font-weight: 500;
-    color: var(--secondary);
+  .search-box {
+    position: relative;
+    width: 100%;
   }
 
-  .filters select,
-  .filters input {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--gray-400);
+  }
+
+  #search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    transition: all 0.2s;
+    background-color: var(--gray-100);
+  }
+
+  #search-input:focus {
     outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .filters select:focus,
-  .filters input:focus {
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: white;
   }
 
-  .btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .search-result-item {
+    padding: 0.75rem 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
   }
 
-  .btn-primary {
+  .search-result-item:hover {
+    background-color: var(--gray-100);
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .filter-dropdown {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-dropdown label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .custom-select {
+    position: relative;
+  }
+
+  .custom-select select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-right: 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    appearance: none;
+    background-color: var(--gray-100);
+    transition: all 0.2s;
+  }
+
+  .custom-select select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: white;
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    pointer-events: none;
+    color: var(--gray-500);
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
     background-color: var(--primary);
     color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
 
-  .btn-primary:hover {
-    background-color: var(--primary-light);
+  .filter-btn:hover {
+    background-color: var(--primary-dark);
   }
 
-  .btn-secondary {
-    background-color: var(--light);
-    color: var(--dark);
+  .filter-icon {
+    width: 1rem;
+    height: 1rem;
   }
 
-  .btn-secondary:hover {
-    background-color: #e5e7eb;
-  }
-
-  .btn-info {
-    background-color: var(--success);
-    color: white;
-  }
-
-  .btn-info:hover {
-    background-color: #0da271;
+  /* Table Styles */
+  .calendar-table-container {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
 
   .calendar-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 1.5rem;
-  }
-
-  .calendar-table th,
-  .calendar-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
   }
 
   .calendar-table th {
-    background-color: var(--body-bg);
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: var(--secondary);
+    color: var(--gray-600);
+    background-color: var(--gray-100);
+    border-bottom: 1px solid var(--gray-200);
+    position: relative;
+  }
+
+  .sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .sort-icon {
+    display: none;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    transition: transform 0.2s;
+  }
+
+  .calendar-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: middle;
+  }
+
+  .calendar-table tr:last-child td {
+    border-bottom: none;
   }
 
   .calendar-table tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: var(--gray-50);
   }
 
-  .pagination {
+  /* Cell Styles */
+  .date-cell {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+  }
+
+  .date {
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  .time {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+  }
+
+  .event-cell {
+    display: flex;
     align-items: center;
     gap: 1rem;
-    margin-top: 1.5rem;
   }
 
-  .pagination span {
+  .event-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  .event-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .earnings-icon {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--earnings);
+  }
+
+  .dividend-icon {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--dividend);
+  }
+
+  .split-icon {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--split);
+  }
+
+  .ipo-icon {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: var(--ipo);
+  }
+
+  .default-icon {
+    background-color: rgba(209, 213, 219, 0.5);
+    color: var(--gray-600);
+  }
+
+  .event-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .event-title {
     font-weight: 500;
-    color: var(--gray);
+    color: var(--dark);
+  }
+
+  .event-subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+  }
+
+  .symbol-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .symbol-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--gray-100);
+    border-radius: var(--radius-full);
+    font-family: "Roboto Mono", monospace;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+  }
+
+  .type-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .earnings-badge {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--earnings);
+  }
+
+  .dividend-badge {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--dividend);
+  }
+
+  .split-badge {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--split);
+  }
+
+  .ipo-badge {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: var(--ipo);
+  }
+
+  .default-badge {
+    background-color: rgba(209, 213, 219, 0.5);
+    color: var(--gray-600);
+  }
+
+  .details-cell {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .detail-item {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .detail-label {
+    font-weight: 500;
+    color: var(--gray-600);
+  }
+
+  .detail-value {
+    color: var(--dark);
+  }
+
+  .impact-high {
+    color: var(--danger);
+    font-weight: 500;
+  }
+
+  .impact-medium {
+    color: var(--warning);
+    font-weight: 500;
+  }
+
+  .impact-low {
+    color: var(--secondary);
+    font-weight: 500;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .view-btn {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+  }
+
+  .view-btn:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .view-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Pagination Styles */
+  .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding: 1rem 0;
+  }
+
+  .pagination-info {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background-color: var(--gray-100);
+    border-color: var(--gray-400);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .page-number {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background-color: transparent;
+  }
+
+  .page-number:hover:not(.active) {
+    background-color: var(--gray-100);
+  }
+
+  .page-number.active {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .page-ellipsis {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 101;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: var(--gray-100);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 102;
+  }
+
+  .modal-close:hover {
+    background-color: var(--gray-200);
+  }
+
+  .modal-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--gray-600);
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .modal-subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+  }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .modal-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .primary-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+  }
+
+  .primary-btn:hover {
+    background-color: var(--primary-dark);
+  }
+
+  .secondary-btn {
+    background-color: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+  }
+
+  .secondary-btn:hover {
+    background-color: var(--gray-100);
+  }
+
+  .modal-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Loading State */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--primary);
+    border-radius: var(--radius-full);
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .loading-state p {
+    color: var(--gray-600);
+  }
+
+  /* Error State */
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .error-state svg {
+    width: 3rem;
+    height: 3rem;
+    color: var(--danger);
+    margin-bottom: 1rem;
+  }
+
+  .error-state h4 {
+    font-size: 1.125rem;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+  }
+
+  .error-state p {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+  }
+
+  .retry-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .retry-btn:hover {
+    background-color: var(--primary-dark);
+  }
+
+  /* Earnings Details Styles */
+  .earnings-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-card {
+    background-color: var(--gray-50);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .summary-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 1rem;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .metric-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .positive {
+    color: var(--positive);
+  }
+
+  .negative {
+    color: var(--negative);
+  }
+
+  .earnings-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .detail-section {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .detail-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 1rem;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .metric-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-name {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.25rem;
+  }
+
+  .highlights-list {
+    list-style-type: none;
+  }
+
+  .highlights-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .highlights-list li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: bold;
+  }
+
+  .guidance-text {
+    line-height: 1.6;
+  }
+
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .calendar-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .header-illustration {
+      display: none;
+    }
+
+    .filter-group {
+      flex-direction: column;
+    }
+
+    .filter-dropdown {
+      width: 100%;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      padding: 0.75rem;
+    }
+
+    .event-cell {
+      gap: 0.75rem;
+    }
+
+    .event-icon {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .pagination-container {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .modal-content {
+      max-height: 80vh;
+      margin: 1rem;
+    }
+
+    .earnings-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .market-calendar-container {
+      padding: 1rem;
+    }
+
+    .calendar-table {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .action-btn span {
+      display: none;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
   }
 </style>
 {% endblock %}

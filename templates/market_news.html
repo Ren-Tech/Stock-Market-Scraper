@@ -95,6 +95,7 @@ content %}
     padding: 15px;
     border-radius: 12px;
     margin-bottom: 20px;
+    overflow: hidden;
   }
 
   .news-card {
@@ -102,15 +103,22 @@ content %}
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .news-card img {
     height: 200px;
     object-fit: cover;
+    width: 100%;
   }
 
   .news-card .card-body {
     padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   .news-card .card-title {
@@ -122,6 +130,8 @@ content %}
   .news-card .card-text {
     font-size: 0.9rem;
     color: #666;
+    margin-bottom: 15px;
+    flex-grow: 1;
   }
 
   .news-card .btn-primary {
@@ -130,26 +140,95 @@ content %}
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 0.9rem;
+    align-self: flex-start;
+  }
+
+  /* Trending News Section */
+  .trending-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .trending-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .trending-header h4 {
+    margin: 0;
+    font-weight: 700;
+    color: #1e3c72;
+  }
+
+  .trending-badge {
+    background: #f0f7ff;
+    color: #1e3c72;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 
   .trending-item {
-    padding: 10px;
+    padding: 15px;
     border-radius: 8px;
-    background: white;
+    background: #f9f9f9;
     margin-bottom: 10px;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
   }
 
   .trending-item:hover {
-    background: #f1f1f1;
+    background: #f0f7ff;
+    transform: translateX(5px);
   }
 
+  .trending-rank {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1e3c72;
+    margin-right: 15px;
+    min-width: 25px;
+    text-align: center;
+  }
+
+  .trending-content {
+    flex-grow: 1;
+  }
+
+  .trending-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .trending-source {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .trending-icon {
+    margin-left: 15px;
+    font-size: 1.2rem;
+    color: #1e3c72;
+  }
+
+  /* Stock Cards */
   .stock-card {
     background: white;
     border-radius: 12px;
     padding: 15px;
     margin-bottom: 15px;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   .stock-card:hover {
@@ -160,6 +239,7 @@ content %}
     font-size: 1rem;
     font-weight: bold;
     margin-bottom: 10px;
+    color: #333;
   }
 
   .stock-card .card-body {
@@ -172,6 +252,22 @@ content %}
 
   .stock-card .text-muted {
     font-size: 0.8rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .news-card img {
+      height: 150px;
+    }
+
+    .trending-item {
+      padding: 10px;
+    }
+
+    .trending-rank {
+      margin-right: 10px;
+      min-width: 20px;
+    }
   }
 </style>
 
@@ -208,6 +304,39 @@ content %}
     <!-- Main News Section -->
     <div class="col-lg-8">
       <h2 class="fw-bold mb-4">📊 Market News & Insights</h2>
+
+      <!-- Featured Trending News Carousel -->
+      {% if news_data|length > 0 %}
+      <div class="trending-section mb-4">
+        <div class="trending-header">
+          <h4><i class="bi bi-fire me-2"></i>Top Market Stories</h4>
+          <span class="trending-badge">TRENDING NOW</span>
+        </div>
+
+        {% for news_item in news_data[:5] %}
+        <a
+          href="{{ news_item.link }}"
+          class="text-decoration-none"
+          target="_blank"
+        >
+          <div class="trending-item">
+            <div class="trending-rank">{{ loop.index }}</div>
+            <div class="trending-content">
+              <div class="trending-title">{{ news_item.title }}</div>
+              <div class="trending-source">
+                {{ news_item.source|default('Market News') }}
+              </div>
+            </div>
+            <div class="trending-icon">
+              <i class="bi bi-arrow-right-short"></i>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Regular News Grid -->
       <div class="row">
         {% for news_item in news_data %}
         <div class="col-md-6 mb-4">
@@ -217,6 +346,7 @@ content %}
               class="card-img-top"
               alt="{{ news_item.title }}"
               loading="lazy"
+              onerror="this.src='/static/images/default_news.jpg';"
             />
             <div class="card-body">
               <div
@@ -228,12 +358,19 @@ content %}
                 >
               </div>
               <p class="card-text">{{ news_item.content }}</p>
-              <a
-                href="{{ news_item.link }}"
-                class="btn btn-primary btn-sm"
-                target="_blank"
-                >Read More</a
+              <div
+                class="d-flex justify-content-between align-items-center mt-auto"
               >
+                <a
+                  href="{{ news_item.link }}"
+                  class="btn btn-primary btn-sm"
+                  target="_blank"
+                  >Read More</a
+                >
+                <small class="text-muted"
+                  >{{ news_item.date|default('Today') }}</small
+                >
+              </div>
             </div>
           </div>
         </div>
@@ -244,34 +381,13 @@ content %}
     <!-- Sidebar Section -->
     <div class="col-lg-4">
       <div class="sticky-top" style="top: 80px">
-        <!-- Trending News -->
-        <div class="p-3 bg-light rounded shadow-sm mb-4">
-          <h4 class="fw-bold mb-3">🔥 Trending Now</h4>
-          <ul class="list-unstyled">
-            {% for trending_news in news_data[:5] %}
-            <li class="trending-item">
-              <a href="{{ trending_news.link }}" class="text-dark">
-                <div class="d-flex align-items-center">
-                  <div class="flex-shrink-0">
-                    {% if trending_news.category == 'north_america' %}💰 {% elif
-                    trending_news.category == 'europe' %}📊 {% elif
-                    trending_news.category == 'asia' %}🚗 {% else %}📈 {% endif
-                    %}
-                  </div>
-                  <div class="flex-grow-1 ms-2">
-                    <strong>{{ trending_news.title }}</strong>
-                  </div>
-                </div>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        <!-- Stock Performance (Optional) -->
+        <!-- Stock Performance -->
         <div class="p-3 bg-white rounded shadow-sm mb-4">
-          <h4 class="fw-bold mb-3">📈 Stock Performance</h4>
+          <h4 class="fw-bold mb-3">📈 Top Performers</h4>
           {% for symbol, data in stock_data.items() %} {% if not data.empty %}
+          {% set price_change = (data['Close'].iloc[-1] -
+          data['Close'].iloc[-2]) / data['Close'].iloc[-2] * 100 %} {% if
+          price_change > 0 %}
           <div class="stock-card">
             <h6 class="mb-2">{{ symbol }}</h6>
             <div class="card">
@@ -280,11 +396,7 @@ content %}
                   <span class="fw-bold"
                     >{{ "%.2f"|format(data['Close'].iloc[-1]) }}</span
                   >
-                  {% set price_change = (data['Close'].iloc[-1] -
-                  data['Close'].iloc[-2]) / data['Close'].iloc[-2] * 100 %}
-                  <span
-                    class="{% if price_change > 0 %}price-change-positive{% else %}price-change-negative{% endif %}"
-                  >
+                  <span class="price-change-positive">
                     {{ "%.1f"|format(price_change) }}%
                   </span>
                 </div>
@@ -298,11 +410,73 @@ content %}
               </div>
             </div>
           </div>
-          {% endif %} {% endfor %}
+          {% endif %} {% endif %} {% endfor %}
+        </div>
+
+        <!-- Market Movers -->
+        <div class="p-3 bg-white rounded shadow-sm">
+          <h4 class="fw-bold mb-3">📉 Biggest Movers</h4>
+          {% for symbol, data in stock_data.items() %} {% if not data.empty %}
+          {% set price_change = (data['Close'].iloc[-1] -
+          data['Close'].iloc[-2]) / data['Close'].iloc[-2] * 100 %} {% if
+          price_change < -2 or price_change > 2 %}
+          <div class="stock-card">
+            <h6 class="mb-2">{{ symbol }}</h6>
+            <div class="card">
+              <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold"
+                    >{{ "%.2f"|format(data['Close'].iloc[-1]) }}</span
+                  >
+                  <span
+                    class="{% if price_change > 0 %}price-change-positive{% else %}price-change-negative{% endif %}"
+                  >
+                    {{ "%.1f"|format(price_change) }}%
+                  </span>
+                </div>
+                <div class="small text-muted mt-1">
+                  <div>
+                    Change: {{ "%.2f"|format(data['Close'].iloc[-1] -
+                    data['Close'].iloc[-2]) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %} {% endif %} {% endfor %}
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  // Smooth scrolling for trending items
+  document.querySelectorAll(".trending-item").forEach((item) => {
+    item.addEventListener("click", function (e) {
+      if (e.target.tagName === "A") return;
+      this.querySelector("a").click();
+    });
+  });
+
+  // Ticker animation
+  const tickerContent = document.querySelector(".ticker-content");
+  if (tickerContent) {
+    const tickerWidth = tickerContent.scrollWidth;
+    const containerWidth = tickerContent.parentElement.offsetWidth;
+
+    if (tickerWidth > containerWidth) {
+      // Clone the content for seamless looping
+      tickerContent.innerHTML += tickerContent.innerHTML;
+
+      // Adjust animation duration based on content length
+      const duration = Math.max(30, tickerWidth / 50);
+      tickerContent.style.animationDuration = `${duration}s`;
+    } else {
+      // Disable animation if content fits
+      tickerContent.style.animation = "none";
+    }
+  }
+</script>
 
 {% endblock %}

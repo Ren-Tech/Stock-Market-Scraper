@@ -1,181 +1,2423 @@
 {% extends "base.html" %} {% block title %}Philippine Stocks | Financial
 Dashboard{% endblock %} {% block content %}
-<div class="container mt-4">
-  <h1 class="text-center mb-4 animate__animated animate__fadeIn">
-    Philippine Stock Market
-  </h1>
-
-  <!-- Search Form -->
-  <div class="card mb-4 animate__animated animate__fadeInUp">
-    <div class="card-body">
-      <form method="POST" action="{{ url_for('ph_stocks') }}">
-        <div class="form-group">
-          <label for="stock_symbols"
-            >Enter PSE Stock Symbols (comma-separated):</label
-          >
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              id="stock_symbols"
-              name="stock_symbols"
-              placeholder="e.g. JFC, BDO, ALI, SM"
-              value="{{ ','.join(symbols) if symbols else '' }}"
-            />
-            <div class="input-group-append">
-              <button class="btn btn-primary" type="submit">Search</button>
-            </div>
-          </div>
-          <small class="form-text text-muted">
-            Enter Philippine stock symbols to get specific data, or leave blank
-            to see all stocks.
-          </small>
-        </div>
-      </form>
+<div class="stocks-dashboard">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Philippine Stock Market
+      </h1>
+      <p class="dashboard-subtitle">
+        Real-time market data and analytics for PSE-listed companies
+      </p>
+    </div>
+    <div class="market-summary">
+      <div class="summary-item">
+        <span class="summary-label">PSEi Index</span>
+        <span class="summary-value positive">6,842.15</span>
+        <span class="summary-change positive">+1.25%</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">All Shares</span>
+        <span class="summary-value">3,521.76</span>
+        <span class="summary-change positive">+0.89%</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Advancers</span>
+        <span class="summary-value positive">112</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Decliners</span>
+        <span class="summary-value negative">78</span>
+      </div>
     </div>
   </div>
 
-  {% if error_message %}
-  <div class="alert alert-danger animate__animated animate__shakeX">
-    {{ error_message }}
-  </div>
-  {% endif %}
+  <!-- Search and Filter Section -->
+  <div class="control-panel">
+    <div class="search-container">
+      <div class="search-box">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="search-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <input
+          type="text"
+          id="stock-search"
+          placeholder="Search stocks (e.g. JFC, BDO, ALI)"
+          value="{{ ','.join(symbols) if symbols else '' }}"
+          autocomplete="off"
+        />
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="search-btn" id="search-stocks">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="btn-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Search
+      </button>
+    </div>
 
-  <!-- Stock Data Cards -->
-  <div class="mb-4">
-    <h5 class="mb-3 animate__animated animate__fadeIn">
-      Philippine Stock Quotes
-    </h5>
+    <div class="filter-group">
+      <div class="filter-dropdown">
+        <label for="sector-filter">Sector</label>
+        <select id="sector-filter">
+          <option value="all">All Sectors</option>
+          <option value="financial">Financials</option>
+          <option value="industrial">Industrial</option>
+          <option value="holding">Holding Firms</option>
+          <option value="property">Property</option>
+          <option value="services">Services</option>
+          <option value="mining">Mining & Oil</option>
+          <option value="sme">SME</option>
+        </select>
+      </div>
+
+      <div class="filter-dropdown">
+        <label for="price-filter">Price Range</label>
+        <select id="price-filter">
+          <option value="all">Any Price</option>
+          <option value="0-10">Under ₱10</option>
+          <option value="10-50">₱10 - ₱50</option>
+          <option value="50-100">₱50 - ₱100</option>
+          <option value="100-500">₱100 - ₱500</option>
+          <option value="500">Over ₱500</option>
+        </select>
+      </div>
+
+      <div class="filter-dropdown">
+        <label for="performance-filter">Performance</label>
+        <select id="performance-filter">
+          <option value="all">All Performances</option>
+          <option value="gainers">Top Gainers</option>
+          <option value="losers">Top Losers</option>
+          <option value="active">Most Active</option>
+          <option value="volume">Highest Volume</option>
+        </select>
+      </div>
+
+      <button class="filter-btn" id="apply-filters">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="btn-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Apply Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Stock Data Grid -->
+  <div class="stocks-grid-container">
+    <div class="grid-header">
+      <div class="grid-title">Philippine Stock Quotes</div>
+      <div class="grid-actions">
+        <button class="grid-action-btn" id="refresh-data">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="action-icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Refresh
+        </button>
+        <button class="grid-action-btn" id="export-data">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="action-icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Export
+        </button>
+      </div>
+    </div>
 
     {% if stocks_data %}
-    <div class="row">
+    <div class="stocks-grid">
+      <div class="grid-row header-row">
+        <div class="grid-cell">Symbol</div>
+        <div class="grid-cell">Company</div>
+        <div class="grid-cell">Last Price</div>
+        <div class="grid-cell">Change</div>
+        <div class="grid-cell">% Change</div>
+        <div class="grid-cell">Volume</div>
+        <div class="grid-cell">Sector</div>
+        <div class="grid-cell">Actions</div>
+      </div>
+
       {% for stock in stocks_data %}
-      <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 animate__animated animate__fadeInUp">
-          <div
-            class="card-header d-flex justify-content-between align-items-center"
+      <div
+        class="grid-row"
+        data-symbol="{{ stock.symbol }}"
+        data-sector="{{ stock.sector|lower if stock.sector else '' }}"
+        data-price="{{ stock.last_price }}"
+      >
+        <div class="grid-cell symbol-cell">
+          <span class="symbol">{{ stock.symbol }}</span>
+        </div>
+        <div class="grid-cell company-cell">
+          <div class="company-name">{{ stock.name }}</div>
+          <div class="company-sector">
+            {{ stock.sector if stock.sector else 'N/A' }}
+          </div>
+        </div>
+        <div class="grid-cell price-cell">₱{{ stock.last_price }}</div>
+        <div
+          class="grid-cell change-cell {{ 'positive' if '-' not in stock.change else 'negative' }}"
+        >
+          {{ stock.change }}
+        </div>
+        <div
+          class="grid-cell pchange-cell {{ 'positive' if '-' not in stock.change_pct else 'negative' }}"
+        >
+          {{ stock.change_pct }}
+        </div>
+        <div class="grid-cell volume-cell">{{ stock.volume }}</div>
+        <div class="grid-cell sector-cell">
+          {{ stock.sector if stock.sector else 'N/A' }}
+        </div>
+        <div class="grid-cell action-cell">
+          <button class="action-btn view-btn" data-symbol="{{ stock.symbol }}">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="action-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path
+                fill-rule="evenodd"
+                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Details
+          </button>
+          <button
+            class="action-btn watchlist-btn"
+            data-symbol="{{ stock.symbol }}"
           >
-            <h5 class="mb-0">{{ stock.symbol }}</h5>
-            <span
-              class="badge {{ 'bg-success' if '-' not in stock.change_pct else 'bg-danger' }}"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="action-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
-              {{ stock.change_pct }}
-            </span>
-          </div>
-          <div class="card-body">
-            <h6 class="card-subtitle mb-3 text-muted">{{ stock.name }}</h6>
-            <div class="row">
-              <div class="col-6">
-                <p class="mb-1">
-                  <strong>Price:</strong> ₱{{ stock.last_price }}
-                </p>
-                <p class="mb-1">
-                  <strong>Change:</strong>
-                  <span
-                    class="{{ 'text-success' if '-' not in stock.change else 'text-danger' }}"
-                  >
-                    {{ stock.change }}
-                  </span>
-                </p>
-                <p class="mb-1"><strong>High:</strong> ₱{{ stock.high }}</p>
-              </div>
-              <div class="col-6">
-                <p class="mb-1"><strong>Low:</strong> ₱{{ stock.low }}</p>
-                <p class="mb-1"><strong>Volume:</strong> {{ stock.volume }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer">
-            <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
-            <a href="#" class="btn btn-sm btn-outline-secondary"
-              >Add to Watchlist</a
-            >
+              <path
+                fill-rule="evenodd"
+                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-results">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="no-results-icon"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <h4>No stock data available</h4>
+      <p>Please try a different search or check back later.</p>
+    </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Showing <span id="showing-from">1</span>-<span id="showing-to"
+          >{{ stocks_data|length if stocks_data else 0 }}</span
+        >
+        of
+        <span id="total-items"
+          >{{ stocks_data|length if stocks_data else 0 }}</span
+        >
+        stocks
+      </div>
+      <div class="pagination-controls">
+        <button class="pagination-btn prev-btn" id="prev-page" disabled>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="pagination-icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Previous
+        </button>
+        <div class="page-numbers" id="page-numbers"></div>
+        <button class="pagination-btn next-btn" id="next-page" disabled>
+          Next
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="pagination-icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market News Section -->
+  <div class="news-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="section-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z"
+            clip-rule="evenodd"
+          />
+          <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
+        </svg>
+        Philippine Market News
+      </h2>
+      <div class="section-actions">
+        <button class="section-action-btn" id="refresh-news">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="action-icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    {% if news_data %}
+    <div class="news-grid">
+      {% for news in news_data %}
+      <div class="news-card">
+        <div class="news-image">
+          <img src="{{ news.image }}" alt="{{ news.title }}" />
+        </div>
+        <div class="news-content">
+          <div class="news-date">{{ news.date }}</div>
+          <h3 class="news-title">{{ news.title }}</h3>
+          <p class="news-excerpt">{{ news.content }}</p>
+          <div class="news-footer">
+            <a href="{{ news.link }}" target="_blank" class="news-link">
+              Read Full Story
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="link-icon"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </a>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info animate__animated animate__fadeIn">
-      No stock data available. Please try a different search or check back
-      later.
+    <div class="no-news">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="no-news-icon"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <h4>No news available at this time</h4>
+      <p>Please check back later for the latest market updates.</p>
     </div>
     {% endif %}
   </div>
+</div>
 
-  <!-- News Section -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card mb-4 animate__animated animate__fadeInUp">
-        <div class="card-header">
-          <h5>Philippine Stock Market News</h5>
+<!-- Stock Details Modal -->
+<div id="stockModal" class="modal">
+  <div class="modal-overlay" onclick="closeStockModal()"></div>
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeStockModal()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </button>
+
+    <div class="modal-header">
+      <div class="stock-header">
+        <div class="stock-title">
+          <h3 id="modal-stock-symbol">JFC</h3>
+          <h2 id="modal-stock-name">Jollibee Foods Corporation</h2>
         </div>
-        <div class="card-body">
-          {% if news_data %}
-          <div class="row">
-            {% for news in news_data %}
-            <div class="col-md-6 mb-3">
-              <div class="card h-100 animate__animated animate__fadeIn">
-                <div class="row g-0">
-                  <div class="col-md-4">
-                    <img
-                      src="{{ news.image }}"
-                      class="img-fluid rounded-start"
-                      alt="{{ news.title }}"
-                      style="height: 100%; object-fit: cover"
-                    />
-                  </div>
-                  <div class="col-md-8">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ news.title }}</h5>
-                      <p class="card-text">{{ news.content }}</p>
-                      <a
-                        href="{{ news.link }}"
-                        target="_blank"
-                        class="btn btn-sm btn-primary"
-                        >Read More</a
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
+        <div class="stock-price">
+          <div class="current-price" id="modal-stock-price">₱245.00</div>
+          <div class="price-change positive" id="modal-stock-change">
+            +5.00 (+2.08%)
           </div>
-          {% else %}
-          <div class="alert alert-info animate__animated animate__fadeIn">
-            No news available at this time. Please check back later.
-          </div>
-          {% endif %}
+        </div>
+      </div>
+
+      <div class="stock-meta">
+        <div class="meta-item">
+          <span class="meta-label">Sector</span>
+          <span class="meta-value" id="modal-stock-sector"
+            >Consumer Cyclical</span
+          >
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Industry</span>
+          <span class="meta-value" id="modal-stock-industry">Restaurants</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Market Cap</span>
+          <span class="meta-value" id="modal-stock-marketcap">₱273.4B</span>
         </div>
       </div>
     </div>
+
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="chart">Chart</button>
+        <button class="tab-btn" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="financials">Financials</button>
+        <button class="tab-btn" data-tab="news">News</button>
+      </div>
+
+      <div class="tab-content active" id="chart-tab">
+        <div class="chart-container">
+          <div class="chart-header">
+            <div class="chart-title">Price Performance</div>
+            <div class="chart-periods">
+              <button class="period-btn active" data-period="1d">1D</button>
+              <button class="period-btn" data-period="5d">5D</button>
+              <button class="period-btn" data-period="1m">1M</button>
+              <button class="period-btn" data-period="6m">6M</button>
+              <button class="period-btn" data-period="ytd">YTD</button>
+              <button class="period-btn" data-period="1y">1Y</button>
+              <button class="period-btn" data-period="5y">5Y</button>
+              <button class="period-btn" data-period="max">Max</button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="stockChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-metrics">
+          <div class="metric-card">
+            <div class="metric-label">Open</div>
+            <div class="metric-value" id="metric-open">₱240.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">High</div>
+            <div class="metric-value" id="metric-high">₱246.50</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Low</div>
+            <div class="metric-value" id="metric-low">₱239.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Volume</div>
+            <div class="metric-value" id="metric-volume">1,245,678</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">52W High</div>
+            <div class="metric-value" id="metric-52high">₱258.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">52W Low</div>
+            <div class="metric-value" id="metric-52low">₱180.50</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="overview-tab">
+        <div class="overview-section">
+          <h4>Company Description</h4>
+          <p id="company-description">
+            Jollibee Foods Corporation is the largest fast food chain in the
+            Philippines, operating a network of more than 1,400 stores globally.
+            The company is engaged in the development, operation, and
+            franchising of quick-service restaurants under the trade names
+            Jollibee, Chowking, Greenwich, Red Ribbon, Mang Inasal, and Burger
+            King. Jollibee has a strong presence in the Philippines and has been
+            expanding internationally, particularly in North America, the Middle
+            East, and Asia.
+          </p>
+        </div>
+
+        <div class="overview-section">
+          <h4>Key Executives</h4>
+          <div class="executives-grid">
+            <div class="executive-card">
+              <div class="executive-name">Tony Tan Caktiong</div>
+              <div class="executive-title">Founder & Chairman</div>
+            </div>
+            <div class="executive-card">
+              <div class="executive-name">Ernesto Tanmantiong</div>
+              <div class="executive-title">CEO</div>
+            </div>
+            <div class="executive-card">
+              <div class="executive-name">Ysmael Baysa</div>
+              <div class="executive-title">CFO</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-section">
+          <h4>Recent Developments</h4>
+          <ul class="developments-list">
+            <li>Expanded to Canada with 5 new stores in 2022</li>
+            <li>Acquired Coffee Bean & Tea Leaf Philippines in 2021</li>
+            <li>Launched new plant-based menu options</li>
+            <li>Announced plan to open 500 stores in North America by 2028</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tab-content" id="financials-tab">
+        <div class="financials-section">
+          <h4>Income Statement (Annual)</h4>
+          <div class="financials-table">
+            <div class="financials-row header">
+              <div class="financials-cell">Metric</div>
+              <div class="financials-cell">2022</div>
+              <div class="financials-cell">2021</div>
+              <div class="financials-cell">2020</div>
+            </div>
+            <div class="financials-row">
+              <div class="financials-cell">Revenue</div>
+              <div class="financials-cell">₱179.2B</div>
+              <div class="financials-cell">₱148.7B</div>
+              <div class="financials-cell">₱129.5B</div>
+            </div>
+            <div class="financials-row">
+              <div class="financials-cell">Gross Profit</div>
+              <div class="financials-cell">₱62.5B</div>
+              <div class="financials-cell">₱51.3B</div>
+              <div class="financials-cell">₱44.8B</div>
+            </div>
+            <div class="financials-row">
+              <div class="financials-cell">Operating Income</div>
+              <div class="financials-cell">₱18.2B</div>
+              <div class="financials-cell">₱12.7B</div>
+              <div class="financials-cell">₱8.5B</div>
+            </div>
+            <div class="financials-row">
+              <div class="financials-cell">Net Income</div>
+              <div class="financials-cell">₱12.4B</div>
+              <div class="financials-cell">₱8.9B</div>
+              <div class="financials-cell">₱5.2B</div>
+            </div>
+            <div class="financials-row">
+              <div class="financials-cell">EPS</div>
+              <div class="financials-cell">₱11.25</div>
+              <div class="financials-cell">₱8.05</div>
+              <div class="financials-cell">₱4.72</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="financials-section">
+          <h4>Key Ratios</h4>
+          <div class="ratios-grid">
+            <div class="ratio-card">
+              <div class="ratio-label">P/E Ratio</div>
+              <div class="ratio-value">21.8</div>
+            </div>
+            <div class="ratio-card">
+              <div class="ratio-label">P/B Ratio</div>
+              <div class="ratio-value">4.2</div>
+            </div>
+            <div class="ratio-card">
+              <div class="ratio-label">Debt/Equity</div>
+              <div class="ratio-value">0.85</div>
+            </div>
+            <div class="ratio-card">
+              <div class="ratio-label">ROE</div>
+              <div class="ratio-value">19.3%</div>
+            </div>
+            <div class="ratio-card">
+              <div class="ratio-label">Dividend Yield</div>
+              <div class="ratio-value">0.8%</div>
+            </div>
+            <div class="ratio-card">
+              <div class="ratio-label">Current Ratio</div>
+              <div class="ratio-value">1.2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="news-tab">
+        <div class="news-list">
+          <div class="news-item">
+            <div class="news-date">May 15, 2023</div>
+            <h4 class="news-title">
+              Jollibee reports 39% profit growth in Q1 2023
+            </h4>
+            <p class="news-excerpt">
+              Jollibee Foods Corp. reported a 39% increase in net income to ₱3.5
+              billion in the first quarter, driven by strong sales growth in its
+              Philippine and international operations.
+            </p>
+            <a href="#" class="news-link">Read more</a>
+          </div>
+          <div class="news-item">
+            <div class="news-date">April 28, 2023</div>
+            <h4 class="news-title">
+              Jollibee to open 100 stores in North America this year
+            </h4>
+            <p class="news-excerpt">
+              Jollibee plans to accelerate its North American expansion with 100
+              new stores this year, focusing on markets with large Filipino
+              communities.
+            </p>
+            <a href="#" class="news-link">Read more</a>
+          </div>
+          <div class="news-item">
+            <div class="news-date">March 10, 2023</div>
+            <h4 class="news-title">
+              Jollibee launches sustainability initiative
+            </h4>
+            <p class="news-excerpt">
+              The fast-food giant announced a comprehensive sustainability
+              program aiming to reduce carbon emissions by 25% by 2025.
+            </p>
+            <a href="#" class="news-link">Read more</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn secondary-btn" onclick="closeStockModal()">
+        Close
+      </button>
+      <button class="modal-btn primary-btn" id="add-to-watchlist">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="btn-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Add to Watchlist
+      </button>
+    </div>
   </div>
 </div>
-{% endblock %} {% block scripts %}
-<!-- Include animate.css for animations -->
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-/>
 
-<!-- Optional: Add any JavaScript functionality here -->
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-  $(document).ready(function () {
-    // Example: Add hover effects to cards
-    $(".card").hover(
-      function () {
-        $(this).addClass("shadow-lg");
-      },
-      function () {
-        $(this).removeClass("shadow-lg");
-      }
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initialize variables
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let allRows = Array.from(
+      document.querySelectorAll(".stocks-grid .grid-row:not(.header-row)")
     );
+    let filteredRows = [...allRows];
+    let stockChart = null;
 
-    // Example: Add auto-refresh functionality
-    // setTimeout(function() {
-    //     location.reload();
-    // }, 300000); // Refresh every 5 minutes
+    // Initialize pagination
+    updatePagination();
+
+    // Search functionality
+    const searchInput = document.getElementById("stock-search");
+    const searchResults = document.getElementById("search-results");
+
+    searchInput.addEventListener("input", function () {
+      const query = this.value.trim().toLowerCase();
+      searchResults.innerHTML = "";
+
+      if (query.length < 2) return;
+
+      // Get unique symbols from the table
+      const symbols = [...new Set(allRows.map((row) => row.dataset.symbol))];
+
+      // Filter matching symbols
+      const matches = symbols
+        .filter((symbol) => symbol.toLowerCase().includes(query))
+        .slice(0, 5); // Limit to 5 results
+
+      // Display results
+      if (matches.length > 0) {
+        matches.forEach((symbol) => {
+          const resultItem = document.createElement("div");
+          resultItem.className = "search-result-item";
+          resultItem.textContent = symbol;
+          resultItem.addEventListener("click", function () {
+            searchInput.value = symbol;
+            searchResults.innerHTML = "";
+            applyFilters();
+          });
+          searchResults.appendChild(resultItem);
+        });
+        searchResults.style.display = "block";
+      }
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener("click", function (e) {
+      if (!searchInput.contains(e.target)) {
+        searchResults.style.display = "none";
+      }
+    });
+
+    // Apply filters when button is clicked
+    document
+      .getElementById("apply-filters")
+      .addEventListener("click", applyFilters);
+
+    // View stock details
+    document.querySelectorAll(".view-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        console.log("Details button clicked for:", this.dataset.symbol);
+        const symbol = this.dataset.symbol;
+        viewStockDetails(symbol);
+      });
+    });
+
+    // Pagination buttons
+    document.getElementById("prev-page").addEventListener("click", prevPage);
+    document.getElementById("next-page").addEventListener("click", nextPage);
+
+    // Tab switching in modal
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const tabId = this.dataset.tab;
+        switchTab(tabId);
+      });
+    });
+
+    // Chart period buttons
+    document.querySelectorAll(".period-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const period = this.dataset.period;
+        updateChartPeriod(period);
+      });
+    });
   });
+
+  // Function to apply filters
+  function applyFilters() {
+    const sectorFilter = document.getElementById("sector-filter").value;
+    const priceFilter = document.getElementById("price-filter").value;
+    const performanceFilter =
+      document.getElementById("performance-filter").value;
+    const searchQuery = document
+      .getElementById("stock-search")
+      .value.trim()
+      .toLowerCase();
+
+    filteredRows = Array.from(
+      document.querySelectorAll(".stocks-grid .grid-row:not(.header-row)")
+    ).filter((row) => {
+      const rowSector = row.dataset.sector;
+      const rowPrice = parseFloat(row.dataset.price);
+      const rowSymbol = row.dataset.symbol.toLowerCase();
+      const rowChange = row.querySelector(".pchange-cell").textContent;
+
+      // Filter by sector
+      const sectorMatch =
+        sectorFilter === "all" || rowSector.includes(sectorFilter);
+
+      // Filter by price range
+      let priceMatch = true;
+      if (priceFilter !== "all") {
+        const [min, max] = priceFilter.split("-").map(Number);
+        if (priceFilter.endsWith("+")) {
+          priceMatch = rowPrice >= min;
+        } else {
+          priceMatch = rowPrice >= min && rowPrice <= max;
+        }
+      }
+
+      // Filter by performance
+      let performanceMatch = true;
+      if (performanceFilter === "gainers") {
+        performanceMatch = !rowChange.includes("-");
+      } else if (performanceFilter === "losers") {
+        performanceMatch = rowChange.includes("-");
+      } else if (performanceFilter === "active") {
+        // Would need volume data to implement properly
+        performanceMatch = true;
+      } else if (performanceFilter === "volume") {
+        // Would need volume data to implement properly
+        performanceMatch = true;
+      }
+
+      // Filter by search query
+      const searchMatch = searchQuery === "" || rowSymbol.includes(searchQuery);
+
+      return sectorMatch && priceMatch && performanceMatch && searchMatch;
+    });
+
+    // Reset to first page
+    currentPage = 1;
+
+    // Update display
+    updatePagination();
+  }
+
+  // Function to update pagination
+  function updatePagination() {
+    const totalItems = filteredRows.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+
+    // Update showing X-Y of Z
+    const from = (currentPage - 1) * rowsPerPage + 1;
+    const to = Math.min(currentPage * rowsPerPage, totalItems);
+    document.getElementById("showing-from").textContent = from;
+    document.getElementById("showing-to").textContent = to;
+    document.getElementById("total-items").textContent = totalItems;
+
+    // Update pagination buttons
+    document.getElementById("prev-page").disabled = currentPage === 1;
+    document.getElementById("next-page").disabled =
+      currentPage === totalPages || totalPages === 0;
+
+    // Update page numbers
+    const pageNumbers = document.getElementById("page-numbers");
+    pageNumbers.innerHTML = "";
+
+    // Always show first page
+    addPageNumber(1, currentPage === 1);
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "page-ellipsis";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+
+    // Show current page and neighbors
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
+      addPageNumber(i, i === currentPage);
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "page-ellipsis";
+      ellipsis.textContent = "...";
+      pageNumbers.appendChild(ellipsis);
+    }
+
+    // Always show last page if different from first
+    if (totalPages > 1) {
+      addPageNumber(totalPages, currentPage === totalPages);
+    }
+
+    // Show/hide rows based on current page
+    allRows.forEach((row) => (row.style.display = "none"));
+    filteredRows.forEach((row, index) => {
+      if (
+        index >= (currentPage - 1) * rowsPerPage &&
+        index < currentPage * rowsPerPage
+      ) {
+        row.style.display = "";
+      }
+    });
+  }
+
+  // Helper function to add page number to pagination
+  function addPageNumber(page, isActive) {
+    const pageNumbers = document.getElementById("page-numbers");
+    const pageElement = document.createElement("button");
+    pageElement.className = `page-number ${isActive ? "active" : ""}`;
+    pageElement.textContent = page;
+    pageElement.addEventListener("click", () => {
+      currentPage = page;
+      updatePagination();
+    });
+    pageNumbers.appendChild(pageElement);
+  }
+
+  // Function to go to next page
+  function nextPage() {
+    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      updatePagination();
+    }
+  }
+
+  // Function to go to previous page
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      updatePagination();
+    }
+  }
+
+  // Function to view stock details
+  function viewStockDetails(symbol) {
+    // In a real app, you would fetch this data from your backend
+    const stockData = {
+      symbol: symbol,
+      name: `${symbol} Company Name`,
+      price: "245.00",
+      change: "+5.00 (+2.08%)",
+      sector: "Consumer Cyclical",
+      industry: "Restaurants",
+      marketCap: "₱273.4B",
+      open: "240.00",
+      high: "246.50",
+      low: "239.00",
+      volume: "1,245,678",
+      yearHigh: "258.00",
+      yearLow: "180.50",
+      description:
+        "This is a sample company description that would be loaded from your backend API.",
+    };
+
+    // Update modal with stock data
+    document.getElementById("modal-stock-symbol").textContent =
+      stockData.symbol;
+    document.getElementById("modal-stock-name").textContent = stockData.name;
+    document.getElementById(
+      "modal-stock-price"
+    ).textContent = `₱${stockData.price}`;
+    document.getElementById("modal-stock-change").textContent =
+      stockData.change;
+    document.getElementById("modal-stock-sector").textContent =
+      stockData.sector;
+    document.getElementById("modal-stock-industry").textContent =
+      stockData.industry;
+    document.getElementById("modal-stock-marketcap").textContent =
+      stockData.marketCap;
+    document.getElementById("metric-open").textContent = `₱${stockData.open}`;
+    document.getElementById("metric-high").textContent = `₱${stockData.high}`;
+    document.getElementById("metric-low").textContent = `₱${stockData.low}`;
+    document.getElementById("metric-volume").textContent = stockData.volume;
+    document.getElementById(
+      "metric-52high"
+    ).textContent = `₱${stockData.yearHigh}`;
+    document.getElementById(
+      "metric-52low"
+    ).textContent = `₱${stockData.yearLow}`;
+    document.getElementById("company-description").textContent =
+      stockData.description;
+
+    // Set the add to watchlist button
+    document.getElementById("add-to-watchlist").dataset.symbol = symbol;
+
+    // Show modal
+    document.getElementById("stockModal").style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    // Initialize chart
+    initializeChart();
+  }
+
+  // Function to close stock modal
+  function closeStockModal() {
+    document.getElementById("stockModal").style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+
+  // Function to switch tabs in modal
+  function switchTab(tabId) {
+    // Hide all tab contents
+    document.querySelectorAll(".tab-content").forEach((tab) => {
+      tab.classList.remove("active");
+    });
+
+    // Deactivate all tab buttons
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.classList.remove("active");
+    });
+
+    // Activate selected tab
+    document.getElementById(`${tabId}-tab`).classList.add("active");
+    document
+      .querySelector(`.tab-btn[data-tab="${tabId}"]`)
+      .classList.add("active");
+  }
+
+  // Function to initialize chart
+  function initializeChart() {
+    const ctx = document.getElementById("stockChart").getContext("2d");
+
+    // Destroy previous chart if it exists
+    if (stockChart) {
+      stockChart.destroy();
+    }
+
+    // Sample data - in a real app, you would fetch this from your backend
+    const labels = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (29 - i));
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    });
+
+    const prices = Array.from({ length: 30 }, (_, i) => {
+      const basePrice = 200 + Math.random() * 50;
+      return basePrice + Math.sin(i / 2) * 10 + (Math.random() - 0.5) * 5;
+    });
+
+    stockChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Stock Price",
+            data: prices,
+            borderColor: "#3B82F6",
+            backgroundColor: "rgba(59, 130, 246, 0.1)",
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+            callbacks: {
+              label: function (context) {
+                return `Price: ₱${context.parsed.y.toFixed(2)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+          },
+          y: {
+            ticks: {
+              callback: function (value) {
+                return "₱" + value;
+              },
+            },
+          },
+        },
+        interaction: {
+          mode: "nearest",
+          axis: "x",
+          intersect: false,
+        },
+      },
+    });
+  }
+
+  // Function to update chart period
+  function updateChartPeriod(period) {
+    // Deactivate all period buttons
+    document.querySelectorAll(".period-btn").forEach((btn) => {
+      btn.classList.remove("active");
+    });
+
+    // Activate selected period
+    document
+      .querySelector(`.period-btn[data-period="${period}"]`)
+      .classList.add("active");
+
+    // In a real app, you would fetch new data for this period
+    // For now, we'll just log it
+    console.log(`Updating chart for period: ${period}`);
+
+    // You would then update the chart with new data
+    // updateChartData(newData);
+  }
 </script>
+
+<style>
+  /* Base Styles */
+  :root {
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #2563eb;
+    --secondary: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #8b5cf6;
+    --light: #f3f4f6;
+    --dark: #111827;
+    --gray-100: #f9fafb;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --positive: #10b981;
+    --negative: #ef4444;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --radius-sm: 0.125rem;
+    --radius: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-full: 9999px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.5;
+    color: var(--gray-800);
+    background-color: var(--gray-100);
+  }
+
+  /* Dashboard Header */
+  .dashboard-header {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .header-content {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-title .icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--primary);
+  }
+
+  .dashboard-subtitle {
+    font-size: 1rem;
+    color: var(--gray-500);
+  }
+
+  .market-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .summary-item {
+    background-color: var(--gray-100);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+
+  .summary-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .summary-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .summary-change {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: inline-block;
+  }
+
+  .positive {
+    color: var(--positive);
+  }
+
+  .negative {
+    color: var(--negative);
+  }
+
+  /* Control Panel */
+  .control-panel {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .search-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-box {
+    position: relative;
+    flex-grow: 1;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--gray-400);
+  }
+
+  #stock-search {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+
+  #stock-search:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+    display: none;
+  }
+
+  .search-result-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .search-result-item:hover {
+    background-color: var(--gray-100);
+  }
+
+  .search-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.5rem;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .search-btn:hover {
+    background-color: var(--primary-dark);
+  }
+
+  .search-btn .btn-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-dropdown {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-dropdown label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .filter-dropdown select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    appearance: none;
+    background-color: var(--gray-100);
+    transition: all 0.2s;
+  }
+
+  .filter-dropdown select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: white;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.5rem;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .filter-btn:hover {
+    background-color: var(--primary-dark);
+  }
+
+  .filter-btn .btn-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Stocks Grid */
+  .stocks-grid-container {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .grid-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .grid-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .grid-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--gray-100);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .grid-action-btn:hover {
+    background-color: var(--gray-200);
+  }
+
+  .grid-action-btn .action-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .stocks-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    overflow-x: auto;
+  }
+
+  .grid-row {
+    display: grid;
+    grid-template-columns: 80px minmax(150px, 1fr) 100px 100px 100px 120px 120px 140px;
+    min-width: 1000px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .header-row {
+    font-weight: 600;
+    color: var(--gray-600);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-300);
+  }
+
+  .grid-row:last-child {
+    border-bottom: none;
+  }
+
+  .grid-cell {
+    padding: 0.75rem 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .symbol-cell {
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  .symbol {
+    font-family: "Roboto Mono", monospace;
+  }
+
+  .company-cell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .company-name {
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  .company-sector {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+  }
+
+  .price-cell {
+    font-weight: 500;
+  }
+
+  .change-cell,
+  .pchange-cell {
+    font-weight: 500;
+  }
+
+  .volume-cell {
+    font-family: "Roboto Mono", monospace;
+  }
+
+  .sector-cell {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+  }
+
+  .action-cell {
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .view-btn {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+  }
+
+  .view-btn:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .watchlist-btn {
+    background-color: rgba(209, 213, 219, 0.5);
+    color: var(--gray-600);
+    padding: 0.5rem;
+  }
+
+  .watchlist-btn:hover {
+    background-color: rgba(209, 213, 219, 0.7);
+  }
+
+  .action-btn .action-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* No Results */
+  .no-results {
+    text-align: center;
+    padding: 3rem 0;
+  }
+
+  .no-results-icon {
+    width: 3rem;
+    height: 3rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+  }
+
+  .no-results h4 {
+    font-size: 1.25rem;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+  }
+
+  .no-results p {
+    color: var(--gray-500);
+  }
+
+  /* Pagination */
+  .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .pagination-info {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background-color: var(--gray-100);
+    border-color: var(--gray-400);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn .pagination-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .page-number {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background-color: transparent;
+  }
+
+  .page-number:hover:not(.active) {
+    background-color: var(--gray-100);
+  }
+
+  .page-number.active {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .page-ellipsis {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+  }
+
+  /* News Section */
+  .news-section {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-title .section-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--primary);
+  }
+
+  .section-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .section-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--gray-100);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .section-action-btn:hover {
+    background-color: var(--gray-200);
+  }
+
+  .section-action-btn .action-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .news-card {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .news-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .news-image {
+    height: 180px;
+    overflow: hidden;
+  }
+
+  .news-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .news-card:hover .news-image img {
+    transform: scale(1.05);
+  }
+
+  .news-content {
+    padding: 1.25rem;
+  }
+
+  .news-date {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.5rem;
+  }
+
+  .news-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .news-excerpt {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .news-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .news-link {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .news-link:hover {
+    color: var(--primary-dark);
+  }
+
+  .news-link .link-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .no-news {
+    text-align: center;
+    padding: 3rem 0;
+  }
+
+  .no-news-icon {
+    width: 3rem;
+    height: 3rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+  }
+
+  .no-news h4 {
+    font-size: 1.25rem;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+  }
+
+  .no-news p {
+    color: var(--gray-500);
+  }
+
+  /* Stock Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 101;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: var(--gray-100);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 102;
+  }
+
+  .modal-close:hover {
+    background-color: var(--gray-200);
+  }
+
+  .modal-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--gray-600);
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .stock-title {
+    flex: 1;
+  }
+
+  .stock-title h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.25rem;
+  }
+
+  .stock-title h2 {
+    font-size: 1.25rem;
+    color: var(--gray-600);
+  }
+
+  .stock-price {
+    text-align: right;
+  }
+
+  .current-price {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .price-change {
+    font-size: 1rem;
+    margin-top: 0.25rem;
+  }
+
+  .stock-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .meta-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .meta-value {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--dark);
+    margin-top: 0.25rem;
+  }
+
+  .modal-body {
+    padding: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+  }
+
+  .modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 1.5rem;
+  }
+
+  .tab-btn {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .tab-btn:hover {
+    color: var(--gray-700);
+  }
+
+  .tab-btn.active {
+    color: var(--primary);
+  }
+
+  .tab-btn.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary);
+  }
+
+  .tab-content {
+    display: none;
+    padding: 1.5rem;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Chart Tab */
+  .chart-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .chart-periods {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .period-btn {
+    padding: 0.25rem 0.75rem;
+    background-color: var(--gray-100);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .period-btn:hover {
+    background-color: var(--gray-200);
+  }
+
+  .period-btn.active {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .chart-wrapper {
+    height: 300px;
+    margin-bottom: 1rem;
+  }
+
+  .chart-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .metric-card {
+    background-color: var(--gray-100);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .metric-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  /* Overview Tab */
+  .overview-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .overview-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+  }
+
+  .overview-section p {
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .executives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .executive-card {
+    background-color: var(--gray-100);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+  }
+
+  .executive-name {
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  .executive-title {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+  }
+
+  .developments-list {
+    list-style-type: none;
+  }
+
+  .developments-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .developments-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: bold;
+  }
+
+  /* Financials Tab */
+  .financials-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .financials-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+  }
+
+  .financials-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .financials-row {
+    display: contents;
+  }
+
+  .financials-row.header {
+    font-weight: 600;
+    background-color: var(--gray-100);
+  }
+
+  .financials-cell {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+  }
+
+  .financials-row:last-child .financials-cell {
+    border-bottom: none;
+  }
+
+  .ratios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .ratio-card {
+    background-color: var(--gray-100);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+  }
+
+  .ratio-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .ratio-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  /* News Tab */
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .news-item {
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 1.5rem;
+  }
+
+  .news-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .news-date {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 0.5rem;
+  }
+
+  .news-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+  }
+
+  .news-excerpt {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.75rem;
+  }
+
+  .news-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .news-link:hover {
+    color: var(--primary-dark);
+  }
+
+  /* Modal Footer */
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .modal-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .primary-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+  }
+
+  .primary-btn:hover {
+    background-color: var(--primary-dark);
+  }
+
+  .secondary-btn {
+    background-color: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+  }
+
+  .secondary-btn:hover {
+    background-color: var(--gray-100);
+  }
+
+  .modal-btn .btn-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Responsive Styles */
+  @media (max-width: 1024px) {
+    .modal-content {
+      width: 95%;
+      max-height: 85vh;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-title {
+      font-size: 1.5rem;
+    }
+
+    .search-container {
+      flex-direction: column;
+    }
+
+    .filter-group {
+      flex-direction: column;
+    }
+
+    .filter-dropdown {
+      width: 100%;
+    }
+
+    .stock-header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .stock-price {
+      text-align: left;
+      width: 100%;
+    }
+
+    .modal-tabs {
+      overflow-x: auto;
+      padding: 0;
+    }
+
+    .tab-btn {
+      padding: 1rem;
+      white-space: nowrap;
+    }
+
+    .chart-periods {
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .market-summary {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pagination-container {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .news-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+      max-height: 90vh;
+      margin: 1rem;
+    }
+
+    .modal-footer {
+      justify-content: center;
+    }
+  }
+</style>
 {% endblock %}

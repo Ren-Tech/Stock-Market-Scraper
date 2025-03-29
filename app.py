@@ -1,3 +1,4 @@
+import random
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
@@ -12,12 +13,20 @@ def assign_category(text):
     text = text.lower()
     
     # Simple keyword-based categorization
-    if any(word in text for word in ['europe', 'eu', 'european', 'brexit', 'uk', 'germany', 'france']):
+    if any(word in text for word in ['europe', 'eu', 'european', 'brexit', 'uk', 'germany', 'france', 'spain', 'italy']):
         return 'europe'
-    elif any(word in text for word in ['asia', 'china', 'japan', 'india', 'korea']):
+    elif any(word in text for word in ['asia', 'china', 'japan', 'india', 'korea', 'singapore', 'malaysia', 'indonesia']):
         return 'asia'
-    elif any(word in text for word in ['america', 'us', 'usa', 'united states', 'canada', 'mexico']):
+    elif any(word in text for word in ['north america', 'america', 'us', 'usa', 'united states', 'canada', 'mexico']):
         return 'north_america'
+    elif any(word in text for word in ['south america', 'brazil', 'argentina', 'colombia', 'peru', 'chile']):
+        return 'south_america'
+    elif any(word in text for word in ['africa', 'south africa', 'nigeria', 'kenya', 'egypt']):
+        return 'africa'
+    elif any(word in text for word in ['australia', 'new zealand', 'oceania']):
+        return 'australia'
+    elif any(word in text for word in ['middle east', 'mena', 'arab', 'saudi', 'uae', 'qatar', 'iran', 'iraq']):
+        return 'mena'
     else:
         return 'world'  # Default category
 def fetch_top_news(url, max_articles=10):
@@ -175,41 +184,68 @@ def fetch_top_news(url, max_articles=10):
     return news_items
 @app.route("/", methods=["GET", "POST"])
 def current_affairs():
-    urls = []
+    urls = {
+        'world': [],
+        'north_america': [],
+        'south_america': [],
+        'europe': [],
+        'asia': [],
+        'africa': [],
+        'australia': [],
+        'mena': []
+    }
     news_data = []
     error_messages = []
 
-    # Default top news sources
-    default_news_sources = [
-        "https://www.nytimes.com/section/world",
-        "https://edition.cnn.com/",
-        "https://www.bbc.co.uk/news/world",
-        "https://www.msnbc.com/",
-        "https://www.cnbc.com/world/?region=world",
-        "https://uk.finance.yahoo.com/topic/news",
-    ]
+    # Default news sources by region
+    default_news_sources = {
+        'world': [
+            "https://www.nytimes.com/section/world",
+            "https://edition.cnn.com/",
+            "https://www.bbc.co.uk/news/world"
+        ],
+        'north_america': [
+            "https://www.cnbc.com/world/?region=world",
+            "https://www.usatoday.com/news/"
+        ],
+        'europe': [
+            "https://www.euronews.com/",
+            "https://www.theguardian.com/international"
+        ],
+        'asia': [
+            "https://asia.nikkei.com/",
+            "https://www.scmp.com/"
+        ]
+    }
 
     if request.method == "POST":
-        urls = [url.strip() for url in request.form.getlist("web_urls") if url.strip()]
+        # Get URLs for each region
+        for region in urls.keys():
+            region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
+            urls[region] = region_urls
         
-        # If no URLs provided, use defaults
-        if not urls:
+        # If no URLs provided for any region, use defaults
+        if all(len(urls[region]) == 0 for region in urls.keys()):
             urls = default_news_sources
     else:
         # For initial page load, use defaults
         urls = default_news_sources
 
-    # Scrape each URL using our improved function
-    for url in urls:
-        try:
-            # Fetch top 10 news from each source
-            source_news = fetch_top_news(url, max_articles=10)
-            if source_news:
-                news_data.extend(source_news)
-            else:
-                error_messages.append(f"Could not extract news from {url}")
-        except Exception as e:
-            error_messages.append(f"Error processing {url}: {str(e)}")
+    # Scrape each URL for each region
+    for region, region_urls in urls.items():
+        for url in region_urls:
+            try:
+                # Fetch top news from each source and assign the correct region
+                source_news = fetch_top_news(url, max_articles=10)
+                if source_news:
+                    # Override the auto-detected category with our region
+                    for news_item in source_news:
+                        news_item['category'] = region
+                    news_data.extend(source_news)
+                else:
+                    error_messages.append(f"Could not extract news from {url} (Region: {region})")
+            except Exception as e:
+                error_messages.append(f"Error processing {url} (Region: {region}): {str(e)}")
 
     # Sort news by date (most recent first)
     news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
@@ -221,7 +257,7 @@ def current_affairs():
     news_data_sorted_by_url = sorted(news_data, key=lambda x: x.get('link', ''))
     
     # Print diagnostics to help with debugging
-    print(f"URLs processed: {len(urls)}")
+    # print(f"URLs processed: {sum(len(urls[region]) for region in urls.keys()}")
     print(f"News items found: {len(news_data)}")
     print(f"Errors encountered: {len(error_messages)}")
     
@@ -268,10 +304,219 @@ def market_news():
     return render_template("market_news.html", 
                          news_data=news_data, 
                          stock_data=stock_data)
+# Add these custom template filters
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%Y-%m-%d'):
+    if isinstance(value, str):
+        try:
+            value = datetime.strptime(value, '%Y-%m-%d')
+        except ValueError:
+            return value
+    return value.strftime(format)
 
+@app.template_filter('groupby')
+def groupby(items, attribute):
+    groups = {}
+    for item in items:
+        key = item.get(attribute)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(item)
+    return groups.items()
 @app.route("/calendar", methods=["GET", "POST"])
 def calendar():
-    return render_template("calendar.html")  # Static calendar page (no dynamic data)
+    # Extended dummy data - in production this would come from a database
+    calendar_events = [
+        # Earnings Reports (Q3 2023)
+        {
+            "date": "2023-11-02",
+            "company": "Apple Inc.",
+            "symbol": "AAPL",
+            "type": "earnings",
+            "quarter": "Q4 2023",
+            "time": "After Market Close"
+        },
+        {
+            "date": "2023-11-02",
+            "company": "Starbucks Corporation",
+            "symbol": "SBUX",
+            "type": "earnings",
+            "quarter": "Q4 2023",
+            "time": "After Market Close"
+        },
+        {
+            "date": "2023-11-07",
+            "company": "Walt Disney Company",
+            "symbol": "DIS",
+            "type": "earnings",
+            "quarter": "Q4 2023",
+            "time": "After Market Close"
+        },
+        {
+            "date": "2023-11-09",
+            "company": "NVIDIA Corporation",
+            "symbol": "NVDA",
+            "type": "earnings",
+            "quarter": "Q3 2023",
+            "time": "After Market Close"
+        },
+        {
+            "date": "2023-11-14",
+            "company": "Home Depot Inc.",
+            "symbol": "HD",
+            "type": "earnings",
+            "quarter": "Q3 2023",
+            "time": "Before Market Open"
+        },
+        
+        # Upcoming Earnings (Q1 2024)
+        {
+            "date": "2024-01-24",
+            "company": "Tesla Inc.",
+            "symbol": "TSLA",
+            "type": "earnings",
+            "quarter": "Q4 2023",
+            "time": "After Market Close"
+        },
+        {
+            "date": "2024-01-25",
+            "company": "Intel Corporation",
+            "symbol": "INTC",
+            "type": "earnings",
+            "quarter": "Q4 2023",
+            "time": "After Market Close"
+        },
+        {
+            "date": "2024-01-30",
+            "company": "Microsoft Corporation",
+            "symbol": "MSFT",
+            "type": "earnings",
+            "quarter": "Q2 2024",
+            "time": "After Market Close"
+        },
+        
+        # Dividend Events
+        {
+            "date": "2023-11-10",
+            "company": "Johnson & Johnson",
+            "symbol": "JNJ",
+            "type": "dividend",
+            "amount": "$1.19",
+            "ex_date": "2023-11-08",
+            "record_date": "2023-11-09"
+        },
+        {
+            "date": "2023-11-15",
+            "company": "Procter & Gamble",
+            "symbol": "PG",
+            "type": "dividend",
+            "amount": "$0.94",
+            "ex_date": "2023-11-13",
+            "record_date": "2023-11-14"
+        },
+        {
+            "date": "2023-11-30",
+            "company": "Coca-Cola Company",
+            "symbol": "KO",
+            "type": "dividend",
+            "amount": "$0.46",
+            "ex_date": "2023-11-28",
+            "record_date": "2023-11-29"
+        },
+        
+        # Stock Splits
+        {
+            "date": "2023-11-16",
+            "company": "Amazon.com Inc.",
+            "symbol": "AMZN",
+            "type": "split",
+            "ratio": "20:1",
+            "effective_date": "2023-11-16"
+        },
+        {
+            "date": "2023-12-01",
+            "company": "Alphabet Inc.",
+            "symbol": "GOOGL",
+            "type": "split",
+            "ratio": "20:1",
+            "effective_date": "2023-12-01"
+        },
+        
+        # IPOs
+        {
+            "date": "2023-11-17",
+            "company": "AstroTech",
+            "symbol": "ASTRO",
+            "type": "ipo",
+            "price_range": "$18-$21",
+            "shares": "12.5M",
+            "exchange": "NASDAQ"
+        },
+        {
+            "date": "2023-12-05",
+            "company": "GreenEnergy Solutions",
+            "symbol": "GES",
+            "type": "ipo",
+            "price_range": "$22-$25",
+            "shares": "8.2M",
+            "exchange": "NYSE"
+        },
+        
+        # Economic Events
+        {
+            "date": "2023-11-03",
+            "company": "Federal Reserve",
+            "symbol": "FED",
+            "type": "economic",
+            "event": "Non-Farm Payrolls Report",
+            "impact": "High"
+        },
+        {
+            "date": "2023-11-22",
+            "company": "U.S. Bureau of Economic Analysis",
+            "symbol": "BEA",
+            "type": "economic",
+            "event": "GDP Q3 Preliminary",
+            "impact": "Medium"
+        },
+        
+        # Shareholder Meetings
+        {
+            "date": "2023-11-20",
+            "company": "Berkshire Hathaway",
+            "symbol": "BRK.B",
+            "type": "meeting",
+            "event": "Annual Shareholder Meeting",
+            "location": "Omaha, NE"
+        },
+        
+        # Product Launches
+        {
+            "date": "2023-12-12",
+            "company": "Apple Inc.",
+            "symbol": "AAPL",
+            "type": "event",
+            "event": "Expected iPhone 16 Launch",
+            "location": "Cupertino, CA"
+        },
+        
+        # Conference Presentations
+        {
+            "date": "2023-11-28",
+            "company": "Moderna Inc.",
+            "symbol": "MRNA",
+            "type": "conference",
+            "event": "J.P. Morgan Healthcare Conference",
+            "presenter": "CEO Stéphane Bancel"
+        }
+    ]
+    
+    # Calculate total pages (5 items per page)
+    total_pages = (len(calendar_events) // 5) + (1 if len(calendar_events) % 5 else 0)
+    
+    return render_template("calendar.html", 
+                         calendar_events=calendar_events,
+                         total_pages=total_pages)
 
 @app.route('/stock_reports')
 def stock_reports():
@@ -294,6 +539,33 @@ def stock_reports():
     return render_template('stock_reports.html', 
                          stock_data=stock_data,
                          datetime=datetime)
+
+@app.route("/api/earnings/<symbol>/<quarter>")
+def get_earnings_data(symbol, quarter):
+    try:
+        # Replace this with actual data fetching logic
+        # This could come from a database or financial API
+        earnings_data = {
+            "symbol": symbol,
+            "quarter": quarter,
+            "estimatedEps": random.uniform(1.0, 5.0),
+            "actualEps": random.uniform(0.8, 5.5),
+            "estimatedRevenue": random.uniform(10, 100),
+            "actualRevenue": random.uniform(8, 110),
+            "grossMargin": random.uniform(0.3, 0.6),
+            "operatingMargin": random.uniform(0.1, 0.4),
+            "netIncome": random.uniform(5, 50),
+            "yoyGrowth": random.uniform(-0.1, 0.3),
+            "highlights": [
+                f"Strong performance in {random.choice(['cloud services', 'hardware sales', 'advertising'])}",
+                f"Announced new {random.choice(['product', 'service', 'partnership'])}",
+                f"Guidance for next quarter exceeds analyst expectations"
+            ],
+            "guidance": f"Company expects revenue between ${random.uniform(10, 20):.2f}B and ${random.uniform(21, 30):.2f}B for next quarter."
+        }
+        return jsonify(earnings_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/stocks", methods=["GET", "POST"])
 def stocks():
@@ -505,60 +777,60 @@ def ph_stocks():
     
     # Sample Philippine stock data (20 stocks)
     sample_stocks = [
-    {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "248.60", "change": "+2.80", "change_pct": "+1.14%", "high": "250.20", "low": "245.40", "volume": "1,245,600"},
-    {"symbol": "SM", "name": "SM Investments Corporation", "last_price": "962.00", "change": "+5.50", "change_pct": "+0.57%", "high": "965.00", "low": "952.50", "volume": "352,810"},
-    {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "34.20", "change": "-0.30", "change_pct": "-0.87%", "high": "34.60", "low": "34.10", "volume": "2,541,300"},
-    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "145.70", "change": "+1.20", "change_pct": "+0.83%", "high": "146.50", "low": "144.50", "volume": "875,400"},
-    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "39.10", "change": "+0.45", "change_pct": "+1.16%", "high": "39.30", "low": "38.65", "volume": "1,658,900"},
-    {"symbol": "AC", "name": "Ayala Corporation", "last_price": "765.00", "change": "-5.00", "change_pct": "-0.65%", "high": "770.00", "low": "762.00", "volume": "126,450"},
-    {"symbol": "BPI", "name": "Bank of the Philippine Islands", "last_price": "112.50", "change": "+0.70", "change_pct": "+0.63%", "high": "113.00", "low": "111.50", "volume": "532,800"},
-    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,536.00", "change": "-8.00", "change_pct": "-0.52%", "high": "1,545.00", "low": "1,530.00", "volume": "54,360"},
-    {"symbol": "MER", "name": "Manila Electric Company", "last_price": "384.20", "change": "+2.20", "change_pct": "+0.58%", "high": "386.00", "low": "380.80", "volume": "92,150"},
-    {"symbol": "URC", "name": "Universal Robina Corporation", "last_price": "132.10", "change": "-1.40", "change_pct": "-1.05%", "high": "133.50", "low": "131.80", "volume": "423,850"},
-    {"symbol": "ICT", "name": "International Container Terminal Services, Inc.", "last_price": "265.80", "change": "+3.60", "change_pct": "+1.37%", "high": "266.20", "low": "262.40", "volume": "156,780"},
-    {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "2.86", "change": "+0.04", "change_pct": "+1.42%", "high": "2.87", "low": "2.83", "volume": "5,842,300"},
-    {"symbol": "BLOOM", "name": "Bloomberry Resorts Corporation", "last_price": "8.96", "change": "-0.13", "change_pct": "-1.43%", "high": "9.10", "low": "8.95", "volume": "1,234,500"},
-    {"symbol": "MPI", "name": "Metro Pacific Investments Corporation", "last_price": "4.25", "change": "+0.07", "change_pct": "+1.67%", "high": "4.27", "low": "4.20", "volume": "3,125,700"},
-    {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "578.50", "change": "-3.50", "change_pct": "-0.60%", "high": "582.00", "low": "575.00", "volume": "45,320"},
-    {"symbol": "RLC", "name": "Robinsons Land Corporation", "last_price": "16.94", "change": "+0.24", "change_pct": "+1.44%", "high": "16.98", "low": "16.70", "volume": "865,400"},
-    {"symbol": "DMC", "name": "DMCI Holdings, Inc.", "last_price": "11.26", "change": "-0.08", "change_pct": "-0.71%", "high": "11.36", "low": "11.22", "volume": "954,300"},
-    {"symbol": "AGI", "name": "Alliance Global Group, Inc.", "last_price": "10.84", "change": "+0.16", "change_pct": "+1.50%", "high": "10.88", "low": "10.70", "volume": "1,423,600"},
-    {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,112.00", "change": "-14.00", "change_pct": "-0.66%", "high": "2,126.00", "low": "2,106.00", "volume": "18,520"},
-    {"symbol": "PGOLD", "name": "Puregold Price Club, Inc.", "last_price": "36.85", "change": "+0.35", "change_pct": "+0.96%", "high": "37.00", "low": "36.50", "volume": "254,700"},
-    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "38.50", "change": "+0.40", "change_pct": "+1.05%", "high": "38.60", "low": "38.00", "volume": "1,120,400"},
-    {"symbol": "CEB", "name": "Cebu Air, Inc.", "last_price": "96.80", "change": "-1.20", "change_pct": "-1.22%", "high": "98.00", "low": "96.50", "volume": "345,600"},
-    {"symbol": "CNVRG", "name": "Converge ICT Solutions Inc.", "last_price": "18.30", "change": "+0.25", "change_pct": "+1.38%", "high": "18.40", "low": "18.10", "volume": "1,450,300"},
-    {"symbol": "FGEN", "name": "First Gen Corporation", "last_price": "22.10", "change": "-0.15", "change_pct": "-0.67%", "high": "22.30", "low": "22.00", "volume": "876,500"},
-    {"symbol": "FNI", "name": "Global Ferronickel Holdings, Inc.", "last_price": "3.45", "change": "+0.05", "change_pct": "+1.47%", "high": "3.48", "low": "3.40", "volume": "2,340,100"},
-    {"symbol": "GMA7", "name": "GMA Network, Inc.", "last_price": "12.60", "change": "+0.10", "change_pct": "+0.80%", "high": "12.65", "low": "12.50", "volume": "543,200"},
-    {"symbol": "LTG", "name": "LT Group, Inc.", "last_price": "9.80", "change": "-0.10", "change_pct": "-1.01%", "high": "9.90", "low": "9.75", "volume": "1,230,400"},
-    {"symbol": "MAXS", "name": "Max's Group, Inc.", "last_price": "14.20", "change": "+0.20", "change_pct": "+1.43%", "high": "14.25", "low": "14.00", "volume": "345,700"},
-    {"symbol": "PIZZA", "name": "Shakey's Pizza Asia Ventures, Inc.", "last_price": "10.50", "change": "+0.15", "change_pct": "+1.45%", "high": "10.55", "low": "10.40", "volume": "456,800"},
-    {"symbol": "RRHI", "name": "Robinsons Retail Holdings, Inc.", "last_price": "68.90", "change": "+0.70", "change_pct": "+1.03%", "high": "69.00", "low": "68.50", "volume": "234,500"},
-    {"symbol": "SCC", "name": "Semirara Mining and Power Corporation", "last_price": "32.40", "change": "-0.30", "change_pct": "-0.92%", "high": "32.70", "low": "32.30", "volume": "1,345,600"},
-    {"symbol": "SECB", "name": "Security Bank Corporation", "last_price": "145.00", "change": "+1.00", "change_pct": "+0.69%", "high": "145.50", "low": "144.50", "volume": "345,200"},
-    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "1.85", "change": "+0.03", "change_pct": "+1.65%", "high": "1.86", "low": "1.83", "volume": "3,456,700"},
-    {"symbol": "WLCON", "name": "Wilcon Depot, Inc.", "last_price": "25.80", "change": "+0.30", "change_pct": "+1.18%", "high": "25.90", "low": "25.50", "volume": "456,300"},
-    {"symbol": "2GO", "name": "2GO Group, Inc.", "last_price": "12.40", "change": "-0.10", "change_pct": "-0.80%", "high": "12.50", "low": "12.30", "volume": "234,500"},
-    {"symbol": "ANS", "name": "A. Soriano Corporation", "last_price": "7.50", "change": "+0.05", "change_pct": "+0.67%", "high": "7.55", "low": "7.45", "volume": "123,400"},
-    {"symbol": "CHIB", "name": "China Banking Corporation", "last_price": "28.90", "change": "+0.20", "change_pct": "+0.70%", "high": "29.00", "low": "28.80", "volume": "345,600"},
-    {"symbol": "DD", "name": "DoubleDragon Properties Corp.", "last_price": "9.20", "change": "+0.10", "change_pct": "+1.10%", "high": "9.25", "low": "9.15", "volume": "456,700"},
-    {"symbol": "FPH", "name": "First Philippine Holdings Corporation", "last_price": "78.50", "change": "+0.50", "change_pct": "+0.64%", "high": "78.60", "low": "78.00", "volume": "234,500"},
-    {"symbol": "ION", "name": "ION Energy Corporation", "last_price": "1.25", "change": "+0.02", "change_pct": "+1.63%", "high": "1.26", "low": "1.23", "volume": "1,234,500"},
-    {"symbol": "JGS", "name": "JG Summit Holdings, Inc.", "last_price": "62.40", "change": "+0.40", "change_pct": "+0.65%", "high": "62.50", "low": "62.00", "volume": "345,600"},
-    {"symbol": "NOW", "name": "Now Corporation", "last_price": "1.10", "change": "+0.01", "change_pct": "+0.92%", "high": "1.11", "low": "1.09", "volume": "2,345,600"},
-    {"symbol": "PAL", "name": "PAL Holdings, Inc.", "last_price": "8.90", "change": "-0.10", "change_pct": "-1.11%", "high": "9.00", "low": "8.85", "volume": "456,700"},
-    {"symbol": "PSE", "name": "The Philippine Stock Exchange, Inc.", "last_price": "185.00", "change": "+1.00", "change_pct": "+0.54%", "high": "185.50", "low": "184.50", "volume": "123,400"},
-    {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "3.20", "change": "+0.03", "change_pct": "+0.95%", "high": "3.22", "low": "3.18", "volume": "1,234,500"},
-    {"symbol": "RFM", "name": "RFM Corporation", "last_price": "4.50", "change": "+0.05", "change_pct": "+1.12%", "high": "4.52", "low": "4.48", "volume": "345,600"},
-    {"symbol": "ROCK", "name": "Rockwell Land Corporation", "last_price": "1.35", "change": "+0.02", "change_pct": "+1.50%", "high": "1.36", "low": "1.34", "volume": "456,700"},
-    {"symbol": "SPC", "name": "Splash Corporation", "last_price": "0.85", "change": "+0.01", "change_pct": "+1.19%", "high": "0.86", "low": "0.84", "volume": "1,234,500"},
-    {"symbol": "SSI", "name": "SSI Group, Inc.", "last_price": "2.10", "change": "+0.03", "change_pct": "+1.45%", "high": "2.12", "low": "2.08", "volume": "345,600"},
-    {"symbol": "STI", "name": "STI Education Systems Holdings, Inc.", "last_price": "0.95", "change": "+0.01", "change_pct": "+1.06%", "high": "0.96", "low": "0.94", "volume": "456,700"},
-    {"symbol": "TECH", "name": "TKC Steel Corporation", "last_price": "1.50", "change": "+0.02", "change_pct": "+1.35%", "high": "1.51", "low": "1.49", "volume": "1,234,500"},
-    {"symbol": "VITA", "name": "Vitarich Corporation", "last_price": "1.20", "change": "+0.01", "change_pct": "+0.84%", "high": "1.21", "low": "1.19", "volume": "345,600"},
-    {"symbol": "VUL", "name": "Vulcan Industrial & Mining Corporation", "last_price": "0.75", "change": "+0.01", "change_pct": "+1.35%", "high": "0.76", "low": "0.74", "volume": "456,700"}
-    ]
+    {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "252.40", "change": "+3.80", "change_pct": "+1.53%", "high": "253.60", "low": "248.20", "volume": "1,356,700"},
+    {"symbol": "SM", "name": "SM Investments Corporation", "last_price": "968.50", "change": "+6.50", "change_pct": "+0.68%", "high": "970.00", "low": "958.00", "volume": "378,920"},
+    {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "33.85", "change": "-0.35", "change_pct": "-1.02%", "high": "34.30", "low": "33.75", "volume": "2,678,500"},
+    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "147.20", "change": "+1.50", "change_pct": "+1.03%", "high": "148.00", "low": "146.00", "volume": "952,300"},
+    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "39.85", "change": "+0.75", "change_pct": "+1.92%", "high": "40.00", "low": "39.10", "volume": "1,725,400"},
+    {"symbol": "AC", "name": "Ayala Corporation", "last_price": "758.00", "change": "-7.00", "change_pct": "-0.91%", "high": "766.00", "low": "757.50", "volume": "142,350"},
+    {"symbol": "BPI", "name": "Bank of the Philippine Islands", "last_price": "113.80", "change": "+1.30", "change_pct": "+1.16%", "high": "114.20", "low": "112.60", "volume": "567,400"},
+    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,528.00", "change": "-8.00", "change_pct": "-0.52%", "high": "1,540.00", "low": "1,526.00", "volume": "62,450"},
+    {"symbol": "MER", "name": "Manila Electric Company", "last_price": "387.60", "change": "+3.40", "change_pct": "+0.89%", "high": "388.50", "low": "384.00", "volume": "105,280"},
+    {"symbol": "URC", "name": "Universal Robina Corporation", "last_price": "130.50", "change": "-1.60", "change_pct": "-1.21%", "high": "132.80", "low": "130.20", "volume": "456,700"},
+    {"symbol": "ICT", "name": "International Container Terminal Services, Inc.", "last_price": "269.40", "change": "+3.60", "change_pct": "+1.35%", "high": "270.00", "low": "265.70", "volume": "168,350"},
+    {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "2.94", "change": "+0.08", "change_pct": "+2.80%", "high": "2.95", "low": "2.86", "volume": "6,124,500"},
+    {"symbol": "BLOOM", "name": "Bloomberry Resorts Corporation", "last_price": "8.82", "change": "-0.14", "change_pct": "-1.56%", "high": "9.00", "low": "8.80", "volume": "1,345,200"},
+    {"symbol": "MPI", "name": "Metro Pacific Investments Corporation", "last_price": "4.36", "change": "+0.11", "change_pct": "+2.59%", "high": "4.38", "low": "4.25", "volume": "3,457,800"},
+    {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "574.00", "change": "-4.50", "change_pct": "-0.78%", "high": "578.50", "low": "572.50", "volume": "52,480"},
+    {"symbol": "RLC", "name": "Robinsons Land Corporation", "last_price": "17.28", "change": "+0.34", "change_pct": "+2.01%", "high": "17.30", "low": "16.92", "volume": "924,600"},
+    {"symbol": "DMC", "name": "DMCI Holdings, Inc.", "last_price": "11.14", "change": "-0.12", "change_pct": "-1.07%", "high": "11.30", "low": "11.12", "volume": "987,500"},
+    {"symbol": "AGI", "name": "Alliance Global Group, Inc.", "last_price": "11.06", "change": "+0.22", "change_pct": "+2.03%", "high": "11.10", "low": "10.84", "volume": "1,562,400"},
+    {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,095.00", "change": "-17.00", "change_pct": "-0.80%", "high": "2,115.00", "low": "2,090.00", "volume": "22,360"},
+    {"symbol": "PGOLD", "name": "Puregold Price Club, Inc.", "last_price": "37.20", "change": "+0.35", "change_pct": "+0.95%", "high": "37.40", "low": "36.85", "volume": "287,500"},
+    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "39.10", "change": "+0.60", "change_pct": "+1.56%", "high": "39.15", "low": "38.45", "volume": "1,248,600"},
+    {"symbol": "CEB", "name": "Cebu Air, Inc.", "last_price": "95.20", "change": "-1.60", "change_pct": "-1.65%", "high": "97.50", "low": "95.00", "volume": "372,800"},
+    {"symbol": "CNVRG", "name": "Converge ICT Solutions Inc.", "last_price": "18.74", "change": "+0.44", "change_pct": "+2.41%", "high": "18.80", "low": "18.30", "volume": "1,587,200"},
+    {"symbol": "FGEN", "name": "First Gen Corporation", "last_price": "21.85", "change": "-0.25", "change_pct": "-1.13%", "high": "22.15", "low": "21.80", "volume": "924,700"},
+    {"symbol": "FNI", "name": "Global Ferronickel Holdings, Inc.", "last_price": "3.52", "change": "+0.07", "change_pct": "+2.03%", "high": "3.54", "low": "3.45", "volume": "2,564,300"},
+    {"symbol": "GMA7", "name": "GMA Network, Inc.", "last_price": "12.72", "change": "+0.12", "change_pct": "+0.95%", "high": "12.75", "low": "12.60", "volume": "586,400"},
+    {"symbol": "LTG", "name": "LT Group, Inc.", "last_price": "9.65", "change": "-0.15", "change_pct": "-1.53%", "high": "9.82", "low": "9.62", "volume": "1,345,600"},
+    {"symbol": "MAXS", "name": "Max's Group, Inc.", "last_price": "14.46", "change": "+0.26", "change_pct": "+1.83%", "high": "14.50", "low": "14.20", "volume": "387,900"},
+    {"symbol": "PIZZA", "name": "Shakey's Pizza Asia Ventures, Inc.", "last_price": "10.68", "change": "+0.18", "change_pct": "+1.71%", "high": "10.70", "low": "10.50", "volume": "492,500"},
+    {"symbol": "RRHI", "name": "Robinsons Retail Holdings, Inc.", "last_price": "69.80", "change": "+0.90", "change_pct": "+1.31%", "high": "69.90", "low": "68.90", "volume": "267,800"},
+    {"symbol": "SCC", "name": "Semirara Mining and Power Corporation", "last_price": "32.10", "change": "-0.30", "change_pct": "-0.93%", "high": "32.45", "low": "32.00", "volume": "1,456,700"},
+    {"symbol": "SECB", "name": "Security Bank Corporation", "last_price": "146.50", "change": "+1.50", "change_pct": "+1.03%", "high": "146.80", "low": "145.00", "volume": "378,600"},
+    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "1.89", "change": "+0.04", "change_pct": "+2.16%", "high": "1.90", "low": "1.85", "volume": "3,785,400"},
+    {"symbol": "WLCON", "name": "Wilcon Depot, Inc.", "last_price": "26.15", "change": "+0.35", "change_pct": "+1.36%", "high": "26.20", "low": "25.80", "volume": "485,700"},
+    {"symbol": "2GO", "name": "2GO Group, Inc.", "last_price": "12.25", "change": "-0.15", "change_pct": "-1.21%", "high": "12.42", "low": "12.20", "volume": "256,800"},
+    {"symbol": "ANS", "name": "A. Soriano Corporation", "last_price": "7.58", "change": "+0.08", "change_pct": "+1.07%", "high": "7.60", "low": "7.50", "volume": "142,500"},
+    {"symbol": "CHIB", "name": "China Banking Corporation", "last_price": "29.20", "change": "+0.30", "change_pct": "+1.04%", "high": "29.25", "low": "28.90", "volume": "372,800"},
+    {"symbol": "DD", "name": "DoubleDragon Properties Corp.", "last_price": "9.36", "change": "+0.16", "change_pct": "+1.74%", "high": "9.38", "low": "9.20", "volume": "485,900"},
+    {"symbol": "FPH", "name": "First Philippine Holdings Corporation", "last_price": "79.10", "change": "+0.60", "change_pct": "+0.76%", "high": "79.20", "low": "78.50", "volume": "256,800"},
+    {"symbol": "ION", "name": "ION Energy Corporation", "last_price": "1.28", "change": "+0.03", "change_pct": "+2.40%", "high": "1.29", "low": "1.25", "volume": "1,345,600"},
+    {"symbol": "JGS", "name": "JG Summit Holdings, Inc.", "last_price": "62.95", "change": "+0.55", "change_pct": "+0.88%", "high": "63.00", "low": "62.40", "volume": "372,800"},
+    {"symbol": "NOW", "name": "Now Corporation", "last_price": "1.12", "change": "+0.02", "change_pct": "+1.82%", "high": "1.13", "low": "1.10", "volume": "2,485,900"},
+    {"symbol": "PAL", "name": "PAL Holdings, Inc.", "last_price": "8.75", "change": "-0.15", "change_pct": "-1.69%", "high": "8.92", "low": "8.72", "volume": "485,900"},
+    {"symbol": "PSE", "name": "The Philippine Stock Exchange, Inc.", "last_price": "186.80", "change": "+1.80", "change_pct": "+0.97%", "high": "187.00", "low": "185.00", "volume": "145,600"},
+    {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "3.25", "change": "+0.05", "change_pct": "+1.56%", "high": "3.26", "low": "3.20", "volume": "1,356,700"},
+    {"symbol": "RFM", "name": "RFM Corporation", "last_price": "4.58", "change": "+0.08", "change_pct": "+1.78%", "high": "4.60", "low": "4.50", "volume": "372,800"},
+    {"symbol": "ROCK", "name": "Rockwell Land Corporation", "last_price": "1.38", "change": "+0.03", "change_pct": "+2.22%", "high": "1.39", "low": "1.35", "volume": "485,900"},
+    {"symbol": "SPC", "name": "Splash Corporation", "last_price": "0.87", "change": "+0.02", "change_pct": "+2.35%", "high": "0.88", "low": "0.85", "volume": "1,345,600"},
+    {"symbol": "SSI", "name": "SSI Group, Inc.", "last_price": "2.14", "change": "+0.04", "change_pct": "+1.90%", "high": "2.15", "low": "2.10", "volume": "372,800"},
+    {"symbol": "STI", "name": "STI Education Systems Holdings, Inc.", "last_price": "0.97", "change": "+0.02", "change_pct": "+2.11%", "high": "0.98", "low": "0.95", "volume": "485,900"},
+    {"symbol": "TECH", "name": "TKC Steel Corporation", "last_price": "1.53", "change": "+0.03", "change_pct": "+2.00%", "high": "1.54", "low": "1.50", "volume": "1,345,600"},
+    {"symbol": "VITA", "name": "Vitarich Corporation", "last_price": "1.23", "change": "+0.03", "change_pct": "+2.50%", "high": "1.24", "low": "1.20", "volume": "372,800"},
+    {"symbol": "VUL", "name": "Vulcan Industrial & Mining Corporation", "last_price": "0.77", "change": "+0.02", "change_pct": "+2.67%", "high": "0.78", "low": "0.75", "volume": "485,900"}
+]
     
     # Sample news data
     sample_news = [
