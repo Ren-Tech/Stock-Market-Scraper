@@ -1,6 +1,21 @@
 {% extends "base.html" %} {% block title %} Current Affairs {% endblock %} {%
 block content %}
 
+<style>
+  .timer-display-wrapper {
+    min-width: 60px;
+    text-align: center;
+    background-color: #f8f9fa;
+  }
+
+  .timer-display {
+    font-family: monospace;
+    font-weight: bold;
+    color: #495057;
+    padding: 2px 0;
+  }
+</style>
+
 <div class="container mt-4">
   <!-- Mini Tab Navigation (Top Right) -->
   <ul
@@ -57,12 +72,17 @@ block content %}
       <i class="bi bi-arrow-right-circle"></i> Show Search
     </button>
 
-    <!-- Timer Container -->
-    <div class="timer-container">
+    <!-- Timer Container with added spacing -->
+    <div class="timer-container ms-3 d-flex align-items-center">
       <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
         <i class="bi bi-play-fill"></i>
       </button>
-      <span id="countdownDisplay" class="timer-display">--:--</span>
+
+      <!-- Wrapped timer display with border and padding -->
+      <div class="timer-display-wrapper border rounded px-2 mx-1">
+        <span id="countdownDisplay" class="timer-display">--:--</span>
+      </div>
+
       <button
         id="timerReset"
         class="btn btn-sm btn-outline-secondary timer-btn"
@@ -71,7 +91,6 @@ block content %}
       </button>
     </div>
   </div>
-
   <!-- Two-Column Layout -->
   <div class="row mt-4">
     <!-- Left Column: Input Fields (Hidden after submitting) -->
