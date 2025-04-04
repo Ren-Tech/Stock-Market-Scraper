@@ -504,47 +504,65 @@ block content %}
             </h5>
           </div>
 
-          <!-- Featured News Items (Top 5 stories) -->
-          {% for i in range(5) %} {% if news_data|length > i %}
-          <div class="card mb-3 featured-news-card">
-            <div class="row g-0">
-              <div class="col-md-5">
-                <img
-                  src="{{ news_data[i].image }}"
-                  class="img-fluid rounded-start"
-                  alt="Featured News"
-                  style="height: 100%; object-fit: cover"
-                  onerror="this.src='/static/images/default_news.jpg';"
-                />
-              </div>
-              <div class="col-md-7">
-                <div class="card-body">
-                  <h4 class="card-title">{{ news_data[i].title }}</h4>
-                  <p class="card-text">{{ news_data[i].content }}</p>
-                  <div class="d-flex justify-content-between">
-                    <a
-                      href="{{ news_data[i].link }}"
-                      target="_blank"
-                      class="btn btn-primary"
-                      >Read Full Story</a
-                    >
-                    <span class="badge bg-primary"
-                      >{{ news_data[i].category|capitalize }}</span
-                    >
+          <!-- Featured News Items (Top 6 stories) in grid layout -->
+          <div class="row">
+            {% for i in range(6) %} {% if news_data|length > i %}
+            <div class="col-md-6 col-xl-4 mb-3">
+              <div class="card h-100">
+                <div class="row g-0">
+                  <div class="col-md-4">
+                    <img
+                      src="{{ news_data[i].image }}"
+                      class="img-fluid rounded-start"
+                      alt="Featured News"
+                      style="height: 100%; object-fit: cover"
+                      onerror="this.src='/static/images/default_news.jpg';"
+                    />
+                  </div>
+                  <div class="col-md-8">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ news_data[i].title }}</h5>
+                      <p class="card-text small">{{ news_data[i].content }}</p>
+                      <div class="d-flex justify-content-between">
+                        <a
+                          href="{{ news_data[i].link }}"
+                          target="_blank"
+                          class="btn btn-sm btn-outline-primary"
+                          >Read More</a
+                        >
+                        <span class="badge bg-secondary"
+                          >{{ news_data[i].category|capitalize }}</span
+                        >
+                      </div>
+                      <div class="mt-2">
+                        <small class="text-muted">
+                          <a
+                            href="{{ news_data[i].link }}"
+                            target="_blank"
+                            class="text-muted text-truncate d-inline-block"
+                            style="max-width: 200px"
+                          >
+                            {{ news_data[i].link }}
+                          </a>
+                        </small>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+            {% endif %} {% endfor %}
           </div>
-          {% endif %} {% endfor %}
         </div>
         {% endif %}
 
         <!-- Regular News Grid -->
         <div class="row" id="newsItems">
-          {% if news_data %} {% for news in news_data %} {% if loop.index0 >= 5
-          %}
-          <!-- Skip the first 5 items as they're shown in the featured section -->
+          {% if news_data %} {% set seen_titles = [] %} {% for news in news_data
+          %} {% if loop.index0 >= 6 %}
+          <!-- Skip the first 6 items as they're shown in the featured section -->
+          {% if news.title not in seen_titles %} {% set _ =
+          seen_titles.append(news.title) %}
           <div
             class="col-md-6 col-xl-4 mb-3 news-grid-item"
             data-category="{{ news.category }}"
@@ -593,7 +611,7 @@ block content %}
               </div>
             </div>
           </div>
-          {% endif %} {% endfor %} {% else %}
+          {% endif %} {% endif %} {% endfor %} {% else %}
           <div class="col-12 text-center py-5">
             <p>No news data available. Submit the form to fetch news.</p>
             {% if request.method == "POST" and not news_data %}
@@ -648,19 +666,19 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-        <span class="input-group-text">#${nextNum}</span>
-        <input
-          type="text"
-          name="${region}_urls"
-          class="form-control"
-          placeholder="Enter URL"
-          value="${value}"
-          data-source-order="${nextNum}"
-        />
-        <button type="button" class="btn btn-outline-danger remove-field">
-          <i class="bi bi-x"></i>
-        </button>
-      `;
+          <span class="input-group-text">#${nextNum}</span>
+          <input
+            type="text"
+            name="${region}_urls"
+            class="form-control"
+            placeholder="Enter URL"
+            value="${value}"
+            data-source-order="${nextNum}"
+          />
+          <button type="button" class="btn btn-outline-danger remove-field">
+            <i class="bi bi-x"></i>
+          </button>
+        `;
 
       container.appendChild(newField);
 
@@ -847,9 +865,9 @@ block content %}
         return orderA.order - orderB.order;
       });
 
-      // Get first 5 for trending section
-      const topFive = allNewsItems.slice(0, 5);
-      const rest = allNewsItems.slice(5);
+      // Get first 6 for trending section
+      const topSix = allNewsItems.slice(0, 6);
+      const rest = allNewsItems.slice(6);
 
       // Clear and repopulate trending section
       const trendingContent = document.querySelector("#trendingNews .d-flex");
@@ -860,8 +878,8 @@ block content %}
           trendingParent.removeChild(trendingParent.lastChild);
         }
 
-        // Add top 5 items
-        topFive.forEach((item) => {
+        // Add top 6 items
+        topSix.forEach((item) => {
           const clone = item.cloneNode(true);
           clone.classList.add("featured-news-card");
           clone.classList.remove(
