@@ -150,7 +150,8 @@ block content %}
                 data-bs-parent="#regionAccordion"
               >
                 <div class="accordion-body">
-                  <div id="northAmericaContainer" class="source-container">
+                  <div id="north_americaContainer" class="source-container">
+                    <!-- Changed ID to match data-region -->
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
@@ -169,7 +170,17 @@ block content %}
                     type="button"
                     class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
                     data-region="north_america"
+                    <!--
+                    This
+                    must
+                    match
+                    the
+                    container
+                    id
+                    prefix
+                    --
                   >
+                    >
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
@@ -194,7 +205,8 @@ block content %}
                 data-bs-parent="#regionAccordion"
               >
                 <div class="accordion-body">
-                  <div id="southAmericaContainer" class="source-container">
+                  <div id="south_americaContainer" class="source-container">
+                    <!-- Changed ID to match data-region -->
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
@@ -213,7 +225,17 @@ block content %}
                     type="button"
                     class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
                     data-region="south_america"
+                    <!--
+                    This
+                    must
+                    match
+                    the
+                    container
+                    id
+                    prefix
+                    --
                   >
+                    >
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
