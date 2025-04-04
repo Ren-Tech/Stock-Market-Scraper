@@ -551,13 +551,15 @@ block content %}
 
           <!-- Featured News Items (Top 6 stories) in grid layout -->
           <div class="row">
-            {% for i in range(6) %} {% if news_data|length > i %}
+            {% set seen_titles = [] %} {% for news in news_data %} {% if
+            loop.index0 < 5 and news.title not in seen_titles %} {% set _ =
+            seen_titles.append(news.title) %}
             <div class="col-md-6 col-xl-4 mb-3">
               <div class="card h-100">
                 <div class="row g-0">
                   <div class="col-md-4">
                     <img
-                      src="{{ news_data[i].image }}"
+                      src="{{ news.image }}"
                       class="img-fluid rounded-start"
                       alt="Featured News"
                       style="height: 100%; object-fit: cover"
@@ -566,28 +568,28 @@ block content %}
                   </div>
                   <div class="col-md-8">
                     <div class="card-body">
-                      <h5 class="card-title">{{ news_data[i].title }}</h5>
-                      <p class="card-text small">{{ news_data[i].content }}</p>
+                      <h5 class="card-title">{{ news.title }}</h5>
+                      <p class="card-text small">{{ news.content }}</p>
                       <div class="d-flex justify-content-between">
                         <a
-                          href="{{ news_data[i].link }}"
+                          href="{{ news.link }}"
                           target="_blank"
                           class="btn btn-sm btn-outline-primary"
                           >Read More</a
                         >
                         <span class="badge bg-secondary"
-                          >{{ news_data[i].category|capitalize }}</span
+                          >{{ news.category|capitalize }}</span
                         >
                       </div>
                       <div class="mt-2">
                         <small class="text-muted">
                           <a
-                            href="{{ news_data[i].link }}"
+                            href="{{ news.link }}"
                             target="_blank"
                             class="text-muted text-truncate d-inline-block"
                             style="max-width: 200px"
                           >
-                            {{ news_data[i].link }}
+                            {{ news.link }}
                           </a>
                         </small>
                       </div>
