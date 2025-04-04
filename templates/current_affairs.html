@@ -676,7 +676,67 @@ block content %}
       newField
         .querySelector('input[name^="' + region + '"]')
         .addEventListener("input", saveUrlsToLocalStorage);
+
+      // Add this to your addSourceField function after creating the new field
+      function attachURLHandlers(newField) {
+        const input = newField.querySelector('input[type="text"]');
+
+        input.addEventListener("paste", function (e) {
+          setTimeout(() => {
+            let value = this.value;
+            if (value) {
+              value = value.replace(/^https?:\/\//, "");
+              this.value = value;
+              saveUrlsToLocalStorage();
+            }
+          }, 0);
+        });
+
+        input.addEventListener("blur", function () {
+          let value = this.value;
+          if (value && value.match(/^https?:\/\//)) {
+            this.value = value.replace(/^https?:\/\//, "");
+            saveUrlsToLocalStorage();
+          }
+        });
+      }
     }
+    // Function to strip protocol from URLs on paste
+    function setupURLInputs() {
+      // Select all URL input fields
+      const urlInputs = document.querySelectorAll('input[name$="_urls"]');
+
+      urlInputs.forEach((input) => {
+        // Add paste event listener
+        input.addEventListener("paste", function (e) {
+          // Let the paste happen normally
+          setTimeout(() => {
+            // After paste, get the value and remove protocol if present
+            let value = this.value;
+            if (value) {
+              // Strip http:// or https:// from the beginning
+              value = value.replace(/^https?:\/\//, "");
+              this.value = value;
+
+              // Save the modified URLs to localStorage
+              saveUrlsToLocalStorage();
+            }
+          }, 0);
+        });
+
+        // Also handle manual input to catch if someone types a URL with protocol
+        input.addEventListener("blur", function () {
+          let value = this.value;
+          if (value && value.match(/^https?:\/\//)) {
+            this.value = value.replace(/^https?:\/\//, "");
+            saveUrlsToLocalStorage();
+          }
+        });
+      });
+    }
+
+    // Call this function to initialize the URL input handlers
+    setupURLInputs();
 
     // Function to renumber fields after removal for a specific container
     function renumberFields(container) {
