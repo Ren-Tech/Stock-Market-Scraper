@@ -8,28 +8,32 @@ block content %}
     id="newsTabs"
   >
     <li class="nav-item">
-      <a class="nav-link active" data-tab="all" href="#">World</a>
+      <a class="nav-link" data-tab="all" href="#all">World</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="north_america" href="#">North America</a>
+      <a class="nav-link" data-tab="north_america" href="#north_america"
+        >North America</a
+      >
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="south_america" href="#">South America</a>
+      <a class="nav-link" data-tab="south_america" href="#south_america"
+        >South America</a
+      >
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="europe" href="#">Europe</a>
+      <a class="nav-link" data-tab="europe" href="#europe">Europe</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="asia" href="#">Asia</a>
+      <a class="nav-link" data-tab="asia" href="#asia">Asia</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="africa" href="#">Africa</a>
+      <a class="nav-link" data-tab="africa" href="#africa">Africa</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="australia" href="#">Australia</a>
+      <a class="nav-link" data-tab="australia" href="#australia">Australia</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="mena" href="#">MENA</a>
+      <a class="nav-link" data-tab="mena" href="#mena">MENA</a>
     </li>
   </ul>
 
@@ -741,6 +745,28 @@ block content %}
         });
       }
     }
+    // Function to activate a tab based on hash
+    function activateTabFromHash() {
+      const hash = window.location.hash.substring(1); // Remove the #
+      if (hash) {
+        const tabToActivate = document.querySelector(
+          `#newsTabs .nav-link[href="#${hash}"]`
+        );
+        if (tabToActivate) {
+          // Remove active class from all tabs
+          document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
+            tab.classList.remove("active");
+          });
+
+          // Add active class to the correct tab
+          tabToActivate.classList.add("active");
+
+          // Update the current active category and apply filter
+          currentActiveCategory = hash;
+          applyCurrentCategoryFilter();
+        }
+      }
+    }
     // Function to strip protocol from URLs on paste
     function setupURLInputs() {
       // Select all URL input fields
@@ -1375,10 +1401,16 @@ block content %}
     tabs.forEach((tab) => {
       tab.addEventListener("click", function (e) {
         e.preventDefault();
+        const tabName = this.getAttribute("data-tab");
+
+        // Update URL hash
+        window.location.hash = tabName;
+
+        // The rest of your existing tab click handler
         tabs.forEach((t) => t.classList.remove("active"));
         this.classList.add("active");
 
-        currentActiveCategory = this.getAttribute("data-tab");
+        currentActiveCategory = tabName;
         applyCurrentCategoryFilter();
       });
     });
@@ -1414,6 +1446,9 @@ block content %}
 
     // Load saved URLs when the page loads
     loadUrlsFromLocalStorage();
+    // Add this at the end:
+    activateTabFromHash();
+    window.addEventListener("hashchange", activateTabFromHash);
   });
 </script>
 {% endblock %}
