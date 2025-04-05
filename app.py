@@ -196,76 +196,46 @@ def current_affairs():
     }
     news_data = []
     error_messages = []
-
-    # Default news sources by region
-    default_news_sources = {
-        'world': [
-            "https://www.nytimes.com/section/world",
-            "https://edition.cnn.com/",
-            "https://www.bbc.co.uk/news/world"
-        ],
-        'north_america': [
-            "https://www.cnbc.com/world/?region=world",
-            "https://www.usatoday.com/news/"
-        ],
-        'europe': [
-            "https://www.euronews.com/",
-            "https://www.theguardian.com/international"
-        ],
-        'asia': [
-            "https://asia.nikkei.com/",
-            "https://www.scmp.com/"
-        ]
-    }
+    urls_provided = False  # Flag to track if any URLs were provided
 
     if request.method == "POST":
         # Get URLs for each region
         for region in urls.keys():
             region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
             urls[region] = region_urls
+            if region_urls:
+                urls_provided = True
         
-        # If no URLs provided for any region, use defaults
-        if all(len(urls[region]) == 0 for region in urls.keys()):
-            urls = default_news_sources
-    else:
-        # For initial page load, use defaults
-        urls = default_news_sources
-
-    # Scrape each URL for each region
-    for region, region_urls in urls.items():
-        for url in region_urls:
-            try:
-                # Fetch top news from each source and assign the correct region
-                source_news = fetch_top_news(url, max_articles=10)
-                if source_news:
-                    # Override the auto-detected category with our region
-                    for news_item in source_news:
-                        news_item['category'] = region
-                    news_data.extend(source_news)
-                else:
-                    error_messages.append(f"Could not extract news from {url} (Region: {region})")
-            except Exception as e:
-                error_messages.append(f"Error processing {url} (Region: {region}): {str(e)}")
+        # Only fetch news if URLs were provided
+        if urls_provided:
+            for region, region_urls in urls.items():
+                for url in region_urls:
+                    try:
+                        # Add protocol if missing
+                        if not url.startswith(('http://', 'https://')):
+                            url = 'https://' + url
+                        
+                        source_news = fetch_top_news(url, max_articles=10)
+                        if source_news:
+                            # Override the auto-detected category with our region
+                            for news_item in source_news:
+                                news_item['category'] = region
+                            news_data.extend(source_news)
+                        else:
+                            error_messages.append(f"Could not extract news from {url} (Region: {region})")
+                    except Exception as e:
+                        error_messages.append(f"Error processing {url} (Region: {region}): {str(e)}")
+        else:
+            error_messages.append("Please provide at least one URL to fetch news")
 
     # Sort news by date (most recent first)
     news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
     
-    # Get top 5 stories
-    top_5_stories = news_data[:5]
-    
-    # Sort news by web URL
-    news_data_sorted_by_url = sorted(news_data, key=lambda x: x.get('link', ''))
-    
-    # Print diagnostics to help with debugging
-    # print(f"URLs processed: {sum(len(urls[region]) for region in urls.keys()}")
-    print(f"News items found: {len(news_data)}")
-    print(f"Errors encountered: {len(error_messages)}")
-    
     return render_template("current_affairs.html", 
-                         news_data=news_data_sorted_by_url, 
-                         top_5_stories=top_5_stories,
+                         news_data=news_data, 
                          urls=urls, 
-                         error_messages=error_messages)
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
 @app.route("/market_news", methods=["GET", "POST"])
 def market_news():
     # Fetch a broader set of market news, possibly from various sources
