@@ -1393,39 +1393,46 @@ block content %}
     let currentActiveCategory = "all";
 
     // Function to apply current category filter
+    // Update the applyCurrentCategoryFilter function to handle the special case for "world" tab
     function applyCurrentCategoryFilter() {
       document
         .querySelectorAll("#newsItems > div[data-category]")
         .forEach((row) => {
-          if (
-            currentActiveCategory === "all" ||
-            row.getAttribute("data-category") === currentActiveCategory
-          ) {
+          const rowCategory = row.getAttribute("data-category");
+
+          if (currentActiveCategory === "all") {
+            // Show all news in World tab
+            row.style.display = "";
+          } else if (rowCategory === currentActiveCategory) {
+            // Show news that matches the current region
             row.style.display = "";
           } else {
+            // Hide news that doesn't match
             row.style.display = "none";
           }
         });
 
-      // Also handle featured news item based on category
-      const featuredNews = document.querySelector(".featured-news-card");
-      if (featuredNews) {
-        const category = featuredNews
-          .querySelector(".badge")
-          .textContent.toLowerCase();
-        if (
-          currentActiveCategory !== "all" &&
-          category !== currentActiveCategory
-        ) {
-          document.querySelector(".trending-news-section").style.display =
-            "none";
+      // Handle featured news section visibility
+      const trendingSection = document.querySelector(".trending-news-section");
+      if (trendingSection) {
+        if (currentActiveCategory === "all") {
+          trendingSection.style.display = "block";
         } else {
-          document.querySelector(".trending-news-section").style.display =
-            "block";
+          // Check if any featured news matches the current region
+          const hasMatchingNews = Array.from(
+            document.querySelectorAll(".featured-news-card")
+          ).some((card) => {
+            const badge = card.querySelector(".badge");
+            return (
+              badge && badge.textContent.toLowerCase() === currentActiveCategory
+            );
+          });
+
+          trendingSection.style.display = hasMatchingNews ? "block" : "none";
         }
       }
     }
-
+    // Category filtering for news
     // Category filtering for news
     let tabs = document.querySelectorAll("#newsTabs .nav-link");
     tabs.forEach((tab) => {
@@ -1436,12 +1443,16 @@ block content %}
         // Update URL hash
         window.location.hash = tabName;
 
-        // The rest of your existing tab click handler
+        // Update active tab
         tabs.forEach((t) => t.classList.remove("active"));
         this.classList.add("active");
 
+        // Set current category and apply filter
         currentActiveCategory = tabName;
         applyCurrentCategoryFilter();
+
+        // Update URL input visibility
+        updateURLInputVisibility(tabName);
       });
     });
 
