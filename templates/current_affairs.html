@@ -23,7 +23,7 @@ block content %}
     id="newsTabs"
   >
     <li class="nav-item">
-      <a class="nav-link" data-tab="all" href="#all">World</a>
+      <a class="nav-link active" data-tab="all" href="#all">World</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" data-tab="north_america" href="#north_america"
@@ -100,7 +100,7 @@ block content %}
           <!-- Region-specific URL inputs -->
           <div class="accordion" id="regionAccordion">
             <!-- World -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="world">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button"
@@ -144,7 +144,7 @@ block content %}
             </div>
 
             <!-- North America -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="north_america">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -162,7 +162,6 @@ block content %}
               >
                 <div class="accordion-body">
                   <div id="north_americaContainer" class="source-container">
-                    <!-- Changed ID to match data-region -->
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
@@ -181,17 +180,7 @@ block content %}
                     type="button"
                     class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
                     data-region="north_america"
-                    <!--
-                    This
-                    must
-                    match
-                    the
-                    container
-                    id
-                    prefix
-                    --
                   >
-                    >
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
@@ -199,7 +188,7 @@ block content %}
             </div>
 
             <!-- South America -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="south_america">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -217,7 +206,6 @@ block content %}
               >
                 <div class="accordion-body">
                   <div id="south_americaContainer" class="source-container">
-                    <!-- Changed ID to match data-region -->
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
@@ -236,17 +224,7 @@ block content %}
                     type="button"
                     class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
                     data-region="south_america"
-                    <!--
-                    This
-                    must
-                    match
-                    the
-                    container
-                    id
-                    prefix
-                    --
                   >
-                    >
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
@@ -254,7 +232,7 @@ block content %}
             </div>
 
             <!-- Europe -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="europe">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -298,7 +276,7 @@ block content %}
             </div>
 
             <!-- Asia -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="asia">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -342,7 +320,7 @@ block content %}
             </div>
 
             <!-- Africa -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="africa">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -386,7 +364,7 @@ block content %}
             </div>
 
             <!-- Australia -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="australia">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -430,7 +408,7 @@ block content %}
             </div>
 
             <!-- MENA -->
-            <div class="accordion-item">
+            <div class="accordion-item region-tab" data-region="mena">
               <h2 class="accordion-header">
                 <button
                   class="accordion-button collapsed"
@@ -570,7 +548,10 @@ block content %}
                         >
                       </div>
                       <div class="mt-2">
-                        <small class="text-muted">
+                        <small
+                          class="text-muted url-display"
+                          data-source-region="{{ news.category }}"
+                        >
                           <a
                             href="{{ news.link }}"
                             target="_blank"
@@ -630,7 +611,10 @@ block content %}
                       >
                     </div>
                     <div class="mt-2">
-                      <small class="text-muted">
+                      <small
+                        class="text-muted url-display"
+                        data-source-region="{{ news.category }}"
+                      >
                         <a
                           href="{{ news.link }}"
                           target="_blank"
@@ -701,19 +685,19 @@ block content %}
       const newField = document.createElement("div");
       newField.className = "input-group mb-2 source-field";
       newField.innerHTML = `
-          <span class="input-group-text">#${nextNum}</span>
-          <input
-            type="text"
-            name="${region}_urls"
-            class="form-control"
-            placeholder="Enter URL"
-            value="${value}"
-            data-source-order="${nextNum}"
-          />
-          <button type="button" class="btn btn-outline-danger remove-field">
-            <i class="bi bi-x"></i>
-          </button>
-        `;
+            <span class="input-group-text">#${nextNum}</span>
+            <input
+              type="text"
+              name="${region}_urls"
+              class="form-control"
+              placeholder="Enter URL"
+              value="${value}"
+              data-source-order="${nextNum}"
+            />
+            <button type="button" class="btn btn-outline-danger remove-field">
+              <i class="bi bi-x"></i>
+            </button>
+          `;
 
       container.appendChild(newField);
 
@@ -753,7 +737,11 @@ block content %}
           }
         });
       }
+
+      // Attach URL handlers
+      attachURLHandlers(newField);
     }
+
     // Function to activate a tab based on hash
     function activateTabFromHash() {
       const hash = window.location.hash.substring(1); // Remove the #
@@ -773,9 +761,42 @@ block content %}
           // Update the current active category and apply filter
           currentActiveCategory = hash;
           applyCurrentCategoryFilter();
+
+          // Show/hide URL inputs based on active tab
+          updateURLInputVisibility(hash);
         }
       }
     }
+
+    // Function to show/hide URL inputs based on active tab
+    function updateURLInputVisibility(activeTab) {
+      // Show all region tabs if "all" is selected
+      if (activeTab === "all") {
+        document.querySelectorAll(".region-tab").forEach((tab) => {
+          tab.style.display = "block";
+        });
+      } else {
+        // Hide all region tabs first
+        document.querySelectorAll(".region-tab").forEach((tab) => {
+          if (tab.getAttribute("data-region") === activeTab) {
+            tab.style.display = "block";
+          } else {
+            tab.style.display = "none";
+          }
+        });
+      }
+
+      // Show/hide URL displays in news items
+      document.querySelectorAll(".url-display").forEach((urlDisplay) => {
+        const region = urlDisplay.getAttribute("data-source-region");
+        if (activeTab === "all" || region === activeTab) {
+          urlDisplay.style.display = "block";
+        } else {
+          urlDisplay.style.display = "none";
+        }
+      });
+    }
+
     // Function to strip protocol from URLs on paste
     function setupURLInputs() {
       // Select all URL input fields
