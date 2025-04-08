@@ -336,42 +336,75 @@ def current_affairs():
                          urls_provided=urls_provided)
 @app.route("/market_news", methods=["GET", "POST"])
 def market_news():
-    # Fetch a broader set of market news, possibly from various sources
-    news_data = get_stock_market_news()  # Get stock news data
+    # Initialize market_urls dictionary
+    market_urls = {
+        "us": [],
+        "uk": [],
+        "ge": [],
+        "fr": [],
+        "china": [],
+        "europe": [],
+        "asia": [],
+        "south_america": []
+    }
     
-    # Initialize stock symbols (e.g., major indices)
-    stock_symbols = [
-   
-  
-    "V",  # Visa Inc.
-    "WMT",  # Walmart Inc.
-    "PG",  # Procter & Gamble Co.
-    "DIS",  # Walt Disney Company
-    "NFLX",  # Netflix Inc.
-    "AMD",  # Advanced Micro Devices
-    "INTC",  # Intel Corporation
-    "BA",  # Boeing Company
-    "XOM",  # ExxonMobil Corporation
-]
-
-    stock_data = {}
+    # Default selected market
+    selected_market = request.args.get("market", "us")
     
-    # Allow users to add additional stock symbols via form submission
+    # Process form submission for URLs
     if request.method == "POST":
+        # Get market selection if provided
+        if "market" in request.form:
+            selected_market = request.form.get("market")
+        
+        # Process URLs for each market
+        for market in market_urls.keys():
+            urls = request.form.getlist(f"{market}_urls")
+            market_urls[market] = [url for url in urls if url.strip()]
+    
+    # Collect news based on the URLs for the selected market
+    news_data = []
+    
+    # Check if we have URLs for the selected market
+    if market_urls[selected_market]:
+        # Use the URLs from the selected market to fetch news
+        for url in market_urls[selected_market]:
+            try:
+                # Use get_news_from_url function to fetch news from the URL
+                market_news = get_news_from_url(url, selected_market)
+                if market_news:
+                    news_data.extend(market_news)
+            except Exception as e:
+                # Log any errors
+                print(f"Error fetching news from {url}: {str(e)}")
+    else:
+        # If no URLs for the selected market, use the default news function
+        news_data = get_stock_market_news()
+    
+    # Process stock symbols and data
+    stock_symbols = [
+        "V", "WMT", "PG", "DIS", "NFLX", "AMD", "INTC", "BA", "XOM"
+    ]
+    
+    # Add user-submitted stock symbols
+    if request.method == "POST" and request.form.getlist("stock_symbols"):
         symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols") if symbol.strip()]
         stock_symbols.extend(symbols)
     
-    # Fetch data for all stock symbols
+    # Fetch stock data
+    stock_data = {}
     for symbol in stock_symbols:
         try:
             stock_data[symbol] = get_stock_data(symbol)
         except Exception as e:
-            stock_data[symbol] = pd.DataFrame()  # Handle any errors
+            stock_data[symbol] = pd.DataFrame()
     
-    # Send the data to the template for rendering
-    return render_template("market_news.html", 
-                         news_data=news_data, 
-                         stock_data=stock_data)
+    # Render the template with all necessary data
+    return render_template("market_news.html",
+                          news_data=news_data,
+                          stock_data=stock_data,
+                          market_urls=market_urls,
+                          selected_market=selected_market)
 # Add these custom template filters
 @app.template_filter('datetimeformat')
 def datetimeformat(value, format='%Y-%m-%d'):
