@@ -662,6 +662,20 @@ def sector_news():
         "industrial": ["GE", "BA", "CAT", "MMM", "UPS"]
     }
     
+    # Initialize empty URLs dictionary for each sector
+    urls = {
+        "technology": [],
+        "healthcare": [],
+        "finance": [],
+        "consumer": [],
+        "energy": [],
+        "industrial": [],
+        "utilities": [],
+        "mining": [],
+        "retail": [],
+        "automotive": []
+    }
+    
     # Default to technology sector if none selected
     selected_sector = "technology"
     
@@ -736,7 +750,8 @@ def sector_news():
                          selected_sector=selected_sector,
                          news_data=unique_news[:20],  # Limit to first 20 news items
                          stock_data=stock_data,
-                         symbols=symbols)
+                         symbols=symbols,
+                         urls=urls)  # Pass the urls dictionary to the template
 
 
 @app.route("/ph_stocks", methods=["GET", "POST"])

@@ -1,116 +1,482 @@
-{% extends "base.html" %}
-
-{% block title %}Sector News{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Sector News{% endblock %} {% block
+content %}
 <div class="container mt-4">
-    <!-- Sector Selection Form -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Sector Analysis</h2>
+  <!-- Header with Timer and Search Toggle -->
+  <div
+    class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}"
+  >
+    <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-arrow-right-circle"></i> Show Search
+    </button>
+
+    <!-- Timer Container with added spacing -->
+    <div class="timer-container ms-3 d-flex align-items-center">
+      <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
+        <i class="bi bi-play-fill"></i>
+      </button>
+
+      <!-- Wrapped timer display with border and padding -->
+      <div class="timer-display-wrapper border rounded px-2 mx-1">
+        <span id="countdownDisplay" class="timer-display">--:--</span>
+      </div>
+
+      <button
+        id="timerReset"
+        class="btn btn-sm btn-outline-secondary timer-btn"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Two-Column Layout -->
+  <div class="row mt-4">
+    <!-- Left Column: Sector Selection -->
+    <div class="col-md-4" id="leftColumn">
+      <div class="card shadow-sm p-3">
+        <h6 class="text-center text-primary">Select Sector</h6>
+        <form method="POST" id="sectorForm">
+          <div class="accordion" id="sectorAccordion">
+            <!-- Technology -->
+            <div class="accordion-item sector-tab" data-sector="technology">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseTechnology"
+                >
+                  Technology
+                </button>
+              </h2>
+              <div
+                id="collapseTechnology"
+                class="accordion-collapse collapse show"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="technologyContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="technology_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.technology[i-1] if urls.technology and i <= urls.technology|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="technology"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Utilities -->
+            <div class="accordion-item sector-tab" data-sector="utilities">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseUtilities"
+                >
+                  Utilities
+                </button>
+              </h2>
+              <div
+                id="collapseUtilities"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="utilitiesContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="utilities_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.utilities[i-1] if urls.utilities and i <= urls.utilities|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="utilities"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Health Care -->
+            <div class="accordion-item sector-tab" data-sector="health_care">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseHealthCare"
+                >
+                  Health Care
+                </button>
+              </h2>
+              <div
+                id="collapseHealthCare"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="health_careContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="health_care_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.health_care[i-1] if urls.health_care and i <= urls.health_care|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="health_care"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Energy -->
+            <div class="accordion-item sector-tab" data-sector="energy">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseEnergy"
+                >
+                  Energy
+                </button>
+              </h2>
+              <div
+                id="collapseEnergy"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="energyContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="energy_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.energy[i-1] if urls.energy and i <= urls.energy|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="energy"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Financials -->
+            <div class="accordion-item sector-tab" data-sector="financials">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseFinancials"
+                >
+                  Financials
+                </button>
+              </h2>
+              <div
+                id="collapseFinancials"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="financialsContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="financials_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.financials[i-1] if urls.financials and i <= urls.financials|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="financials"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mining -->
+            <div class="accordion-item sector-tab" data-sector="mining">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseMining"
+                >
+                  Mining
+                </button>
+              </h2>
+              <div
+                id="collapseMining"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="miningContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="mining_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.mining[i-1] if urls.mining and i <= urls.mining|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="mining"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Retail -->
+            <div class="accordion-item sector-tab" data-sector="retail">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseRetail"
+                >
+                  Retail
+                </button>
+              </h2>
+              <div
+                id="collapseRetail"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="retailContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="retail_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.retail[i-1] if urls.retail and i <= urls.retail|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="retail"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Automotive -->
+            <div class="accordion-item sector-tab" data-sector="automotive">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseAutomotive"
+                >
+                  Automotive
+                </button>
+              </h2>
+              <div
+                id="collapseAutomotive"
+                class="accordion-collapse collapse"
+                data-bs-parent="#sectorAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="automotiveContainer" class="source-container">
+                    {% for i in range(1, 5) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="automotive_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ urls.automotive[i-1] if urls.automotive and i <= urls.automotive|length else '' }}"
+                        data-source-order="{{ i }}"
+                      />
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-sector="automotive"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Update Frequency Selection -->
+          <div
+            class="d-flex align-items-center justify-content-between mb-2 mt-3"
+          >
+            <label class="small mb-0">Update Frequency</label>
+            <select
+              id="frequencyDropdown"
+              class="form-select form-select-sm"
+              style="width: 70%"
+            >
+              <option value="2min">2 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="10min">10 Min</option>
+              <option value="20min">20 Min</option>
+              <option value="30min">30 Min</option>
+            </select>
+          </div>
+
+          <!-- Submit Button (now also starts auto-refresh) -->
+          <button
+            id="submitSources"
+            type="submit"
+            class="btn btn-primary btn-sm w-100 mt-2"
+          >
+            <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
+          </button>
+
+          <!-- Auto-refresh status indicator -->
+          <div id="refreshStatus" class="small text-center mt-2 d-none">
+            <span class="badge bg-success">
+              <i class="bi bi-arrow-repeat"></i>
+              Auto-refreshing every <span id="minutesDisplay">2</span> minutes
+            </span>
+            <div class="progress mt-1" style="height: 4px">
+              <div
+                id="refreshProgress"
+                class="progress-bar"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: News Display -->
+    <div class="col-md-8">
+      <!-- Sector News -->
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h3 class="mb-0">Latest {{ selected_sector|capitalize }} News</h3>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('sector_news') }}">
-                <div class="form-group">
-                    <label for="sector">Select Market Sector:</label>
-                    <select class="form-control" id="sector" name="sector" onchange="this.form.submit()">
-                        {% for sector_key, sector_stocks in sectors.items() %}
-                            <option value="{{ sector_key }}" {% if sector_key == selected_sector %}selected{% endif %}>
-                                {{ sector_key|capitalize }} ({{ sector_stocks|length }} stocks)
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Sector Stocks -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h3 class="mb-0">{{ selected_sector|capitalize }} Stocks</h3>
-                </div>
+          {% if news_data %}
+          <div class="row">
+            {% for news in news_data %}
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Symbol</th>
-                                    <th>Price</th>
-                                    <th>Change</th>
-                                    <th>Volume</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for symbol in symbols %}
-                                    {% if symbol in stock_data and stock_data[symbol] is not none and stock_data[symbol].empty is defined and not stock_data[symbol].empty %}
-                                        {% set data = stock_data[symbol] %}
-                                        <tr>
-                                            <td><strong>{{ symbol }}</strong></td>
-                                            <td>${{ "%.2f"|format(data['Close'].iloc[-1]) if data['Close'] is defined and data['Close'].iloc is defined else 'N/A' }}</td>
-                                            {% if data['Close'] is defined and data['Close'].iloc is defined and data['Close'].size > 1 %}
-                                                {% set current_price = data['Close'].iloc[-1]|float %}
-                                                {% set prev_price = data['Close'].iloc[-2]|float %}
-                                                {% set price_change = current_price - prev_price %}
-                                                {% set percent_change = (price_change / prev_price * 100)|float if prev_price != 0 else 0 %}
-                                                <td class="{% if price_change > 0 %}text-success{% elif price_change < 0 %}text-danger{% endif %}">
-                                                    {{ "%.2f"|format(price_change) }} ({{ "%.2f"|format(percent_change) }}%)
-                                                </td>
-                                            {% else %}
-                                                <td>N/A</td>
-                                            {% endif %}
-                                            <td>{{ '{:,}'.format(data['Volume'].iloc[-1]|int) if data['Volume'] is defined and data['Volume'].iloc is defined else 'N/A' }}</td>
-                                        </tr>
-                                    {% endif %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                  <h5 class="card-title">{{ news.title }}</h5>
+                  <p class="card-text small">{{ news.content }}</p>
+                  <p class="card-text">
+                    <small class="text-muted">
+                      Source: {{ news.source }} {% if news.date %} | {{
+                      news.date }} {% endif %}
+                    </small>
+                  </p>
+                  <a
+                    href="{{ news.link }}"
+                    class="btn btn-sm btn-outline-primary"
+                    target="_blank"
+                    >Read More</a
+                  >
                 </div>
+              </div>
             </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="alert alert-info">
+            No recent news available for this sector.
+          </div>
+          {% endif %}
         </div>
+      </div>
     </div>
-
-    <!-- Sector News -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h3 class="mb-0">Latest {{ selected_sector|capitalize }} News</h3>
-                </div>
-                <div class="card-body">
-                    {% if news_data %}
-                        <div class="row">
-                            {% for news in news_data %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card h-100">
-                                        <div class="card-body">
-                                            <h5 class="card-title">{{ news.title }}</h5>
-                                            <p class="card-text small">{{ news.content }}</p>
-                                            <p class="card-text">
-                                                <small class="text-muted">
-                                                    Source: {{ news.source }}
-                                                    {% if news.date %}
-                                                        | {{ news.date }}
-                                                    {% endif %}
-                                                </small>
-                                            </p>
-                                            <a href="{{ news.link }}" class="btn btn-sm btn-outline-primary" target="_blank">Read More</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            No recent news available for this sector.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 {% endblock %}
