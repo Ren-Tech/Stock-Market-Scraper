@@ -1,14 +1,111 @@
 import random
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import pandas as pd
 from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
 from datetime import datetime
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import requests
+import feedparser
 import os
+import re
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Set a secret key for session management
+SECTORS = {
+    "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
+    "health_care": ["JNJ", "PFE", "UNH", "ABBV", "MRK"],
+    "financials": ["JPM", "BAC", "GS", "WFC", "C", "V", "MA"],
+    "retail": ["AMZN", "WMT", "HD", "MCD", "SBUX", "NKE", "DIS"],
+    "energy": ["XOM", "CVX", "COP", "BP", "SLB"],
+    "mining": ["RIO", "BHP", "VALE", "FCX", "NEM"],
+    "utilities": ["NEE", "DUK", "SO", "D", "AEP"],
+    "automotive": ["TSLA", "TM", "F", "GM", "HMC"]
+}
+# Mock functions - replace with your actual implementations
+def clean_text(text):
+    """Clean and normalize text"""
+    if not text:
+        return ""
+    text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with single space
+    return text.strip()
 
+def get_news_from_url(url, sector):
+    """Fetch actual news content from the provided URL"""
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # Handle RSS feeds
+        if any(ext in url.lower() for ext in ['rss', 'feed', 'xml']):
+            feed = feedparser.parse(url)
+            articles = []
+            for entry in feed.entries[:5]:  # Limit to 5 articles
+                title = clean_text(entry.get('title', 'No title'))
+                description = clean_text(entry.get('description', title))
+                link = entry.get('link', url)
+                date = entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                
+                articles.append({
+                    'title': title,
+                    'content': description,
+                    'link': link,
+                    'source': urlparse(url).netloc,
+                    'date': date,
+                    'sector': sector
+                })
+            return articles
+        
+        # Handle regular news websites
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Common patterns for news websites
+        articles = []
+        
+        # Try to find article elements - these selectors work for many news sites
+        article_elements = soup.find_all('article') or \
+                          soup.find_all(class_=re.compile('article|post|story', re.I)) or \
+                          soup.find_all(itemtype='http://schema.org/NewsArticle')
+        
+        for article in article_elements[:5]:  # Limit to 5 articles
+            # Try to extract title
+            title_elem = article.find(['h1', 'h2', 'h3']) or \
+                        article.find(class_=re.compile('title|headline', re.I))
+            title = clean_text(title_elem.get_text()) if title_elem else "No title"
+            
+            # Try to extract content
+            content_elem = article.find(class_=re.compile('content|entry|post-body', re.I)) or \
+                          article.find(['p', 'div'])
+            content = clean_text(content_elem.get_text()) if content_elem else title
+            
+            # Try to extract link
+            link_elem = article.find('a', href=True)
+            link = link_elem['href'] if link_elem else url
+            if link.startswith('/'):
+                link = f"{urlparse(url).scheme}://{urlparse(url).netloc}{link}"
+            
+            # Try to extract date
+            date_elem = article.find(class_=re.compile('date|time', re.I)) or \
+                       article.find('time')
+            date = clean_text(date_elem.get('datetime') or date_elem.get_text()) if date_elem else \
+                  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            articles.append({
+                'title': title,
+                'content': content,
+                'link': link,
+                'source': urlparse(url).netloc,
+                'date': date,
+                'sector': sector
+            })
+        
+        return articles
+    
+    except Exception as e:
+        print(f"Error scraping {url}: {str(e)}")
+        return []
 def assign_category(text):
     """Assign a news category based on text content"""
     text = text.lower()
@@ -652,107 +749,56 @@ def stocks_data():
     
 @app.route("/sector_news", methods=["GET", "POST"])
 def sector_news():
-    # Define sectors with their constituent stocks
-    sectors = {
-        "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
-        "healthcare": ["JNJ", "PFE", "UNH", "ABBV", "MRK"],
-        "finance": ["JPM", "BAC", "GS", "WFC", "C", "V", "MA"],
-        "consumer": ["AMZN", "WMT", "HD", "MCD", "SBUX", "NKE", "DIS"],
-        "energy": ["XOM", "CVX", "COP", "BP", "SLB"],
-        "industrial": ["GE", "BA", "CAT", "MMM", "UPS"]
-    }
+    # Initialize URLs from form data or session
+    if request.method == "POST":
+        urls = {
+            "technology": [url.strip() for url in request.form.getlist("technology_urls") if url.strip()],
+            "health_care": [url.strip() for url in request.form.getlist("health_care_urls") if url.strip()],
+            "financials": [url.strip() for url in request.form.getlist("financials_urls") if url.strip()],
+            "retail": [url.strip() for url in request.form.getlist("retail_urls") if url.strip()],
+            "energy": [url.strip() for url in request.form.getlist("energy_urls") if url.strip()],
+            "mining": [url.strip() for url in request.form.getlist("mining_urls") if url.strip()],
+            "utilities": [url.strip() for url in request.form.getlist("utilities_urls") if url.strip()],
+            "automotive": [url.strip() for url in request.form.getlist("automotive_urls") if url.strip()]
+        }
+        session['sector_urls'] = urls
+    else:
+        urls = session.get('sector_urls', {
+            sector: [] for sector in SECTORS.keys()
+        })
     
-    # Initialize empty URLs dictionary for each sector
-    urls = {
-        "technology": [],
-        "healthcare": [],
-        "finance": [],
-        "consumer": [],
-        "energy": [],
-        "industrial": [],
-        "utilities": [],
-        "mining": [],
-        "retail": [],
-        "automotive": []
-    }
+    # Get selected sector from URL parameter
+    selected_sector = request.args.get('sector', 'technology')
     
-    # Default to technology sector if none selected
-    selected_sector = "technology"
-    
-    # Handle form submission
-    if request.method == "POST" and "sector" in request.form:
-        selected_sector = request.form.get("sector")
-    elif request.method == "GET" and "sector" in request.args:
-        selected_sector = request.args.get("sector")
-        
-    # Safety check - ensure the selected sector exists
-    if selected_sector not in sectors:
-        selected_sector = "technology"  # Default fallback
-    
-    # Get symbols for the selected sector
-    symbols = sectors.get(selected_sector, [])
-    
-    # Initialize empty news data
+    # Initialize news data
     sector_news = []
+    sector_urls = urls.get(selected_sector, [])
     
-    # Try to fetch news if we have the function available
-    try:
-        # First try to get general market news
-        try:
-            market_news = get_stock_market_news()
-            if market_news:
-                sector_news.extend(market_news)
-        except Exception as e:
-            print(f"Error fetching market news: {str(e)}")
-        
-        # Then try to get specific stock news (limit to 3 stocks to avoid too many requests)
-        for symbol in symbols[:3]:
-            try:
-                symbol_news = get_stock_specific_news(symbol)
-                if symbol_news:
-                    sector_news.extend(symbol_news)
-            except Exception as e:
-                print(f"Error fetching news for {symbol}: {str(e)}")
-    except Exception as e:
-        print(f"Error with news functions: {str(e)}")
+    # Only fetch news if URLs are provided for the selected sector
+    if sector_urls:
+        for url in sector_urls:
+            if url:
+                try:
+                    news_items = get_news_from_url(url, selected_sector)
+                    if news_items:
+                        sector_news.extend(news_items)
+                except Exception as e:
+                    print(f"Error fetching news from {url}: {str(e)}")
     
-    # Initialize empty stock data
-    stock_data = {}
-    
-    # Try to fetch stock data if we have the function available
-    try:
-        for symbol in symbols:
-            try:
-                data = get_stock_data(symbol)
-                if data is not None and not data.empty:
-                    stock_data[symbol] = data
-            except Exception as e:
-                print(f"Error fetching stock data for {symbol}: {str(e)}")
-    except Exception as e:
-        print(f"Error with stock data function: {str(e)}")
-    
-    # Deduplicate news based on title
+    # Deduplicate news
     unique_news = []
     seen_titles = set()
-    
     for news in sector_news:
-        # Skip if news item doesn't have a title
-        if not isinstance(news, dict) or "title" not in news:
-            continue
-            
-        if news["title"] not in seen_titles:
+        if isinstance(news, dict) and "title" in news and news["title"] not in seen_titles:
             seen_titles.add(news["title"])
             unique_news.append(news)
     
-    # Return the template with all data we've gathered
     return render_template("sector_news.html", 
-                         sectors=sectors,
                          selected_sector=selected_sector,
-                         news_data=unique_news[:20],  # Limit to first 20 news items
-                         stock_data=stock_data,
-                         symbols=symbols,
-                         urls=urls)  # Pass the urls dictionary to the template
-
+                         news_data=unique_news[:20],
+                         urls=urls,
+                         sectors=SECTORS.keys(),
+                         has_urls=bool(sector_urls))  # Add this new variable
 
 @app.route("/ph_stocks", methods=["GET", "POST"])
 def ph_stocks():

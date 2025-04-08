@@ -3,11 +3,90 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 import logging
+import feedparser
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+# Define sectors with their constituent stocks
+SECTORS = {
+    "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
+    "health_care": ["JNJ", "PFE", "UNH", "ABBV", "MRK"],
+    "financials": ["JPM", "BAC", "GS", "WFC", "C", "V", "MA"],
+    "retail": ["AMZN", "WMT", "HD", "MCD", "SBUX", "NKE", "DIS"],
+    "energy": ["XOM", "CVX", "COP", "BP", "SLB"],
+    "mining": ["RIO", "BHP", "VALE", "FCX", "NEM"],
+    "utilities": ["NEE", "DUK", "SO", "D", "AEP"],
+    "automotive": ["TSLA", "TM", "F", "GM", "HMC"]
+}
 
+def get_news_from_url(url, sector):
+    """Fetch news from a given URL and categorize by sector"""
+    try:
+        # Handle RSS feeds
+        if 'rss' in url.lower() or 'feed' in url.lower():
+            feed = feedparser.parse(url)
+            return [{
+                'title': entry.title,
+                'content': entry.description if hasattr(entry, 'description') else entry.title,
+                'link': entry.link,
+                'source': url,
+                'date': entry.published if hasattr(entry, 'published') else None,
+                'sector': sector
+            } for entry in feed.entries[:5]]
+        
+        # Handle regular web pages (simplified example)
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # This is a simplified example - you'll need to customize based on the sites you're scraping
+        articles = []
+        for article in soup.find_all('article')[:5]:
+            title = article.find('h2').text if article.find('h2') else "No title"
+            link = article.find('a')['href'] if article.find('a') else url
+            if not link.startswith('http'):
+                link = url + link
+            content = article.find('p').text if article.find('p') else title
+            
+            articles.append({
+                'title': title,
+                'content': content,
+                'link': link,
+                'source': url,
+                'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'sector': sector
+            })
+        
+        return articles
+    
+    except Exception as e:
+        print(f"Error scraping {url}: {str(e)}")
+        return []
+
+def get_stock_specific_news(symbol):
+    """Fetch news for a specific stock symbol (mock implementation)"""
+    # In a real implementation, you would use a financial API like Alpha Vantage, Yahoo Finance, etc.
+    return [{
+        'title': f"Latest news about {symbol}",
+        'content': f"This is a sample news article about {symbol}. In a real app, this would come from an API.",
+        'link': f"https://example.com/news/{symbol}",
+        'source': "Financial News API",
+        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'sector': None  # Will be filtered by sector later
+    }]
+
+def get_stock_market_news():
+    """Fetch general market news (mock implementation)"""
+    # In a real implementation, this would come from a news API
+    return [{
+        'title': "General Market Update",
+        'content': "This is a sample market news article. In a real app, this would come from an API.",
+        'link': "https://example.com/market-news",
+        'source': "Market News API",
+        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'sector': None  # Will be filtered by sector later
+    }]
 def get_stock_market_news():
     """Scrape real stock market news from Yahoo Finance with multiple fallback strategies"""
     headers = {
