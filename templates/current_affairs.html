@@ -1220,12 +1220,17 @@ block content %}
       announcementMade = false;
 
       // Start countdown interval
+      // Start countdown interval
       countdownInterval = setInterval(() => {
         secondsRemaining--;
 
         // When countdown reaches 0, make the voice announcement
         if (secondsRemaining <= 0) {
-          if (!announcementMade) {
+          if (
+            !announcementMade &&
+            document.visibilityState === "visible" &&
+            window.location.hostname === "insightedge.pro"
+          ) {
             announceRefresh();
             announcementMade = true;
           }
