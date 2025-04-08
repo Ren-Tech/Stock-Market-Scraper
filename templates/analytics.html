@@ -1,0 +1,3164 @@
+{% extends "base.html" %}
+{% block title %}
+  Enhanced Analytics - Stock Market Dashboard
+{% endblock %}
+{% block content %}
+<style>
+    /* Base Styles */
+:root {
+  --primary-color: #4361ee;
+  --primary-dark: #3a56d4;
+  --secondary-color: #3f37c9;
+  --accent-color: #4895ef;
+  --success-color: #4cc9f0;
+  --danger-color: #f72585;
+  --warning-color: #f8961e;
+  --info-color: #7209b7;
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  --gray-color: #6c757d;
+  --light-gray: #e9ecef;
+  --white: #ffffff;
+  --black: #000000;
+  
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: var(--dark-color);
+  background-color: #f5f7fa;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.positive { color: #10b981; }
+.negative { color: #ef4444; }
+.neutral { color: var(--gray-color); }
+
+.hidden { display: none; }
+
+/* Layout */
+.dashboard-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+}
+
+.dashboard-title {
+  font-size: 2.5rem;
+  color: var(--dark-color);
+  margin-bottom: 0.5rem;
+}
+
+.intro-text {
+  font-size: 1.1rem;
+  color: var(--gray-color);
+}
+
+/* Navigation */
+.main-nav {
+  margin-bottom: 2rem;
+}
+
+.nav-list {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  color: var(--gray-color);
+  position: relative;
+}
+
+.nav-item:hover {
+  color: var(--primary-color);
+}
+
+.nav-item.active {
+  color: var(--primary-color);
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 3px;
+  background-color: var(--primary-color);
+  border-radius: 3px 3px 0 0;
+}
+
+/* Search Container */
+.search-container {
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  position: relative;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 0.5rem 1rem;
+}
+
+.search-icon {
+  margin-right: 0.5rem;
+  color: var(--gray-color);
+}
+
+.search-wrapper input {
+  flex: 1;
+  border: none;
+  padding: 0.75rem;
+  font-size: 1rem;
+  outline: none;
+  background: transparent;
+}
+
+.search-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.search-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.autocomplete-results {
+  position: absolute;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--white);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  box-shadow: var(--box-shadow);
+  z-index: 100;
+  display: none;
+}
+
+.autocomplete-results.show {
+  display: block;
+}
+
+.autocomplete-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.autocomplete-item:hover {
+  background-color: var(--light-gray);
+}
+
+/* Content Sections */
+.content-section {
+  display: none;
+  animation: fadeIn 0.5s ease;
+}
+
+.content-section.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Current Stock Info */
+.current-stock-info {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.stock-exchange {
+  color: var(--gray-color);
+  font-size: 0.9rem;
+}
+
+.price-container {
+  text-align: right;
+}
+
+.price-change {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.stat-box {
+  background: var(--light-gray);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--gray-color);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Time Period Selector */
+.time-period-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.time-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--light-gray);
+  background: var(--white);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.time-button:hover {
+  background: var(--light-gray);
+}
+
+.time-button.active {
+  background: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-color);
+}
+
+/* Tabs */
+.tabs-container {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.tab-button {
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--gray-color);
+  position: relative;
+  transition: var(--transition);
+}
+
+.tab-button:hover {
+  color: var(--primary-color);
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+.tab-content {
+  padding: 1.5rem;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/* Charts */
+.chart-container {
+  position: relative;
+  height: 400px;
+  margin-bottom: 1.5rem;
+}
+
+.chart-container.small {
+  height: 250px;
+}
+
+/* Analysis Details */
+.analysis-details {
+  margin-top: 1.5rem;
+}
+
+.key-levels {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.level {
+  flex: 1;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.level.support {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-left: 4px solid #10b981;
+}
+
+.level.resistance {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid #ef4444;
+}
+
+.level-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--gray-color);
+  margin-bottom: 0.25rem;
+}
+
+.level-value {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Indicators Grid */
+.indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.indicator-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.indicator-details {
+  margin-top: 1rem;
+}
+
+.indicator-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.indicator-row:last-child {
+  border-bottom: none;
+}
+
+.indicator-name {
+  color: var(--gray-color);
+}
+
+.indicator-value {
+  font-weight: 500;
+}
+
+.indicator-signal {
+  font-weight: 500;
+}
+
+/* Summary Container */
+.summary-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.summary-gauge {
+  flex: 1;
+  max-width: 200px;
+}
+
+.gauge-label {
+  text-align: center;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.summary-stats {
+  flex: 2;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+th {
+  font-weight: 600;
+  color: var(--gray-color);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.correlation-table tbody tr:hover {
+  background-color: transparent;
+}
+
+.corr-strong.positive {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.corr-medium.positive {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.corr-medium.negative {
+  color: #f97316;
+  font-weight: 500;
+}
+
+/* Fundamentals Grid */
+.fundamentals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.fundamental-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.fundamental-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.comparison {
+  font-size: 0.8rem;
+  color: var(--gray-color);
+}
+
+/* Analyst Ratings */
+.analyst-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.analyst-gauge {
+  flex: 1;
+  max-width: 200px;
+}
+
+.analyst-stats {
+  flex: 2;
+}
+
+.analyst-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.price-targets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.target-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Options Section */
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.expiry-selector, .options-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.options-chain-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.options-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.options-table {
+  min-width: 700px;
+}
+
+.options-table th, .options-table td {
+  padding: 0.5rem;
+}
+
+.options-visualization-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  grid-column: span 2;
+}
+
+/* Portfolio Section */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--light-gray);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.action-button:hover {
+  background: #e2e6ea;
+}
+
+.action-button.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.action-button.primary:hover {
+  background: var(--primary-dark);
+}
+
+.portfolio-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.summary-label {
+  display: block;
+  color: var(--gray-color);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.summary-amount {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.summary-change {
+  font-size: 0.9rem;
+}
+
+.summary-allocation {
+  font-size: 0.9rem;
+  color: var(--gray-color);
+}
+
+.portfolio-visualizations {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.portfolio-chart, .portfolio-allocation {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.time-selector.small {
+  margin-bottom: 1rem;
+}
+
+.tabs.small .tab-button {
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+}
+
+.holdings-table-container {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.holdings-table {
+  min-width: 1000px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-button {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.icon-button:hover {
+  background: var(--light-gray);
+}
+
+.portfolio-insights {
+  margin-top: 1.5rem;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.insight-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.insight-score {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+/* Screener Section */
+.screener-interface {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.5rem;
+}
+
+.screener-filters {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 1rem;
+}
+
+.filter-category {
+  margin-bottom: 1.5rem;
+}
+
+.filter-category h4 {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-item {
+  flex: 1;
+}
+
+.filter-item label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--gray-color);
+}
+
+.filter-item select, 
+.filter-item input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.filter-item select:focus, 
+.filter-item input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.range-filter {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.range-separator {
+  color: var(--gray-color);
+}
+
+.multi-select {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.multi-select select {
+  flex: 1;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.primary-button, .secondary-button {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.primary-button {
+  background: var(--primary-color);
+  color: white;
+}
+
+.primary-button:hover {
+  background: var(--primary-dark);
+}
+
+.secondary-button {
+  background: var(--light-gray);
+}
+
+.secondary-button:hover {
+  background: #e2e6ea;
+}
+
+.screener-results {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.result-count {
+  color: var(--gray-color);
+  font-weight: normal;
+}
+
+.results-controls {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sort-controls, .display-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.view-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.view-button {
+  padding: 0.5rem 0.75rem;
+  background: var(--light-gray);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.view-button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.results-table {
+  width: 100%;
+}
+
+.results-table th {
+  white-space: nowrap;
+}
+
+.stock-link {
+  font-weight: 500;
+  color: var(--dark-color);
+}
+
+.stock-link:hover {
+  color: var(--primary-color);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.page-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--light-gray);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.page-button:hover:not(:disabled) {
+  background: #e2e6ea;
+}
+
+.page-button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.page-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+}
+
+/* Compare Section */
+.comparison-controls {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.comparison-stocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stock-input {
+  margin-bottom: 0.5rem;
+}
+
+.stock-input label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--gray-color);
+}
+
+.stock-select {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.stock-select input {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  outline: none;
+}
+
+.stock-select button {
+  background: none;
+  border: none;
+  padding: 0 0.75rem;
+  cursor: pointer;
+  color: var(--gray-color);
+}
+
+.stock-select button:hover {
+  color: var(--dark-color);
+}
+
+.stock-select button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.comparison-content {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.comparison-chart {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.color-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.color-box.apple { background: #3b82f6; }
+.color-box.microsoft { background: #10b981; }
+.color-box.google { background: #ef4444; }
+.color-box.sp500 { background: #f59e0b; }
+
+.comparison-metrics {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.comparison-table th {
+  white-space: nowrap;
+}
+
+.comparison-fundamentals {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.metric-card {
+  background: var(--light-gray);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.mini-chart {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  margin-top: 0.5rem;
+}
+
+/* Research Section */
+.research-content {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.stock-search {
+  display: flex;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.stock-search input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+  outline: none;
+  transition: var(--transition);
+}
+
+.stock-search input:focus {
+  border-color: var(--primary-color);
+}
+
+.stock-search button {
+  padding: 0 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.stock-search button:hover {
+  background: var(--primary-dark);
+}
+
+.research-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.research-panel {
+  padding: 1.5rem;
+  display: none;
+}
+
+.research-panel.active {
+  display: block;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.company-overview {
+  flex: 2;
+}
+
+.price-overview {
+  flex: 1;
+  text-align: right;
+}
+
+.current-price {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.price-change {
+  font-size: 1.1rem;
+  margin: 0.25rem 0;
+}
+
+.price-timestamp {
+  font-size: 0.9rem;
+  color: var(--gray-color);
+}
+
+.summary-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.price-chart {
+  grid-column: 1 / -1;
+}
+
+.key-statistics {
+  margin-bottom: 1.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.stat-item {
+  background: var(--light-gray);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--gray-color);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-weight: 600;
+}
+
+.latest-news {
+  grid-column: 1 / -1;
+}
+
+.news-list {
+  margin-top: 1rem;
+}
+
+.news-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.news-date {
+  font-size: 0.8rem;
+  color: var(--gray-color);
+  margin-bottom: 0.25rem;
+}
+
+.news-headline {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.news-source {
+  font-size: 0.8rem;
+  color: var(--gray-color);
+}
+
+.view-more {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Footer */
+.app-footer {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--light-gray);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--gray-color);
+  font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+  color: var(--dark-color);
+}
+
+.footer-copyright {
+  font-size: 0.8rem;
+  color: var(--gray-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .portfolio-visualizations {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .screener-interface {
+    grid-template-columns: 1fr;
+  }
+  
+  .screener-filters {
+    position: static;
+  }
+  
+  .indicators-grid, .fundamentals-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .portfolio-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .indicators-grid, .fundamentals-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .options-visualization-card {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav-list {
+    flex-wrap: wrap;
+  }
+  
+  .quick-stats, .portfolio-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .stock-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .price-container {
+    text-align: left;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .section-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+  <div class="dashboard-container">
+    <header class="dashboard-header">
+      <h1 class="dashboard-title">Stock Market Analytics</h1>
+      <p class="intro-text">
+        Comprehensive stock analysis tools for data-driven investment decisions
+      </p>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+      <ul class="nav-list">
+        <li class="nav-item active" data-section="dashboard">Dashboard</li>
+        <li class="nav-item" data-section="portfolio">Portfolio</li>
+        <li class="nav-item" data-section="screener">Stock Screener</li>
+        <li class="nav-item" data-section="compare">Compare Stocks</li>
+        <li class="nav-item" data-section="news">News & Sentiment</li>
+      </ul>
+    </nav>
+
+    <!-- Stock Symbol Search with Autocomplete -->
+    <div class="search-container">
+      <div class="search-wrapper">
+        <i class="search-icon">🔍</i>
+        <input
+          type="text"
+          id="stockSymbol"
+          placeholder="Search for a stock symbol or company name..."
+          autocomplete="off"
+        />
+        <button id="searchButton" class="search-button">Search</button>
+      </div>
+      <div id="autocompleteResults" class="autocomplete-results"></div>
+    </div>
+
+    <!-- DASHBOARD SECTION -->
+    <section id="dashboard-section" class="content-section active">
+      <div class="current-stock-info">
+        <div class="stock-header">
+          <div>
+            <h2 id="stockName">Apple Inc. (AAPL)</h2>
+            <p class="stock-exchange">NASDAQ</p>
+          </div>
+          <div class="price-container">
+            <h2 id="currentPrice">$145.30</h2>
+            <span class="price-change positive">+2.15 (1.5%)</span>
+          </div>
+        </div>
+        <div class="quick-stats">
+          <div class="stat-box">
+            <span class="stat-label">Market Cap</span>
+            <span class="stat-value">$2.41T</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">52W High</span>
+            <span class="stat-value">$157.65</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">52W Low</span>
+            <span class="stat-value">$118.86</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">P/E Ratio</span>
+            <span class="stat-value">28.5</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Dividend</span>
+            <span class="stat-value">0.82%</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Volume</span>
+            <span class="stat-value">68.2M</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time Period Selector -->
+      <div class="time-period-selector">
+        <button class="time-button active" data-period="1d">1D</button>
+        <button class="time-button" data-period="1w">1W</button>
+        <button class="time-button" data-period="1m">1M</button>
+        <button class="time-button" data-period="3m">3M</button>
+        <button class="time-button" data-period="6m">6M</button>
+        <button class="time-button" data-period="1y">1Y</button>
+        <button class="time-button" data-period="5y">5Y</button>
+      </div>
+
+      <!-- Analysis Tabs -->
+      <div class="tabs-container">
+        <div class="tabs">
+          <button class="tab-button active" data-tab="price-analysis">
+            Price Analysis
+          </button>
+          <button class="tab-button" data-tab="technical-indicators">
+            Technical Indicators
+          </button>
+          <button class="tab-button" data-tab="correlations">
+            Correlations
+          </button>
+          <button class="tab-button" data-tab="fundamental-analysis">
+            Fundamental Analysis
+          </button>
+          <button class="tab-button" data-tab="options-analysis">
+            Options Chain
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Price Analysis -->
+          <div id="price-analysis" class="tab-pane active">
+            <div class="chart-container">
+              <canvas id="priceAnalysisChart"></canvas>
+            </div>
+            <div class="analysis-details">
+              <h3>Price Movement Analysis</h3>
+              <p>
+                AAPL has shown a consistent upward trend over the past month with support at $140.00 and resistance at $148.50. 
+                The stock is currently trading above its 50-day moving average, indicating bullish momentum.
+              </p>
+              <div class="key-levels">
+                <div class="level support">
+                  <span class="level-label">Support</span>
+                  <span class="level-value">$140.00</span>
+                </div>
+                <div class="level resistance">
+                  <span class="level-label">Resistance</span>
+                  <span class="level-value">$148.50</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Indicators -->
+          <div id="technical-indicators" class="tab-pane">
+            <div class="indicators-grid">
+              <div class="indicator-card">
+                <h4>Moving Averages</h4>
+                <div class="chart-container small">
+                  <canvas id="maChart"></canvas>
+                </div>
+                <div class="indicator-details">
+                  <div class="indicator-row">
+                    <span class="indicator-name">SMA (50)</span>
+                    <span class="indicator-value">$142.30</span>
+                    <span class="indicator-signal positive">Above</span>
+                  </div>
+                  <div class="indicator-row">
+                    <span class="indicator-name">SMA (200)</span>
+                    <span class="indicator-value">$135.45</span>
+                    <span class="indicator-signal positive">Above</span>
+                  </div>
+                  <div class="indicator-row">
+                    <span class="indicator-name">EMA (20)</span>
+                    <span class="indicator-value">$144.20</span>
+                    <span class="indicator-signal positive">Above</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="indicator-card">
+                <h4>Oscillators</h4>
+                <div class="chart-container small">
+                  <canvas id="oscillatorChart"></canvas>
+                </div>
+                <div class="indicator-details">
+                  <div class="indicator-row">
+                    <span class="indicator-name">RSI (14)</span>
+                    <span class="indicator-value">58</span>
+                    <span class="indicator-signal neutral">Neutral</span>
+                  </div>
+                  <div class="indicator-row">
+                    <span class="indicator-name">MACD</span>
+                    <span class="indicator-value">2.15</span>
+                    <span class="indicator-signal positive">Bullish</span>
+                  </div>
+                  <div class="indicator-row">
+                    <span class="indicator-name">Stochastic</span>
+                    <span class="indicator-value">65</span>
+                    <span class="indicator-signal neutral">Neutral</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="indicator-card">
+                <h4>Volatility & Volume</h4>
+                <div class="chart-container small">
+                  <canvas id="volumeChart"></canvas>
+                </div>
+                <div class="indicator-details">
+                  <div class="indicator-row">
+                    <span class="indicator-name">ATR (14)</span>
+                    <span class="indicator-value">3.45</span>
+                    <span class="indicator-signal neutral">Average</span>
+                  </div>
+                  <div class="indicator-row">
+                    <span class="indicator-name">Bollinger Band</span>
+                    <span class="indicator-value">Middle</span>
+                    <span class="indicator-signal neutral">Neutral</span>
+                  </div>
+                  <div class="indicator-row">
+                    <span class="indicator-name">Volume</span>
+                    <span class="indicator-value">68.2M</span>
+                    <span class="indicator-signal positive">Above Avg</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="indicator-card">
+                <h4>Technical Summary</h4>
+                <div class="summary-container">
+                  <div class="summary-gauge">
+                    <canvas id="technicalGauge"></canvas>
+                    <div class="gauge-label">BULLISH</div>
+                  </div>
+                  <div class="summary-stats">
+                    <div class="summary-row">
+                      <span>Buy Signals:</span>
+                      <span>12</span>
+                    </div>
+                    <div class="summary-row">
+                      <span>Neutral Signals:</span>
+                      <span>5</span>
+                    </div>
+                    <div class="summary-row">
+                      <span>Sell Signals:</span>
+                      <span>2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Correlations -->
+          <div id="correlations" class="tab-pane">
+            <div class="chart-container">
+              <canvas id="correlationChart"></canvas>
+            </div>
+            <div class="correlation-tables">
+              <div class="correlation-card">
+                <h4>Sector Correlation</h4>
+                <table class="correlation-table">
+                  <thead>
+                    <tr>
+                      <th>Sector</th>
+                      <th>Correlation</th>
+                      <th>Strength</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Technology</td>
+                      <td>0.85</td>
+                      <td class="corr-strong positive">Strong Positive</td>
+                    </tr>
+                    <tr>
+                      <td>Communication</td>
+                      <td>0.72</td>
+                      <td class="corr-medium positive">Medium Positive</td>
+                    </tr>
+                    <tr>
+                      <td>Consumer Cyclical</td>
+                      <td>0.65</td>
+                      <td class="corr-medium positive">Medium Positive</td>
+                    </tr>
+                    <tr>
+                      <td>Utilities</td>
+                      <td>-0.55</td>
+                      <td class="corr-medium negative">Medium Negative</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="correlation-card">
+                <h4>Stock Correlation</h4>
+                <table class="correlation-table">
+                  <thead>
+                    <tr>
+                      <th>Stock</th>
+                      <th>Correlation</th>
+                      <th>Strength</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>MSFT</td>
+                      <td>0.82</td>
+                      <td class="corr-strong positive">Strong Positive</td>
+                    </tr>
+                    <tr>
+                      <td>GOOGL</td>
+                      <td>0.78</td>
+                      <td class="corr-strong positive">Strong Positive</td>
+                    </tr>
+                    <tr>
+                      <td>META</td>
+                      <td>0.63</td>
+                      <td class="corr-medium positive">Medium Positive</td>
+                    </tr>
+                    <tr>
+                      <td>XOM</td>
+                      <td>-0.42</td>
+                      <td class="corr-medium negative">Medium Negative</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fundamental Analysis -->
+          <div id="fundamental-analysis" class="tab-pane">
+            <div class="fundamentals-grid">
+              <div class="fundamental-card">
+                <h4>Financial Ratios</h4>
+                <div class="chart-container small">
+                  <canvas id="ratiosChart"></canvas>
+                </div>
+                <table class="fundamental-table">
+                  <tbody>
+                    <tr>
+                      <td>P/E Ratio</td>
+                      <td>28.5</td>
+                      <td><span class="comparison">Sector: 24.2</span></td>
+                    </tr>
+                    <tr>
+                      <td>EV/EBITDA</td>
+                      <td>18.2</td>
+                      <td><span class="comparison">Sector: 15.8</span></td>
+                    </tr>
+                    <tr>
+                      <td>P/B Ratio</td>
+                      <td>35.6</td>
+                      <td><span class="comparison">Sector: 8.5</span></td>
+                    </tr>
+                    <tr>
+                      <td>Debt/Equity</td>
+                      <td>1.56</td>
+                      <td><span class="comparison">Sector: 1.2</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="fundamental-card">
+                <h4>Growth Metrics</h4>
+                <div class="chart-container small">
+                  <canvas id="growthChart"></canvas>
+                </div>
+                <table class="fundamental-table">
+                  <tbody>
+                    <tr>
+                      <td>Revenue Growth (YoY)</td>
+                      <td class="positive">12.5%</td>
+                      <td><span class="comparison">Sector: 8.2%</span></td>
+                    </tr>
+                    <tr>
+                      <td>EPS Growth (YoY)</td>
+                      <td class="positive">15.8%</td>
+                      <td><span class="comparison">Sector: 10.3%</span></td>
+                    </tr>
+                    <tr>
+                      <td>Dividend Growth (5Y)</td>
+                      <td class="positive">7.2%</td>
+                      <td><span class="comparison">Sector: 4.1%</span></td>
+                    </tr>
+                    <tr>
+                      <td>FCF Growth</td>
+                      <td class="positive">9.5%</td>
+                      <td><span class="comparison">Sector: 6.8%</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="fundamental-card">
+                <h4>Profitability</h4>
+                <div class="chart-container small">
+                  <canvas id="profitabilityChart"></canvas>
+                </div>
+                <table class="fundamental-table">
+                  <tbody>
+                    <tr>
+                      <td>Gross Margin</td>
+                      <td>43.3%</td>
+                      <td><span class="comparison">Sector: 35.6%</span></td>
+                    </tr>
+                    <tr>
+                      <td>Operating Margin</td>
+                      <td>30.1%</td>
+                      <td><span class="comparison">Sector: 22.4%</span></td>
+                    </tr>
+                    <tr>
+                      <td>Net Margin</td>
+                      <td>25.7%</td>
+                      <td><span class="comparison">Sector: 18.2%</span></td>
+                    </tr>
+                    <tr>
+                      <td>ROE</td>
+                      <td>147.4%</td>
+                      <td><span class="comparison">Sector: 25.8%</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="fundamental-card">
+                <h4>Analyst Ratings</h4>
+                <div class="analyst-container">
+                  <div class="analyst-gauge">
+                    <canvas id="analystGauge"></canvas>
+                    <div class="gauge-label">BUY</div>
+                  </div>
+                  <div class="analyst-stats">
+                    <div class="analyst-row">
+                      <span>Strong Buy:</span>
+                      <span>18</span>
+                    </div>
+                    <div class="analyst-row">
+                      <span>Buy:</span>
+                      <span>12</span>
+                    </div>
+                    <div class="analyst-row">
+                      <span>Hold:</span>
+                      <span>5</span>
+                    </div>
+                    <div class="analyst-row">
+                      <span>Sell:</span>
+                      <span>2</span>
+                    </div>
+                    <div class="analyst-row">
+                      <span>Strong Sell:</span>
+                      <span>0</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="price-targets">
+                  <div class="target-item">
+                    <span>Low:</span>
+                    <span>$130</span>
+                  </div>
+                  <div class="target-item">
+                    <span>Median:</span>
+                    <span>$168</span>
+                  </div>
+                  <div class="target-item">
+                    <span>High:</span>
+                    <span>$210</span>
+                  </div>
+                  <div class="target-item">
+                    <span>Upside:</span>
+                    <span class="positive">15.6%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Options Analysis -->
+          <div id="options-analysis" class="tab-pane">
+            <div class="options-header">
+              <div class="expiry-selector">
+                <label for="expiryDate">Expiration Date:</label>
+                <select id="expiryDate">
+                  <option value="2025-04-11">Apr 11, 2025 (3 days)</option>
+                  <option value="2025-04-18">Apr 18, 2025 (10 days)</option>
+                  <option value="2025-04-25">Apr 25, 2025 (17 days)</option>
+                  <option value="2025-05-16">May 16, 2025 (38 days)</option>
+                  <option value="2025-06-20">Jun 20, 2025 (73 days)</option>
+                </select>
+              </div>
+              <div class="options-filters">
+                <label for="strikeRange">Strike Range:</label>
+                <select id="strikeRange">
+                  <option value="all">All Strikes</option>
+                  <option value="itm">In-the-Money</option>
+                  <option value="otm">Out-of-the-Money</option>
+                  <option value="near">Near-the-Money (±5%)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="options-grid">
+              <div class="options-chain-card">
+                <h4>Call Options</h4>
+                <div class="options-table-container">
+                  <table class="options-table">
+                    <thead>
+                      <tr>
+                        <th>Strike</th>
+                        <th>Last</th>
+                        <th>Bid</th>
+                        <th>Ask</th>
+                        <th>Volume</th>
+                        <th>OI</th>
+                        <th>IV</th>
+                        <th>Delta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="itm">
+                        <td>$140.00</td>
+                        <td>6.30</td>
+                        <td>6.25</td>
+                        <td>6.35</td>
+                        <td>1,245</td>
+                        <td>3,562</td>
+                        <td>22.5%</td>
+                        <td>0.88</td>
+                      </tr>
+                      <tr class="itm">
+                        <td>$142.50</td>
+                        <td>4.25</td>
+                        <td>4.20</td>
+                        <td>4.30</td>
+                        <td>875</td>
+                        <td>2,134</td>
+                        <td>23.2%</td>
+                        <td>0.73</td>
+                      </tr>
+                      <tr class="near-money">
+                        <td>$145.00</td>
+                        <td>2.45</td>
+                        <td>2.40</td>
+                        <td>2.50</td>
+                        <td>2,367</td>
+                        <td>5,421</td>
+                        <td>24.8%</td>
+                        <td>0.52</td>
+                      </tr>
+                      <tr class="otm">
+                        <td>$147.50</td>
+                        <td>1.20</td>
+                        <td>1.15</td>
+                        <td>1.25</td>
+                        <td>1,856</td>
+                        <td>4,215</td>
+                        <td>26.5%</td>
+                        <td>0.31</td>
+                      </tr>
+                      <tr class="otm">
+                        <td>$150.00</td>
+                        <td>0.55</td>
+                        <td>0.50</td>
+                        <td>0.60</td>
+                        <td>3,254</td>
+                        <td>7,689</td>
+                        <td>28.1%</td>
+                        <td>0.15</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div class="options-chain-card">
+                <h4>Put Options</h4>
+                <div class="options-table-container">
+                  <table class="options-table">
+                    <thead>
+                      <tr>
+                        <th>Strike</th>
+                        <th>Last</th>
+                        <th>Bid</th>
+                        <th>Ask</th>
+                        <th>Volume</th>
+                        <th>OI</th>
+                        <th>IV</th>
+                        <th>Delta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="otm">
+                        <td>$140.00</td>
+                        <td>0.75</td>
+                        <td>0.70</td>
+                        <td>0.80</td>
+                        <td>987</td>
+                        <td>2,567</td>
+                        <td>24.5%</td>
+                        <td>-0.12</td>
+                      </tr>
+                      <tr class="otm">
+                        <td>$142.50</td>
+                        <td>1.35</td>
+                        <td>1.30</td>
+                        <td>1.40</td>
+                        <td>764</td>
+                        <td>1,932</td>
+                        <td>23.8%</td>
+                        <td>-0.27</td>
+                      </tr>
+                      <tr class="near-money">
+                        <td>$145.00</td>
+                        <td>2.25</td>
+                        <td>2.20</td>
+                        <td>2.30</td>
+                        <td>1,954</td>
+                        <td>4,321</td>
+                        <td>24.1%</td>
+                        <td>-0.48</td>
+                      </tr>
+                      <tr class="itm">
+                        <td>$147.50</td>
+                        <td>3.85</td>
+                        <td>3.80</td>
+                        <td>3.90</td>
+                        <td>1,024</td>
+                        <td>2,345</td>
+                        <td>25.2%</td>
+                        <td>-0.69</td>
+                      </tr>
+                      <tr class="itm">
+                        <td>$150.00</td>
+                        <td>5.60</td>
+                        <td>5.55</td>
+                        <td>5.65</td>
+                        <td>842</td>
+                        <td>1,876</td>
+                        <td>26.7%</td>
+                        <td>-0.85</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div class="options-visualization-card">
+                <h4>Implied Volatility</h4>
+                <div class="chart-container">
+                  <canvas id="ivSkewChart"></canvas>
+                </div>
+              </div>
+              
+              <div class="options-visualization-card">
+                <h4>Options Volume & Open Interest</h4>
+                <div class="chart-container">
+                  <canvas id="optionsVolumeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTFOLIO SECTION -->
+    <section id="portfolio-section" class="content-section">
+      <div class="section-header">
+        <h2>Your Portfolio</h2>
+        <div class="section-actions">
+          <button class="action-button" id="addPositionBtn">
+            <i class="icon">+</i> Add Position
+          </button>
+          <button class="action-button" id="importPortfolioBtn">
+            <i class="icon">↑</i> Import Portfolio
+          </button>
+          <button class="action-button" id="exportPortfolioBtn">
+            <i class="icon">↓</i> Export Portfolio
+          </button>
+        </div>
+      </div>
+      
+      <div class="portfolio-summary">
+        <div class="summary-card total-value">
+          <span class="summary-label">Total Value</span>
+          <span class="summary-amount">$124,567.89</span>
+          <span class="summary-change positive">+$1,245.67 (1.01%) today</span>
+        </div>
+        <div class="summary-card day-gain">
+          <span class="summary-label">Day Gain/Loss</span>
+          <span class="summary-amount positive">+$1,245.67</span>
+          <span class="summary-change positive">+1.01% today</span>
+        </div>
+        <div class="summary-card total-gain">
+          <span class="summary-label">Total Gain/Loss</span>
+          <span class="summary-amount positive">+$24,567.89</span>
+          <span class="summary-change positive">+24.56% all time</span>
+        </div>
+        <div class="summary-card cash-balance">
+          <span class="summary-label">Cash Balance</span>
+          <span class="summary-amount">$15,432.11</span>
+          <span class="summary-allocation">12.39% of portfolio</span>
+        </div>
+      </div>
+      
+      <div class="portfolio-visualizations">
+        <div class="portfolio-chart">
+          <h3>Portfolio Performance</h3>
+          <div class="time-selector small">
+            <button class="time-button active" data-period="1m">1M</button>
+            <button class="time-button" data-period="3m">3M</button>
+            <button class="time-button" data-period="6m">6M</button>
+            <button class="time-button" data-period="1y">1Y</button>
+            <button class="time-button" data-period="ytd">YTD</button>
+            <button class="time-button" data-period="all">All</button>
+          </div>
+          <div class="chart-container">
+            <canvas id="portfolioPerformanceChart"></canvas>
+          </div>
+        </div>
+        <div class="portfolio-allocation">
+          <h3>Portfolio Allocation</h3>
+          <div class="tabs small">
+            <button class="tab-button small active" data-tab="sector-allocation">Sectors</button>
+            <button class="tab-button small" data-tab="asset-allocation">Asset Types</button>
+            <button class="tab-button small" data-tab="geo-allocation">Geography</button>
+          </div>
+          <div class="chart-container">
+            <canvas id="portfolioAllocationChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="portfolio-holdings">
+        <h3>Holdings</h3>
+        <div class="table-filters">
+          <div class="filter-group">
+            <label for="sortHoldings">Sort By:</label>
+            <select id="sortHoldings">
+              <option value="allocation">Allocation</option>
+              <option value="performance">Performance</option>
+              <option value="alphabetical">Alphabetical</option>
+              <option value="recent">Recently Added</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterHoldings">Filter:</label>
+            <select id="filterHoldings">
+              <option value="all">All Holdings</option>
+              <option value="stocks">Stocks</option>
+              <option value="etfs">ETFs</option>
+              <option value="bonds">Bonds</option>
+              <option value="crypto">Crypto</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="search-holdings">
+            <input type="text" placeholder="Search holdings..." />
+          </div>
+        </div>
+        
+        <div class="holdings-table-container">
+          <table class="<table class="holdings-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Shares</th>
+                <th>Avg Price</th>
+                <th>Current Price</th>
+                <th>Market Value</th>
+                <th>Day Change</th>
+                <th>Total Return</th>
+                <th>Allocation</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AAPL</td>
+                <td>Apple Inc.</td>
+                <td>150</td>
+                <td>$125.40</td>
+                <td>$145.30</td>
+                <td>$21,795.00</td>
+                <td class="positive">+1.50%</td>
+                <td class="positive">+15.87%</td>
+                <td>19.87%</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-button" title="Edit position"><i class="icon">✏️</i></button>
+                    <button class="icon-button" title="Add to position"><i class="icon">+</i></button>
+                    <button class="icon-button" title="Set alert"><i class="icon">🔔</i></button>
+                    <button class="icon-button" title="Remove"><i class="icon">🗑️</i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>MSFT</td>
+                <td>Microsoft Corporation</td>
+                <td>85</td>
+                <td>$232.15</td>
+                <td>$287.42</td>
+                <td>$24,430.70</td>
+                <td class="positive">+0.75%</td>
+                <td class="positive">+23.81%</td>
+                <td>22.28%</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-button" title="Edit position"><i class="icon">✏️</i></button>
+                    <button class="icon-button" title="Add to position"><i class="icon">+</i></button>
+                    <button class="icon-button" title="Set alert"><i class="icon">🔔</i></button>
+                    <button class="icon-button" title="Remove"><i class="icon">🗑️</i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>GOOGL</td>
+                <td>Alphabet Inc.</td>
+                <td>25</td>
+                <td>$1,850.75</td>
+                <td>$2,145.30</td>
+                <td>$53,632.50</td>
+                <td class="positive">+1.25%</td>
+                <td class="positive">+15.91%</td>
+                <td>48.91%</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-button" title="Edit position"><i class="icon">✏️</i></button>
+                    <button class="icon-button" title="Add to position"><i class="icon">+</i></button>
+                    <button class="icon-button" title="Set alert"><i class="icon">🔔</i></button>
+                    <button class="icon-button" title="Remove"><i class="icon">🗑️</i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>VTI</td>
+                <td>Vanguard Total Stock Market ETF</td>
+                <td>45</td>
+                <td>$192.30</td>
+                <td>$214.25</td>
+                <td>$9,641.25</td>
+                <td class="positive">+0.45%</td>
+                <td class="positive">+11.41%</td>
+                <td>8.79%</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-button" title="Edit position"><i class="icon">✏️</i></button>
+                    <button class="icon-button" title="Add to position"><i class="icon">+</i></button>
+                    <button class="icon-button" title="Set alert"><i class="icon">🔔</i></button>
+                    <button class="icon-button" title="Remove"><i class="icon">🗑️</i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>BND</td>
+                <td>Vanguard Total Bond Market ETF</td>
+                <td>75</td>
+                <td>$85.20</td>
+                <td>$81.55</td>
+                <td>$6,116.25</td>
+                <td class="negative">-0.15%</td>
+                <td class="negative">-4.28%</td>
+                <td>5.58%</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-button" title="Edit position"><i class="icon">✏️</i></button>
+                    <button class="icon-button" title="Add to position"><i class="icon">+</i></button>
+                    <button class="icon-button" title="Set alert"><i class="icon">🔔</i></button>
+                    <button class="icon-button" title="Remove"><i class="icon">🗑️</i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="portfolio-insights">
+          <h3>Portfolio Insights</h3>
+          <div class="insights-grid">
+            <div class="insight-card">
+              <h4>Diversification Score</h4>
+              <div class="insight-score">75/100</div>
+              <p>Your portfolio is moderately diversified but has high tech exposure. Consider adding more sectors.</p>
+            </div>
+            <div class="insight-card">
+              <h4>Risk Assessment</h4>
+              <div class="insight-score">65/100</div>
+              <p>Medium-high risk profile with potential volatility. Tech sector concentration increases risk.</p>
+            </div>
+            <div class="insight-card">
+              <h4>Income Potential</h4>
+              <div class="insight-score">45/100</div>
+              <p>Annual dividend yield: 1.2%. Adding dividend stocks could increase passive income.</p>
+            </div>
+            <div class="insight-card">
+              <h4>Performance vs. Benchmark</h4>
+              <div class="insight-score positive">+5.8%</div>
+              <p>Outperforming S&P 500 by 5.8% over the past year. Strong tech selections driving returns.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STOCK SCREENER SECTION -->
+    <section id="screener-section" class="content-section">
+      <div class="section-header">
+        <h2>Stock Screener</h2>
+        <div class="section-actions">
+          <button class="action-button" id="saveScreenerBtn">
+            <i class="icon">💾</i> Save Criteria
+          </button>
+          <button class="action-button" id="loadScreenerBtn">
+            <i class="icon">📂</i> Load Criteria
+          </button>
+          <button class="action-button primary" id="runScreenerBtn">
+            <i class="icon">🔍</i> Run Screener
+          </button>
+        </div>
+      </div>
+      
+      <div class="screener-interface">
+        <div class="screener-filters">
+          <h3>Filtering Criteria</h3>
+          
+          <div class="filter-category">
+            <h4>Market & Company Criteria</h4>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="marketCap">Market Cap</label>
+                <div class="range-filter">
+                  <select id="marketCapOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between" selected>Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="marketCapMin" placeholder="Min" value="1000000000" />
+                    <span class="range-separator">to</span>
+                    <input type="number" id="marketCapMax" placeholder="Max" value="100000000000" />
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="sector">Sector</label>
+                <select id="sector" multiple>
+                  <option value="technology" selected>Technology</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="financials">Financials</option>
+                  <option value="consumerCyclical">Consumer Cyclical</option>
+                  <option value="consumerDefensive">Consumer Defensive</option>
+                  <option value="industrials">Industrials</option>
+                  <option value="energy">Energy</option>
+                  <option value="utilities">Utilities</option>
+                  <option value="communication">Communication</option>
+                  <option value="materials">Materials</option>
+                  <option value="realEstate">Real Estate</option>
+                </select>
+              </div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="exchange">Exchange</label>
+                <select id="exchange" multiple>
+                  <option value="nasdaq" selected>NASDAQ</option>
+                  <option value="nyse" selected>NYSE</option>
+                  <option value="amex">AMEX</option>
+                  <option value="otc">OTC</option>
+                </select>
+              </div>
+              <div class="filter-item">
+                <label for="country">Country</label>
+                <select id="country" multiple>
+                  <option value="us" selected>United States</option>
+                  <option value="china">China</option>
+                  <option value="japan">Japan</option>
+                  <option value="uk">United Kingdom</option>
+                  <option value="canada">Canada</option>
+                  <option value="europe">Europe (Other)</option>
+                  <option value="asia">Asia (Other)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="filter-category">
+            <h4>Price & Volume Criteria</h4>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="price">Share Price ($)</label>
+                <div class="range-filter">
+                  <select id="priceOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between" selected>Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="priceMin" placeholder="Min" value="10" />
+                    <span class="range-separator">to</span>
+                    <input type="number" id="priceMax" placeholder="Max" value="500" />
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="avgVolume">Avg. Daily Volume</label>
+                <div class="range-filter">
+                  <select id="volumeOperator">
+                    <option value="gt" selected>Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="volumeMin" placeholder="Min" value="500000" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="volumeMax" placeholder="Max" class="hidden" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="priceChange">Price Change (%)</label>
+                <div class="multi-select">
+                  <select id="priceChangePeriod">
+                    <option value="1d">1 Day</option>
+                    <option value="1w">1 Week</option>
+                    <option value="1m" selected>1 Month</option>
+                    <option value="3m">3 Months</option>
+                    <option value="6m">6 Months</option>
+                    <option value="1y">1 Year</option>
+                    <option value="ytd">Year to Date</option>
+                  </select>
+                  <select id="priceChangeOperator">
+                    <option value="gt" selected>Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="priceChangeMin" placeholder="%" value="10" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="priceChangeMax" placeholder="%" class="hidden" />
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="volatility">Volatility (Beta)</label>
+                <div class="range-filter">
+                  <select id="betaOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt" selected>Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="betaMin" placeholder="Beta" value="1.5" step="0.1" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="betaMax" placeholder="Beta" class="hidden" step="0.1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="filter-category">
+            <h4>Fundamental Criteria</h4>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="pe">P/E Ratio</label>
+                <div class="range-filter">
+                  <select id="peOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt" selected>Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="peMin" placeholder="P/E" value="25" step="0.1" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="peMax" placeholder="P/E" class="hidden" step="0.1" />
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="pb">P/B Ratio</label>
+                <div class="range-filter">
+                  <select id="pbOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt" selected>Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="pbMin" placeholder="P/B" value="5" step="0.1" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="pbMax" placeholder="P/B" class="hidden" step="0.1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="dividendYield">Dividend Yield (%)</label>
+                <div class="range-filter">
+                  <select id="dividendOperator">
+                    <option value="gt" selected>Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="dividendMin" placeholder="%" value="1.5" step="0.1" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="dividendMax" placeholder="%" class="hidden" step="0.1" />
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="debtEquity">Debt/Equity Ratio</label>
+                <div class="range-filter">
+                  <select id="debtEquityOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt" selected>Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="debtEquityMin" placeholder="Ratio" value="1" step="0.1" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="debtEquityMax" placeholder="Ratio" class="hidden" step="0.1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="roe">Return on Equity (%)</label>
+                <div class="range-filter">
+                  <select id="roeOperator">
+                    <option value="gt" selected>Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="roeMin" placeholder="%" value="15" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="roeMax" placeholder="%" class="hidden" />
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="eps">EPS Growth (%)</label>
+                <div class="multi-select">
+                  <select id="epsGrowthPeriod">
+                    <option value="qoq">Quarter over Quarter</option>
+                    <option value="yoy" selected>Year over Year</option>
+                    <option value="3y">3 Year Avg.</option>
+                    <option value="5y">5 Year Avg.</option>
+                  </select>
+                  <select id="epsGrowthOperator">
+                    <option value="gt" selected>Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between">Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="epsGrowthMin" placeholder="%" value="10" />
+                    <span class="range-separator hidden">to</span>
+                    <input type="number" id="epsGrowthMax" placeholder="%" class="hidden" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="filter-category">
+            <h4>Technical Criteria</h4>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="maComparison">Moving Average</label>
+                <div class="multi-select">
+                  <select id="maType">
+                    <option value="price">Price</option>
+                    <option value="ma20">20-Day MA</option>
+                    <option value="ma50" selected>50-Day MA</option>
+                    <option value="ma100">100-Day MA</option>
+                    <option value="ma200">200-Day MA</option>
+                  </select>
+                  <select id="maComparisonOperator">
+                    <option value="above" selected>Above</option>
+                    <option value="below">Below</option>
+                    <option value="crossing">Crossing</option>
+                  </select>
+                  <select id="maComparisonTarget">
+                    <option value="ma20">20-Day MA</option>
+                    <option value="ma50">50-Day MA</option>
+                    <option value="ma100">100-Day MA</option>
+                    <option value="ma200" selected>200-Day MA</option>
+                  </select>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label for="rsi">RSI (14)</label>
+                <div class="range-filter">
+                  <select id="rsiOperator">
+                    <option value="gt">Greater than</option>
+                    <option value="lt">Less than</option>
+                    <option value="between" selected>Between</option>
+                  </select>
+                  <div class="range-inputs">
+                    <input type="number" id="rsiMin" placeholder="Min" value="30" />
+                    <span class="range-separator">to</span>
+                    <input type="number" id="rsiMax" placeholder="Max" value="70" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-item">
+                <label for="macd">MACD Signal</label>
+                <select id="macdSignal">
+                  <option value="any">Any</option>
+                  <option value="bullish" selected>Bullish Crossover</option>
+                  <option value="bearish">Bearish Crossover</option> 
+                  <option value="positive">Positive</option>
+                  <option value="negative">Negative</option>
+                </select>
+              </div>
+              <div class="filter-item">
+                <label for="bollingerBand">Bollinger Band Position</label>
+                <select id="bollingerPosition">
+                  <option value="any">Any</option>
+                  <option value="above">Above Upper Band</option>
+                  <option value="below">Below Lower Band</option>
+                  <option value="middle" selected>Within Bands</option>
+                  <option value="squeeze">Band Squeeze</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="filter-actions">
+            <button class="secondary-button" id="resetFiltersBtn">Reset Filters</button>
+            <button class="primary-button" id="applyFiltersBtn">Apply Filters</button>
+          </div>
+        </div>
+        
+        <div class="screener-results">
+          <h3>Results <span class="result-count">(485 matches)</span></h3>
+          
+          <div class="results-controls">
+            <div class="sort-controls">
+              <label for="sortResults">Sort By:</label>
+              <select id="sortResults">
+                <option value="marketCap">Market Cap (High to Low)</option>
+                <option value="priceChange" selected>Price Change (High to Low)</option>
+                <option value="volume">Volume (High to Low)</option>
+                <option value="pe">P/E Ratio (Low to High)</option>
+                <option value="dividend">Dividend Yield (High to Low)</option>
+              </select>
+            </div>
+            <div class="display-controls">
+              <label for="viewMode">View:</label>
+              <div class="view-buttons">
+                <button class="view-button active" data-view="table"><i class="icon">📊</i> Table</button>
+                <button class="view-button" data-view="cards"><i class="icon">📇</i> Cards</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="results-container">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Company</th>
+                  <th>Sector</th>
+                  <th>Price</th>
+                  <th>Change (%)</th>
+                  <th>Market Cap</th>
+                  <th>P/E</th>
+                  <th>Div Yield</th>
+                  <th>Vol (M)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="#" class="stock-link">NVDA</a></td>
+                  <td>NVIDIA Corporation</td>
+                  <td>Technology</td>
+                  <td>$245.67</td>
+                  <td class="positive">+4.2%</td>
+                  <td>$605.2B</td>
+                  <td>72.5</td>
+                  <td>0.12%</td>
+                  <td>42.5</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="icon-button" title="Add to watchlist"><i class="icon">👁️</i></button>
+                      <button class="icon-button" title="Add to portfolio"><i class="icon">+</i></button>
+                      <button class="icon-button" title="Compare"><i class="icon">⚖️</i></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="#" class="stock-link">AMD</a></td>
+                  <td>Advanced Micro Devices, Inc.</td>
+                  <td>Technology</td>
+                  <td>$102.35</td>
+                  <td class="positive">+3.8%</td>
+                  <td>$165.7B</td>
+                  <td>101.2</td>
+                  <td>0%</td>
+                  <td>56.2</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="icon-button" title="Add to watchlist"><i class="icon">👁️</i></button>
+                      <button class="icon-button" title="Add to portfolio"><i class="icon">+</i></button>
+                      <button class="icon-button" title="Compare"><i class="icon">⚖️</i></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="#" class="stock-link">TSLA</a></td>
+                  <td>Tesla, Inc.</td>
+                  <td>Consumer Cyclical</td>
+                  <td>$234.78</td>
+                  <td class="positive">+3.5%</td>
+                  <td>$745.3B</td>
+                  <td>60.7</td>
+                  <td>0%</td>
+                  <td>122.4</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="icon-button" title="Add to watchlist"><i class="icon">👁️</i></button>
+                      <button class="icon-button" title="Add to portfolio"><i class="icon">+</i></button>
+                      <button class="icon-button" title="Compare"><i class="icon">⚖️</i></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="#" class="stock-link">AAPL</a></td>
+                  <td>Apple Inc.</td>
+                  <td>Technology</td>
+                  <td>$145.30</td>
+                  <td class="positive">+1.5%</td>
+                  <td>$2.41T</td>
+                  <td>28.5</td>
+                  <td>0.82%</td>
+                  <td>68.2</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="icon-button" title="Add to watchlist"><i class="icon">👁️</i></button>
+                      <button class="icon-button" title="Add to portfolio"><i class="icon">+</i></button>
+                      <button class="icon-button" title="Compare"><i class="icon">⚖️</i></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="#" class="stock-link">MSFT</a></td>
+                  <td>Microsoft Corporation</td>
+                  <td>Technology</td>
+                  <td>$287.42</td>
+                  <td class="positive">+1.2%</td>
+                  <td>$2.15T</td>
+                  <td>35.2</td>
+                  <td>0.95%</td>
+                  <td>22.7</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="icon-button" title="Add to watchlist"><i class="icon">👁️</i></button>
+                      <button class="icon-button" title="Add to portfolio"><i class="icon">+</i></button>
+                      <button class="icon-button" title="Compare"><i class="icon">⚖️</i></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="pagination">
+            <button class="page-button" disabled><i class="icon">⟨</i></button>
+            <button class="page-button active">1</button>
+            <button class="page-button">2</button>
+            <button class="page-button">3</button>
+            <button class="page-button">4</button>
+            <button class="page-button">5</button>
+            <span class="page-ellipsis">...</span>
+            <button class="page-button">49</button>
+            <button class="page-button"><i class="icon">⟩</i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARE STOCKS SECTION -->
+    <section id="compare-section" class="content-section">
+      <div class="section-header">
+        <h2>Compare Stocks</h2>
+        <div class="section-actions">
+          <button class="action-button" id="resetCompareBtn">
+            <i class="icon">🗑️</i> Reset Comparison
+          </button>
+          <button class="action-button" id="saveCompareBtn">
+            <i class="icon">💾</i> Save Comparison
+          </button>
+          <button class="action-button" id="exportCompareBtn">
+            <i class="icon">📊</i> Export to CSV
+          </button>
+        </div>
+      </div>
+      
+      <div class="comparison-controls">
+        <div class="comparison-stocks">
+          <div class="stock-input">
+            <label for="stock1">Stock 1:</label>
+            <div class="stock-select">
+              <input type="text" id="stock1" placeholder="Enter symbol" value="AAPL" />
+              <button class="icon-button" title="Clear"><i class="icon">✖</i></button>
+            </div>
+          </div>
+          <div class="stock-input">
+            <label for="stock2">Stock 2:</label>
+            <div class="stock-select">
+              <input type="text" id="stock2" placeholder="Enter symbol" value="MSFT" />
+              <button class="icon-button" title="Clear"><i class="icon">✖</i></button>
+            </div>
+          </div>
+          <div class="stock-input">
+            <label for="stock3">Stock 3:</label>
+            <div class="stock-select">
+              <input type="text" id="stock3" placeholder="Enter symbol" value="GOOGL" />
+              <button class="icon-button" title="Clear"><i class="icon">✖</i></button>
+            </div>
+          </div>
+          <div class="stock-input">
+            <label for="stock4">Stock 4:</label>
+            <div class="stock-select">
+              <input type="text" id="stock4" placeholder="Enter symbol" />
+              <button class="icon-button" title="Clear" disabled><i class="icon">✖</i></button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="time-period-selector">
+          <label for="timePeriod">Compare Over:</label>
+          <div class="time-buttons">
+            <button class="time-button" data-period="1m">1M</button>
+            <button class="time-button" data-period="3m">3M</button>
+            <button class="time-button active" data-period="6m">6M</button>
+            <button class="time-button" data-period="1y">1Y</button>
+            <button class="time-button" data-period="3y">3Y</button>
+            <button class="time-button" data-period="5y">5Y</button>
+            <button class="time-button" data-period="max">Max</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="comparison-content">
+        <div class="comparison-chart">
+          <h3>Price Performance Comparison</h3>
+          <div class="chart-container">
+            <!-- Chart would be rendered here by JavaScript -->
+            <div class="chart-placeholder">
+              <p>Interactive stock comparison chart showing relative performance</p>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="color-box apple"></span>
+              <span class="legend-label">AAPL: +15.87%</span>
+            </div>
+            <div class="legend-item">
+              <span class="color-box microsoft"></span>
+              <span class="legend-label">MSFT: +23.81%</span>
+            </div>
+            <div class="legend-item">
+              <span class="color-box google"></span>
+              <span class="legend-label">GOOGL: +15.91%</span>
+            </div>
+            <div class="legend-item">
+              <span class="color-box sp500"></span>
+              <span class="legend-label">S&P 500: +12.45%</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="comparison-metrics">
+          <h3>Key Metrics Comparison</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>AAPL</th>
+                <th>MSFT</th>
+                <th>GOOGL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Current Price</td>
+                <td>$145.30</td>
+                <td>$287.42</td>
+                <td>$2,145.30</td>
+              </tr>
+              <tr>
+                <td>Market Cap</td>
+                <td>$2.41T</td>
+                <td>$2.15T</td>
+                <td>$1.41T</td>
+              </tr>
+              <tr>
+                <td>P/E Ratio</td>
+                <td>28.5</td>
+                <td>35.2</td>
+                <td>25.6</td>
+              </tr>
+              <tr>
+                <td>EPS (TTM)</td>
+                <td>$5.10</td>
+                <td>$8.17</td>
+                <td>$83.80</td>
+              </tr>
+              <tr>
+                <td>Revenue Growth (YoY)</td>
+                <td class="positive">+8.1%</td>
+                <td class="positive">+16.6%</td>
+                <td class="positive">+12.8%</td>
+              </tr>
+              <tr>
+                <td>Profit Margin</td>
+                <td>24.7%</td>
+                <td>36.5%</td>
+                <td>25.9%</td>
+              </tr>
+              <tr>
+                <td>Dividend Yield</td>
+                <td>0.82%</td>
+                <td>0.95%</td>
+                <td>0%</td>
+              </tr>
+              <tr>
+                <td>Beta (5Y)</td>
+                <td>1.25</td>
+                <td>0.92</td>
+                <td>1.08</td>
+              </tr>
+              <tr>
+                <td>52-Week High</td>
+                <td>$157.82</td>
+                <td>$305.20</td>
+                <td>$2,265.45</td>
+              </tr>
+              <tr>
+                <td>52-Week Low</td>
+                <td>$118.56</td>
+                <td>$231.98</td>
+                <td>$1,785.31</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="comparison-fundamentals">
+          <h3>Fundamental Analysis</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <h4>Revenue Growth</h4>
+              <div class="mini-chart">
+                <!-- Mini chart would be rendered here by JavaScript -->
+                <div class="chart-placeholder">
+                  <p>Revenue growth chart</p>
+                </div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <h4>EPS Growth</h4>
+              <div class="mini-chart">
+                <!-- Mini chart would be rendered here by JavaScript -->
+                <div class="chart-placeholder">
+                  <p>EPS growth chart</p>
+                </div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <h4>Profit Margins</h4>
+              <div class="mini-chart">
+                <!-- Mini chart would be rendered here by JavaScript -->
+                <div class="chart-placeholder">
+                  <p>Profit margins chart</p>
+                </div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <h4>Return on Equity</h4>
+              <div class="mini-chart">
+                <!-- Mini chart would be rendered here by JavaScript -->
+                <div class="chart-placeholder">
+                  <p>ROE chart</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESEARCH SECTION -->
+    <section id="research-section" class="content-section">
+      <div class="section-header">
+        <h2>Research & Analysis</h2>
+        <div class="section-actions">
+          <button class="action-button" id="saveResearchBtn">
+            <i class="icon">📑</i> Save Research
+          </button>
+          <button class="action-button" id="printResearchBtn">
+            <i class="icon">🖨️</i> Print
+          </button>
+          <button class="action-button" id="shareResearchBtn">
+            <i class="icon">📤</i> Share
+          </button>
+        </div>
+      </div>
+      
+      <div class="research-content">
+        <div class="stock-search">
+          <input type="text" id="researchStockSearch" placeholder="Search stock by symbol or company name..." />
+          <button class="search-button"><i class="icon">🔍</i></button>
+        </div>
+        
+        <div class="research-tabs">
+          <button class="tab-button active" data-tab="summary">Summary</button>
+          <button class="tab-button" data-tab="financials">Financials</button>
+          <button class="tab-button" data-tab="news">News & Events</button>
+          <button class="tab-button" data-tab="analysis">Analyst Ratings</button>
+          <button class="tab-button" data-tab="forecasts">Forecasts</button>
+          <button class="tab-button" data-tab="insiders">Insider Trading</button>
+        </div>
+        
+        <div class="research-panel active" id="summary-panel">
+          <div class="summary-header">
+            <div class="company-overview">
+              <h3>Apple Inc. (AAPL)</h3>
+              <p class="company-description">
+                Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. The company offers iPhone, iPad, Mac, Apple Watch, and related services and accessories.
+              </p>
+            </div>
+            <div class="price-overview">
+              <div class="current-price">$145.30</div>
+              <div class="price-change positive">+$2.15 (+1.50%)</div>
+              <div class="price-timestamp">Last updated: April 8, 2025 - 4:00 PM EDT</div>
+            </div>
+          </div>
+          
+          <div class="summary-content">
+            <div class="price-chart">
+              <h4>Price History</h4>
+              <div class="chart-container">
+                <!-- Chart would be rendered here by JavaScript -->
+                <div class="chart-placeholder">
+                  <p>Interactive stock price chart</p>
+                </div>
+              </div>
+              <div class="chart-controls">
+                <div class="time-buttons">
+                  <button class="time-button" data-period="1d">1D</button>
+                  <button class="time-button" data-period="5d">5D</button>
+                  <button class="time-button" data-period="1m">1M</button>
+                  <button class="time-button active" data-period="6m">6M</button>
+                  <button class="time-button" data-period="1y">1Y</button>
+                  <button class="time-button" data-period="5y">5Y</button>
+                  <button class="time-button" data-period="max">Max</button>
+                </div>
+                <div class="chart-type">
+                  <button class="chart-type-button active" data-type="line">Line</button>
+                  <button class="chart-type-button" data-type="candle">Candle</button>
+                  <button class="chart-type-button" data-type="ohlc">OHLC</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="key-statistics">
+              <h4>Key Statistics</h4>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <div class="stat-label">Market Cap</div>
+                  <div class="stat-value">$2.41T</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">P/E Ratio</div>
+                  <div class="stat-value">28.5</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">EPS (TTM)</div>
+                  <div class="stat-value">$5.10</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Dividend Yield</div>
+                  <div class="stat-value">0.82%</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">52-Week Range</div>
+                  <div class="stat-value">$118.56 - $157.82</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Avg. Volume</div>
+                  <div class="stat-value">68.2M</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Beta (5Y)</div>
+                  <div class="stat-value">1.25</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Shares Outstanding</div>
+                  <div class="stat-value">16.5B</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="latest-news">
+              <h4>Latest News</h4>
+              <div class="news-list">
+                <div class="news-item">
+                  <div class="news-date">April 8, 2025</div>
+                  <div class="news-headline">Apple announces new M4 chip for upcoming MacBook Pro lineup</div>
+                  <div class="news-source">TechCrunch</div>
+                </div>
+                <div class="news-item">
+                  <div class="news-date">April 6, 2025</div>
+                  <div class="news-headline">iPhone 17 rumors suggest major camera upgrades coming this fall</div>
+                  <div class="news-source">Bloomberg</div>
+                </div>
+                <div class="news-item">
+                  <div class="news-date">April 3, 2025</div>
+                  <div class="news-headline">Apple's services revenue hits record high in Q1 2025</div>
+                  <div class="news-source">Wall Street Journal</div>
+                </div>
+              </div>
+              <a href="#" class="view-more">View more news...</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Additional research panels would be added here -->
+      </div>
+    </section>
+
+   
+  </div>
+</div>
+<!-- JavaScript would be linked here -->
+<script src="js/app.js"></script>
+<script src="js/charts.js"></script>
+</body>
+</html>
+{% endblock %}

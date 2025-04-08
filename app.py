@@ -6,6 +6,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
 import os
+
 app = Flask(__name__)
 
 def assign_category(text):
@@ -855,7 +856,9 @@ def ph_stocks():
 def simulation():
     # Here you can handle any logic for the simulation page if needed
     return render_template("simulation.html")  # Make sure to create this template
-
+@app.route("/analytics")
+def analytics():
+    return render_template("analytics.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))  # Default to 10000 if PORT is not set
