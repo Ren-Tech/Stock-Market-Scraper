@@ -990,7 +990,7 @@ def fetch_stock_data_yahoo(symbol):
         
         # Download stock data
         stock = yf.Ticker(symbol)
-        hist = stock.history(start=start_date, end=end_date)
+        hist = stock.history(period='1y')  # Get 1 year of data for better calculations
         
         if hist.empty:
             return None
@@ -1007,14 +1007,26 @@ def fetch_stock_data_yahoo(symbol):
                 'volume': int(row['Volume'])
             })
         
-        # Get company name
+        # Get company info
         info = stock.info
         company_name = info.get('longName', symbol)
+        
+        # Calculate 52-week high/low from the data
+        fifty_two_week_high = round(hist['High'].max(), 2)
+        fifty_two_week_low = round(hist['Low'].min(), 2)
         
         return {
             'symbol': symbol,
             'name': company_name,
-            'history': history_data
+            'history': history_data[-30:],  # Last 30 days for display
+            'fifty_two_week_high': fifty_two_week_high,
+            'fifty_two_week_low': fifty_two_week_low,
+            'market_cap': info.get('marketCap', 0),
+            'pe_ratio': info.get('trailingPE', 'N/A'),
+            'dividend_yield': info.get('dividendYield', 0),
+            'beta': info.get('beta', 'N/A'),
+            'eps': info.get('trailingEps', 'N/A'),
+            'description': info.get('longBusinessSummary', '')
         }
         
     except Exception as e:
@@ -1023,8 +1035,8 @@ def fetch_stock_data_yahoo(symbol):
 
 @app.route('/ge_stocks', methods=['GET', 'POST'])
 def ge_stocks():
-    # Frankfurt exchange symbols for major German companies
-    default_ge_stocks = ['SIE.DE', 'VOW3.DE', 'DBK.DE', 'ALV.DE', 'BMW.DE']
+    # Default list of German stocks (Frankfurt exchange symbols)
+    default_ge_stocks = ['SAP.DE', 'BMW.DE', 'VOW3.DE', 'ALV.DE', 'DBK.DE']
     stocks = []
     error_message = None
     
@@ -1040,6 +1052,15 @@ def ge_stocks():
                     stocks.append(data)
                 else:
                     error_message = f"Stock symbol '{stock_symbol}' not found or data unavailable."
+    
+    # Always show default stocks if no specific symbol was searched
+    if not stocks and request.method != 'POST':
+        stocks = [data for symbol in default_ge_stocks 
+                 if (data := fetch_stock_data_yahoo(symbol))]
+    
+    return render_template('ge_stocks.html', 
+                         stocks=stocks, 
+                         error_message=error_message)
     
     # Always show default stocks if no specific symbol was searched
     if not stocks and request.method != 'POST':

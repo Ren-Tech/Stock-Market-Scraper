@@ -1,98 +1,739 @@
-{% extends "base.html" %} {% block title %} UK Stocks {% endblock %} {% block
-content %}
-<div class="container mt-4">
-  <h2 class="mb-4">UK Stocks Dashboard</h2>
-
-  <!-- Stock Search Form -->
-  <form method="POST" class="mb-4">
-    <div class="input-group">
-      <input
-        type="text"
-        name="stock_symbol"
-        class="form-control"
-        placeholder="Enter UK Stock Symbol (e.g., BARC.L or VOD.LON)"
-        required
-      />
-      <button class="btn btn-primary" type="submit">Search</button>
-    </div>
-  </form>
-
-  {% if error_message %}
-  <div class="alert alert-danger">
-    {{ error_message }} {% if 'not a UK stock' in error_message %}
-    <br />UK stocks typically end with .L or .LON (e.g., BARC.L, VOD.LON) {%
-    endif %}
-  </div>
-  {% endif %}
-
+{% extends "base.html" %} {% block title %} UK Stocks Dashboard {% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
   <div class="row">
-    {% for stock in stocks %}
-    <div class="col-md-6 mb-4">
-      <div class="card shadow-sm rounded">
+    <!-- Main Content -->
+    <div class="col-lg-12">
+      <div class="dashboard-header mb-4">
+        <h2 class="mb-1">UK Stocks Dashboard</h2>
+        <p class="text-muted">
+          Real-time market data and analytics for London Stock Exchange
+        </p>
+      </div>
+
+      <!-- Stock Search and Timeframe Controls -->
+      <div class="card shadow-sm mb-4">
         <div class="card-body">
-          <h5 class="card-title">{{ stock.symbol }}</h5>
-          <p><strong>Date:</strong> {{ stock.history[0].date }}</p>
-          <p><strong>Open:</strong> {{ stock.history[0].open }}</p>
-          <p><strong>High:</strong> {{ stock.history[0].high }}</p>
-          <p><strong>Low:</strong> {{ stock.history[0].low }}</p>
-          <p><strong>Close:</strong> {{ stock.history[0].close }}</p>
-          <p><strong>Volume:</strong> {{ stock.history[0].volume }}</p>
-          <canvas id="chart-{{ loop.index }}"></canvas>
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <form method="POST" class="mb-3 mb-md-0">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    name="stock_symbol"
+                    class="form-control form-control-lg"
+                    placeholder="Search UK stocks (e.g., BARC.L, VOD.L)"
+                    required
+                    value="{{ request.form.stock_symbol if request.form.stock_symbol else '' }}"
+                  />
+                  <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Search
+                  </button>
+                </div>
+              </form>
+            </div>
+            <div class="col-md-6">
+              <div class="timeframe-controls d-flex justify-content-md-end">
+                <div class="btn-group" role="group">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary timeframe-btn active"
+                    data-timeframe="1d"
+                  >
+                    Day
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary timeframe-btn"
+                    data-timeframe="1w"
+                  >
+                    Week
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary timeframe-btn"
+                    data-timeframe="1m"
+                  >
+                    Month
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary timeframe-btn"
+                    data-timeframe="3m"
+                  >
+                    3 Months
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary timeframe-btn"
+                    data-timeframe="1y"
+                  >
+                    Year
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {% if error_message %}
+      <div class="alert alert-danger">
+        {{ error_message }} {% if 'not a UK stock' in error_message %}
+        <br />UK stocks typically end with .L or .LON (e.g., BARC.L, VOD.LON) {%
+        endif %}
+      </div>
+      {% endif %}
+
+      <!-- Stock Cards -->
+      <div class="row">
+        {% for stock in stocks %}
+        <div class="col-xl-6 col-lg-12 mb-4">
+          <div class="card stock-card shadow-sm rounded-lg">
+            <div class="card-header bg-white">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="mb-0">
+                    {{ stock.symbol }}
+                    <span class="text-muted">· {{ stock.name }}</span>
+                  </h5>
+                </div>
+                <div class="price-change-badge">
+                  {% set price_change = ((stock.history[-1].close -
+                  stock.history[0].open) / stock.history[0].open * 100) %}
+                  <span
+                    class="badge {% if price_change >= 0 %}bg-success{% else %}bg-danger{% endif %}"
+                  >
+                    {{ "%.2f"|format(price_change) }}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <!-- Key Metrics -->
+                <div class="col-md-4">
+                  <div class="key-metrics mb-4">
+                    <div class="metric-item">
+                      <span class="metric-label">Current Price</span>
+                      <span class="metric-value"
+                        >£{{ stock.history[-1].close }}</span
+                      >
+                    </div>
+                    <div class="metric-item">
+                      <span class="metric-label">Today's Range</span>
+                      <span class="metric-value"
+                        >£{{ stock.history[-1].low }} - £{{
+                        stock.history[-1].high }}</span
+                      >
+                    </div>
+                    <div class="metric-item">
+                      <span class="metric-label">52 Week Range</span>
+                      <span class="metric-value"
+                        >£{{ stock.fifty_two_week_low }} - £{{
+                        stock.fifty_two_week_high }}</span
+                      >
+                    </div>
+                    <div class="metric-item">
+                      <span class="metric-label">Volume</span>
+                      <span class="metric-value"
+                        >{{ "{:,.0f}".format(stock.history[-1].volume) }}</span
+                      >
+                    </div>
+                    <div class="metric-item">
+                      <span class="metric-label">Market Cap</span>
+                      <span class="metric-value"
+                        >£{{ "{:,.2f}".format(stock.market_cap / 1000000)
+                        }}M</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Main Chart -->
+                <div class="col-md-8">
+                  <div
+                    class="chart-container"
+                    style="position: relative; height: 250px"
+                  >
+                    <canvas id="price-chart-{{ loop.index }}"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Charts Row -->
+              <div class="row mt-3">
+                <div class="col-md-4">
+                  <div class="small-chart-container">
+                    <canvas
+                      id="volume-chart-{{ loop.index }}"
+                      height="120"
+                    ></canvas>
+                    <div class="chart-title">Volume</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="small-chart-container">
+                    <canvas
+                      id="rsi-chart-{{ loop.index }}"
+                      height="120"
+                    ></canvas>
+                    <div class="chart-title">RSI (14)</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="small-chart-container">
+                    <canvas
+                      id="macd-chart-{{ loop.index }}"
+                      height="120"
+                    ></canvas>
+                    <div class="chart-title">MACD</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer bg-white">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted"
+                  >Last updated: {{ stock.history[-1].date }}</small
+                >
+                <div>
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#detailsModal{{ loop.index }}"
+                  >
+                    <i class="fas fa-info-circle"></i> Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Details Modal -->
+        <div
+          class="modal fade"
+          id="detailsModal{{ loop.index }}"
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">
+                  {{ stock.symbol }} - {{ stock.name }}
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6>Key Statistics</h6>
+                    <table class="table table-sm">
+                      <tbody>
+                        <tr>
+                          <td>PE Ratio</td>
+                          <td>{{ stock.pe_ratio }}</td>
+                        </tr>
+                        <tr>
+                          <td>Dividend Yield</td>
+                          <td>
+                            {{ "%.2f"|format(stock.dividend_yield * 100) }}%
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Beta</td>
+                          <td>{{ "%.2f"|format(stock.beta) }}</td>
+                        </tr>
+                        <tr>
+                          <td>EPS</td>
+                          <td>£{{ "%.2f"|format(stock.eps) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="col-md-6">
+                    <h6>Price History</h6>
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Close</th>
+                          <th>Change</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for day in stock.history[-5:] %}
+                        <tr>
+                          <td>{{ day.date }}</td>
+                          <td>£{{ day.close }}</td>
+                          <td
+                            class="{% if day.close > day.open %}text-success{% else %}text-danger{% endif %}"
+                          >
+                            {{ "%.2f"|format((day.close - day.open) / day.open *
+                            100) }}%
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <h6>About</h6>
+                  <p class="text-muted">
+                    {{ stock.description|default('No description available',
+                    true) }}
+                  </p>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
-    {% endfor %}
   </div>
 </div>
 
+<!-- Chart.js and Custom JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+
 <script>
-  const stockChartData = JSON.parse("{{ stocks | tojson | safe }}");
+  document.addEventListener("DOMContentLoaded", function () {
+    // Timeframe selection
+    document.querySelectorAll(".timeframe-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".timeframe-btn").forEach(function (b) {
+          b.classList.remove("active");
+        });
+        this.classList.add("active");
+        // In a real app, you would fetch new data for the selected timeframe
+        console.log("Selected timeframe:", this.dataset.timeframe);
+      });
+    });
 
-  stockChartData.forEach((stock, index) => {
-    const ctx = document.getElementById(`chart-${index + 1}`).getContext("2d");
+    // Process stock data and create charts
+    const stockData = JSON.parse("{{ stocks | tojson | safe }}");
 
-    const labels = stock.history.map((entry) => entry.date);
-    const data = stock.history.map((entry) => entry.close);
+    stockData.forEach(function (stock, index) {
+      // Prepare data
+      const dates = stock.history.map(function (entry) {
+        return entry.date;
+      });
+      const closes = stock.history.map(function (entry) {
+        return entry.close;
+      });
+      const opens = stock.history.map(function (entry) {
+        return entry.open;
+      });
+      const highs = stock.history.map(function (entry) {
+        return entry.high;
+      });
+      const lows = stock.history.map(function (entry) {
+        return entry.low;
+      });
+      const volumes = stock.history.map(function (entry) {
+        return entry.volume;
+      });
 
-    new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: `${stock.symbol} Close Price`,
-            data: data,
-            borderColor: "rgba(0,123,255,1)",
-            backgroundColor: "rgba(0,123,255,0.1)",
-            tension: 0.3,
-            fill: true,
-          },
-        ],
-      },
-      options: {
+      // Calculate RSI (simplified for demo)
+      const rsiPeriod = 14;
+      const rsiValues = calculateRSI(closes, rsiPeriod);
+
+      // Calculate MACD (simplified for demo)
+      const macdData = calculateMACD(closes);
+
+      // Main Price Chart
+      const priceCtx = document
+        .getElementById("price-chart-" + (index + 1))
+        .getContext("2d");
+      new Chart(priceCtx, {
+        type: "line",
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: "Price",
+              data: closes,
+              borderColor: "rgba(0, 123, 255, 1)",
+              backgroundColor: "rgba(0, 123, 255, 0.1)",
+              tension: 0.1,
+              fill: true,
+              pointRadius: 0,
+            },
+            {
+              label: "50-day MA",
+              data: calculateMovingAverage(closes, 50),
+              borderColor: "rgba(255, 159, 64, 1)",
+              borderWidth: 1,
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: getChartOptions("Price (£)", true),
+      });
+
+      // Volume Chart
+      const volumeCtx = document
+        .getElementById("volume-chart-" + (index + 1))
+        .getContext("2d");
+      new Chart(volumeCtx, {
+        type: "bar",
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: "Volume",
+              data: volumes,
+              backgroundColor: "rgba(108, 117, 125, 0.7)",
+              borderColor: "rgba(108, 117, 125, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: getChartOptions("Volume", false),
+      });
+
+      // RSI Chart
+      const rsiCtx = document
+        .getElementById("rsi-chart-" + (index + 1))
+        .getContext("2d");
+      new Chart(rsiCtx, {
+        type: "line",
+        data: {
+          labels: dates.slice(rsiPeriod),
+          datasets: [
+            {
+              label: "RSI",
+              data: rsiValues,
+              borderColor: "rgba(220, 53, 69, 1)",
+              backgroundColor: "rgba(220, 53, 69, 0.1)",
+              borderWidth: 1,
+              pointRadius: 0,
+              fill: true,
+            },
+          ],
+        },
+        options: getRSIOptions(),
+      });
+
+      // MACD Chart
+      const macdCtx = document
+        .getElementById("macd-chart-" + (index + 1))
+        .getContext("2d");
+      new Chart(macdCtx, {
+        type: "bar",
+        data: {
+          labels: dates.slice(26),
+          datasets: [
+            {
+              label: "MACD",
+              data: macdData.macdLine.slice(26),
+              borderColor: "rgba(0, 123, 255, 1)",
+              backgroundColor: "rgba(0, 123, 255, 0.1)",
+              borderWidth: 1,
+              type: "line",
+              pointRadius: 0,
+            },
+            {
+              label: "Signal",
+              data: macdData.signalLine.slice(26),
+              borderColor: "rgba(255, 159, 64, 1)",
+              backgroundColor: "rgba(255, 159, 64, 0.1)",
+              borderWidth: 1,
+              type: "line",
+              pointRadius: 0,
+            },
+            {
+              label: "Histogram",
+              data: macdData.histogram.slice(26),
+              backgroundColor: function (context) {
+                return context.raw >= 0
+                  ? "rgba(40, 167, 69, 0.7)"
+                  : "rgba(220, 53, 69, 0.7)";
+              },
+              borderColor: function (context) {
+                return context.raw >= 0
+                  ? "rgba(40, 167, 69, 1)"
+                  : "rgba(220, 53, 69, 1)";
+              },
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: getChartOptions("MACD", false),
+      });
+    });
+
+    // Helper functions for technical indicators
+    function calculateMovingAverage(data, period) {
+      return data.map(function (val, idx) {
+        if (idx < period - 1) return null;
+        const sum = data
+          .slice(idx - period + 1, idx + 1)
+          .reduce(function (a, b) {
+            return a + b;
+          }, 0);
+        return sum / period;
+      });
+    }
+
+    function calculateRSI(closes, period) {
+      period = period || 14;
+      const rsi = [];
+      let gains = 0;
+      let losses = 0;
+
+      // Calculate initial average gains and losses
+      for (let i = 1; i <= period; i++) {
+        const change = closes[i] - closes[i - 1];
+        if (change >= 0) {
+          gains += change;
+        } else {
+          losses += Math.abs(change);
+        }
+      }
+
+      let avgGain = gains / period;
+      let avgLoss = losses / period;
+      let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+      rsi.push(100 - 100 / (1 + rs));
+
+      // Calculate subsequent RSI values
+      for (let i = period + 1; i < closes.length; i++) {
+        const change = closes[i] - closes[i - 1];
+        let currentGain = 0;
+        let currentLoss = 0;
+
+        if (change >= 0) {
+          currentGain = change;
+        } else {
+          currentLoss = Math.abs(change);
+        }
+
+        avgGain = (avgGain * (period - 1) + currentGain) / period;
+        avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
+        rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+        rsi.push(100 - 100 / (1 + rs));
+      }
+
+      return rsi;
+    }
+
+    function calculateMACD(closes, fastPeriod, slowPeriod, signalPeriod) {
+      fastPeriod = fastPeriod || 12;
+      slowPeriod = slowPeriod || 26;
+      signalPeriod = signalPeriod || 9;
+
+      const fastEMA = calculateEMA(closes, fastPeriod);
+      const slowEMA = calculateEMA(closes, slowPeriod);
+      const macdLine = fastEMA.map(function (val, idx) {
+        return val - slowEMA[idx];
+      });
+      const signalLine = calculateEMA(
+        macdLine.slice(slowPeriod - fastPeriod),
+        signalPeriod
+      );
+
+      // Pad signalLine with nulls to match macdLine length
+      const paddedSignalLine = Array(slowPeriod - fastPeriod + signalPeriod - 1)
+        .fill(null)
+        .concat(signalLine);
+
+      const histogram = macdLine.map(function (val, idx) {
+        return paddedSignalLine[idx] !== null
+          ? val - paddedSignalLine[idx]
+          : null;
+      });
+
+      return {
+        macdLine: macdLine,
+        signalLine: paddedSignalLine,
+        histogram: histogram,
+      };
+    }
+
+    function calculateEMA(data, period) {
+      const k = 2 / (period + 1);
+      const ema = [];
+      let sum = 0;
+
+      // Calculate SMA for first value
+      for (let i = 0; i < period; i++) {
+        sum += data[i];
+      }
+      ema[period - 1] = sum / period;
+
+      // Calculate EMA for subsequent values
+      for (let i = period; i < data.length; i++) {
+        ema[i] = data[i] * k + ema[i - 1] * (1 - k);
+      }
+
+      // Pad beginning with nulls
+      return Array(period - 1)
+        .fill(null)
+        .concat(ema.slice(period - 1));
+    }
+
+    function getChartOptions(yAxisTitle, showCrosshair) {
+      return {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             display: true,
+            position: "top",
+          },
+          tooltip: {
+            mode: showCrosshair ? "index" : "nearest",
+            intersect: false,
           },
         },
         scales: {
           x: {
-            title: {
-              display: true,
-              text: "Date",
+            grid: {
+              display: false,
+            },
+            ticks: {
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 8,
             },
           },
           y: {
+            position: "right",
             title: {
               display: true,
-              text: "Price (USD)",
+              text: yAxisTitle,
+            },
+            grid: {
+              drawBorder: false,
             },
           },
         },
-      },
-    });
+        interaction: {
+          mode: "nearest",
+          axis: "x",
+          intersect: false,
+        },
+      };
+    }
+
+    function getRSIOptions() {
+      const options = getChartOptions("RSI", false);
+      options.scales = options.scales || {};
+      options.scales.y = options.scales.y || {};
+      options.scales.y.min = 0;
+      options.scales.y.max = 100;
+      options.plugins = options.plugins || {};
+      options.plugins.annotation = {
+        annotations: {
+          line1: {
+            type: "line",
+            yMin: 70,
+            yMax: 70,
+            borderColor: "rgb(220, 53, 69)",
+            borderWidth: 1,
+            borderDash: [6, 6],
+          },
+          line2: {
+            type: "line",
+            yMin: 30,
+            yMax: 30,
+            borderColor: "rgb(40, 167, 69)",
+            borderWidth: 1,
+            borderDash: [6, 6],
+          },
+        },
+      };
+      return options;
+    }
   });
 </script>
+
+<style>
+  .stock-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+  }
+
+  .stock-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .key-metrics {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+  }
+
+  .metric-item {
+    margin-bottom: 10px;
+  }
+
+  .metric-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+
+  .metric-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .small-chart-container {
+    position: relative;
+    height: 120px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  .chart-title {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  .timeframe-controls .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .timeframe-controls .btn.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+
+  .dashboard-header {
+    background: linear-gradient(90deg, #f8f9fa 0%, white 100%);
+    padding: 1rem;
+    border-radius: 8px;
+  }
+</style>
 {% endblock %}
