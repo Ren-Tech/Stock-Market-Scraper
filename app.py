@@ -2,16 +2,22 @@ import random
 from flask import Flask, render_template, request, jsonify, session
 import pandas as pd
 from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import requests
 import feedparser
 import os
 import re
+import yfinance as yf
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
+
+# API_KEY = 'NWV90QOIWFFO75C5'
+
+
+
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
     "health_care": ["JNJ", "PFE", "UNH", "ABBV", "MRK"],
@@ -946,6 +952,104 @@ def ph_stocks():
     news_data = sample_news
     
     return render_template("ph_stocks.html", stocks_data=stocks_data, news_data=news_data, symbols=symbols, error_message=error_message)
+
+@app.route('/uk_stocks', methods=['GET', 'POST'])
+def uk_stocks():
+    # Default list of UK stocks (LSE symbols)
+    default_uk_stocks = ['LLOY.L', 'VOD.L', 'BARC.L', 'HSBA.L', 'BP.L']
+    stocks = []
+    error_message = None
+    
+    if request.method == 'POST':
+        stock_symbol = request.form.get('stock_symbol', '').strip().upper()
+        if stock_symbol:
+            # Check if it's a UK stock (ends with .L or .LON)
+            if not (stock_symbol.endswith('.L') or stock_symbol.endswith('.LON')):
+                error_message = f"'{stock_symbol}' is not a UK stock. Please search for stocks ending with .L or .LON"
+            else:
+                data = fetch_stock_data_yahoo(stock_symbol)
+                if data:
+                    stocks.append(data)
+                else:
+                    error_message = f"Stock symbol '{stock_symbol}' not found or data unavailable."
+    
+    # Always show default stocks if no specific symbol was searched
+    if not stocks and request.method != 'POST':
+        stocks = [data for symbol in default_uk_stocks 
+                 if (data := fetch_stock_data_yahoo(symbol))]
+    
+    return render_template('uk_stocks.html', 
+                         stocks=stocks, 
+                         error_message=error_message)
+
+def fetch_stock_data_yahoo(symbol):
+    try:
+        # Get data for the last 30 days
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        
+        # Download stock data
+        stock = yf.Ticker(symbol)
+        hist = stock.history(start=start_date, end=end_date)
+        
+        if hist.empty:
+            return None
+            
+        # Convert to our desired format
+        history_data = []
+        for date, row in hist.iterrows():
+            history_data.append({
+                'date': date.strftime('%Y-%m-%d'),
+                'open': round(row['Open'], 2),
+                'high': round(row['High'], 2),
+                'low': round(row['Low'], 2),
+                'close': round(row['Close'], 2),
+                'volume': int(row['Volume'])
+            })
+        
+        # Get company name
+        info = stock.info
+        company_name = info.get('longName', symbol)
+        
+        return {
+            'symbol': symbol,
+            'name': company_name,
+            'history': history_data
+        }
+        
+    except Exception as e:
+        print(f"Error fetching data for {symbol}: {str(e)}")
+        return None
+
+@app.route('/ge_stocks', methods=['GET', 'POST'])
+def ge_stocks():
+    # Frankfurt exchange symbols for major German companies
+    default_ge_stocks = ['SIE.DE', 'VOW3.DE', 'DBK.DE', 'ALV.DE', 'BMW.DE']
+    stocks = []
+    error_message = None
+    
+    if request.method == 'POST':
+        stock_symbol = request.form.get('stock_symbol', '').strip().upper()
+        if stock_symbol:
+            # Check if it's a German stock (ends with .DE or .F)
+            if not (stock_symbol.endswith('.DE') or stock_symbol.endswith('.F')):
+                error_message = f"'{stock_symbol}' is not a German stock. Please search for stocks ending with .DE or .F"
+            else:
+                data = fetch_stock_data_yahoo(stock_symbol)
+                if data:
+                    stocks.append(data)
+                else:
+                    error_message = f"Stock symbol '{stock_symbol}' not found or data unavailable."
+    
+    # Always show default stocks if no specific symbol was searched
+    if not stocks and request.method != 'POST':
+        stocks = [data for symbol in default_ge_stocks 
+                 if (data := fetch_stock_data_yahoo(symbol))]
+    
+    return render_template('ge_stocks.html', 
+                        stocks=stocks, 
+                        error_message=error_message)
+
 @app.route("/simulation", methods=["GET", "POST"])
 def simulation():
     # Here you can handle any logic for the simulation page if needed

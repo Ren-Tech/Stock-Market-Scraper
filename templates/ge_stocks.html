@@ -1,0 +1,98 @@
+{% extends "base.html" %} {% block title %} German Stocks {% endblock %} {%
+block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">German Stocks Dashboard</h2>
+
+  <!-- Stock Search Form -->
+  <form method="POST" class="mb-4">
+    <div class="input-group">
+      <input
+        type="text"
+        name="stock_symbol"
+        class="form-control"
+        placeholder="Enter German Stock Symbol (e.g., BMW.DE or SAP.DE)"
+        required
+      />
+      <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+  </form>
+
+  {% if error_message %}
+  <div class="alert alert-danger">
+    {{ error_message }} {% if 'not a German stock' in error_message %}
+    <br />German stocks typically end with .DE or .F (e.g., BMW.DE, SAP.F) {%
+    endif %}
+  </div>
+  {% endif %}
+
+  <div class="row">
+    {% for stock in stocks %}
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm rounded">
+        <div class="card-body">
+          <h5 class="card-title">{{ stock.symbol }} - {{ stock.name }}</h5>
+          <p><strong>Date:</strong> {{ stock.history[0].date }}</p>
+          <p><strong>Open:</strong> {{ stock.history[0].open }}</p>
+          <p><strong>High:</strong> {{ stock.history[0].high }}</p>
+          <p><strong>Low:</strong> {{ stock.history[0].low }}</p>
+          <p><strong>Close:</strong> {{ stock.history[0].close }}</p>
+          <p><strong>Volume:</strong> {{ stock.history[0].volume }}</p>
+          <canvas id="chart-{{ loop.index }}"></canvas>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const stockChartData = JSON.parse("{{ stocks | tojson | safe }}");
+
+  stockChartData.forEach((stock, index) => {
+    const ctx = document.getElementById(`chart-${index + 1}`).getContext("2d");
+
+    const labels = stock.history.map((entry) => entry.date);
+    const data = stock.history.map((entry) => entry.close);
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: `${stock.symbol} Close Price (EUR)`,
+            data: data,
+            borderColor: "rgba(40,167,69,1)",
+            backgroundColor: "rgba(40,167,69,0.1)",
+            tension: 0.3,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Date",
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Price (EUR)",
+            },
+          },
+        },
+      },
+    });
+  });
+</script>
+{% endblock %}
