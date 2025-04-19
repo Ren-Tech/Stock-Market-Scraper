@@ -6,6 +6,17 @@ content %}
     padding: 5px 10px;
     border-radius: 5px;
   }
+  .sector-tag {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: #0d6efd;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    text-transform: capitalize;
+  }
 
   .timer-display-wrapper {
     min-width: 60px;
@@ -222,6 +233,7 @@ content %}
                     alt="{{ news.title }}"
                   />
                   <span class="source-badge">{{ news.source }}</span>
+                  <span class="sector-tag">{{ news.sector }}</span>
                 </div>
                 {% else %}
                 <div class="position-relative">
@@ -231,6 +243,7 @@ content %}
                     alt="Default News Image"
                   />
                   <span class="source-badge">{{ news.source }}</span>
+                  <span class="sector-tag">{{ news.sector }}</span>
                 </div>
                 {% endif %}
                 <div class="card-body d-flex flex-column">
@@ -263,7 +276,6 @@ content %}
               </div>
             </div>
 
-            <!-- Add a new row after every 3 news items -->
             {% if loop.index % 3 == 0 and not loop.last %}
           </div>
           <div class="row">{% endif %} {% endfor %}</div>
@@ -280,132 +292,135 @@ content %}
       </div>
     </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function () {
-    // Timer functionality
-    let timerInterval;
-    let timerSeconds = 120;
-    let isTimerRunning = false;
-    let lastRefreshTime = new Date().getTime();
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Timer functionality
+      let timerInterval;
+      let timerSeconds = 120;
+      let isTimerRunning = false;
+      let lastRefreshTime = new Date().getTime();
 
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timerSeconds / 60);
-      const seconds = timerSeconds % 60;
-      $("#countdownDisplay").text(
-        `${minutes.toString().padStart(2, "0")}:${seconds
-          .toString()
-          .padStart(2, "0")}`
-      );
-    }
-
-    function startTimer() {
-      if (!isTimerRunning) {
-        isTimerRunning = true;
-        $("#timerToggle")
-          .html('<i class="bi bi-pause-fill"></i>')
-          .removeClass("btn-success")
-          .addClass("btn-warning");
-
-        const totalSeconds = timerSeconds;
-        const startTime = new Date().getTime();
-        const endTime = startTime + timerSeconds * 1000;
-
-        timerInterval = setInterval(function () {
-          const currentTime = new Date().getTime();
-          const remainingTime = Math.max(0, endTime - currentTime);
-          timerSeconds = Math.floor(remainingTime / 1000);
-
-          updateTimerDisplay();
-
-          const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
-          $("#refreshProgress").css("width", progress + "%");
-
-          if (timerSeconds <= 0) {
-            clearInterval(timerInterval);
-            $("#sectorForm").submit();
-          }
-        }, 1000);
+      function updateTimerDisplay() {
+        const minutes = Math.floor(timerSeconds / 60);
+        const seconds = timerSeconds % 60;
+        $("#countdownDisplay").text(
+          `${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`
+        );
       }
-    }
 
-    function pauseTimer() {
-      if (isTimerRunning) {
+      function startTimer() {
+        if (!isTimerRunning) {
+          isTimerRunning = true;
+          $("#timerToggle")
+            .html('<i class="bi bi-pause-fill"></i>')
+            .removeClass("btn-success")
+            .addClass("btn-warning");
+
+          const totalSeconds = timerSeconds;
+          const startTime = new Date().getTime();
+          const endTime = startTime + timerSeconds * 1000;
+
+          timerInterval = setInterval(function () {
+            const currentTime = new Date().getTime();
+            const remainingTime = Math.max(0, endTime - currentTime);
+            timerSeconds = Math.floor(remainingTime / 1000);
+
+            updateTimerDisplay();
+
+            const progress =
+              ((totalSeconds - timerSeconds) / totalSeconds) * 100;
+            $("#refreshProgress").css("width", progress + "%");
+
+            if (timerSeconds <= 0) {
+              clearInterval(timerInterval);
+              $("#sectorForm").submit();
+            }
+          }, 1000);
+        }
+      }
+
+      function pauseTimer() {
+        if (isTimerRunning) {
+          clearInterval(timerInterval);
+          isTimerRunning = false;
+          $("#timerToggle")
+            .html('<i class="bi bi-play-fill"></i>')
+            .removeClass("btn-warning")
+            .addClass("btn-success");
+        }
+      }
+
+      function resetTimer() {
         clearInterval(timerInterval);
         isTimerRunning = false;
+        timerSeconds = parseInt($("#frequencyDropdown").val());
+        updateTimerDisplay();
         $("#timerToggle")
           .html('<i class="bi bi-play-fill"></i>')
           .removeClass("btn-warning")
           .addClass("btn-success");
+        $("#refreshProgress").css("width", "0%");
       }
-    }
 
-    function resetTimer() {
-      clearInterval(timerInterval);
-      isTimerRunning = false;
+      $("#timerToggle").click(function () {
+        if (isTimerRunning) {
+          pauseTimer();
+        } else {
+          startTimer();
+        }
+      });
+
+      $("#timerReset").click(resetTimer);
+
+      $("#frequencyDropdown").change(function () {
+        timerSeconds = parseInt($(this).val());
+        $("#minutesDisplay").text(
+          $(this).find("option:selected").text().replace(" Min", "")
+        );
+        resetTimer();
+      });
+
       timerSeconds = parseInt($("#frequencyDropdown").val());
+      $("#minutesDisplay").text(
+        $("#frequencyDropdown")
+          .find("option:selected")
+          .text()
+          .replace(" Min", "")
+      );
       updateTimerDisplay();
-      $("#timerToggle")
-        .html('<i class="bi bi-play-fill"></i>')
-        .removeClass("btn-warning")
-        .addClass("btn-success");
-      $("#refreshProgress").css("width", "0%");
-    }
 
-    $("#timerToggle").click(function () {
-      if (isTimerRunning) {
-        pauseTimer();
-      } else {
+      if ($(".card-title").length > 0) {
+        $("#refreshStatus").removeClass("d-none");
         startTimer();
       }
-    });
 
-    $("#timerReset").click(resetTimer);
+      // Search toggle functionality
+      let isSearchVisible = true;
+      $("#toggleSearch").click(function () {
+        if (isSearchVisible) {
+          $("#leftColumn").hide();
+          $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
+          $(this).removeClass("btn-outline-primary").addClass("btn-primary");
+        } else {
+          $("#leftColumn").show();
+          $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
+          $(this).removeClass("btn-primary").addClass("btn-outline-primary");
+        }
+        isSearchVisible = !isSearchVisible;
+      });
 
-    $("#frequencyDropdown").change(function () {
-      timerSeconds = parseInt($(this).val());
-      $("#minutesDisplay").text(
-        $(this).find("option:selected").text().replace(" Min", "")
-      );
-      resetTimer();
-    });
+      // Add source field functionality
+      $(".add-source-btn").click(function () {
+        const sector = $(this).data("sector");
+        const container = $(`#${sector}Container`);
+        const nextOrder = container.find(".source-field").length + 1;
 
-    timerSeconds = parseInt($("#frequencyDropdown").val());
-    $("#minutesDisplay").text(
-      $("#frequencyDropdown").find("option:selected").text().replace(" Min", "")
-    );
-    updateTimerDisplay();
-
-    if ($(".card-title").length > 0) {
-      $("#refreshStatus").removeClass("d-none");
-      startTimer();
-    }
-
-    // Search toggle functionality
-    let isSearchVisible = true;
-    $("#toggleSearch").click(function () {
-      if (isSearchVisible) {
-        $("#leftColumn").hide();
-        $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
-        $(this).removeClass("btn-outline-primary").addClass("btn-primary");
-      } else {
-        $("#leftColumn").show();
-        $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
-        $(this).removeClass("btn-primary").addClass("btn-outline-primary");
-      }
-      isSearchVisible = !isSearchVisible;
-    });
-
-    // Add source field functionality
-    $(".add-source-btn").click(function () {
-      const sector = $(this).data("sector");
-      const container = $(`#${sector}Container`);
-      const nextOrder = container.find(".source-field").length + 1;
-
-      const newField = `
+        const newField = `
           <div class="input-group mb-2 source-field">
             <span class="input-group-text">#${nextOrder}</span>
             <input type="text" name="${sector}_urls" class="form-control" placeholder="Enter URL" 
@@ -413,26 +428,27 @@ content %}
           </div>
         `;
 
-      container.append(newField);
-    });
+        container.append(newField);
+      });
 
-    $("#sectorForm").submit(function (e) {
-      e.preventDefault();
-      $("#refreshStatus").removeClass("d-none");
-      startTimer();
+      $("#sectorForm").submit(function (e) {
+        e.preventDefault();
+        $("#refreshStatus").removeClass("d-none");
+        startTimer();
 
-      $.ajax({
-        type: "POST",
-        url: window.location.href,
-        data: $(this).serialize(),
-        success: function () {
-          window.location.reload();
-        },
-        error: function () {
-          alert("Error saving your settings. Please try again.");
-        },
+        $.ajax({
+          type: "POST",
+          url: window.location.href,
+          data: $(this).serialize(),
+          success: function () {
+            window.location.reload();
+          },
+          error: function () {
+            alert("Error saving your settings. Please try again.");
+          },
+        });
       });
     });
-  });
-</script>
-{% endblock %}
+  </script>
+  {% endblock %}
+</div>
