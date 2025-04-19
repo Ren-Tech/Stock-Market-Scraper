@@ -1,11 +1,17 @@
 {% extends "base.html" %} {% block title %}Market News{% endblock %} {% block
 content %}
 <style>
-  /* Timer and Form Styles to match sector_news.html */
+  /* Base Styles */
+  body {
+    background-color: #f8f9fa;
+  }
+
+  /* Timer and Form Styles */
   .timer-container {
     background-color: #f8f9fa;
     padding: 5px 10px;
     border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
   .timer-display-wrapper {
     min-width: 60px;
@@ -19,31 +25,93 @@ content %}
   .timer-btn {
     padding: 0.15rem 0.5rem;
     font-size: 0.875rem;
+    transition: all 0.3s;
   }
-  .source-container {
-    max-height: 300px;
-    overflow-y: auto;
+
+  /* Market Tabs Styles */
+  .market-tabs-container {
+    position: relative;
+    margin-bottom: 20px;
   }
-  .market-selector {
-    margin-bottom: 15px;
+  .market-tabs-scroll {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 5px;
   }
-  .market-tab {
-    margin-bottom: 5px;
+  .market-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .market-tab-btn {
+    flex: 0 0 auto;
+    padding: 8px 15px;
+    margin-right: 8px;
+    border-radius: 20px;
+    background-color: #e9ecef;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
+  }
+  .market-tab-btn:hover {
+    background-color: #dee2e6;
+    transform: translateY(-2px);
+  }
+  .market-tab-btn.active {
+    background-color: #0d6efd;
+    color: white;
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+  }
+  .market-tab-btn i {
+    margin-right: 5px;
+  }
+
+  /* Accordion Styles */
+  .accordion-button {
+    font-weight: 500;
   }
   .accordion-button:not(.collapsed) {
-    background-color: #e7f1ff;
-    color: #0c63e4;
+    background-color: rgba(13, 110, 253, 0.05);
+    color: #0d6efd;
+  }
+  .accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(13, 110, 253, 0.25);
   }
 
   /* News Card Styles */
   .news-card {
     height: 100%;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
     margin-bottom: 20px;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   }
   .news-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  .news-image {
+    height: 150px;
+    object-fit: cover;
+    width: 100%;
+    transition: transform 0.5s ease;
+  }
+  .news-card:hover .news-image {
+    transform: scale(1.05);
+  }
+  .region-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.7rem;
+    background-color: rgba(0, 0, 0, 0.7);
   }
   .news-content {
     display: -webkit-box;
@@ -53,18 +121,71 @@ content %}
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  /* Your existing animations and styles */
-  @keyframes slideIn {
-    /* ... */
+  .source-url {
+    font-size: 0.7rem;
+    word-break: break-all;
+    color: #6c757d;
   }
+  .card-body {
+    padding: 1.25rem;
+  }
+
+  /* Source Input Styles */
+  .source-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+  .source-field {
+    transition: all 0.3s;
+  }
+  .source-field:hover {
+    transform: translateX(3px);
+  }
+  .input-group-text {
+    background-color: #f8f9fa;
+    font-weight: 500;
+  }
+
+  /* Animations */
   @keyframes fadeIn {
-    /* ... */
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .news-card {
+    animation: fadeIn 0.5s ease forwards;
   }
   @keyframes pulse {
-    /* ... */
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
-  /* Include all your existing animation styles */
+  .pulse {
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .market-tab-btn {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+    }
+    .news-image {
+      height: 120px;
+    }
+  }
 </style>
 
 <div class="container mt-4">
@@ -95,8 +216,41 @@ content %}
   <div class="row mt-4">
     <!-- Left Column: Market Selection -->
     <div class="col-md-4" id="leftColumn">
-      <div class="card shadow-sm p-3">
-        <h6 class="text-center text-primary">Select Market Region</h6>
+      <div class="card shadow-sm p-3" style="border-radius: 10px">
+        <h6 class="text-center text-primary mb-3">
+          <i class="bi bi-globe"></i> Market Regions
+        </h6>
+
+        <!-- Mini Tabs Navigation -->
+        <div class="market-tabs-container">
+          <div class="market-tabs-scroll">
+            <button class="market-tab-btn active" data-market="us">
+              <i class="bi bi-flag-fill text-danger"></i> US
+            </button>
+            <button class="market-tab-btn" data-market="uk">
+              <i class="bi bi-flag-fill text-primary"></i> UK
+            </button>
+            <button class="market-tab-btn" data-market="ge">
+              <i class="bi bi-flag-fill text-warning"></i> DE
+            </button>
+            <button class="market-tab-btn" data-market="fr">
+              <i class="bi bi-flag-fill text-info"></i> FR
+            </button>
+            <button class="market-tab-btn" data-market="china">
+              <i class="bi bi-flag-fill text-danger"></i> CN
+            </button>
+            <button class="market-tab-btn" data-market="europe">
+              <i class="bi bi-globe-europe-africa text-success"></i> EU
+            </button>
+            <button class="market-tab-btn" data-market="asia">
+              <i class="bi bi-globe-asia-australia text-primary"></i> AS
+            </button>
+            <button class="market-tab-btn" data-market="south_america">
+              <i class="bi bi-globe-americas text-warning"></i> SA
+            </button>
+          </div>
+        </div>
+
         <form method="POST" id="marketForm">
           <div class="accordion" id="marketAccordion">
             <!-- US Markets -->
@@ -108,7 +262,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseUS"
                 >
-                  US Markets
+                  <i class="bi bi-flag-fill text-danger me-2"></i> US Markets
                 </button>
               </h2>
               <div
@@ -151,7 +305,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseUK"
                 >
-                  UK Markets
+                  <i class="bi bi-flag-fill text-primary me-2"></i> UK Markets
                 </button>
               </h2>
               <div
@@ -185,7 +339,6 @@ content %}
               </div>
             </div>
 
-            <!-- Add other market regions (GE, FR, China, Europe, Asia, South America) following the same pattern -->
             <!-- Germany Markets -->
             <div class="accordion-item market-tab" data-market="ge">
               <h2 class="accordion-header">
@@ -195,7 +348,8 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseGE"
                 >
-                  Germany Markets
+                  <i class="bi bi-flag-fill text-warning me-2"></i> Germany
+                  Markets
                 </button>
               </h2>
               <div
@@ -238,7 +392,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseFR"
                 >
-                  France Markets
+                  <i class="bi bi-flag-fill text-info me-2"></i> France Markets
                 </button>
               </h2>
               <div
@@ -281,7 +435,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseChina"
                 >
-                  China Markets
+                  <i class="bi bi-flag-fill text-danger me-2"></i> China Markets
                 </button>
               </h2>
               <div
@@ -324,6 +478,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseEurope"
                 >
+                  <i class="bi bi-globe-europe-africa text-success me-2"></i>
                   Europe Markets
                 </button>
               </h2>
@@ -367,6 +522,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseAsia"
                 >
+                  <i class="bi bi-globe-asia-australia text-primary me-2"></i>
                   Asia Markets
                 </button>
               </h2>
@@ -410,7 +566,8 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapseSouthAmerica"
                 >
-                  South America Markets
+                  <i class="bi bi-globe-americas text-warning me-2"></i> South
+                  America Markets
                 </button>
               </h2>
               <div
@@ -449,7 +606,9 @@ content %}
           <div
             class="d-flex align-items-center justify-content-between mb-2 mt-3"
           >
-            <label class="small mb-0">Update Frequency</label>
+            <label class="small mb-0"
+              ><i class="bi bi-clock-history me-1"></i> Update Frequency</label
+            >
             <select
               id="frequencyDropdown"
               class="form-select form-select-sm"
@@ -493,15 +652,30 @@ content %}
 
     <!-- Right Column: News Display -->
     <div class="col-md-8">
-      <div class="card">
-        <div class="card-header bg-info text-white">
-          <h3 class="mb-0">
-            Latest {{ selected_market|default('Global', true)|replace('_', '
-            ')|title }} Market News
-          </h3>
-          {% if news_data %}
-          <small>Showing {{ news_data|length }} news items</small>
-          {% endif %}
+      <div
+        class="card"
+        style="
+          border-radius: 10px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        "
+      >
+        <div
+          class="card-header bg-info text-white"
+          style="border-radius: 10px 10px 0 0 !important"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+              <i class="bi bi-newspaper me-2"></i>
+              Latest {{ selected_market|default('Global', true)|replace('_', '
+              ')|title }} Market News
+            </h3>
+            {% if news_data %}
+            <span class="badge bg-light text-dark">
+              <i class="bi bi-collection me-1"></i> {{ news_data|length }} items
+            </span>
+            {% endif %}
+          </div>
         </div>
         <div class="card-body">
           {% if news_data %}
@@ -509,21 +683,46 @@ content %}
             {% for news in news_data %}
             <div class="col-md-4 mb-4">
               <div class="card news-card h-100">
+                {% if news.image %}
+                <div style="overflow: hidden">
+                  <img
+                    src="{{ news.image }}"
+                    class="card-img-top news-image"
+                    alt="News image"
+                  />
+                </div>
+                {% endif %}
                 <div class="card-body d-flex flex-column">
+                  <span class="badge bg-primary region-badge">
+                    {{ news.region|default(selected_market|default('Global',
+                    true)|replace('_', ' ')|title) }}
+                  </span>
                   <h5 class="card-title">{{ news.title }}</h5>
                   <p class="card-text news-content">{{ news.content }}</p>
-                  <p class="card-text mt-auto">
-                    <small class="text-muted">
-                      Source: {{ news.source }} {% if news.date %} | {{
-                      news.date }} {% endif %}
-                    </small>
-                  </p>
+                  <div class="mt-auto">
+                    <p class="card-text">
+                      <small class="text-muted">
+                        {% if news.date %} <i class="bi bi-calendar me-1"></i>{{
+                        news.date }} | {% endif %}
+                        <i class="bi bi-newspaper me-1"></i>{{ news.source }}
+                      </small>
+                    </p>
+                    <p class="source-url">
+                      <small>
+                        <i class="bi bi-link-45deg me-1"></i>
+                        {% set short_url = news.link.replace('https://',
+                        '').replace('http://', '') %} {% if short_url|length >
+                        30 %} {{ short_url[:30] }}... {% else %} {{ short_url }}
+                        {% endif %}
+                      </small>
+                    </p>
+                  </div>
                   <a
                     href="{{ news.link }}"
                     class="btn btn-sm btn-outline-primary mt-2"
                     target="_blank"
                   >
-                    Read More
+                    <i class="bi bi-arrow-right-circle me-1"></i> Read More
                   </a>
                 </div>
               </div>
@@ -534,11 +733,13 @@ content %}
           <div class="row">{% endif %} {% endfor %}</div>
           {% else %}
           <div class="alert alert-info">
-            {% if market_urls[selected_market] %} No recent news found for {{
+            {% if market_urls[selected_market] %}
+            <i class="bi bi-info-circle me-2"></i>No recent news found for {{
             selected_market|default('Global', true)|replace('_', ' ')|title }}
-            markets. {% else %} Please add URLs for {{
-            selected_market|default('Global', true)|replace('_', ' ')|title }}
-            markets to display news. {% endif %}
+            markets. {% else %}
+            <i class="bi bi-exclamation-triangle me-2"></i>Please add URLs for
+            {{ selected_market|default('Global', true)|replace('_', ' ')|title
+            }} markets to display news. {% endif %}
           </div>
           {% endif %}
         </div>
@@ -662,6 +863,24 @@ content %}
       isSearchVisible = !isSearchVisible;
     });
 
+    // Mini tabs functionality
+    $(".market-tab-btn").click(function () {
+      const market = $(this).data("market");
+
+      // Update active tab
+      $(".market-tab-btn").removeClass("active");
+      $(this).addClass("active");
+
+      // Show corresponding accordion item
+      $(`.market-tab[data-market="${market}"] .accordion-button`).click();
+
+      // Add pulse animation
+      $(this).addClass("pulse");
+      setTimeout(() => {
+        $(this).removeClass("pulse");
+      }, 1500);
+    });
+
     // Add source field functionality
     $(".add-source-btn").click(function () {
       const market = $(this).data("market");
@@ -676,6 +895,14 @@ content %}
       `;
 
       container.append(newField);
+
+      // Scroll to the new field
+      container.animate(
+        {
+          scrollTop: container[0].scrollHeight,
+        },
+        500
+      );
     });
 
     // Form submission
@@ -702,6 +929,10 @@ content %}
     $(`.market-tab[data-market="{{ selected_market }}"]`).addClass(
       "border-primary"
     );
+
+    // Activate corresponding mini tab on page load
+    const currentMarket = "{{ selected_market|default('us') }}";
+    $(`.market-tab-btn[data-market="${currentMarket}"]`).addClass("active");
   });
 </script>
 {% endblock %}
