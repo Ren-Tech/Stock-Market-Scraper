@@ -40,6 +40,32 @@ content %}
   .current-sector {
     border-left: 4px solid #0d6efd;
   }
+
+  .news-card {
+    transition: transform 0.2s;
+  }
+
+  .news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .news-image {
+    height: 180px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .source-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+  }
 </style>
 
 <div class="container mt-4">
@@ -107,6 +133,7 @@ content %}
                         placeholder="Enter URL"
                         value="{{ urls[sector][i-1] if urls[sector] and i <= urls[sector]|length else '' }}"
                         data-source-order="{{ i }}"
+                        data-source-priority="{{ i }}"
                       />
                     </div>
                     {% endfor %}
@@ -184,26 +211,54 @@ content %}
         <div class="card-body">
           {% if news_data %}
           <div class="row">
-            {% for news in news_data %}
+            {% for news in news_data|sort(attribute='priority', reverse=true) %}
             <div class="col-md-4 mb-4">
-              <!-- Changed to col-md-4 for 3 cards per row -->
               <div class="card news-card h-100">
+                {% if news.image_url %}
+                <div class="position-relative">
+                  <img
+                    src="{{ news.image_url }}"
+                    class="card-img-top news-image"
+                    alt="{{ news.title }}"
+                  />
+                  <span class="source-badge">{{ news.source }}</span>
+                </div>
+                {% else %}
+                <div class="position-relative">
+                  <img
+                    src="/static/images/default_news.jpg"
+                    class="card-img-top news-image"
+                    alt="Default News Image"
+                  />
+                  <span class="source-badge">{{ news.source }}</span>
+                </div>
+                {% endif %}
                 <div class="card-body d-flex flex-column">
                   <h5 class="card-title">{{ news.title }}</h5>
                   <p class="card-text news-content">{{ news.content }}</p>
-                  <p class="card-text mt-auto">
-                    <small class="text-muted">
-                      Source: {{ news.source }} {% if news.date %} | {{
-                      news.date }} {% endif %}
-                    </small>
-                  </p>
-                  <a
-                    href="{{ news.link }}"
-                    class="btn btn-sm btn-outline-primary mt-2"
-                    target="_blank"
-                  >
-                    Read More
-                  </a>
+                  <div class="mt-auto">
+                    <p class="card-text">
+                      <small class="text-muted">
+                        {% if news.date %} {{ news.date }} {% endif %}
+                      </small>
+                    </p>
+                    <div class="d-flex justify-content-between">
+                      <a
+                        href="{{ news.link }}"
+                        class="btn btn-sm btn-outline-primary"
+                        target="_blank"
+                      >
+                        Read More
+                      </a>
+                      <a
+                        href="{{ news.source_link }}"
+                        class="btn btn-sm btn-outline-secondary"
+                        target="_blank"
+                      >
+                        <i class="bi bi-link-45deg"></i> Source
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -235,6 +290,7 @@ content %}
     let timerInterval;
     let timerSeconds = 120;
     let isTimerRunning = false;
+    let lastRefreshTime = new Date().getTime();
 
     function updateTimerDisplay() {
       const minutes = Math.floor(timerSeconds / 60);
@@ -255,9 +311,14 @@ content %}
           .addClass("btn-warning");
 
         const totalSeconds = timerSeconds;
+        const startTime = new Date().getTime();
+        const endTime = startTime + timerSeconds * 1000;
 
         timerInterval = setInterval(function () {
-          timerSeconds--;
+          const currentTime = new Date().getTime();
+          const remainingTime = Math.max(0, endTime - currentTime);
+          timerSeconds = Math.floor(remainingTime / 1000);
+
           updateTimerDisplay();
 
           const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
@@ -345,11 +406,12 @@ content %}
       const nextOrder = container.find(".source-field").length + 1;
 
       const newField = `
-                <div class="input-group mb-2 source-field">
-                    <span class="input-group-text">#${nextOrder}</span>
-                    <input type="text" name="${sector}_urls" class="form-control" placeholder="Enter URL" data-source-order="${nextOrder}">
-                </div>
-            `;
+          <div class="input-group mb-2 source-field">
+            <span class="input-group-text">#${nextOrder}</span>
+            <input type="text" name="${sector}_urls" class="form-control" placeholder="Enter URL" 
+                   data-source-order="${nextOrder}" data-source-priority="${nextOrder}">
+          </div>
+        `;
 
       container.append(newField);
     });

@@ -387,30 +387,25 @@ def market_news():
         # If no URLs for the selected market, use the default news function
         news_data = get_stock_market_news()
     
-    # Process stock symbols and data
-    stock_symbols = [
-        "V", "WMT", "PG", "DIS", "NFLX", "AMD", "INTC", "BA", "XOM"
-    ]
-    
-    # Add user-submitted stock symbols
-    if request.method == "POST" and request.form.getlist("stock_symbols"):
-        symbols = [symbol.strip() for symbol in request.form.getlist("stock_symbols") if symbol.strip()]
-        stock_symbols.extend(symbols)
-    
-    # Fetch stock data
-    stock_data = {}
-    for symbol in stock_symbols:
-        try:
-            stock_data[symbol] = get_stock_data(symbol)
-        except Exception as e:
-            stock_data[symbol] = pd.DataFrame()
-    
+    # Add news type and image to each news item
+
     # Render the template with all necessary data
     return render_template("market_news.html",
                           news_data=news_data,
-                          stock_data=stock_data,
                           market_urls=market_urls,
                           selected_market=selected_market)
+
+@app.template_filter('url_shorten')
+def url_shorten_filter(url, length=30):
+    """Shorten URL for display purposes"""
+    if not url:
+        return ""
+    # Remove protocol and www
+    short_url = url.replace('https://', '').replace('http://', '').replace('www.', '')
+    # Shorten if needed
+    if len(short_url) > length:
+        return short_url[:length] + '...'
+    return short_url
 # Add these custom template filters
 @app.template_filter('datetimeformat')
 def datetimeformat(value, format='%Y-%m-%d'):
