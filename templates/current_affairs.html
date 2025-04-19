@@ -655,6 +655,9 @@ block content %}
     let newsItems = document.querySelector("#newsItems");
     let toggleButton = document.querySelector("#toggleSearch");
     let submitButton = document.querySelector("#submitSources");
+    let newsRotationCounter = parseInt(
+      localStorage.getItem("newsRotationCounter") || "0"
+    );
 
     // Auto-refresh elements
     const frequencyDropdown = document.getElementById("frequencyDropdown");
@@ -890,83 +893,98 @@ block content %}
         document.querySelectorAll("[data-source-url]")
       );
 
-      allNewsItems.sort((a, b) => {
-        const urlA = a.getAttribute("data-source-url");
-        const urlB = b.getAttribute("data-source-url");
-        const categoryA = a.getAttribute("data-category");
-        const categoryB = b.getAttribute("data-category");
+      // Before sorting, organize news items by region for better rotation
+      const newsByRegion = {};
+      const regionOrder = [
+        "world",
+        "north_america",
+        "south_america",
+        "europe",
+        "asia",
+        "africa",
+        "australia",
+        "mena",
+      ];
 
-        // Extract domains
-        let domainA, domainB;
-        try {
-          domainA = new URL(urlA).hostname;
-        } catch (e) {
-          domainA = urlA;
+      // Group items by region
+      allNewsItems.forEach((item) => {
+        const category = item.getAttribute("data-category");
+        if (!newsByRegion[category]) {
+          newsByRegion[category] = [];
         }
-
-        try {
-          domainB = new URL(urlB).hostname;
-        } catch (e) {
-          domainB = urlB;
-        }
-
-        // Get order (default to high number if not found)
-        const orderA = urlSourceOrder[domainA] || {
-          region: categoryA,
-          order: 999,
-        };
-        const orderB = urlSourceOrder[domainB] || {
-          region: categoryB,
-          order: 999,
-        };
-
-        // First sort by region (to match the accordion order)
-        const regionOrder = [
-          "world",
-          "north_america",
-          "south_america",
-          "europe",
-          "asia",
-          "africa",
-          "australia",
-          "mena",
-        ];
-
-        const regionIndexA = regionOrder.indexOf(orderA.region);
-        const regionIndexB = regionOrder.indexOf(orderB.region);
-
-        if (regionIndexA !== regionIndexB) {
-          return regionIndexA - regionIndexB;
-        }
-
-        // Then sort by order within the region
-        return orderA.order - orderB.order;
+        newsByRegion[category].push(item);
       });
 
-      // Get first 6 for trending section
-      const topSix = allNewsItems.slice(0, 6);
-      const rest = allNewsItems.slice(6);
+      // Sort each region's items by original URL order
+      regionOrder.forEach((region) => {
+        if (newsByRegion[region]) {
+          newsByRegion[region].sort((a, b) => {
+            const urlA = a.getAttribute("data-source-url");
+            const urlB = b.getAttribute("data-source-url");
+
+            // Extract domains
+            let domainA, domainB;
+            try {
+              domainA = new URL(urlA).hostname;
+            } catch (e) {
+              domainA = urlA;
+            }
+
+            try {
+              domainB = new URL(urlB).hostname;
+            } catch (e) {
+              domainB = urlB;
+            }
+
+            // Get order (default to high number if not found)
+            const orderA = urlSourceOrder[domainA]?.order || 999;
+            const orderB = urlSourceOrder[domainB]?.order || 999;
+
+            return orderA - orderB;
+          });
+
+          // Apply rotation to each region's items
+          if (newsByRegion[region].length > 0) {
+            // Calculate rotation for this region based on counter
+            const rotationAmount =
+              newsRotationCounter % newsByRegion[region].length;
+            if (rotationAmount > 0) {
+              // Move first N items to the end based on rotation counter
+              const itemsToRotate = newsByRegion[region].splice(
+                0,
+                rotationAmount
+              );
+              newsByRegion[region] = [
+                ...newsByRegion[region],
+                ...itemsToRotate,
+              ];
+            }
+          }
+        }
+      });
+
+      // Flatten the items back into a single array, maintaining region order
+      const sortedItems = [];
+      regionOrder.forEach((region) => {
+        if (newsByRegion[region]) {
+          sortedItems.push(...newsByRegion[region]);
+        }
+      });
+
+      // Use the sorted and rotated items
+      const topSix = sortedItems.slice(0, 6);
+      const rest = sortedItems.slice(6);
 
       // Clear and repopulate trending section
-      const trendingContent = document.querySelector("#trendingNews .d-flex");
+      const trendingContent = document.querySelector("#trendingNews .row");
       if (trendingContent) {
-        let trendingParent = trendingContent.parentNode;
-        // Keep the heading
-        while (trendingParent.childNodes.length > 1) {
-          trendingParent.removeChild(trendingParent.lastChild);
-        }
+        trendingContent.innerHTML = "";
 
-        // Add top 6 items
+        // Add top 6 items to trending
         topSix.forEach((item) => {
           const clone = item.cloneNode(true);
-          clone.classList.add("featured-news-card");
-          clone.classList.remove(
-            "col-md-6",
-            "col-xl-4",
-            "mb-3",
-            "news-grid-item"
-          );
-          trendingParent.appendChild(clone);
+          clone.classList.add("col-md-6", "col-xl-4", "mb-3");
+          trendingContent.appendChild(clone);
         });
       }
 
@@ -1250,7 +1268,13 @@ block content %}
           .then((html) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
-
+            function incrementNewsRotation() {
+              newsRotationCounter++;
+              localStorage.setItem("newsRotationCounter", newsRotationCounter);
+              console.log(
+                `News rotation incremented to: ${newsRotationCounter}`
+              );
+            }
             // Update both trending news and regular news grid
             const newTrendingNews = doc.querySelector("#trendingNews");
             const newNewsItems = doc.querySelector("#newsItems");
@@ -1266,7 +1290,10 @@ block content %}
             if (newNewsItems) {
               newsItems.innerHTML = newNewsItems.innerHTML;
 
-              // Sort news by source URL order
+              // Increment rotation counter
+              incrementNewsRotation();
+
+              // Sort news by source URL order with rotation
               sortNewsBySourceOrder();
 
               // Reapply column classes after refresh
@@ -1362,6 +1389,10 @@ block content %}
     urlForm.addEventListener("submit", function (e) {
       e.preventDefault();
 
+      // Reset rotation counter when manually submitting form
+      newsRotationCounter = 0;
+      localStorage.setItem("newsRotationCounter", newsRotationCounter);
+
       const selectedFrequency = frequencyDropdown.value;
       localStorage.setItem("selectedFrequency", selectedFrequency);
 
@@ -1393,6 +1424,8 @@ block content %}
         saveTimerState(); // Save timer state after starting
       }, 1000);
     });
+
+    // Call this
 
     // Keep track of current active category
     let currentActiveCategory = "all";
@@ -1495,6 +1528,12 @@ block content %}
     // Add this at the end:
     activateTabFromHash();
     window.addEventListener("hashchange", activateTabFromHash);
+    if (
+      newsRotationCounter > 0 &&
+      document.querySelectorAll("[data-source-url]").length > 0
+    ) {
+      sortNewsBySourceOrder();
+    }
   });
 </script>
 {% endblock %}
