@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block title %} UK Stocks Dashboard {% endblock %}
+{% extends "base.html" %} 
+{% block title %} UK Stocks Dashboard {% endblock %}
 {% block content %}
 <div class="container-fluid mt-4">
   <div class="row">
@@ -11,18 +12,54 @@
         </p>
       </div>
 
-      <!-- Stock Search and Timeframe Controls -->
+      <!-- Market Indices Section -->
+    
+      <!-- All Shares, Advancers, Decliners Section -->
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card index-card">
+            <div class="card-body">
+              <h6 class="card-title">All Shares</h6>
+              <h4 class="mb-0">1,234</h4>
+              <small class="text-muted">Total listed shares</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card index-card">
+            <div class="card-body">
+              <h6 class="card-title">Advancers</h6>
+              <h4 class="mb-0">567</h4>
+              <small class="text-muted">Shares with positive change</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card index-card">
+            <div class="card-body">
+              <h6 class="card-title">Decliners</h6>
+              <h4 class="mb-0">432</h4>
+              <small class="text-muted">Shares with negative change</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- Stock Search and Filter Controls -->
       <div class="card shadow-sm mb-4">
         <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-6">
-              <form method="POST" class="mb-3 mb-md-0">
+          <div class="row align-items-center mb-3">
+            <div class="col-md-12">
+              <form method="POST" class="mb-3">
                 <div class="input-group">
                   <input
                     type="text"
                     name="stock_symbol"
                     class="form-control form-control-lg"
-                    placeholder="Search UK stocks (e.g., BARC.L, VOD.L)"
+                    placeholder="Search UK stocks by symbol or company name"
                     required
                     value="{{ request.form.stock_symbol if request.form.stock_symbol else '' }}"
                   />
@@ -32,46 +69,46 @@
                 </div>
               </form>
             </div>
-            <div class="col-md-6">
-              <div class="timeframe-controls d-flex justify-content-md-end">
-                <div class="btn-group" role="group">
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary timeframe-btn active"
-                    data-timeframe="1d"
-                  >
-                    Day
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary timeframe-btn"
-                    data-timeframe="1w"
-                  >
-                    Week
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary timeframe-btn"
-                    data-timeframe="1m"
-                  >
-                    Month
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary timeframe-btn"
-                    data-timeframe="3m"
-                  >
-                    3 Months
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary timeframe-btn"
-                    data-timeframe="1y"
-                  >
-                    Year
-                  </button>
-                </div>
-              </div>
+          </div>
+
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <select class="form-select" id="sector-filter">
+                <option selected>Sector</option>
+                <option>Banking</option>
+                <option>Energy</option>
+                <option>Pharmaceuticals</option>
+                <option>Technology</option>
+                <option>Consumer Goods</option>
+                <option>Real Estate</option>
+                <option>Telecommunications</option>
+                <option>Mining</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="price-range-filter">
+                <option selected>Price Range</option>
+                <option>Under £1</option>
+                <option>£1 - £5</option>
+                <option>£5 - £10</option>
+                <option>£10 - £50</option>
+                <option>£50 - £100</option>
+                <option>Above £100</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="performance-filter">
+                <option selected>Performance</option>
+                <option>Best Today</option>
+                <option>Worst Today</option>
+                <option>Best this Week</option>
+                <option>Worst this Week</option>
+                <option>Best this Month</option>
+                <option>Worst this Month</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-secondary w-100">Apply Filters</button>
             </div>
           </div>
         </div>
@@ -85,227 +122,159 @@
       </div>
       {% endif %}
 
-      <!-- Stock Cards -->
-      <div class="row">
-        {% for stock in stocks %}
-        <div class="col-xl-6 col-lg-12 mb-4">
-          <div class="card stock-card shadow-sm rounded-lg">
-            <div class="card-header bg-white">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <h5 class="mb-0">
-                    {{ stock.symbol }}
-                    <span class="text-muted">· {{ stock.name }}</span>
-                  </h5>
-                </div>
-                <div class="price-change-badge">
-                  {% set price_change = ((stock.history[-1].close -
-                  stock.history[0].open) / stock.history[0].open * 100) %}
-                  <span
-                    class="badge {% if price_change >= 0 %}bg-success{% else %}bg-danger{% endif %}"
-                  >
-                    {{ "%.2f"|format(price_change) }}%
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <!-- Key Metrics -->
-                <div class="col-md-4">
-                  <div class="key-metrics mb-4">
-                    <div class="metric-item">
-                      <span class="metric-label">Current Price</span>
-                      <span class="metric-value"
-                        >£{{ stock.history[-1].close }}</span
-                      >
-                    </div>
-                    <div class="metric-item">
-                      <span class="metric-label">Today's Range</span>
-                      <span class="metric-value"
-                        >£{{ stock.history[-1].low }} - £{{
-                        stock.history[-1].high }}</span
-                      >
-                    </div>
-                    <div class="metric-item">
-                      <span class="metric-label">52 Week Range</span>
-                      <span class="metric-value"
-                        >£{{ stock.fifty_two_week_low }} - £{{
-                        stock.fifty_two_week_high }}</span
-                      >
-                    </div>
-                    <div class="metric-item">
-                      <span class="metric-label">Volume</span>
-                      <span class="metric-value"
-                        >{{ "{:,.0f}".format(stock.history[-1].volume) }}</span
-                      >
-                    </div>
-                    <div class="metric-item">
-                      <span class="metric-label">Market Cap</span>
-                      <span class="metric-value"
-                        >£{{ "{:,.2f}".format(stock.market_cap / 1000000)
-                        }}M</span
-                      >
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Main Chart -->
-                <div class="col-md-8">
-                  <div
-                    class="chart-container"
-                    style="position: relative; height: 250px"
-                  >
-                    <canvas id="price-chart-{{ loop.index }}"></canvas>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Additional Charts Row -->
-              <div class="row mt-3">
-                <div class="col-md-4">
-                  <div class="small-chart-container">
-                    <canvas
-                      id="volume-chart-{{ loop.index }}"
-                      height="120"
-                    ></canvas>
-                    <div class="chart-title">Volume</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="small-chart-container">
-                    <canvas
-                      id="rsi-chart-{{ loop.index }}"
-                      height="120"
-                    ></canvas>
-                    <div class="chart-title">RSI (14)</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="small-chart-container">
-                    <canvas
-                      id="macd-chart-{{ loop.index }}"
-                      height="120"
-                    ></canvas>
-                    <div class="chart-title">MACD</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card-footer bg-white">
-              <div class="d-flex justify-content-between">
-                <small class="text-muted"
-                  >Last updated: {{ stock.history[-1].date }}</small
-                >
-                <div>
-                  <button
-                    class="btn btn-sm btn-outline-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#detailsModal{{ loop.index }}"
-                  >
-                    <i class="fas fa-info-circle"></i> Details
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stock Details Modal -->
+      <!-- Stocks Table -->
+      <div class="tab-content" id="market-tabs-content">
         <div
-          class="modal fade"
-          id="detailsModal{{ loop.index }}"
-          tabindex="-1"
-          aria-hidden="true"
+          class="tab-pane fade show active"
+          id="all-shares"
+          role="tabpanel"
+          aria-labelledby="all-shares-tab"
         >
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">
-                  {{ stock.symbol }} - {{ stock.name }}
-                </h5>
-                <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
+          <div class="card shadow-sm mb-4">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Company Name</th>
+                      <th>Last Price</th>
+                      <th>Change %</th>
+                      <th>Volume</th>
+                      <th>Sector</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if request.form.stock_symbol %} {% set searched_stock =
+                    stocks | selectattr('symbol', 'equalto',
+                    request.form.stock_symbol) | list %} {% if searched_stock %}
+                    {% for stock in searched_stock %}
+                    <tr>
+                      <td class="fw-bold">{{ stock.symbol }}</td>
+                      <td>{{ stock.name }}</td>
+                      <td>£{{ stock.history[-1].close }}</td>
+                      <td>
+                        {% set price_change = ((stock.history[-1].close -
+                        stock.history[0].open) / stock.history[0].open * 100) %}
+                        <span
+                          class="badge {% if price_change >= 0 %}bg-success{% else %}bg-danger{% endif %}"
+                        >
+                          {{ "%.2f"|format(price_change) }}%
+                        </span>
+                      </td>
+                      <td>{{ "{:,.0f}".format(stock.history[-1].volume) }}</td>
+                      <td>
+                        <span class="badge bg-light text-dark"
+                          >{{ stock.sector|default('N/A', true) }}</span
+                        >
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-primary me-1">
+                          <i class="fas fa-info-circle"></i> Details
+                        </button>
+                        <button
+                          class="btn btn-sm btn-outline-danger favorite-btn"
+                        >
+                          <i class="far fa-heart"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    {% endfor %} {% else %}
+                    <tr>
+                      <td colspan="7" class="text-center">
+                        No stock found for "{{ request.form.stock_symbol }}"
+                      </td>
+                    </tr>
+                    {% endif %} {% else %} {% for stock in stocks %}
+                    <tr>
+                      <td class="fw-bold">{{ stock.symbol }}</td>
+                      <td>{{ stock.name }}</td>
+                      <td>£{{ stock.history[-1].close }}</td>
+                      <td>
+                        {% set price_change = ((stock.history[-1].close -
+                        stock.history[0].open) / stock.history[0].open * 100) %}
+                        <span
+                          class="badge {% if price_change >= 0 %}bg-success{% else %}bg-danger{% endif %}"
+                        >
+                          {{ "%.2f"|format(price_change) }}%
+                        </span>
+                      </td>
+                      <td>{{ "{:,.0f}".format(stock.history[-1].volume) }}</td>
+                      <td>
+                        <span class="badge bg-light text-dark"
+                          >{{ stock.sector|default('N/A', true) }}</span
+                        >
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-primary me-1">
+                          <i class="fas fa-info-circle"></i> Details
+                        </button>
+                        <button
+                          class="btn btn-sm btn-outline-danger favorite-btn"
+                        >
+                          <i class="far fa-heart"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    {% endfor %} {% endif %}
+                  </tbody>
+                </table>
               </div>
-              <div class="modal-body">
-                <div class="row">
-                  <div class="col-md-6">
-                    <h6>Key Statistics</h6>
-                    <table class="table table-sm">
-                      <tbody>
-                        <tr>
-                          <td>PE Ratio</td>
-                          <td>{{ stock.pe_ratio }}</td>
-                        </tr>
-                        <tr>
-                          <td>Dividend Yield</td>
-                          <td>
-                            {{ "%.2f"|format(stock.dividend_yield * 100) }}%
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Beta</td>
-                          <td>{{ "%.2f"|format(stock.beta) }}</td>
-                        </tr>
-                        <tr>
-                          <td>EPS</td>
-                          <td>£{{ "%.2f"|format(stock.eps) }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="col-md-6">
-                    <h6>Price History</h6>
-                    <table class="table table-sm">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Close</th>
-                          <th>Change</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {% for day in stock.history[-5:] %}
-                        <tr>
-                          <td>{{ day.date }}</td>
-                          <td>£{{ day.close }}</td>
-                          <td
-                            class="{% if day.close > day.open %}text-success{% else %}text-danger{% endif %}"
-                          >
-                            {{ "%.2f"|format((day.close - day.open) / day.open *
-                            100) }}%
-                          </td>
-                        </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="mt-3">
-                  <h6>About</h6>
-                  <p class="text-muted">
-                    {{ stock.description|default('No description available',
-                    true) }}
-                  </p>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
-                  Close
-                </button>
-              </div>
+            </div>
+            <div class="card-footer">
+              <nav aria-label="Stock pagination">
+                <ul class="pagination justify-content-center mb-0">
+                  <li class="page-item disabled">
+                    <a
+                      class="page-link"
+                      href="#"
+                      tabindex="-1"
+                      aria-disabled="true"
+                      >Previous</a
+                    >
+                  </li>
+                  <li class="page-item active">
+                    <a class="page-link" href="#">1</a>
+                  </li>
+                  <li class="page-item"><a class="page-link" href="#">2</a></li>
+                  <li class="page-item"><a class="page-link" href="#">3</a></li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
-        {% endfor %}
+
+        <div
+          class="tab-pane fade"
+          id="advancers"
+          role="tabpanel"
+          aria-labelledby="advancers-tab"
+        >
+          <!-- Placeholder for Advancers content -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <p class="text-muted">Advancers content will appear here.</p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="tab-pane fade"
+          id="decliners"
+          role="tabpanel"
+          aria-labelledby="decliners-tab"
+        >
+          <!-- Placeholder for Decliners content -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <p class="text-muted">Decliners content will appear here.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -328,6 +297,24 @@
         this.classList.add("active");
         // In a real app, you would fetch new data for the selected timeframe
         console.log("Selected timeframe:", this.dataset.timeframe);
+      });
+    });
+
+    // Favorite button toggle
+    document.querySelectorAll(".favorite-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const icon = this.querySelector("i");
+        if (icon.classList.contains("far")) {
+          icon.classList.remove("far");
+          icon.classList.add("fas");
+          this.classList.add("btn-danger");
+          this.classList.remove("btn-outline-danger");
+        } else {
+          icon.classList.remove("fas");
+          icon.classList.add("far");
+          this.classList.remove("btn-danger");
+          this.classList.add("btn-outline-danger");
+        }
       });
     });
 
@@ -529,7 +516,6 @@
         } else {
           currentLoss = Math.abs(change);
         }
-
         avgGain = (avgGain * (period - 1) + currentGain) / period;
         avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
         rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
@@ -671,6 +657,7 @@
 </script>
 
 <style>
+  /* Original Styles */
   .stock-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: none;
@@ -734,6 +721,122 @@
     background: linear-gradient(90deg, #f8f9fa 0%, white 100%);
     padding: 1rem;
     border-radius: 8px;
+  }
+
+  /* New Styles for Enhanced UI */
+  .index-card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .index-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .index-card .card-title {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .index-card h4 {
+    font-weight: 600;
+  }
+
+  .index-card small {
+    font-size: 0.75rem;
+  }
+
+  .nav-pills .nav-link {
+    color: #495057;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    margin-right: 0.25rem;
+  }
+
+  .nav-pills .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+
+  .table th {
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+    font-size: 0.85rem;
+  }
+
+  .table td {
+    vertical-align: middle;
+    color: #212529;
+  }
+
+  .favorite-btn .fas {
+    color: white;
+  }
+
+  .badge {
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0.35em 0.65em;
+  }
+
+  .badge.bg-light {
+    color: #212529;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+  }
+
+  .form-select {
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+  }
+
+  .stock-card .card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+  }
+
+  .stock-card .card-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0.75rem 1rem;
+  }
+
+  .page-link {
+    color: #0d6efd;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .dashboard-header h2 {
+    font-weight: 600;
+  }
+
+  .dashboard-header p {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .timeframe-controls {
+      margin-top: 1rem;
+      justify-content: start !important;
+    }
+
+    .btn-group {
+      width: 100%;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+    }
   }
 </style>
 {% endblock %}
