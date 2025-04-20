@@ -28,28 +28,34 @@ content %}
     transition: all 0.3s;
   }
 
-  /* Market Tabs Styles */
-  .market-tabs-container {
-    position: relative;
+  /* Market Nav Styles */
+  .market-nav {
+    background-color: #fff;
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
+    position: sticky;
+    top: 10px;
+    z-index: 100;
   }
-  .market-tabs-scroll {
+  .market-nav-scroll {
     display: flex;
     overflow-x: auto;
     scrollbar-width: none;
-    padding-bottom: 5px;
+    padding: 5px 0;
   }
-  .market-tabs-scroll::-webkit-scrollbar {
+  .market-nav-scroll::-webkit-scrollbar {
     display: none;
   }
-  .market-tab-btn {
+  .market-nav-btn {
     flex: 0 0 auto;
     padding: 8px 15px;
-    margin-right: 8px;
+    margin-right: 12px;
     border-radius: 20px;
     background-color: #e9ecef;
     border: none;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #495057;
     cursor: pointer;
@@ -57,16 +63,16 @@ content %}
     white-space: nowrap;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
   }
-  .market-tab-btn:hover {
+  .market-nav-btn:hover {
     background-color: #dee2e6;
     transform: translateY(-2px);
   }
-  .market-tab-btn.active {
+  .market-nav-btn.active {
     background-color: #0d6efd;
     color: white;
     box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
   }
-  .market-tab-btn i {
+  .market-nav-btn i {
     margin-right: 5px;
   }
 
@@ -178,7 +184,7 @@ content %}
 
   /* Responsive Adjustments */
   @media (max-width: 768px) {
-    .market-tab-btn {
+    .market-nav-btn {
       padding: 6px 12px;
       font-size: 0.75rem;
     }
@@ -212,44 +218,124 @@ content %}
     </div>
   </div>
 
+  <!-- Market Navigation Bar -->
+  <div class="market-nav mt-3">
+    <div class="market-nav-scroll d-flex flex-wrap justify-content-center">
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn active" data-market="us">
+          <i class="bi bi-flag-fill text-danger"></i> US
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="uk">
+          <i class="bi bi-flag-fill text-primary"></i> UK
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="ge">
+          <i class="bi bi-flag-fill text-warning"></i> DE
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="fr">
+          <i class="bi bi-flag-fill text-info"></i> FR
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="china">
+          <i class="bi bi-flag-fill text-danger"></i> CN
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="europe">
+          <i class="bi bi-globe-europe-africa text-success"></i> EU
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="asia">
+          <i class="bi bi-globe-asia-australia text-primary"></i> AS
+        </button>
+      </div>
+      <div
+        class="card market-nav-card text-center mx-2 mb-2"
+        style="
+          width: 120px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        "
+      >
+        <button class="market-nav-btn" data-market="south_america">
+          <i class="bi bi-globe-americas text-warning"></i> SA
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Two-Column Layout -->
   <div class="row mt-4">
     <!-- Left Column: Market Selection -->
     <div class="col-md-4" id="leftColumn">
       <div class="card shadow-sm p-3" style="border-radius: 10px">
         <h6 class="text-center text-primary mb-3">
-          <i class="bi bi-globe"></i> Market Regions
+          <i class="bi bi-list-check"></i> Market Sources
         </h6>
-
-        <!-- Mini Tabs Navigation -->
-        <div class="market-tabs-container">
-          <div class="market-tabs-scroll">
-            <button class="market-tab-btn active" data-market="us">
-              <i class="bi bi-flag-fill text-danger"></i> US
-            </button>
-            <button class="market-tab-btn" data-market="uk">
-              <i class="bi bi-flag-fill text-primary"></i> UK
-            </button>
-            <button class="market-tab-btn" data-market="ge">
-              <i class="bi bi-flag-fill text-warning"></i> DE
-            </button>
-            <button class="market-tab-btn" data-market="fr">
-              <i class="bi bi-flag-fill text-info"></i> FR
-            </button>
-            <button class="market-tab-btn" data-market="china">
-              <i class="bi bi-flag-fill text-danger"></i> CN
-            </button>
-            <button class="market-tab-btn" data-market="europe">
-              <i class="bi bi-globe-europe-africa text-success"></i> EU
-            </button>
-            <button class="market-tab-btn" data-market="asia">
-              <i class="bi bi-globe-asia-australia text-primary"></i> AS
-            </button>
-            <button class="market-tab-btn" data-market="south_america">
-              <i class="bi bi-globe-americas text-warning"></i> SA
-            </button>
-          </div>
-        </div>
 
         <form method="POST" id="marketForm">
           <div class="accordion" id="marketAccordion">
