@@ -5,6 +5,42 @@ content %}
   body {
     background-color: #f8f9fa;
   }
+  .top-sector-navbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 0;
+    justify-content: center;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .top-sector-navbar .sector-tab-btn {
+    padding: 10px 18px;
+    border-radius: 25px;
+    background-color: #f1f3f5;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #343a40;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .top-sector-navbar .sector-tab-btn:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+  }
+
+  .top-sector-navbar .sector-tab-btn.active {
+    background-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+    border-color: #0d6efd;
+  }
 
   /* Timer and Form Styles */
   .timer-container {
@@ -13,71 +49,34 @@ content %}
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
+
   .timer-display-wrapper {
     min-width: 60px;
     text-align: center;
     background-color: white;
   }
+
   .timer-display {
     font-family: monospace;
     font-weight: bold;
   }
+
   .timer-btn {
     padding: 0.15rem 0.5rem;
     font-size: 0.875rem;
     transition: all 0.3s;
   }
 
-  /* Sector Tabs Styles */
-  .sector-tabs-container {
-    position: relative;
-    margin-bottom: 20px;
-  }
-  .sector-tabs-scroll {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 5px;
-  }
-  .sector-tabs-scroll::-webkit-scrollbar {
-    display: none;
-  }
-  .sector-tab-btn {
-    flex: 0 0 auto;
-    padding: 8px 15px;
-    margin-right: 8px;
-    border-radius: 20px;
-    background-color: #e9ecef;
-    border: none;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #495057;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
-  }
-  .sector-tab-btn:hover {
-    background-color: #dee2e6;
-    transform: translateY(-2px);
-  }
-  .sector-tab-btn.active {
-    background-color: #0d6efd;
-    color: white;
-    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
-  }
-  .sector-tab-btn i {
-    margin-right: 5px;
-  }
-
   /* Accordion Styles */
   .accordion-button {
     font-weight: 500;
   }
+
   .accordion-button:not(.collapsed) {
     background-color: rgba(13, 110, 253, 0.05);
     color: #0d6efd;
   }
+
   .accordion-button:focus {
     box-shadow: none;
     border-color: rgba(13, 110, 253, 0.25);
@@ -92,20 +91,25 @@ content %}
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease forwards;
   }
+
   .news-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
+
   .news-image {
     height: 180px;
     object-fit: cover;
     width: 100%;
     transition: transform 0.5s ease;
   }
+
   .news-card:hover .news-image {
     transform: scale(1.05);
   }
+
   .sector-tag {
     position: absolute;
     bottom: 10px;
@@ -117,6 +121,7 @@ content %}
     font-size: 0.7rem;
     text-transform: capitalize;
   }
+
   .source-badge {
     position: absolute;
     top: 10px;
@@ -127,6 +132,7 @@ content %}
     border-radius: 12px;
     font-size: 0.7rem;
   }
+
   .news-content {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -135,33 +141,36 @@ content %}
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .source-url {
     font-size: 0.7rem;
     word-break: break-all;
     color: #6c757d;
   }
+
   .card-body {
     padding: 1.25rem;
   }
 
-  /* Source Input Styles */
   .source-container {
     max-height: 300px;
     overflow-y: auto;
     padding-right: 5px;
   }
-  .source-field {
-    transition: all 0.3s;
-  }
+
   .source-field:hover {
     transform: translateX(3px);
   }
+
   .input-group-text {
     background-color: #f8f9fa;
     font-weight: 500;
   }
 
-  /* Animations */
+  .current-sector {
+    border-left: 4px solid #0d6efd;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -172,35 +181,13 @@ content %}
       transform: translateY(0);
     }
   }
-  .news-card {
-    animation: fadeIn 0.5s ease forwards;
-  }
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  .pulse {
-    animation: pulse 1.5s infinite;
-  }
 
-  /* Current Sector Highlight */
-  .current-sector {
-    border-left: 4px solid #0d6efd;
-  }
-
-  /* Responsive Adjustments */
   @media (max-width: 768px) {
-    .sector-tab-btn {
+    .top-sector-navbar .sector-tab-btn {
       padding: 6px 12px;
       font-size: 0.75rem;
     }
+
     .news-image {
       height: 150px;
     }
@@ -231,36 +218,33 @@ content %}
     </div>
   </div>
 
-  <!-- Two-Column Layout -->
-  <div class="row mt-4">
-    <!-- Left Column: Sector Selection -->
-    <div class="col-md-4" id="leftColumn">
-      <div class="card shadow-sm p-3" style="border-radius: 10px">
-        <h6 class="text-center text-primary mb-3">
-          <i class="bi bi-grid-3x3-gap-fill"></i> Market Sectors
-        </h6>
+  <!-- Top Navbar for Sectors -->
+  <div class="top-sector-navbar mt-4">
+    {% for sector in sectors %}
+    <button
+      class="sector-tab-btn {% if sector == selected_sector %}active{% endif %}"
+      data-sector="{{ sector }}"
+      onclick="document.querySelector('[data-sector-target={{ sector }}]').scrollIntoView({ behavior: 'smooth' })"
+    >
+      {{ sector|capitalize|replace('_', ' ') }}
+    </button>
+    {% endfor %}
+  </div>
 
-        <!-- Mini Tabs Navigation -->
-        <div class="sector-tabs-container">
-          <div class="sector-tabs-scroll">
-            {% for sector in sectors %}
-            <button
-              class="sector-tab-btn {% if sector == selected_sector %}active{% endif %}"
-              data-sector="{{ sector }}"
-            >
-              <i class="bi bi-tag-fill" class="dynamic-color"></i>
-              {{ sector|capitalize|replace('_', ' ')|truncate(12) }}
-            </button>
-            {% endfor %}
-          </div>
-        </div>
+  <div class="row mt-3">
+    <!-- Left Column: Form -->
+    <div class="col-md-4">
+      <form method="POST" id="sectorForm">
+        <div class="card shadow-sm p-3" style="border-radius: 10px">
+          <h6 class="text-center text-primary mb-3">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Market Sectors
+          </h6>
 
-        <form method="POST" id="sectorForm">
           <div class="accordion" id="sectorAccordion">
             {% for sector in sectors %}
             <div
-              class="accordion-item sector-tab {% if sector == selected_sector %}current-sector{% endif %}"
-              data-sector="{{ sector }}"
+              class="accordion-item {% if sector == selected_sector %}current-sector{% endif %}"
+              data-sector-target="{{ sector }}"
             >
               <h2 class="accordion-header">
                 <button
@@ -269,7 +253,7 @@ content %}
                   data-bs-toggle="collapse"
                   data-bs-target="#collapse{{ sector|capitalize }}"
                 >
-                  <i class="bi bi-tag-fill me-2" class="dynamic-color"></i>
+                  <i class="bi bi-tag-fill me-2"></i>
                   {{ sector|capitalize|replace('_', ' ') }}
                 </button>
               </h2>
@@ -289,8 +273,6 @@ content %}
                         class="form-control"
                         placeholder="Enter URL"
                         value="{{ urls[sector][i-1] if urls[sector] and i <= urls[sector]|length else '' }}"
-                        data-source-order="{{ i }}"
-                        data-source-priority="{{ i }}"
                       />
                     </div>
                     {% endfor %}
@@ -308,13 +290,11 @@ content %}
             {% endfor %}
           </div>
 
-          <!-- Update Frequency Selection -->
-          <div
-            class="d-flex align-items-center justify-content-between mb-2 mt-3"
-          >
-            <label class="small mb-0"
-              ><i class="bi bi-clock-history me-1"></i> Update Frequency</label
-            >
+          <!-- Frequency Dropdown -->
+          <div class="d-flex align-items-center justify-content-between mt-3">
+            <label class="small mb-0">
+              <i class="bi bi-clock-history me-1"></i> Update Frequency
+            </label>
             <select
               id="frequencyDropdown"
               class="form-select form-select-sm"
@@ -324,36 +304,17 @@ content %}
               <option value="300">5 Min</option>
               <option value="600">10 Min</option>
               <option value="1200">20 Min</option>
-              <option value="1800">30 Min</option>
             </select>
           </div>
 
-          <!-- Submit Button -->
-          <button
-            id="submitSources"
-            type="submit"
-            class="btn btn-primary btn-sm w-100 mt-2"
-          >
-            <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
-          </button>
-
-          <!-- Auto-refresh status indicator -->
-          <div id="refreshStatus" class="small text-center mt-2 d-none">
-            <span class="badge bg-success">
-              <i class="bi bi-arrow-repeat"></i>
-              Auto-refreshing every <span id="minutesDisplay">2</span> minutes
-            </span>
-            <div class="progress mt-1" style="height: 4px">
-              <div
-                id="refreshProgress"
-                class="progress-bar"
-                role="progressbar"
-                style="width: 0%"
-              ></div>
-            </div>
+          <!-- ✅ Submit Button -->
+          <div class="mt-4 text-center">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-save2"></i> Save Sources
+            </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
 
     <!-- Right Column: News Display -->
@@ -377,86 +338,38 @@ content %}
             </h3>
             {% if news_data %}
             <span class="badge bg-light text-dark">
-              <i class="bi bi-collection me-1"></i> {{ news_data|length }} items
+              {{ news_data|length }} Articles
             </span>
             {% endif %}
           </div>
         </div>
         <div class="card-body">
-          {% if news_data %}
           <div class="row">
-            {% for news in news_data|sort(attribute='priority', reverse=true) %}
-            <div class="col-md-4 mb-4">
-              <div class="card news-card h-100">
-                {% if news.image_url %}
-                <div class="position-relative" style="overflow: hidden">
-                  <img
-                    src="{{ news.image_url }}"
-                    class="card-img-top news-image"
-                    alt="{{ news.title }}"
-                  />
-                  <span class="source-badge">{{ news.source }}</span>
-                  <span class="sector-tag"
-                    >{{ news.sector|capitalize|replace('_', ' ') }}</span
-                  >
-                </div>
-                {% else %}
-                <div class="position-relative" style="overflow: hidden">
-                  <img
-                    src="/static/images/default_news.jpg"
-                    class="card-img-top news-image"
-                    alt="Default News Image"
-                  />
-                  <span class="source-badge">{{ news.source }}</span>
-                  <span class="sector-tag"
-                    >{{ news.sector|capitalize|replace('_', ' ') }}</span
-                  >
-                </div>
-                {% endif %}
-                <div class="card-body d-flex flex-column">
+            {% for news in news_data %}
+            <div class="col-md-6">
+              <div class="card news-card position-relative">
+                <img
+                  src="{{ news.image_url }}"
+                  class="news-image"
+                  alt="News Image"
+                />
+                <div class="card-body">
                   <h5 class="card-title">{{ news.title }}</h5>
-                  <p class="card-text news-content">{{ news.content }}</p>
-                  <div class="mt-auto">
-                    <p class="card-text">
-                      <small class="text-muted">
-                        {% if news.date %} <i class="bi bi-calendar me-1"></i>{{
-                        news.date }} {% endif %}
-                      </small>
-                    </p>
-                    <div class="d-flex justify-content-between">
-                      <a
-                        href="{{ news.link }}"
-                        class="btn btn-sm btn-outline-primary"
-                        target="_blank"
-                      >
-                        <i class="bi bi-arrow-right-circle me-1"></i> Read
-                      </a>
-                      <a
-                        href="{{ news.source_link }}"
-                        class="btn btn-sm btn-outline-secondary"
-                        target="_blank"
-                      >
-                        <i class="bi bi-link-45deg me-1"></i> Source
-                      </a>
-                    </div>
-                  </div>
+                  <p class="card-text news-content">{{ news.summary }}</p>
+                  <a
+                    href="{{ news.source_url }}"
+                    target="_blank"
+                    class="btn btn-sm btn-primary"
+                  >
+                    Read More
+                  </a>
                 </div>
+                <div class="sector-tag">{{ news.sector|capitalize }}</div>
+                <div class="source-badge">{{ news.source_name }}</div>
               </div>
             </div>
-
-            {% if loop.index % 3 == 0 and not loop.last %}
+            {% endfor %}
           </div>
-          <div class="row">{% endif %} {% endfor %}</div>
-          {% else %}
-          <div class="alert alert-info">
-            {% if urls[selected_sector] %}
-            <i class="bi bi-info-circle me-2"></i>No recent news found for {{
-            selected_sector|capitalize|replace('_', ' ') }} sector. {% else %}
-            <i class="bi bi-exclamation-triangle me-2"></i>Please add at least 3
-            URLs for {{ selected_sector|capitalize|replace('_', ' ') }} sector
-            to display news. {% endif %}
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -495,7 +408,14 @@ content %}
           .padStart(2, "0")}`
       );
     }
-
+    document.querySelectorAll(".sector-tab-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const selected = button.getAttribute("data-sector");
+        document.querySelector('input[name="selected_sector"]').value =
+          selected;
+        document.getElementById("sectorForm").submit();
+      });
+    });
     function startTimer() {
       if (!isTimerRunning) {
         isTimerRunning = true;
@@ -666,6 +586,41 @@ content %}
     // Activate corresponding mini tab on page load
     const currentSector = "{{ selected_sector }}";
     $(`.sector-tab-btn[data-sector="${currentSector}"]`).addClass("active");
+    const sectorButtons = document.querySelectorAll(".sector-tab-btn");
+    const accordionItems = document.querySelectorAll(".accordion-item");
+
+    function showSector(sector) {
+      // Remove active class from all buttons
+      sectorButtons.forEach((btn) => btn.classList.remove("active"));
+
+      // Hide all accordion items
+      accordionItems.forEach((item) => (item.style.display = "none"));
+
+      // Show only the selected one
+      const activeButton = document.querySelector(`[data-sector="${sector}"]`);
+      const targetItem = document.querySelector(
+        `[data-sector-target="${sector}"]`
+      );
+
+      if (activeButton && targetItem) {
+        activeButton.classList.add("active");
+        targetItem.style.display = "block";
+      }
+    }
+
+    // Initialize - show only selected sector
+    const selected = "{{ selected_sector }}";
+    if (selected) {
+      showSector(selected);
+    }
+
+    // Add click event to tabs
+    sectorButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const sector = btn.getAttribute("data-sector");
+        showSector(sector);
+      });
+    });
   });
 </script>
 {% endblock %}
