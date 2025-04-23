@@ -281,53 +281,6 @@ Dashboard{% endblock %} {% block content %}
       <p>Please try a different search or check back later.</p>
     </div>
     {% endif %}
-
-    <!-- Pagination -->
-    <div class="pagination-container">
-      <div class="pagination-info">
-        Showing <span id="showing-from">1</span>-<span id="showing-to"
-          >{{ stocks_data|length if stocks_data else 0 }}</span
-        >
-        of
-        <span id="total-items"
-          >{{ stocks_data|length if stocks_data else 0 }}</span
-        >
-        stocks
-      </div>
-      <div class="pagination-controls">
-        <button class="pagination-btn prev-btn" id="prev-page" disabled>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="pagination-icon"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Previous
-        </button>
-        <div class="page-numbers" id="page-numbers"></div>
-        <button class="pagination-btn next-btn" id="next-page" disabled>
-          Next
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="pagination-icon"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- Stock Details Modal -->
@@ -628,16 +581,7 @@ Dashboard{% endblock %} {% block content %}
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Initialize variables
-      let currentPage = 1;
-      const rowsPerPage = 10;
-      let allRows = Array.from(
-        document.querySelectorAll(".stocks-grid .grid-row:not(.header-row)")
-      );
-      let filteredRows = [...allRows];
       let stockChart = null;
-
-      // Initialize pagination
-      updatePagination();
 
       // Search functionality
       const searchInput = document.getElementById("stock-search");
@@ -650,7 +594,15 @@ Dashboard{% endblock %} {% block content %}
         if (query.length < 2) return;
 
         // Get unique symbols from the table
-        const symbols = [...new Set(allRows.map((row) => row.dataset.symbol))];
+        const symbols = [
+          ...new Set(
+            Array.from(
+              document.querySelectorAll(
+                ".stocks-grid .grid-row:not(.header-row)"
+              )
+            ).map((row) => row.dataset.symbol)
+          ),
+        ];
 
         // Filter matching symbols
         const matches = symbols
@@ -695,10 +647,6 @@ Dashboard{% endblock %} {% block content %}
         });
       });
 
-      // Pagination buttons
-      document.getElementById("prev-page").addEventListener("click", prevPage);
-      document.getElementById("next-page").addEventListener("click", nextPage);
-
       // Tab switching in modal
       document.querySelectorAll(".tab-btn").forEach((btn) => {
         btn.addEventListener("click", function () {
@@ -727,9 +675,11 @@ Dashboard{% endblock %} {% block content %}
         .value.trim()
         .toLowerCase();
 
-      filteredRows = Array.from(
+      const allRows = Array.from(
         document.querySelectorAll(".stocks-grid .grid-row:not(.header-row)")
-      ).filter((row) => {
+      );
+
+      allRows.forEach((row) => {
         const rowSector = row.dataset.sector;
         const rowPrice = parseFloat(row.dataset.price);
         const rowSymbol = row.dataset.symbol.toLowerCase();
@@ -768,110 +718,13 @@ Dashboard{% endblock %} {% block content %}
         const searchMatch =
           searchQuery === "" || rowSymbol.includes(searchQuery);
 
-        return sectorMatch && priceMatch && performanceMatch && searchMatch;
-      });
-
-      // Reset to first page
-      currentPage = 1;
-
-      // Update display
-      updatePagination();
-    }
-
-    // Function to update pagination
-    function updatePagination() {
-      const totalItems = filteredRows.length;
-      const totalPages = Math.ceil(totalItems / rowsPerPage);
-
-      // Update showing X-Y of Z
-      const from = (currentPage - 1) * rowsPerPage + 1;
-      const to = Math.min(currentPage * rowsPerPage, totalItems);
-      document.getElementById("showing-from").textContent = from;
-      document.getElementById("showing-to").textContent = to;
-      document.getElementById("total-items").textContent = totalItems;
-
-      // Update pagination buttons
-      document.getElementById("prev-page").disabled = currentPage === 1;
-      document.getElementById("next-page").disabled =
-        currentPage === totalPages || totalPages === 0;
-
-      // Update page numbers
-      const pageNumbers = document.getElementById("page-numbers");
-      pageNumbers.innerHTML = "";
-
-      // Always show first page
-      addPageNumber(1, currentPage === 1);
-
-      // Show ellipsis if needed
-      if (currentPage > 3) {
-        const ellipsis = document.createElement("span");
-        ellipsis.className = "page-ellipsis";
-        ellipsis.textContent = "...";
-        pageNumbers.appendChild(ellipsis);
-      }
-
-      // Show current page and neighbors
-      for (
-        let i = Math.max(2, currentPage - 1);
-        i <= Math.min(totalPages - 1, currentPage + 1);
-        i++
-      ) {
-        addPageNumber(i, i === currentPage);
-      }
-
-      // Show ellipsis if needed
-      if (currentPage < totalPages - 2) {
-        const ellipsis = document.createElement("span");
-        ellipsis.className = "page-ellipsis";
-        ellipsis.textContent = "...";
-        pageNumbers.appendChild(ellipsis);
-      }
-
-      // Always show last page if different from first
-      if (totalPages > 1) {
-        addPageNumber(totalPages, currentPage === totalPages);
-      }
-
-      // Show/hide rows based on current page
-      allRows.forEach((row) => (row.style.display = "none"));
-      filteredRows.forEach((row, index) => {
-        if (
-          index >= (currentPage - 1) * rowsPerPage &&
-          index < currentPage * rowsPerPage
-        ) {
+        // Show/hide row based on filters
+        if (sectorMatch && priceMatch && performanceMatch && searchMatch) {
           row.style.display = "";
+        } else {
+          row.style.display = "none";
         }
       });
-    }
-
-    // Helper function to add page number to pagination
-    function addPageNumber(page, isActive) {
-      const pageNumbers = document.getElementById("page-numbers");
-      const pageElement = document.createElement("button");
-      pageElement.className = `page-number ${isActive ? "active" : ""}`;
-      pageElement.textContent = page;
-      pageElement.addEventListener("click", () => {
-        currentPage = page;
-        updatePagination();
-      });
-      pageNumbers.appendChild(pageElement);
-    }
-
-    // Function to go to next page
-    function nextPage() {
-      const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-      if (currentPage < totalPages) {
-        currentPage++;
-        updatePagination();
-      }
-    }
-
-    // Function to go to previous page
-    function prevPage() {
-      if (currentPage > 1) {
-        currentPage--;
-        updatePagination();
-      }
     }
 
     // Function to view stock details
@@ -1527,266 +1380,6 @@ Dashboard{% endblock %} {% block content %}
       color: var(--gray-500);
     }
 
-    /* Pagination */
-    .pagination-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1.5rem;
-    }
-
-    .pagination-info {
-      font-size: 0.875rem;
-      color: var(--gray-600);
-    }
-
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .pagination-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background-color: white;
-      border: 1px solid var(--gray-300);
-      border-radius: var(--radius);
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--gray-700);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .pagination-btn:hover:not(:disabled) {
-      background-color: var(--gray-100);
-      border-color: var(--gray-400);
-    }
-
-    .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .pagination-btn .pagination-icon {
-      width: 1rem;
-      height: 1rem;
-    }
-
-    .page-numbers {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .page-number {
-      width: 2rem;
-      height: 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: var(--radius);
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--gray-700);
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-      background-color: transparent;
-    }
-
-    .page-number:hover:not(.active) {
-      background-color: var(--gray-100);
-    }
-
-    .page-number.active {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .page-ellipsis {
-      width: 2rem;
-      height: 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--gray-500);
-    }
-
-    /* News Section */
-    .news-section {
-      background-color: white;
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--dark);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .section-title .section-icon {
-      width: 1.5rem;
-      height: 1.5rem;
-      color: var(--primary);
-    }
-
-    .section-actions {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    .section-action-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background-color: var(--gray-100);
-      border: none;
-      border-radius: var(--radius);
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--gray-700);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .section-action-btn:hover {
-      background-color: var(--gray-200);
-    }
-
-    .section-action-btn .action-icon {
-      width: 1rem;
-      height: 1rem;
-    }
-
-    .news-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .news-card {
-      border: 1px solid var(--gray-200);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .news-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .news-image {
-      height: 180px;
-      overflow: hidden;
-    }
-
-    .news-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s;
-    }
-
-    .news-card:hover .news-image img {
-      transform: scale(1.05);
-    }
-
-    .news-content {
-      padding: 1.25rem;
-    }
-
-    .news-date {
-      font-size: 0.75rem;
-      color: var(--gray-500);
-      margin-bottom: 0.5rem;
-    }
-
-    .news-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--dark);
-      margin-bottom: 0.75rem;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .news-excerpt {
-      font-size: 0.875rem;
-      color: var(--gray-600);
-      margin-bottom: 1rem;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .news-footer {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .news-link {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--primary);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .news-link:hover {
-      color: var(--primary-dark);
-    }
-
-    .news-link .link-icon {
-      width: 1rem;
-      height: 1rem;
-    }
-
-    .no-news {
-      text-align: center;
-      padding: 3rem 0;
-    }
-
-    .no-news-icon {
-      width: 3rem;
-      height: 3rem;
-      color: var(--gray-400);
-      margin-bottom: 1rem;
-    }
-
-    .no-news h4 {
-      font-size: 1.25rem;
-      color: var(--gray-700);
-      margin-bottom: 0.5rem;
-    }
-
-    .no-news p {
-      color: var(--gray-500);
-    }
-
     /* Stock Modal */
     .modal {
       display: none;
@@ -2313,11 +1906,6 @@ Dashboard{% endblock %} {% block content %}
     @media (max-width: 576px) {
       .market-summary {
         grid-template-columns: 1fr 1fr;
-      }
-
-      .pagination-container {
-        flex-direction: column;
-        gap: 1rem;
       }
 
       .news-grid {

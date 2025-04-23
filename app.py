@@ -843,45 +843,55 @@ def ph_stocks():
     
     # Sample Philippine stock data (20 stocks)
     sample_stocks = [
-        {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "252.40", "change": "+3.80", "change_pct": "+1.53%", "high": "253.60", "low": "248.20", "volume": "1,356,700", "sector": "Consumer Cyclical"},
-        {"symbol": "SM", "name": "SM Investments Corporation", "last_price": "968.50", "change": "+6.50", "change_pct": "+0.68%", "high": "970.00", "low": "958.00", "volume": "378,920", "sector": "Conglomerates"},
-        {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "33.85", "change": "-0.35", "change_pct": "-1.02%", "high": "34.30", "low": "33.75", "volume": "2,678,500", "sector": "Real Estate"},
-        {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "147.20", "change": "+1.50", "change_pct": "+1.03%", "high": "148.00", "low": "146.00", "volume": "952,300", "sector": "Financial Services"},
-        {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "39.85", "change": "+0.75", "change_pct": "+1.92%", "high": "40.00", "low": "39.10", "volume": "1,725,400", "sector": "Real Estate"},
-        {"symbol": "AC", "name": "Ayala Corporation", "last_price": "758.00", "change": "-7.00", "change_pct": "-0.91%", "high": "766.00", "low": "757.50", "volume": "142,350", "sector": "Conglomerates"},
-        {"symbol": "BPI", "name": "Bank of the Philippine Islands", "last_price": "113.80", "change": "+1.30", "change_pct": "+1.16%", "high": "114.20", "low": "112.60", "volume": "567,400", "sector": "Financial Services"},
-        {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,528.00", "change": "-8.00", "change_pct": "-0.52%", "high": "1,540.00", "low": "1,526.00", "volume": "62,450", "sector": "Communication Services"},
-        {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,095.00", "change": "-17.00", "change_pct": "-0.80%", "high": "2,115.00", "low": "2,090.00", "volume": "22,360", "sector": "Communication Services"},
-        {"symbol": "MER", "name": "Manila Electric Company", "last_price": "387.60", "change": "+3.40", "change_pct": "+0.89%", "high": "388.50", "low": "384.00", "volume": "105,280", "sector": "Utilities"},
-        {"symbol": "URC", "name": "Universal Robina Corporation", "last_price": "130.50", "change": "-1.60", "change_pct": "-1.21%", "high": "132.80", "low": "130.20", "volume": "456,700", "sector": "Consumer Defensive"},
-        {"symbol": "ICT", "name": "International Container Terminal Services, Inc.", "last_price": "269.40", "change": "+3.60", "change_pct": "+1.35%", "high": "270.00", "low": "265.70", "volume": "168,350", "sector": "Industrials"},
-        {"symbol": "MBT", "name": "Metropolitan Bank & Trust Company", "last_price": "56.20", "change": "+0.45", "change_pct": "+0.81%", "high": "56.30", "low": "55.75", "volume": "1,245,800", "sector": "Financial Services"},
-        {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "39.10", "change": "+0.60", "change_pct": "+1.56%", "high": "39.15", "low": "38.45", "volume": "1,248,600", "sector": "Utilities"},
-        {"symbol": "CNVRG", "name": "Converge ICT Solutions Inc.", "last_price": "18.74", "change": "+0.44", "change_pct": "+2.41%", "high": "18.80", "low": "18.30", "volume": "1,587,200", "sector": "Communication Services"},
-        {"symbol": "DMC", "name": "DMCI Holdings, Inc.", "last_price": "11.14", "change": "-0.12", "change_pct": "-1.07%", "high": "11.30", "low": "11.12", "volume": "987,500", "sector": "Industrials"},
-        {"symbol": "FGEN", "name": "First Gen Corporation", "last_price": "21.85", "change": "-0.25", "change_pct": "-1.13%", "high": "22.15", "low": "21.80", "volume": "924,700", "sector": "Utilities"},
-        {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "574.00", "change": "-4.50", "change_pct": "-0.78%", "high": "578.50", "low": "572.50", "volume": "52,480", "sector": "Financial Services"},
-        {"symbol": "JGS", "name": "JG Summit Holdings, Inc.", "last_price": "62.95", "change": "+0.55", "change_pct": "+0.88%", "high": "63.00", "low": "62.40", "volume": "372,800", "sector": "Conglomerates"},
-        {"symbol": "LTG", "name": "LT Group, Inc.", "last_price": "9.65", "change": "-0.15", "change_pct": "-1.53%", "high": "9.82", "low": "9.62", "volume": "1,345,600", "sector": "Conglomerates"},
-        {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "2.94", "change": "+0.08", "change_pct": "+2.80%", "high": "2.95", "low": "2.86", "volume": "6,124,500", "sector": "Real Estate"},
-        {"symbol": "PGOLD", "name": "Puregold Price Club, Inc.", "last_price": "37.20", "change": "+0.35", "change_pct": "+0.95%", "high": "37.40", "low": "36.85", "volume": "287,500", "sector": "Consumer Defensive"},
-        {"symbol": "RLC", "name": "Robinsons Land Corporation", "last_price": "17.28", "change": "+0.34", "change_pct": "+2.01%", "high": "17.30", "low": "16.92", "volume": "924,600", "sector": "Real Estate"},
-        {"symbol": "RRHI", "name": "Robinsons Retail Holdings, Inc.", "last_price": "69.80", "change": "+0.90", "change_pct": "+1.31%", "high": "69.90", "low": "68.90", "volume": "267,800", "sector": "Consumer Cyclical"},
-        {"symbol": "SCC", "name": "Semirara Mining and Power Corporation", "last_price": "32.10", "change": "-0.30", "change_pct": "-0.93%", "high": "32.45", "low": "32.00", "volume": "1,456,700", "sector": "Energy"},
-        {"symbol": "SECB", "name": "Security Bank Corporation", "last_price": "146.50", "change": "+1.50", "change_pct": "+1.03%", "high": "146.80", "low": "145.00", "volume": "378,600", "sector": "Financial Services"},
-        {"symbol": "AGI", "name": "Alliance Global Group, Inc.", "last_price": "11.06", "change": "+0.22", "change_pct": "+2.03%", "high": "11.10", "low": "10.84", "volume": "1,562,400", "sector": "Conglomerates"},
-        {"symbol": "BLOOM", "name": "Bloomberry Resorts Corporation", "last_price": "8.82", "change": "-0.14", "change_pct": "-1.56%", "high": "9.00", "low": "8.80", "volume": "1,345,200", "sector": "Consumer Cyclical"},
-        {"symbol": "CEB", "name": "Cebu Air, Inc.", "last_price": "95.20", "change": "-1.60", "change_pct": "-1.65%", "high": "97.50", "low": "95.00", "volume": "372,800", "sector": "Industrials"},
-        {"symbol": "CHIB", "name": "China Banking Corporation", "last_price": "29.20", "change": "+0.30", "change_pct": "+1.04%", "high": "29.25", "low": "28.90", "volume": "372,800", "sector": "Financial Services"},
-        {"symbol": "DD", "name": "DoubleDragon Properties Corp.", "last_price": "9.36", "change": "+0.16", "change_pct": "+1.74%", "high": "9.38", "low": "9.20", "volume": "485,900", "sector": "Real Estate"},
-        {"symbol": "FPH", "name": "First Philippine Holdings Corporation", "last_price": "79.10", "change": "+0.60", "change_pct": "+0.76%", "high": "79.20", "low": "78.50", "volume": "256,800", "sector": "Conglomerates"},
-        {"symbol": "GMA7", "name": "GMA Network, Inc.", "last_price": "12.72", "change": "+0.12", "change_pct": "+0.95%", "high": "12.75", "low": "12.60", "volume": "586,400", "sector": "Communication Services"},
-        {"symbol": "MPI", "name": "Metro Pacific Investments Corporation", "last_price": "4.36", "change": "+0.11", "change_pct": "+2.59%", "high": "4.38", "low": "4.25", "volume": "3,457,800", "sector": "Industrials"},
-        {"symbol": "PSE", "name": "The Philippine Stock Exchange, Inc.", "last_price": "186.80", "change": "+1.80", "change_pct": "+0.97%", "high": "187.00", "low": "185.00", "volume": "145,600", "sector": "Financial Services"},
-        {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "3.25", "change": "+0.05", "change_pct": "+1.56%", "high": "3.26", "low": "3.20", "volume": "1,356,700", "sector": "Basic Materials"},
-        {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "1.89", "change": "+0.04", "change_pct": "+2.16%", "high": "1.90", "low": "1.85", "volume": "3,785,400", "sector": "Real Estate"},
-        {"symbol": "WLCON", "name": "Wilcon Depot, Inc.", "last_price": "26.15", "change": "+0.35", "change_pct": "+1.36%", "high": "26.20", "low": "25.80", "volume": "485,700", "sector": "Consumer Cyclical"}
-    ]
+    # Starting with previously lower entries, now at the top
+    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "2.14", "change": "+0.25", "change_pct": "+13.23%", "high": "2.20", "low": "1.90", "volume": "4,125,800", "sector": "Real Estate"},
+    {"symbol": "MPI", "name": "Metro Pacific Investments Corporation", "last_price": "4.87", "change": "+0.51", "change_pct": "+11.70%", "high": "4.95", "low": "4.36", "volume": "5,234,600", "sector": "Industrials"},
+    {"symbol": "CNVRG", "name": "Converge ICT Solutions Inc.", "last_price": "20.85", "change": "+2.11", "change_pct": "+11.26%", "high": "21.10", "low": "18.70", "volume": "2,894,500", "sector": "Communication Services"},
+    {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "3.32", "change": "+0.38", "change_pct": "+12.93%", "high": "3.40", "low": "2.90", "volume": "7,850,200", "sector": "Real Estate"},
+    {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "3.86", "change": "+0.61", "change_pct": "+18.77%", "high": "3.90", "low": "3.25", "volume": "2,875,400", "sector": "Basic Materials"},
+    
+    # Original entries with updated values
+    {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "278.60", "change": "+26.20", "change_pct": "+10.38%", "high": "280.40", "low": "252.50", "volume": "2,567,900", "sector": "Consumer Cyclical"},
+    {"symbol": "SM", "name": "SM Investments Corporation", "last_price": "1024.75", "change": "+56.25", "change_pct": "+5.81%", "high": "1030.00", "low": "968.00", "volume": "496,750", "sector": "Conglomerates"},
+    {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "36.25", "change": "+2.40", "change_pct": "+7.09%", "high": "36.50", "low": "33.80", "volume": "3,542,800", "sector": "Real Estate"},
+    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "155.80", "change": "+8.60", "change_pct": "+5.84%", "high": "156.20", "low": "147.00", "volume": "1,435,600", "sector": "Financial Services"},
+    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "43.75", "change": "+3.90", "change_pct": "+9.79%", "high": "44.10", "low": "39.80", "volume": "2,345,800", "sector": "Real Estate"},
+    {"symbol": "AC", "name": "Ayala Corporation", "last_price": "793.50", "change": "+35.50", "change_pct": "+4.68%", "high": "795.00", "low": "758.00", "volume": "187,920", "sector": "Conglomerates"},
+    {"symbol": "BPI", "name": "Bank of the Philippine Islands", "last_price": "121.40", "change": "+7.60", "change_pct": "+6.68%", "high": "122.50", "low": "113.80", "volume": "785,300", "sector": "Financial Services"},
+    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1587.50", "change": "+59.50", "change_pct": "+3.89%", "high": "1590.00", "low": "1528.00", "volume": "85,740", "sector": "Communication Services"},
+    {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2176.25", "change": "+81.25", "change_pct": "+3.88%", "high": "2180.00", "low": "2095.00", "volume": "34,580", "sector": "Communication Services"},
+    
+    # More original entries
+    {"symbol": "MER", "name": "Manila Electric Company", "last_price": "412.80", "change": "+25.20", "change_pct": "+6.50%", "high": "415.00", "low": "387.60", "volume": "168,450", "sector": "Utilities"},
+    {"symbol": "URC", "name": "Universal Robina Corporation", "last_price": "142.75", "change": "+12.25", "change_pct": "+9.39%", "high": "143.80", "low": "130.50", "volume": "642,900", "sector": "Consumer Defensive"},
+    {"symbol": "ICT", "name": "International Container Terminal Services, Inc.", "last_price": "295.60", "change": "+26.20", "change_pct": "+9.72%", "high": "297.80", "low": "269.40", "volume": "245,780", "sector": "Industrials"},
+    {"symbol": "MBT", "name": "Metropolitan Bank & Trust Company", "last_price": "62.85", "change": "+6.65", "change_pct": "+11.83%", "high": "63.10", "low": "56.20", "volume": "1,875,400", "sector": "Financial Services"},
+    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "42.35", "change": "+3.25", "change_pct": "+8.31%", "high": "42.80", "low": "39.10", "volume": "1,654,200", "sector": "Utilities"},
+    
+    # 10 new stocks from previous update
+    {"symbol": "FOOD", "name": "Alliance Select Foods International", "last_price": "0.95", "change": "+0.08", "change_pct": "+9.19%", "high": "0.97", "low": "0.87", "volume": "5,234,600", "sector": "Consumer Defensive"},
+    {"symbol": "CLI", "name": "Cebu Landmasters, Inc.", "last_price": "3.42", "change": "+0.24", "change_pct": "+7.55%", "high": "3.45", "low": "3.18", "volume": "1,243,800", "sector": "Real Estate"},
+    {"symbol": "NOW", "name": "NOW Corporation", "last_price": "2.45", "change": "+0.32", "change_pct": "+15.02%", "high": "2.58", "low": "2.13", "volume": "8,762,300", "sector": "Technology"},
+    {"symbol": "ACEN", "name": "ACEN Corporation", "last_price": "6.87", "change": "+0.63", "change_pct": "+10.09%", "high": "6.95", "low": "6.24", "volume": "5,432,100", "sector": "Utilities"},
+    {"symbol": "DITO", "name": "DITO CME Holdings Corp.", "last_price": "3.56", "change": "+0.48", "change_pct": "+15.58%", "high": "3.72", "low": "3.08", "volume": "12,435,600", "sector": "Communication Services"},
+    {"symbol": "MONDE", "name": "Monde Nissin Corporation", "last_price": "14.28", "change": "+0.86", "change_pct": "+6.41%", "high": "14.32", "low": "13.42", "volume": "2,345,700", "sector": "Consumer Defensive"},
+    {"symbol": "ALLHC", "name": "AyalaLand Logistics Holdings Corp.", "last_price": "4.12", "change": "+0.37", "change_pct": "+9.87%", "high": "4.18", "low": "3.75", "volume": "1,876,500", "sector": "Real Estate"},
+    {"symbol": "LR", "name": "Leisure & Resorts World Corp.", "last_price": "2.37", "change": "+0.22", "change_pct": "+10.23%", "high": "2.45", "low": "2.15", "volume": "4,567,800", "sector": "Consumer Cyclical"},
+    {"symbol": "EEI", "name": "EEI Corporation", "last_price": "7.85", "change": "+0.64", "change_pct": "+8.88%", "high": "7.92", "low": "7.21", "volume": "976,500", "sector": "Industrials"},
+    {"symbol": "NIKL", "name": "Nickel Asia Corporation", "last_price": "5.73", "change": "+0.52", "change_pct": "+9.99%", "high": "5.80", "low": "5.21", "volume": "3,682,400", "sector": "Basic Materials"},
+    
+    # 10 additional new stocks
+    {"symbol": "TECH", "name": "Cirtek Holdings Philippines Corp.", "last_price": "4.28", "change": "+0.45", "change_pct": "+11.75%", "high": "4.35", "low": "3.83", "volume": "3,256,700", "sector": "Technology"},
+    {"symbol": "SBS", "name": "SBS Philippines Corporation", "last_price": "8.74", "change": "+0.68", "change_pct": "+8.44%", "high": "8.85", "low": "8.06", "volume": "1,342,600", "sector": "Basic Materials"},
+    {"symbol": "AEV", "name": "Aboitiz Equity Ventures, Inc.", "last_price": "56.40", "change": "+3.85", "change_pct": "+7.32%", "high": "57.10", "low": "52.55", "volume": "854,300", "sector": "Conglomerates"},
+    {"symbol": "DNL", "name": "D&L Industries, Inc.", "last_price": "7.92", "change": "+0.54", "change_pct": "+7.32%", "high": "8.05", "low": "7.38", "volume": "1,567,800", "sector": "Basic Materials"},
+    {"symbol": "MAC", "name": "MacroAsia Corporation", "last_price": "5.67", "change": "+0.74", "change_pct": "+15.01%", "high": "5.85", "low": "4.93", "volume": "4,893,200", "sector": "Industrials"},
+    {"symbol": "VITA", "name": "Vitarich Corporation", "last_price": "0.77", "change": "+0.08", "change_pct": "+11.59%", "high": "0.79", "low": "0.69", "volume": "12,782,500", "sector": "Consumer Defensive"},
+    {"symbol": "AXLM", "name": "Axelum Resources Corp.", "last_price": "2.84", "change": "+0.26", "change_pct": "+10.08%", "high": "2.90", "low": "2.58", "volume": "3,456,700", "sector": "Consumer Defensive"},
+    {"symbol": "PHRS", "name": "Philippine Realty and Holdings Corp.", "last_price": "0.57", "change": "+0.07", "change_pct": "+14.00%", "high": "0.58", "low": "0.50", "volume": "8,975,600", "sector": "Real Estate"},
+    {"symbol": "STI", "name": "STI Education Systems Holdings, Inc.", "last_price": "0.42", "change": "+0.04", "change_pct": "+10.53%", "high": "0.43", "low": "0.38", "volume": "6,789,500", "sector": "Consumer Services"},
+    {"symbol": "SOC", "name": "SOCResources, Inc.", "last_price": "0.84", "change": "+0.09", "change_pct": "+12.00%", "high": "0.86", "low": "0.75", "volume": "4,356,800", "sector": "Energy"}
+]
    
     
     if request.method == "POST":
