@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - Stock Market Pro</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #0056b3;
+        --secondary-color: #003366;
+        --accent-color: #00a8e8;
+        --profit-color: #00c853;
+        --loss-color: #ff3d00;
+        --dark-color: #1a1f35;
+        --light-color: #f8f9fa;
+        --success-color: #4cc9f0;
+        --error-color: #f72585;
+        --chart-bg: rgba(0, 168, 232, 0.1);
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #000;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Animated Background */
+      .background-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .background-image {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.15;
+        animation: zoomPan 30s infinite alternate;
+      }
+
+      @keyframes zoomPan {
+        0% {
+          transform: scale(1) translateX(0) translateY(0);
+        }
+        50% {
+          transform: scale(1.05) translateX(-5%) translateY(-3%);
+        }
+        100% {
+          transform: scale(1.1) translateX(5%) translateY(3%);
+        }
+      }
+
+      .market-ticker {
+        background: var(--secondary-color);
+        color: white;
+        padding: 8px 0;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 10;
+      }
+
+      .ticker-content {
+        display: inline-block;
+        animation: ticker 60s linear infinite;
+      }
+
+      @keyframes ticker {
+        0% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+
+      .stock-item {
+        display: inline-block;
+        margin: 0 20px;
+        padding: 0 10px;
+      }
+
+      .stock-symbol {
+        font-weight: 600;
+        color: var(--accent-color);
+      }
+
+      .stock-price.up {
+        color: var(--profit-color);
+      }
+
+      .stock-price.down {
+        color: var(--loss-color);
+      }
+
+      .registration-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+      }
+
+      .registration-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+      }
+
+      .registration-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .registration-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+      }
+
+      .registration-header h2 {
+        color: var(--secondary-color);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+      }
+
+      .registration-header p {
+        color: #6c757d;
+        font-weight: 400;
+        max-width: 80%;
+        margin: 0 auto;
+      }
+
+      .logo-container {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0, 86, 179, 0.3);
+      }
+
+      .logo-icon {
+        color: white;
+        font-size: 2.5rem;
+      }
+
+      .form-control {
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+
+      .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.15);
+        background-color: white;
+      }
+
+      .form-floating label {
+        color: #6c757d;
+        padding: 0.5rem 1rem;
+      }
+
+      .form-floating > .form-control:focus ~ label {
+        color: var(--accent-color);
+      }
+
+      .btn-register {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color) 0%,
+          var(--secondary-color) 100%
+        );
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
+        text-transform: uppercase;
+        font-size: 0.95rem;
+      }
+
+      .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
+        background: linear-gradient(
+          135deg,
+          var(--secondary-color) 0%,
+          var(--primary-color) 100%
+        );
+      }
+
+      .btn-register:active {
+        transform: translateY(0);
+      }
+
+      .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #6c757d;
+        font-size: 0.95rem;
+      }
+
+      .login-link a {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .login-link a:hover {
+        color: var(--secondary-color);
+        text-decoration: underline;
+      }
+
+      .input-group-text {
+        background-color: white;
+        border-right: none;
+        color: var(--secondary-color);
+      }
+
+      .input-with-icon .form-control {
+        border-left: none;
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 5;
+      }
+
+      .password-container {
+        position: relative;
+      }
+
+      .progress {
+        height: 4px;
+        margin-top: 5px;
+        border-radius: 2px;
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      .progress-bar {
+        transition: width 0.3s ease;
+      }
+
+      .password-strength {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        text-align: right;
+        color: #6c757d;
+      }
+
+      .dob-container {
+        display: flex;
+        gap: 10px;
+      }
+
+      .dob-select {
+        flex: 1;
+      }
+
+      .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      .form-check-label a {
+        color: var(--primary-color);
+        text-decoration: none;
+      }
+
+      .form-check-label a:hover {
+        text-decoration: underline;
+      }
+
+      /* Stock chart decoration */
+      .chart-decoration {
+        position: absolute;
+        width: 150px;
+        height: 80px;
+        opacity: 0.2;
+        z-index: -1;
+      }
+
+      .chart-1 {
+        top: 20%;
+        left: -50px;
+      }
+
+      .chart-2 {
+        bottom: 10%;
+        right: -50px;
+      }
+
+      /* Floating stock indicators */
+      .floating-stock {
+        position: absolute;
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 0.7rem;
+        z-index: -1;
+      }
+
+      /* Animation classes */
+      .fade-in {
+        animation: fadeIn 0.8s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 168, 232, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(0, 168, 232, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 168, 232, 0);
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .registration-container {
+          padding: 1.5rem;
+          margin: 1rem;
+          backdrop-filter: none;
+          background: white;
+        }
+
+        .dob-container {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .registration-header h2 {
+          font-size: 1.8rem;
+        }
+
+        .registration-header p {
+          max-width: 100%;
+        }
+
+        .background-image {
+          animation: zoomPanMobile 30s infinite alternate;
+        }
+      }
+
+      @keyframes zoomPanMobile {
+        0% {
+          transform: scale(1.2) translateX(0) translateY(0);
+        }
+        50% {
+          transform: scale(1.25) translateX(-5%) translateY(-3%);
+        }
+        100% {
+          transform: scale(1.3) translateX(5%) translateY(3%);
+        }
+      }
+
+      /* Modal enhancements */
+      .modal-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        border-bottom: none;
+      }
+
+      .modal-title {
+        font-weight: 600;
+      }
+
+      .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-body {
+        padding: 1.5rem;
+      }
+
+      .modal-body h6 {
+        color: var(--secondary-color);
+        margin-top: 1rem;
+      }
+
+      .modal-body p {
+        color: #555;
+        font-size: 0.95rem;
+      }
+
+      .modal-footer {
+        border-top: 1px solid #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Animated Background -->
+    <div class="background-container">
+      <div class="background-image"></div>
+      <!-- Floating stock indicators -->
+      <div class="floating-stock" style="top: 10%; left: 5%">NASDAQ +1.2%</div>
+      <div class="floating-stock" style="top: 15%; right: 10%">DOW +0.8%</div>
+      <div class="floating-stock" style="bottom: 20%; left: 15%">
+        S&P 500 +1.0%
+      </div>
+      <div class="floating-stock" style="bottom: 25%; right: 5%">BTC +3.5%</div>
+    </div>
+
+    <!-- Market Ticker -->
+    <div class="market-ticker">
+      <div class="ticker-content" id="tickerContent">
+        <!-- Ticker items will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Registration Section -->
+    <div class="container my-auto py-5 fade-in">
+      <div class="registration-container">
+        <!-- Decorative stock charts -->
+        <canvas class="chart-decoration chart-1" id="decorationChart1"></canvas>
+        <canvas class="chart-decoration chart-2" id="decorationChart2"></canvas>
+
+        <div class="registration-header">
+          <div class="logo-container pulse">
+            <i class="bi bi-graph-up-arrow logo-icon"></i>
+          </div>
+          <h2>Join Stock Market Pro</h2>
+          <p>
+            Register to access real-time market data, advanced trading tools,
+            and expert analysis
+          </p>
+        </div>
+
+        <form id="registrationForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="firstName"
+                  placeholder="First Name"
+                  required
+                />
+                <label for="firstName">First Name</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="lastName"
+                  placeholder="Last Name"
+                  required
+                />
+                <label for="lastName">Last Name</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-floating mt-3">
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              placeholder="name@example.com"
+              required
+            />
+            <label for="email">Email Address</label>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Date of Birth</label>
+            <div class="dob-container">
+              <select class="form-select dob-select" id="birthMonth" required>
+                <option value="" disabled selected>Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+
+              <select class="form-select dob-select" id="birthDay" required>
+                <option value="" disabled selected>Day</option>
+                <!-- Days will be populated by JavaScript -->
+              </select>
+
+              <select class="form-select dob-select" id="birthYear" required>
+                <option value="" disabled selected>Year</option>
+                <!-- Years will be populated by JavaScript -->
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-3 password-container">
+            <div class="form-floating">
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                placeholder="Password"
+                required
+              />
+              <label for="password">Password</label>
+              <i
+                class="bi bi-eye-slash password-toggle"
+                id="togglePassword"
+              ></i>
+            </div>
+            <div class="progress mt-2">
+              <div
+                class="progress-bar"
+                id="passwordStrength"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <div class="password-strength" id="passwordStrengthText">Weak</div>
+          </div>
+
+          <div class="form-check mt-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="termsCheck"
+              required
+            />
+            <label class="form-check-label" for="termsCheck">
+              I agree to the
+              <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal"
+                >Terms and Conditions</a
+              >
+              and
+              <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal"
+                >Privacy Policy</a
+              >
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mt-4 btn-register">
+            <i class="bi bi-lock-fill me-2"></i>Create Trading Account
+          </button>
+        </form>
+
+        <div class="login-link">
+          Already have an account?
+          <a href="/login">Sign in to your portfolio</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms and Conditions Modal -->
+    <div
+      class="modal fade"
+      id="termsModal"
+      tabindex="-1"
+      aria-labelledby="termsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="termsModalLabel">
+              <i class="bi bi-file-text me-2"></i>Terms and Conditions
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <h6>1. Acceptance of Terms</h6>
+            <p>
+              By accessing or using Stock Market Pro services, you agree to be
+              bound by these Terms and Conditions and our Trading Policy.
+            </p>
+
+            <h6>2. Account Registration</h6>
+            <p>
+              You must provide accurate and complete information when creating
+              an account. You are responsible for maintaining the
+              confidentiality of your account credentials and all trading
+              activity.
+            </p>
+
+            <h6>3. Market Risks</h6>
+            <p>
+              Trading securities involves risk of loss. Past performance is not
+              indicative of future results. You acknowledge that you understand
+              these risks.
+            </p>
+
+            <h6>4. User Responsibilities</h6>
+            <p>
+              You agree to comply with all applicable laws and regulations
+              regarding securities trading. Unauthorized sharing of accounts or
+              market manipulation is strictly prohibited.
+            </p>
+
+            <h6>5. Service Modifications</h6>
+            <p>
+              We reserve the right to modify or discontinue the service at any
+              time without notice. Market data is provided in real-time but is
+              not guaranteed to be accurate or complete.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary">I Understand</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div
+      class="modal fade"
+      id="privacyModal"
+      tabindex="-1"
+      aria-labelledby="privacyModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="privacyModalLabel">
+              <i class="bi bi-shield-lock me-2"></i>Privacy Policy
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <h6>1. Information Collection</h6>
+            <p>
+              We collect personal and financial information necessary to provide
+              our trading services and comply with regulatory requirements.
+            </p>
+
+            <h6>2. Data Usage</h6>
+            <p>
+              Your information is used to operate your account, provide market
+              data, execute trades, and improve our services. We do not sell
+              your personal information to third parties.
+            </p>
+
+            <h6>3. Security Measures</h6>
+            <p>
+              We implement industry-standard security measures including
+              encryption and two-factor authentication to protect your account
+              and data.
+            </p>
+
+            <h6>4. Regulatory Compliance</h6>
+            <p>
+              As a registered brokerage, we may be required to share information
+              with regulatory authorities as required by law.
+            </p>
+
+            <h6>5. Your Rights</h6>
+            <p>
+              You have the right to access, correct, or delete your personal
+              information, subject to regulatory record-keeping requirements.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize decorative charts
+        initDecorationCharts();
+
+        // Initialize market ticker
+        initMarketTicker();
+
+        // Animate elements on load
+        gsap.from(".logo-container", {
+          duration: 1,
+          scale: 0.5,
+          opacity: 0,
+          delay: 0.3,
+          ease: "back.out(1.7)",
+        });
+
+        gsap.from(".registration-header h2, .registration-header p", {
+          duration: 0.8,
+          y: 20,
+          opacity: 0,
+          delay: 0.5,
+          stagger: 0.2,
+        });
+
+        gsap.from("#registrationForm", {
+          duration: 0.8,
+          y: 20,
+          opacity: 0,
+          delay: 0.8,
+        });
+
+        // Animate floating stock indicators
+        gsap.to(".floating-stock:nth-child(1)", {
+          duration: 15,
+          x: -20,
+          y: 10,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        gsap.to(".floating-stock:nth-child(2)", {
+          duration: 20,
+          x: 30,
+          y: -15,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        gsap.to(".floating-stock:nth-child(3)", {
+          duration: 18,
+          x: -15,
+          y: 20,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        gsap.to(".floating-stock:nth-child(4)", {
+          duration: 25,
+          x: 25,
+          y: -10,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        // Populate birth day and year dropdowns
+        const birthYear = document.getElementById("birthYear");
+        const birthDay = document.getElementById("birthDay");
+        const currentYear = new Date().getFullYear();
+
+        // Populate years (from current year - 100 to current year - 18)
+        for (let year = currentYear - 18; year >= currentYear - 100; year--) {
+          const option = document.createElement("option");
+          option.value = year;
+          option.textContent = year;
+          birthYear.appendChild(option);
+        }
+
+        // Populate days (1-31)
+        for (let day = 1; day <= 31; day++) {
+          const option = document.createElement("option");
+          option.value = day;
+          option.textContent = day;
+          birthDay.appendChild(option);
+        }
+
+        // Password visibility toggle
+        const togglePassword = document.getElementById("togglePassword");
+        const password = document.getElementById("password");
+
+        togglePassword.addEventListener("click", function () {
+          const type =
+            password.getAttribute("type") === "password" ? "text" : "password";
+          password.setAttribute("type", type);
+          this.classList.toggle("bi-eye");
+          this.classList.toggle("bi-eye-slash");
+        });
+
+        // Password strength indicator
+        password.addEventListener("input", function () {
+          const strengthBar = document.getElementById("passwordStrength");
+          const strengthText = document.getElementById("passwordStrengthText");
+          const strength = calculatePasswordStrength(this.value);
+
+          strengthBar.style.width = strength.percentage + "%";
+          strengthBar.className = "progress-bar " + strength.class;
+          strengthText.textContent = strength.text;
+          strengthText.style.color = strength.color;
+        });
+
+        function calculatePasswordStrength(password) {
+          let strength = 0;
+          let text = "Weak";
+          let color = "#dc3545"; // Red
+          let className = "bg-danger";
+
+          // Length check
+          if (password.length > 0) strength += 10;
+          if (password.length >= 8) strength += 20;
+          if (password.length >= 12) strength += 20;
+
+          // Complexity checks
+          if (/[A-Z]/.test(password)) strength += 15; // Uppercase letters
+          if (/[0-9]/.test(password)) strength += 15; // Numbers
+          if (/[^A-Za-z0-9]/.test(password)) strength += 20; // Special chars
+
+          // Determine strength level
+          if (strength >= 80) {
+            text = "Very Strong";
+            color = "#28a745"; // Green
+            className = "bg-success";
+          } else if (strength >= 60) {
+            text = "Strong";
+            color = "#17a2b8"; // Teal
+            className = "bg-info";
+          } else if (strength >= 40) {
+            text = "Good";
+            color = "#ffc107"; // Yellow
+            className = "bg-warning";
+          }
+
+          return {
+            percentage: strength,
+            text: text,
+            color: color,
+            class: className,
+          };
+        }
+
+        // Form submission
+        const registrationForm = document.getElementById("registrationForm");
+
+        registrationForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // Validate form
+          const firstName = document.getElementById("firstName").value.trim();
+          const lastName = document.getElementById("lastName").value.trim();
+          const email = document.getElementById("email").value.trim();
+          const passwordValue = document.getElementById("password").value;
+          const birthMonth = document.getElementById("birthMonth").value;
+          const birthDay = document.getElementById("birthDay").value;
+          const birthYear = document.getElementById("birthYear").value;
+
+          if (
+            !firstName ||
+            !lastName ||
+            !email ||
+            !passwordValue ||
+            !birthMonth ||
+            !birthDay ||
+            !birthYear
+          ) {
+            Swal.fire({
+              icon: "error",
+              title: "Incomplete Form",
+              text: "Please fill in all required fields to continue!",
+              confirmButtonColor: "#0056b3",
+            });
+            return;
+          }
+
+          if (!document.getElementById("termsCheck").checked) {
+            Swal.fire({
+              icon: "error",
+              title: "Terms Not Accepted",
+              text: "You must agree to the Terms and Conditions and Privacy Policy to register for a trading account.",
+              confirmButtonColor: "#0056b3",
+            });
+            return;
+          }
+
+          // Validate email format
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            Swal.fire({
+              icon: "error",
+              title: "Invalid Email",
+              text: "Please enter a valid email address for your trading account.",
+              confirmButtonColor: "#0056b3",
+            });
+            return;
+          }
+
+          // Validate password strength
+          const strength = calculatePasswordStrength(passwordValue);
+          if (strength.percentage < 40) {
+            Swal.fire({
+              icon: "error",
+              title: "Weak Password",
+              html: "Your password is too weak for a trading account. Please choose a stronger password with:<ul><li>At least 8 characters</li><li>Uppercase and lowercase letters</li><li>Numbers and/or special characters</li></ul>",
+              confirmButtonColor: "#0056b3",
+            });
+            return;
+          }
+
+          // Simulate form submission with more trading-specific messaging
+          Swal.fire({
+            title: "Creating Trading Account...",
+            html: "We're setting up your brokerage account and performing identity verification.",
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+
+              // Simulate API call with progress updates
+              let progress = 0;
+              const timer = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 100) {
+                  clearInterval(timer);
+                  Swal.fire({
+                    icon: "success",
+                    title: "Account Ready for Trading!",
+                    html: "<div class='text-center'><i class='bi bi-check-circle-fill text-success' style='font-size: 3rem;'></i><p class='mt-3'>Your Stock Market Pro account has been successfully created with a starting balance of $10,000 in demo funds!</p></div>",
+                    confirmButtonColor: "#0056b3",
+                    confirmButtonText: "Go to Dashboard",
+                  }).then(() => {
+                    // Redirect to dashboard or home page
+                    window.location.href = "/dashboard";
+                  });
+                } else {
+                  Swal.update({
+                    html: `We're setting up your brokerage account and performing identity verification.<br><br>
+                          <div class="progress mt-2" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: ${progress}%"></div>
+                          </div>
+                          <small class="text-muted">${Math.round(
+                            progress
+                          )}% complete</small>`,
+                  });
+                }
+              }, 500);
+            },
+          });
+        });
+
+        // Initialize market ticker with sample data
+        function initMarketTicker() {
+          const stocks = [
+            { symbol: "AAPL", price: 185.34, change: 1.23 },
+            { symbol: "MSFT", price: 402.56, change: -2.45 },
+            { symbol: "GOOGL", price: 152.78, change: 0.87 },
+            { symbol: "AMZN", price: 178.95, change: 3.21 },
+            { symbol: "TSLA", price: 172.63, change: -5.32 },
+            { symbol: "NVDA", price: 903.56, change: 12.34 },
+            { symbol: "META", price: 485.38, change: 4.56 },
+            { symbol: "BTC-USD", price: 63452.78, change: 1245.32 },
+          ];
+
+          const tickerContent = document.getElementById("tickerContent");
+
+          stocks.forEach((stock) => {
+            const changePercent = (
+              (Math.abs(stock.change) / stock.price) *
+              100
+            ).toFixed(2);
+            const isUp = stock.change >= 0;
+
+            const stockItem = document.createElement("div");
+            stockItem.className = "stock-item";
+
+            stockItem.innerHTML = `
+              <span class="stock-symbol">${stock.symbol}</span>
+              <span class="stock-price ${isUp ? "up" : "down"}">
+                $${stock.price.toFixed(2)} 
+                <span class="stock-change">
+                  ${isUp ? "+" : ""}${stock.change.toFixed(
+              2
+            )} (${changePercent}%)
+                  <i class="bi bi-arrow-${isUp ? "up" : "down"}-right"></i>
+                </span>
+              </span>
+            `;
+
+            tickerContent.appendChild(stockItem);
+          });
+
+          // Clone the content for seamless looping
+          const clone = tickerContent.cloneNode(true);
+          document.querySelector(".market-ticker").appendChild(clone);
+        }
+
+        // Initialize decorative stock charts
+        function initDecorationCharts() {
+          // Chart 1 (Bullish)
+          const ctx1 = document
+            .getElementById("decorationChart1")
+            .getContext("2d");
+          new Chart(ctx1, {
+            type: "line",
+            data: {
+              labels: ["", "", "", "", "", "", ""],
+              datasets: [
+                {
+                  data: [30, 50, 40, 60, 50, 70, 80],
+                  borderColor: "#00c853",
+                  borderWidth: 2,
+                  tension: 0.4,
+                  fill: false,
+                  pointRadius: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false,
+                },
+              },
+              scales: {
+                x: {
+                  display: false,
+                },
+                y: {
+                  display: false,
+                },
+              },
+            },
+          });
+
+          // Chart 2 (Volatile)
+          const ctx2 = document
+            .getElementById("decorationChart2")
+            .getContext("2d");
+          new Chart(ctx2, {
+            type: "line",
+            data: {
+              labels: ["", "", "", "", "", "", ""],
+              datasets: [
+                {
+                  data: [80, 60, 90, 50, 70, 40, 60],
+                  borderColor: "#ff3d00",
+                  borderWidth: 2,
+                  tension: 0.4,
+                  fill: false,
+                  pointRadius: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false,
+                },
+              },
+              scales: {
+                x: {
+                  display: false,
+                },
+                y: {
+                  display: false,
+                },
+              },
+            },
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

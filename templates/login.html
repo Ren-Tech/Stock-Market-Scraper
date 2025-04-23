@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Stock Market Pro</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #0056b3;
+        --secondary-color: #003366;
+        --accent-color: #00a8e8;
+        --profit-color: #00c853;
+        --loss-color: #ff3d00;
+        --dark-color: #1a1f35;
+        --light-color: #f8f9fa;
+        --success-color: #4cc9f0;
+        --error-color: #f72585;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #000;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Animated Background */
+      .background-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .background-image {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.15;
+        animation: zoomPan 30s infinite alternate;
+      }
+
+      @keyframes zoomPan {
+        0% {
+          transform: scale(1) translateX(0) translateY(0);
+        }
+        50% {
+          transform: scale(1.05) translateX(-5%) translateY(-3%);
+        }
+        100% {
+          transform: scale(1.1) translateX(5%) translateY(3%);
+        }
+      }
+
+      /* Market Ticker */
+      .market-ticker {
+        background: var(--secondary-color);
+        color: white;
+        padding: 8px 0;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 10;
+      }
+
+      .ticker-content {
+        display: inline-block;
+        animation: ticker 60s linear infinite;
+      }
+
+      @keyframes ticker {
+        0% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+
+      .stock-item {
+        display: inline-block;
+        margin: 0 20px;
+        padding: 0 10px;
+      }
+
+      .stock-symbol {
+        font-weight: 600;
+        color: var(--accent-color);
+      }
+
+      .stock-price.up {
+        color: var(--profit-color);
+      }
+
+      .stock-price.down {
+        color: var(--loss-color);
+      }
+
+      .login-container {
+        max-width: 450px;
+        margin: 2rem auto;
+        padding: 2.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+      }
+
+      .login-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+      }
+
+      .login-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+      }
+
+      .login-header h2 {
+        color: var(--secondary-color);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+      }
+
+      .login-header p {
+        color: #6c757d;
+        font-weight: 400;
+      }
+
+      .logo-container {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0, 86, 179, 0.3);
+      }
+
+      .logo-icon {
+        color: white;
+        font-size: 2.5rem;
+      }
+
+      .form-control {
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+
+      .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.15);
+        background-color: white;
+      }
+
+      .form-floating label {
+        color: #6c757d;
+        padding: 0.5rem 1rem;
+      }
+
+      .btn-login {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color) 0%,
+          var(--secondary-color) 100%
+        );
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
+        text-transform: uppercase;
+        font-size: 0.95rem;
+      }
+
+      .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
+        background: linear-gradient(
+          135deg,
+          var(--secondary-color) 0%,
+          var(--primary-color) 100%
+        );
+      }
+
+      .btn-login:active {
+        transform: translateY(0);
+      }
+
+      .register-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #6c757d;
+        font-size: 0.95rem;
+      }
+
+      .register-link a {
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .register-link a:hover {
+        color: var(--secondary-color);
+        text-decoration: underline;
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 5;
+      }
+
+      .password-container {
+        position: relative;
+      }
+
+      .forgot-password {
+        text-align: right;
+        margin-top: 0.5rem;
+      }
+
+      .forgot-password a {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .forgot-password a:hover {
+        color: var(--primary-color);
+      }
+
+      .social-login {
+        margin-top: 1.5rem;
+        text-align: center;
+      }
+
+      .social-divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      .social-divider::before,
+      .social-divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .social-divider::before {
+        margin-right: 1rem;
+      }
+
+      .social-divider::after {
+        margin-left: 1rem;
+      }
+
+      .social-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      .social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+      }
+
+      .social-btn:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+      }
+
+      /* Floating stock indicators */
+      .floating-stock {
+        position: absolute;
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 0.7rem;
+        z-index: -1;
+      }
+
+      /* Animation classes */
+      .fade-in {
+        animation: fadeIn 0.8s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 168, 232, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(0, 168, 232, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 168, 232, 0);
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .login-container {
+          padding: 1.5rem;
+          margin: 1rem;
+          backdrop-filter: none;
+          background: white;
+        }
+
+        .background-image {
+          animation: zoomPanMobile 30s infinite alternate;
+        }
+      }
+
+      @keyframes zoomPanMobile {
+        0% {
+          transform: scale(1.2) translateX(0) translateY(0);
+        }
+        50% {
+          transform: scale(1.25) translateX(-5%) translateY(-3%);
+        }
+        100% {
+          transform: scale(1.3) translateX(5%) translateY(3%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Animated Background -->
+    <div class="background-container">
+      <div class="background-image"></div>
+      <!-- Floating stock indicators -->
+      <div class="floating-stock" style="top: 10%; left: 5%">NASDAQ +1.2%</div>
+      <div class="floating-stock" style="top: 15%; right: 10%">DOW +0.8%</div>
+      <div class="floating-stock" style="bottom: 20%; left: 15%">
+        S&P 500 +1.0%
+      </div>
+      <div class="floating-stock" style="bottom: 25%; right: 5%">BTC +3.5%</div>
+    </div>
+
+    <!-- Market Ticker -->
+    <div class="market-ticker">
+      <div class="ticker-content" id="tickerContent">
+        <!-- Ticker items will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Login Section -->
+    <div class="container my-auto py-5 fade-in">
+      <div class="login-container">
+        <div class="login-header">
+          <div class="logo-container pulse">
+            <i class="bi bi-graph-up-arrow logo-icon"></i>
+          </div>
+          <h2>Welcome to Stock Market Pro</h2>
+          <p>Sign in to access your trading portfolio</p>
+        </div>
+
+        <form id="loginForm">
+          <div class="form-floating mb-3">
+            <input
+              type="email"
+              class="form-control"
+              id="loginEmail"
+              placeholder="name@example.com"
+              required
+            />
+            <label for="loginEmail">Email Address</label>
+          </div>
+
+          <div class="password-container mb-2">
+            <div class="form-floating">
+              <input
+                type="password"
+                class="form-control"
+                id="loginPassword"
+                placeholder="Password"
+                required
+              />
+              <label for="loginPassword">Password</label>
+              <i
+                class="bi bi-eye-slash password-toggle"
+                id="toggleLoginPassword"
+              ></i>
+            </div>
+            <div class="forgot-password">
+              <a href="/forgot-password">Forgot password?</a>
+            </div>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="rememberMe" />
+            <label class="form-check-label" for="rememberMe">
+              Remember this device
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 btn-login">
+            <i class="bi bi-lock-fill me-2"></i>Sign In
+          </button>
+
+          <div class="social-divider">Or continue with</div>
+
+          <div class="social-buttons">
+            <button type="button" class="social-btn">
+              <i class="bi bi-google" style="color: #db4437"></i>
+            </button>
+            <button type="button" class="social-btn">
+              <i class="bi bi-apple" style="color: #000000"></i>
+            </button>
+            <button type="button" class="social-btn">
+              <i class="bi bi-facebook" style="color: #1877f2"></i>
+            </button>
+          </div>
+        </form>
+
+        <div class="register-link">
+          Don't have an account? <a href="/register">Open a trading account</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize market ticker
+        initMarketTicker();
+
+        // Animate elements on load
+        gsap.from(".logo-container", {
+          duration: 1,
+          scale: 0.5,
+          opacity: 0,
+          delay: 0.3,
+          ease: "back.out(1.7)",
+        });
+
+        gsap.from(".login-header h2, .login-header p", {
+          duration: 0.8,
+          y: 20,
+          opacity: 0,
+          delay: 0.5,
+          stagger: 0.2,
+        });
+
+        gsap.from("#loginForm", {
+          duration: 0.8,
+          y: 20,
+          opacity: 0,
+          delay: 0.8,
+        });
+
+        // Animate floating stock indicators
+        gsap.to(".floating-stock:nth-child(1)", {
+          duration: 15,
+          x: -20,
+          y: 10,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        gsap.to(".floating-stock:nth-child(2)", {
+          duration: 20,
+          x: 30,
+          y: -15,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        gsap.to(".floating-stock:nth-child(3)", {
+          duration: 18,
+          x: -15,
+          y: 20,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        gsap.to(".floating-stock:nth-child(4)", {
+          duration: 25,
+          x: 25,
+          y: -10,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+
+        // Password visibility toggle
+        const togglePassword = document.getElementById("toggleLoginPassword");
+        const password = document.getElementById("loginPassword");
+
+        togglePassword.addEventListener("click", function () {
+          const type =
+            password.getAttribute("type") === "password" ? "text" : "password";
+          password.setAttribute("type", type);
+          this.classList.toggle("bi-eye");
+          this.classList.toggle("bi-eye-slash");
+        });
+
+        // Form submission
+        const loginForm = document.getElementById("loginForm");
+
+        loginForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // Get form values
+          const email = document.getElementById("loginEmail").value.trim();
+          const passwordValue = document.getElementById("loginPassword").value;
+          const rememberMe = document.getElementById("rememberMe").checked;
+
+          // Simple validation
+          if (!email || !passwordValue) {
+            Swal.fire({
+              icon: "error",
+              title: "Missing Information",
+              text: "Please fill in both email and password fields.",
+              confirmButtonColor: "#0056b3",
+            });
+            return;
+          }
+
+          // Validate email format
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            Swal.fire({
+              icon: "error",
+              title: "Invalid Email",
+              text: "Please enter a valid email address for your trading account.",
+              confirmButtonColor: "#0056b3",
+            });
+            return;
+          }
+
+          // Simulate login process with trading-specific messaging
+          Swal.fire({
+            title: "Accessing Your Portfolio...",
+            html: "Verifying your credentials and loading market data.",
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+
+              // Simulate API call with progress updates
+              let progress = 0;
+              const timer = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 100) {
+                  clearInterval(timer);
+                  Swal.fire({
+                    icon: "success",
+                    title: "Portfolio Ready!",
+                    html: "<div class='text-center'><i class='bi bi-check-circle-fill text-success' style='font-size: 3rem;'></i><p class='mt-3'>Welcome back to your trading dashboard!</p></div>",
+                    confirmButtonColor: "#0056b3",
+                    confirmButtonText: "View Portfolio",
+                  }).then(() => {
+                    // Redirect to dashboard
+                    window.location.href = "/dashboard";
+                  });
+                } else {
+                  Swal.update({
+                    html: `Accessing Your Portfolio...<br><br>
+                          <div class="progress mt-2" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: ${progress}%"></div>
+                          </div>
+                          <small class="text-muted">${Math.round(
+                            progress
+                          )}% complete</small>`,
+                  });
+                }
+              }, 500);
+            },
+          });
+        });
+
+        // Social login button handlers (would be replaced with actual OAuth implementations)
+        document.querySelectorAll(".social-btn").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            Swal.fire({
+              icon: "info",
+              title: "Social Login",
+              text: "This would connect to the respective OAuth provider in a real implementation.",
+              confirmButtonColor: "#0056b3",
+            });
+          });
+        });
+
+        // Initialize market ticker with sample data
+        function initMarketTicker() {
+          const stocks = [
+            { symbol: "AAPL", price: 185.34, change: 1.23 },
+            { symbol: "MSFT", price: 402.56, change: -2.45 },
+            { symbol: "GOOGL", price: 152.78, change: 0.87 },
+            { symbol: "AMZN", price: 178.95, change: 3.21 },
+            { symbol: "TSLA", price: 172.63, change: -5.32 },
+            { symbol: "NVDA", price: 903.56, change: 12.34 },
+            { symbol: "META", price: 485.38, change: 4.56 },
+            { symbol: "BTC-USD", price: 63452.78, change: 1245.32 },
+          ];
+
+          const tickerContent = document.getElementById("tickerContent");
+
+          stocks.forEach((stock) => {
+            const changePercent = (
+              (Math.abs(stock.change) / stock.price) *
+              100
+            ).toFixed(2);
+            const isUp = stock.change >= 0;
+
+            const stockItem = document.createElement("div");
+            stockItem.className = "stock-item";
+
+            stockItem.innerHTML = `
+              <span class="stock-symbol">${stock.symbol}</span>
+              <span class="stock-price ${isUp ? "up" : "down"}">
+                $${stock.price.toFixed(2)} 
+                <span class="stock-change">
+                  ${isUp ? "+" : ""}${stock.change.toFixed(
+              2
+            )} (${changePercent}%)
+                  <i class="bi bi-arrow-${isUp ? "up" : "down"}-right"></i>
+                </span>
+              </span>
+            `;
+
+            tickerContent.appendChild(stockItem);
+          });
+
+          // Clone the content for seamless looping
+          const clone = tickerContent.cloneNode(true);
+          document.querySelector(".market-ticker").appendChild(clone);
+        }
+      });
+    </script>
+  </body>
+</html>
