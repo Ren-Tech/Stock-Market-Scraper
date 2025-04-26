@@ -1,5 +1,6 @@
 {% extends "base.html" %} {% block title %}Philippine Stocks | Financial
 Dashboard{% endblock %} {% block content %}
+
 <div class="stocks-dashboard">
   <!-- Dashboard Header -->
   <div class="dashboard-header">
@@ -587,11 +588,20 @@ Dashboard{% endblock %} {% block content %}
       const searchInput = document.getElementById("stock-search");
       const searchResults = document.getElementById("search-results");
 
+      // Search input event listener
       searchInput.addEventListener("input", function () {
-        const query = this.value.trim().toLowerCase();
+        const query = this.value.trim().toUpperCase();
         searchResults.innerHTML = "";
 
-        if (query.length < 2) return;
+        if (query.length < 1) {
+          // Show all rows if search is empty
+          document
+            .querySelectorAll(".stocks-grid .grid-row:not(.header-row)")
+            .forEach((row) => {
+              row.style.display = "";
+            });
+          return;
+        }
 
         // Get unique symbols from the table
         const symbols = [
@@ -606,7 +616,7 @@ Dashboard{% endblock %} {% block content %}
 
         // Filter matching symbols
         const matches = symbols
-          .filter((symbol) => symbol.toLowerCase().includes(query))
+          .filter((symbol) => symbol.includes(query))
           .slice(0, 5); // Limit to 5 results
 
         // Display results
@@ -618,13 +628,62 @@ Dashboard{% endblock %} {% block content %}
             resultItem.addEventListener("click", function () {
               searchInput.value = symbol;
               searchResults.innerHTML = "";
-              applyFilters();
+              filterTableBySymbol(symbol); // Filter table instead of showing modal
             });
             searchResults.appendChild(resultItem);
           });
           searchResults.style.display = "block";
+        } else {
+          searchResults.style.display = "none";
         }
       });
+
+      // Enter key event listener for search
+      searchInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          const query = this.value.trim().toUpperCase();
+          if (query.length > 0) {
+            filterTableBySymbol(query);
+            searchResults.style.display = "none";
+          }
+        }
+      });
+
+      // Search button click handler
+      document
+        .getElementById("search-stocks")
+        .addEventListener("click", function () {
+          const query = searchInput.value.trim().toUpperCase();
+          if (query.length > 0) {
+            filterTableBySymbol(query);
+            searchResults.style.display = "none";
+          }
+        });
+
+      // Function to filter table by symbol
+      function filterTableBySymbol(symbol) {
+        const allRows = document.querySelectorAll(
+          ".stocks-grid .grid-row:not(.header-row)"
+        );
+        let found = false;
+
+        allRows.forEach((row) => {
+          if (row.dataset.symbol === symbol) {
+            row.style.display = "";
+            found = true;
+          } else {
+            row.style.display = "none";
+          }
+        });
+
+        if (!found) {
+          alert("Stock symbol not found. Please try another symbol.");
+          // Show all rows if not found
+          allRows.forEach((row) => {
+            row.style.display = "";
+          });
+        }
+      }
 
       // Close search results when clicking outside
       document.addEventListener("click", function (e) {
@@ -638,10 +697,9 @@ Dashboard{% endblock %} {% block content %}
         .getElementById("apply-filters")
         .addEventListener("click", applyFilters);
 
-      // View stock details
+      // View stock details (modal) - only for detail button clicks
       document.querySelectorAll(".view-btn").forEach((btn) => {
         btn.addEventListener("click", function () {
-          console.log("Details button clicked for:", this.dataset.symbol);
           const symbol = this.dataset.symbol;
           viewStockDetails(symbol);
         });
@@ -662,6 +720,21 @@ Dashboard{% endblock %} {% block content %}
           updateChartPeriod(period);
         });
       });
+
+      // Add to watchlist button
+      document
+        .getElementById("add-to-watchlist")
+        .addEventListener("click", function () {
+          const symbol = this.dataset.symbol;
+          addToWatchlist(symbol);
+        });
+
+      // Refresh data button
+      document
+        .getElementById("refresh-data")
+        .addEventListener("click", function () {
+          location.reload();
+        });
     });
 
     // Function to apply filters
@@ -706,12 +779,6 @@ Dashboard{% endblock %} {% block content %}
           performanceMatch = !rowChange.includes("-");
         } else if (performanceFilter === "losers") {
           performanceMatch = rowChange.includes("-");
-        } else if (performanceFilter === "active") {
-          // Would need volume data to implement properly
-          performanceMatch = true;
-        } else if (performanceFilter === "volume") {
-          // Would need volume data to implement properly
-          performanceMatch = true;
         }
 
         // Filter by search query
@@ -727,25 +794,62 @@ Dashboard{% endblock %} {% block content %}
       });
     }
 
-    // Function to view stock details
+    // Function to view stock details (modal)
     function viewStockDetails(symbol) {
-      // In a real app, you would fetch this data from your backend
+      // Find the row with the matching symbol
+      const stockRow = document.querySelector(
+        `.grid-row[data-symbol="${symbol}"]`
+      );
+
+      if (!stockRow) {
+        alert("Stock details not available for this symbol.");
+        return;
+      }
+
+      // Extract data from the row
       const stockData = {
         symbol: symbol,
-        name: `${symbol} Company Name`,
-        price: "245.00",
-        change: "+5.00 (+2.08%)",
-        sector: "Consumer Cyclical",
-        industry: "Restaurants",
-        marketCap: "₱273.4B",
-        open: "240.00",
-        high: "246.50",
-        low: "239.00",
-        volume: "1,245,678",
-        yearHigh: "258.00",
-        yearLow: "180.50",
-        description:
-          "This is a sample company description that would be loaded from your backend API.",
+        name: stockRow.querySelector(".company-name").textContent,
+        price: stockRow
+          .querySelector(".price-cell")
+          .textContent.replace("₱", ""),
+        change: stockRow.querySelector(".change-cell").textContent,
+        change_pct: stockRow.querySelector(".pchange-cell").textContent,
+        sector: stockRow.querySelector(".company-sector").textContent,
+        industry: stockRow.dataset.sector || "N/A",
+        volume: stockRow.querySelector(".volume-cell").textContent,
+        marketCap: "₱" + (Math.random() * 1000).toFixed(2) + "B",
+        open: (
+          parseFloat(
+            stockRow.querySelector(".price-cell").textContent.replace("₱", "")
+          ) -
+          Math.random() * 5
+        ).toFixed(2),
+        high: (
+          parseFloat(
+            stockRow.querySelector(".price-cell").textContent.replace("₱", "")
+          ) +
+          Math.random() * 2
+        ).toFixed(2),
+        low: (
+          parseFloat(
+            stockRow.querySelector(".price-cell").textContent.replace("₱", "")
+          ) -
+          Math.random() * 3
+        ).toFixed(2),
+        yearHigh: (
+          parseFloat(
+            stockRow.querySelector(".price-cell").textContent.replace("₱", "")
+          ) * 1.2
+        ).toFixed(2),
+        yearLow: (
+          parseFloat(
+            stockRow.querySelector(".price-cell").textContent.replace("₱", "")
+          ) * 0.8
+        ).toFixed(2),
+        description: `This is a sample description for ${
+          stockRow.querySelector(".company-name").textContent
+        }. In a real application, this would come from your backend API.`,
       };
 
       // Update modal with stock data
@@ -755,8 +859,9 @@ Dashboard{% endblock %} {% block content %}
       document.getElementById(
         "modal-stock-price"
       ).textContent = `₱${stockData.price}`;
-      document.getElementById("modal-stock-change").textContent =
-        stockData.change;
+      document.getElementById(
+        "modal-stock-change"
+      ).textContent = `${stockData.change} (${stockData.change_pct})`;
       document.getElementById("modal-stock-sector").textContent =
         stockData.sector;
       document.getElementById("modal-stock-industry").textContent =
@@ -775,6 +880,16 @@ Dashboard{% endblock %} {% block content %}
       ).textContent = `₱${stockData.yearLow}`;
       document.getElementById("company-description").textContent =
         stockData.description;
+
+      // Set the color for change
+      const changeElement = document.getElementById("modal-stock-change");
+      if (stockData.change.startsWith("-")) {
+        changeElement.classList.remove("positive");
+        changeElement.classList.add("negative");
+      } else {
+        changeElement.classList.remove("negative");
+        changeElement.classList.add("positive");
+      }
 
       // Set the add to watchlist button
       document.getElementById("add-to-watchlist").dataset.symbol = symbol;
@@ -817,8 +932,8 @@ Dashboard{% endblock %} {% block content %}
       const ctx = document.getElementById("stockChart").getContext("2d");
 
       // Destroy previous chart if it exists
-      if (stockChart) {
-        stockChart.destroy();
+      if (window.stockChart) {
+        window.stockChart.destroy();
       }
 
       // Sample data - in a real app, you would fetch this from your backend
@@ -836,7 +951,7 @@ Dashboard{% endblock %} {% block content %}
         return basePrice + Math.sin(i / 2) * 10 + (Math.random() - 0.5) * 5;
       });
 
-      stockChart = new Chart(ctx, {
+      window.stockChart = new Chart(ctx, {
         type: "line",
         data: {
           labels: labels,
@@ -907,14 +1022,25 @@ Dashboard{% endblock %} {% block content %}
         .classList.add("active");
 
       // In a real app, you would fetch new data for this period
-      // For now, we'll just log it
       console.log(`Updating chart for period: ${period}`);
 
-      // You would then update the chart with new data
-      // updateChartData(newData);
+      // Here you would update the chart with new data
+      // For now, we'll just regenerate with random data
+      if (window.stockChart) {
+        window.stockChart.destroy();
+        initializeChart();
+      }
+    }
+
+    // Function to add stock to watchlist
+    function addToWatchlist(symbol) {
+      // In a real app, you would save this to your backend
+      alert(`Added ${symbol} to your watchlist!`);
+
+      // Close the modal
+      closeStockModal();
     }
   </script>
-
   <style>
     /* Base Styles */
     :root {
@@ -1920,6 +2046,35 @@ Dashboard{% endblock %} {% block content %}
       .modal-footer {
         justify-content: center;
       }
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      z-index: 10;
+      display: none;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .search-result-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .search-result-item:hover {
+      background-color: var(--gray-100);
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
     }
   </style>
   {% endblock %}
