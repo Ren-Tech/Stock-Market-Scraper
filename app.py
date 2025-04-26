@@ -996,32 +996,38 @@ def fetch_stock_data_yahoo(symbol):
 
 @app.route('/ge_stocks', methods=['GET', 'POST'])
 def ge_stocks():
-    # Default list of German stocks (Frankfurt exchange symbols)
-    default_ge_stocks = ['SAP.DE', 'BMW.DE', 'VOW3.DE', 'ALV.DE', 'DBK.DE']
+    # Full list of German stock symbols you want to always show
+    all_ge_stocks = [
+        'SAP.DE', 'BMW.DE', 'VOW3.DE', 'ALV.DE', 'DBK.DE', 
+        'BAS.DE', 'BAYN.DE', 'DTE.DE', 'RWE.DE', 'SIE.DE',
+        'ADS.DE', 'FRE.DE', 'IFX.DE', 'HEN3.DE', 'LIN.DE'
+    ]
+
     stocks = []
     error_message = None
-    
+
+    # Always fetch all German stocks by default
+    stocks = [data for symbol in all_ge_stocks 
+              if (data := fetch_stock_data_yahoo(symbol))]
+
+    # Optionally allow additional search and add to the list (if not already included)
     if request.method == 'POST':
         stock_symbol = request.form.get('stock_symbol', '').strip().upper()
         if stock_symbol:
-            # Check if it's a German stock (ends with .DE or .F)
             if not (stock_symbol.endswith('.DE') or stock_symbol.endswith('.F')):
                 error_message = f"'{stock_symbol}' is not a German stock. Please search for stocks ending with .DE or .F"
             else:
                 data = fetch_stock_data_yahoo(stock_symbol)
                 if data:
-                    stocks.append(data)
+                    if not any(stock['symbol'] == stock_symbol for stock in stocks):
+                        stocks.insert(0, data)  # Add it on top
                 else:
                     error_message = f"Stock symbol '{stock_symbol}' not found or data unavailable."
-    
-    # Always show default stocks if no specific symbol was searched
-    if not stocks and request.method != 'POST':
-        stocks = [data for symbol in default_ge_stocks 
-                 if (data := fetch_stock_data_yahoo(symbol))]
-    
+
     return render_template('ge_stocks.html', 
-                         stocks=stocks, 
-                         error_message=error_message)
+                           stocks=stocks, 
+                           error_message=error_message)
+
     
     # Always show default stocks if no specific symbol was searched
     if not stocks and request.method != 'POST':

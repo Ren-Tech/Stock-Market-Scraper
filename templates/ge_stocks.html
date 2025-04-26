@@ -12,8 +12,6 @@
         </p>
       </div>
 
-    
-
       <!-- All Shares, Advancers, Decliners Section -->
       <div class="row mb-4">
         <div class="col-md-4">
@@ -48,716 +46,570 @@
   </div>
 </div>
 
-        <!-- Stock Search and Timeframe Controls -->
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <div class="row align-items-center">
-              <div class="col-md-12">
-                <form method="POST" class="mb-3">
-                  <div class="input-group">
-                    <input
-                      type="text"
-                      name="stock_symbol"
-                      class="form-control form-control-lg"
-                      placeholder="Search German stocks (e.g., BMW.DE, SAP.DE)"
-                      required
-                      value="{{ request.form.stock_symbol if request.form.stock_symbol else '' }}"
-                    />
-                    <button class="btn btn-primary" type="submit">
-                      <i class="fas fa-search"></i> Search
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
-            <!-- Filter Options -->
-            <div class="row mt-3">
-              <div class="col-md-3 mb-2">
-                <select class="form-select" id="sector-filter">
-                  <option value="">Sector (All)</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Automotive">Automotive</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Energy">Energy</option>
-                  <option value="Consumer">Consumer</option>
-                  <option value="Industrial">Industrial</option>
-                  <option value="Telecom">Telecom</option>
-                </select>
-              </div>
-              <div class="col-md-3 mb-2">
-                <select class="form-select" id="price-range-filter">
-                  <option value="">Price Range (All)</option>
-                  <option value="0-10">€0 - €10</option>
-                  <option value="10-50">€10 - €50</option>
-                  <option value="50-100">€50 - €100</option>
-                  <option value="100-200">€100 - €200</option>
-                  <option value="200+">€200+</option>
-                </select>
-              </div>
-              <div class="col-md-3 mb-2">
-                <select class="form-select" id="performance-filter">
-                  <option value="">Performance (All)</option>
-                  <option value="gainers">Top Gainers (24h)</option>
-                  <option value="losers">Top Losers (24h)</option>
-                  <option value="volume">Highest Volume</option>
-                  <option value="week-high">52 Week High</option>
-                  <option value="week-low">52 Week Low</option>
-                </select>
-              </div>
-              <div class="col-md-3 mb-2">
-                <button
-                  class="btn btn-outline-primary w-100"
-                  id="apply-filters"
-                >
-                  <i class="fas fa-filter"></i> Apply Filters
-                </button>
-              </div>
-            </div>
+<!-- Stock Search and Timeframe Controls -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="row align-items-center">
+      <div class="col-md-12">
+        <div class="search-container">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+            <input type="text" id="stock-search" class="form-control form-control-lg" placeholder="Search German stocks (e.g., BMW.DE, SAP.DE)" autocomplete="off" />
+            <div class="search-results" id="search-results"></div>
           </div>
-        </div>
-
-        {% if error_message %}
-        <div class="alert alert-danger">
-          {{ error_message }} {% if 'not a German stock' in error_message %}
-          <br />German stocks typically end with .DE or .F (e.g., BMW.DE, SAP.F)
-          {% endif %}
-        </div>
-        {% endif %}
-
-        <!-- Stocks Table View -->
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover stock-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Symbol</th>
-                    <th scope="col">Company Name</th>
-                    <th scope="col">Last Price</th>
-                    <th scope="col">Change %</th>
-                    <th scope="col">Volume</th>
-                    <th scope="col">Sector</th>
-                    <th scope="col" class="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for stock in stocks %} {% set price_change =
-                  ((stock.history[-1].close - stock.history[0].open) /
-                  stock.history[0].open * 100) %}
-                  <tr>
-                    <td class="fw-bold">{{ stock.symbol }}</td>
-                    <td>{{ stock.name }}</td>
-                    <td>€{{ stock.history[-1].close }}</td>
-                    <td
-                      class="{% if price_change >= 0 %}text-success{% else %}text-danger{% endif %}"
-                    >
-                      {% if price_change >= 0 %}+{% endif %}{{
-                      "%.2f"|format(price_change) }}%
-                    </td>
-                    <td>{{ "{:,.0f}".format(stock.history[-1].volume) }}</td>
-                    <td>{{ stock.sector|default('N/A', true) }}</td>
-                    <td class="text-center">
-                      <button
-                        class="btn btn-sm btn-outline-primary me-1"
-                        data-bs-toggle="modal"
-                        data-bs-target="#detailsModal{{ loop.index }}"
-                      >
-                        <i class="fas fa-info-circle"></i> Details
-                      </button>
-                      <button
-                        class="btn btn-sm btn-outline-danger favorite-btn"
-                        data-symbol="{{ stock.symbol }}"
-                      >
-                        <i class="far fa-heart"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <button class="btn btn-primary" id="search-stocks">
+            <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+            Search
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Chart.js and Custom JS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+    <!-- Filter Options -->
+    <div class="row mt-3">
+      <div class="col-md-3 mb-2">
+        <select class="form-select" id="sector-filter">
+          <option value="all">Sector (All)</option>
+          <option value="Technology">Technology</option>
+          <option value="Automotive">Automotive</option>
+          <option value="Finance">Finance</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Energy">Energy</option>
+          <option value="Consumer">Consumer</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Telecom">Telecom</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <select class="form-select" id="price-range-filter">
+          <option value="all">Price Range (All)</option>
+          <option value="0-10">€0 - €10</option>
+          <option value="10-50">€10 - €50</option>
+          <option value="50-100">€50 - €100</option>
+          <option value="100-200">€100 - €200</option>
+          <option value="200+">€200+</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <select class="form-select" id="performance-filter">
+          <option value="all">Performance (All)</option>
+          <option value="gainers">Top Gainers (24h)</option>
+          <option value="losers">Top Losers (24h)</option>
+          <option value="volume">Highest Volume</option>
+          <option value="week-high">52 Week High</option>
+          <option value="week-low">52 Week Low</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <button class="btn btn-outline-primary w-100" id="apply-filters">
+          <i class="fas fa-filter"></i> Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Timeframe selection
-        document.querySelectorAll(".timeframe-btn").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            document.querySelectorAll(".timeframe-btn").forEach(function (b) {
-              b.classList.remove("active");
-            });
-            this.classList.add("active");
-            // In a real app, you would fetch new data for the selected timeframe
-            console.log("Selected timeframe:", this.dataset.timeframe);
-          });
+{% if error_message %}
+<div class="alert alert-danger">
+  {{ error_message }} {% if 'not a German stock' in error_message %}
+  <br />German stocks typically end with .DE or .F (e.g., BMW.DE, SAP.F)
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Stocks Table View -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover stock-table">
+        <thead>
+          <tr>
+            <th scope="col">Symbol</th>
+            <th scope="col">Company Name</th>
+            <th scope="col">Last Price</th>
+            <th scope="col">Change %</th>
+            <th scope="col">Volume</th>
+            <th scope="col">Sector</th>
+            <th scope="col" class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stock in stocks %} {% set price_change =
+          ((stock.history[-1].close - stock.history[0].open) /
+          stock.history[0].open * 100) %}
+          <tr class="stock-row" data-symbol="{{ stock.symbol }}" data-sector="{{ stock.sector|default('', true) }}" 
+              data-price="{{ stock.history[-1].close }}" data-change="{{ price_change }}" 
+              data-volume="{{ stock.history[-1].volume }}">
+            <td class="fw-bold">{{ stock.symbol }}</td>
+            <td>{{ stock.name }}</td>
+            <td>€{{ stock.history[-1].close }}</td>
+            <td class="{% if price_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+              {% if price_change >= 0 %}+{% endif %}{{ "%.2f"|format(price_change) }}%
+            </td>
+            <td>{{ "{:,.0f}".format(stock.history[-1].volume) }}</td>
+            <td>{{ stock.sector|default('N/A', true) }}</td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-primary me-1 view-btn" data-symbol="{{ stock.symbol }}">
+                <i class="fas fa-info-circle"></i> Details
+              </button>
+              <button class="btn btn-sm btn-outline-danger favorite-btn" data-symbol="{{ stock.symbol }}">
+                <i class="far fa-heart"></i>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js and Custom JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Search functionality
+    const searchInput = document.getElementById("stock-search");
+    const searchResults = document.getElementById("search-results");
+
+    // Search input event listener
+    searchInput.addEventListener("input", function () {
+      const query = this.value.trim().toUpperCase();
+      searchResults.innerHTML = "";
+
+      if (query.length < 1) {
+        // Show all rows if search is empty
+        document.querySelectorAll(".stock-row").forEach(row => {
+          row.style.display = "";
         });
+        return;
+      }
 
-        // Apply filters button
-        document
-          .getElementById("apply-filters")
-          .addEventListener("click", function () {
-            const sector = document.getElementById("sector-filter").value;
-            const priceRange =
-              document.getElementById("price-range-filter").value;
-            const performance =
-              document.getElementById("performance-filter").value;
+      // Get unique symbols from the table
+      const symbols = [
+        ...new Set(
+          Array.from(document.querySelectorAll(".stock-row")).map((row) => row.dataset.symbol)
+        )
+      ];
 
-            console.log("Applying filters:", {
-              sector: sector,
-              priceRange: priceRange,
-              performance: performance,
-            });
+      // Filter matching symbols
+      const matches = symbols
+        .filter((symbol) => symbol.includes(query))
+        .slice(0, 5); // Limit to 5 results
 
-            // In a real app, you would fetch filtered data based on these values
-            // For demo, just show an alert
-            alert(
-              "Filters applied: " +
-                (sector ? "Sector: " + sector : "") +
-                (priceRange ? ", Price Range: " + priceRange : "") +
-                (performance ? ", Performance: " + performance : "")
-            );
+      // Display results
+      if (matches.length > 0) {
+        matches.forEach((symbol) => {
+          const resultItem = document.createElement("div");
+          resultItem.className = "search-result-item";
+          resultItem.textContent = symbol;
+          resultItem.addEventListener("click", function () {
+            searchInput.value = symbol;
+            searchResults.innerHTML = "";
+            filterTableBySymbol(symbol); // Filter table instead of showing modal
           });
-
-        // Favorite button functionality
-        document.querySelectorAll(".favorite-btn").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            const icon = this.querySelector("i");
-            if (icon.classList.contains("far")) {
-              icon.classList.remove("far");
-              icon.classList.add("fas");
-              // In a real app, you would save this to user preferences
-              console.log("Added to favorites:", this.dataset.symbol);
-            } else {
-              icon.classList.remove("fas");
-              icon.classList.add("far");
-              console.log("Removed from favorites:", this.dataset.symbol);
-            }
-          });
+          searchResults.appendChild(resultItem);
         });
+        searchResults.style.display = "block";
+      } else {
+        searchResults.style.display = "none";
+      }
+    });
 
-        // Process stock data and create charts
-        const stockData = JSON.parse("{{ stocks | tojson | safe }}");
-
-        stockData.forEach(function (stock, index) {
-          // Prepare data
-          const dates = stock.history.map(function (entry) {
-            return entry.date;
-          });
-          const closes = stock.history.map(function (entry) {
-            return entry.close;
-          });
-          const opens = stock.history.map(function (entry) {
-            return entry.open;
-          });
-          const highs = stock.history.map(function (entry) {
-            return entry.high;
-          });
-          const lows = stock.history.map(function (entry) {
-            return entry.low;
-          });
-          const volumes = stock.history.map(function (entry) {
-            return entry.volume;
-          });
-
-          // Calculate RSI (simplified for demo)
-          const rsiPeriod = 14;
-          const rsiValues = calculateRSI(closes, rsiPeriod);
-
-          // Calculate MACD (simplified for demo)
-          const macdData = calculateMACD(closes);
-
-          // Main Price Chart
-          const priceCtx = document
-            .getElementById("price-chart-" + (index + 1))
-            .getContext("2d");
-          new Chart(priceCtx, {
-            type: "line",
-            data: {
-              labels: dates,
-              datasets: [
-                {
-                  label: "Price",
-                  data: closes,
-                  borderColor: "rgba(0, 123, 255, 1)",
-                  backgroundColor: "rgba(0, 123, 255, 0.1)",
-                  tension: 0.1,
-                  fill: true,
-                  pointRadius: 0,
-                },
-                {
-                  label: "50-day MA",
-                  data: calculateMovingAverage(closes, 50),
-                  borderColor: "rgba(255, 159, 64, 1)",
-                  borderWidth: 1,
-                  pointRadius: 0,
-                },
-              ],
-            },
-            options: getChartOptions("Price (€)", true),
-          });
-
-          // Volume Chart
-          const volumeCtx = document
-            .getElementById("volume-chart-" + (index + 1))
-            .getContext("2d");
-          new Chart(volumeCtx, {
-            type: "bar",
-            data: {
-              labels: dates,
-              datasets: [
-                {
-                  label: "Volume",
-                  data: volumes,
-                  backgroundColor: "rgba(108, 117, 125, 0.7)",
-                  borderColor: "rgba(108, 117, 125, 1)",
-                  borderWidth: 1,
-                },
-              ],
-            },
-            options: getChartOptions("Volume", false),
-          });
-
-          // RSI Chart
-          const rsiCtx = document
-            .getElementById("rsi-chart-" + (index + 1))
-            .getContext("2d");
-          new Chart(rsiCtx, {
-            type: "line",
-            data: {
-              labels: dates.slice(rsiPeriod),
-              datasets: [
-                {
-                  label: "RSI",
-                  data: rsiValues,
-                  borderColor: "rgba(220, 53, 69, 1)",
-                  backgroundColor: "rgba(220, 53, 69, 0.1)",
-                  borderWidth: 1,
-                  pointRadius: 0,
-                  fill: true,
-                },
-              ],
-            },
-            options: getRSIOptions(),
-          });
-
-          // MACD Chart
-          const macdCtx = document
-            .getElementById("macd-chart-" + (index + 1))
-            .getContext("2d");
-          new Chart(macdCtx, {
-            type: "bar",
-            data: {
-              labels: dates.slice(26),
-              datasets: [
-                {
-                  label: "MACD",
-                  data: macdData.macdLine.slice(26),
-                  borderColor: "rgba(0, 123, 255, 1)",
-                  backgroundColor: "rgba(0, 123, 255, 0.1)",
-                  borderWidth: 1,
-                  type: "line",
-                  pointRadius: 0,
-                },
-                {
-                  label: "Signal",
-                  data: macdData.signalLine.slice(26),
-                  borderColor: "rgba(255, 159, 64, 1)",
-                  backgroundColor: "rgba(255, 159, 64, 0.1)",
-                  borderWidth: 1,
-                  type: "line",
-                  pointRadius: 0,
-                },
-                {
-                  label: "Histogram",
-                  data: macdData.histogram.slice(26),
-                  backgroundColor: function (context) {
-                    return context.raw >= 0
-                      ? "rgba(40, 167, 69, 0.7)"
-                      : "rgba(220, 53, 69, 0.7)";
-                  },
-                  borderColor: function (context) {
-                    return context.raw >= 0
-                      ? "rgba(40, 167, 69, 1)"
-                      : "rgba(220, 53, 69, 1)";
-                  },
-                  borderWidth: 1,
-                },
-              ],
-            },
-            options: getChartOptions("MACD", false),
-          });
-        });
-
-        // Helper functions for technical indicators
-        function calculateMovingAverage(data, period) {
-          return data.map(function (val, idx) {
-            if (idx < period - 1) return null;
-            const sum = data
-              .slice(idx - period + 1, idx + 1)
-              .reduce(function (a, b) {
-                return a + b;
-              }, 0);
-            return sum / period;
-          });
+    // Enter key event listener for search
+    searchInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        const query = this.value.trim().toUpperCase();
+        if (query.length > 0) {
+          filterTableBySymbol(query);
+          searchResults.style.display = "none";
         }
+      }
+    });
 
-        function calculateRSI(closes, period) {
-          period = period || 14;
-          const rsi = [];
-          let gains = 0;
-          let losses = 0;
+    // Search button click handler
+    document.getElementById("search-stocks").addEventListener("click", function () {
+      const query = searchInput.value.trim().toUpperCase();
+      if (query.length > 0) {
+        filterTableBySymbol(query);
+        searchResults.style.display = "none";
+      }
+    });
 
-          // Calculate initial average gains and losses
-          for (let i = 1; i <= period; i++) {
-            const change = closes[i] - closes[i - 1];
-            if (change >= 0) {
-              gains += change;
-            } else {
-              losses += Math.abs(change);
-            }
-          }
-
-          let avgGain = gains / period;
-          let avgLoss = losses / period;
-          let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-          rsi.push(100 - 100 / (1 + rs));
-
-          // Calculate subsequent RSI values
-          for (let i = period + 1; i < closes.length; i++) {
-            const change = closes[i] - closes[i - 1];
-            let currentGain = 0;
-            let currentLoss = 0;
-
-            if (change >= 0) {
-              currentGain = change;
-            } else {
-              currentLoss = Math.abs(change);
-            }
-
-            avgGain = (avgGain * (period - 1) + currentGain) / period;
-            avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
-            rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-            rsi.push(100 - 100 / (1 + rs));
-          }
-
-          return rsi;
-        }
-
-        function calculateMACD(closes, fastPeriod, slowPeriod, signalPeriod) {
-          fastPeriod = fastPeriod || 12;
-          slowPeriod = slowPeriod || 26;
-          signalPeriod = signalPeriod || 9;
-
-          const fastEMA = calculateEMA(closes, fastPeriod);
-          const slowEMA = calculateEMA(closes, slowPeriod);
-          const macdLine = fastEMA.map(function (val, idx) {
-            return val - slowEMA[idx];
-          });
-          const signalLine = calculateEMA(
-            macdLine.slice(slowPeriod - fastPeriod),
-            signalPeriod
-          );
-
-          // Pad signalLine with nulls to match macdLine length
-          const paddedSignalLine = Array(
-            slowPeriod - fastPeriod + signalPeriod - 1
-          )
-            .fill(null)
-            .concat(signalLine);
-
-          const histogram = macdLine.map(function (val, idx) {
-            return paddedSignalLine[idx] !== null
-              ? val - paddedSignalLine[idx]
-              : null;
-          });
-
-          return {
-            macdLine: macdLine,
-            signalLine: paddedSignalLine,
-            histogram: histogram,
-          };
-        }
-
-        function calculateEMA(data, period) {
-          const k = 2 / (period + 1);
-          const ema = [];
-          let sum = 0;
-
-          // Calculate SMA for first value
-          for (let i = 0; i < period; i++) {
-            sum += data[i];
-          }
-          ema[period - 1] = sum / period;
-
-          // Calculate EMA for subsequent values
-          for (let i = period; i < data.length; i++) {
-            ema[i] = data[i] * k + ema[i - 1] * (1 - k);
-          }
-
-          // Pad beginning with nulls
-          return Array(period - 1)
-            .fill(null)
-            .concat(ema.slice(period - 1));
-        }
-
-        function getChartOptions(yAxisTitle, showCrosshair) {
-          return {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: true,
-                position: "top",
-              },
-              tooltip: {
-                mode: showCrosshair ? "index" : "nearest",
-                intersect: false,
-              },
-            },
-            scales: {
-              x: {
-                grid: {
-                  display: false,
-                },
-                ticks: {
-                  maxRotation: 0,
-                  autoSkip: true,
-                  maxTicksLimit: 8,
-                },
-              },
-              y: {
-                position: "right",
-                title: {
-                  display: true,
-                  text: yAxisTitle,
-                },
-                grid: {
-                  drawBorder: false,
-                },
-              },
-            },
-            interaction: {
-              mode: "nearest",
-              axis: "x",
-              intersect: false,
-            },
-          };
-        }
-
-        function getRSIOptions() {
-          const options = getChartOptions("RSI", false);
-          options.scales = options.scales || {};
-          options.scales.y = options.scales.y || {};
-          options.scales.y.min = 0;
-          options.scales.y.max = 100;
-          options.plugins = options.plugins || {};
-          options.plugins.annotation = {
-            annotations: {
-              line1: {
-                type: "line",
-                yMin: 70,
-                yMax: 70,
-                borderColor: "rgb(220, 53, 69)",
-                borderWidth: 1,
-                borderDash: [6, 6],
-              },
-              line2: {
-                type: "line",
-                yMin: 30,
-                yMax: 30,
-                borderColor: "rgb(40, 167, 69)",
-                borderWidth: 1,
-                borderDash: [6, 6],
-              },
-            },
-          };
-          return options;
+    // Function to filter table by symbol
+    function filterTableBySymbol(symbol) {
+      const allRows = document.querySelectorAll(".stock-row");
+      let found = false;
+      
+      allRows.forEach((row) => {
+        if (row.dataset.symbol === symbol) {
+          row.style.display = "";
+          found = true;
+        } else {
+          row.style.display = "none";
         }
       });
-    </script>
 
-    <style>
-      /* Base stock card styles */
-      .stock-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border: none;
+      if (!found) {
+        alert("Stock symbol not found. Please try another symbol.");
+        // Show all rows if not found
+        allRows.forEach(row => {
+          row.style.display = "";
+        });
       }
+    }
 
-      .stock-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    // Close search results when clicking outside
+    document.addEventListener("click", function (e) {
+      if (!searchInput.contains(e.target)) {
+        searchResults.style.display = "none";
       }
+    });
 
-      /* Market indices cards */
-      .index-card {
-        padding: 10px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        margin-bottom: 10px;
+    // Apply filters when button is clicked
+    document.getElementById("apply-filters").addEventListener("click", function () {
+      const sectorFilter = document.getElementById("sector-filter").value.toLowerCase();
+      const priceFilter = document.getElementById("price-range-filter").value;
+      const performanceFilter = document.getElementById("performance-filter").value;
+
+      const allRows = document.querySelectorAll(".stock-row");
+
+      allRows.forEach((row) => {
+        const rowSector = row.dataset.sector.toLowerCase();
+        const rowPrice = parseFloat(row.dataset.price);
+        const rowChange = parseFloat(row.dataset.change);
+        const rowVolume = parseFloat(row.dataset.volume);
+
+        // Filter by sector
+        const sectorMatch = sectorFilter === "all" || rowSector.includes(sectorFilter);
+
+        // Filter by price range
+        let priceMatch = true;
+        if (priceFilter !== "all") {
+          if (priceFilter.endsWith("+")) {
+            const min = parseFloat(priceFilter.replace("+", ""));
+            priceMatch = rowPrice >= min;
+          } else {
+            const [min, max] = priceFilter.split("-").map(Number);
+            priceMatch = rowPrice >= min && rowPrice <= max;
+          }
+        }
+
+        // Filter by performance
+        let performanceMatch = true;
+        if (performanceFilter === "gainers") {
+          performanceMatch = rowChange >= 0;
+        } else if (performanceFilter === "losers") {
+          performanceMatch = rowChange < 0;
+        } else if (performanceFilter === "volume") {
+          // Would need to compare with other stocks for "highest"
+          performanceMatch = true;
+        } else if (performanceFilter === "week-high") {
+          // Would need 52-week high data
+          performanceMatch = true;
+        } else if (performanceFilter === "week-low") {
+          // Would need 52-week low data
+          performanceMatch = true;
+        }
+
+        // Show/hide row based on filters
+        if (sectorMatch && priceMatch && performanceMatch) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    });
+
+    // View stock details (modal) - only for detail button clicks
+    document.querySelectorAll(".view-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const symbol = this.dataset.symbol;
+        // You would implement the modal opening here
+        console.log("View details for:", symbol);
+        // viewStockDetails(symbol); // Uncomment if you implement the modal
+      });
+    });
+
+    // Favorite button functionality
+    document.querySelectorAll(".favorite-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const icon = this.querySelector("i");
+        if (icon.classList.contains("far")) {
+          icon.classList.remove("far");
+          icon.classList.add("fas");
+          console.log("Added to favorites:", this.dataset.symbol);
+        } else {
+          icon.classList.remove("fas");
+          icon.classList.add("far");
+          console.log("Removed from favorites:", this.dataset.symbol);
+        }
+      });
+    });
+
+    // Add styles for search components
+    const style = document.createElement("style");
+    style.textContent = `
+      .search-container {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
       }
-
-      .index-name {
-        font-weight: 600;
-        font-size: 0.9rem;
+      
+      .search-box {
+        position: relative;
+        flex-grow: 1;
       }
-
-      .index-value {
-        font-weight: 700;
+      
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.25rem;
+        height: 1.25rem;
+        color: #6c757d;
+      }
+      
+      #stock-search {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
         font-size: 1rem;
       }
-
-      /* Market statistics cards */
-      .statistics-card {
-        padding: 15px 10px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        height: 100%;
+      
+      #stock-search:focus {
+        outline: none;
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
       }
-
-      .statistics-card h6 {
-        margin-bottom: 8px;
-        font-size: 0.85rem;
-        color: #6c757d;
-      }
-
-      .statistics-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-      }
-
-      .advancers .statistics-value {
-        color: #28a745;
-      }
-
-      .decliners .statistics-value {
-        color: #dc3545;
-      }
-
-      /* Metrics styling */
-      .key-metrics {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-      }
-
-      .metric-item {
-        margin-bottom: 10px;
-      }
-
-      .metric-label {
-        display: block;
-        font-size: 0.8rem;
-        color: #6c757d;
-      }
-
-      .metric-value {
-        display: block;
-        font-size: 1.1rem;
-        font-weight: 500;
-      }
-
-      /* Chart containers */
-      .small-chart-container {
-        position: relative;
-        height: 120px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 10px;
-      }
-
-      .chart-title {
+      
+      .search-results {
         position: absolute;
-        top: 5px;
-        left: 10px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: #6c757d;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0 0 0.375rem 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        z-index: 10;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
       }
-
-      /* Timeframe controls */
-      .timeframe-controls .btn {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
+      
+      .search-result-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #f8f9fa;
       }
-
-      .timeframe-controls .btn.active {
-        background-color: #0d6efd;
-        color: white;
-      }
-
-      /* Dashboard header */
-      .dashboard-header {
-        background: linear-gradient(90deg, #f8f9fa 0%, white 100%);
-        padding: 1rem;
-        border-radius: 8px;
-      }
-
-      /* Stock table styles */
-      .stock-table {
-        margin-bottom: 0;
-      }
-
-      .stock-table thead {
+      
+      .search-result-item:hover {
         background-color: #f8f9fa;
       }
-
-      .stock-table th {
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: #6c757d;
+      
+      .search-result-item:last-child {
+        border-bottom: none;
       }
-
-      .stock-table td {
-        vertical-align: middle;
-        font-size: 0.9rem;
+      
+      #search-stocks {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
-
-      /* Favorite button effect */
-      .favorite-btn {
-        transition: transform 0.1s ease;
+      
+      #search-stocks .btn-icon {
+        width: 1rem;
+        height: 1rem;
       }
+    `;
+    document.head.appendChild(style);
+  });
+</script>
 
-      .favorite-btn:hover {
-        transform: scale(1.1);
-      }
+<style>
+  /* Base stock card styles */
+  .stock-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+  }
 
-      .favorite-btn .fas {
-        color: #dc3545;
-      }
+  .stock-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  }
 
-      /* Filter selectors */
-      .form-select {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-      }
+  /* Market indices cards */
+  .index-card {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
 
-      #apply-filters {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-      }
+  .index-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
 
-      /* Media queries for responsive design */
-      @media (max-width: 767.98px) {
-        .market-statistics {
-          margin-top: 20px;
-        }
-        .table-responsive {
-          border: none;
-        }
-      }
-    </style>
-    {% endblock %}
+  .index-value {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* Market statistics cards */
+  .statistics-card {
+    padding: 15px 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    height: 100%;
+  }
+
+  .statistics-card h6 {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+
+  .statistics-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .advancers .statistics-value {
+    color: #28a745;
+  }
+
+  .decliners .statistics-value {
+    color: #dc3545;
+  }
+
+  /* Metrics styling */
+  .key-metrics {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+  }
+
+  .metric-item {
+    margin-bottom: 10px;
+  }
+
+  .metric-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+
+  .metric-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  /* Chart containers */
+  .small-chart-container {
+    position: relative;
+    height: 120px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  .chart-title {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  /* Timeframe controls */
+  .timeframe-controls .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .timeframe-controls .btn.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+
+  /* Dashboard header */
+  .dashboard-header {
+    background: linear-gradient(90deg, #f8f9fa 0%, white 100%);
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  /* Stock table styles */
+  .stock-table {
+    margin-bottom: 0;
+  }
+
+  .stock-table thead {
+    background-color: #f8f9fa;
+  }
+
+  .stock-table th {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6c757d;
+  }
+
+  .stock-table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+  }
+
+  /* Favorite button effect */
+  .favorite-btn {
+    transition: transform 0.1s ease;
+  }
+
+  .favorite-btn:hover {
+    transform: scale(1.1);
+  }
+
+  .favorite-btn .fas {
+    color: #dc3545;
+  }
+
+  /* Filter selectors */
+  .form-select {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  #apply-filters {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  /* Media queries for responsive design */
+  @media (max-width: 767.98px) {
+    .market-statistics {
+      margin-top: 20px;
+    }
+    .table-responsive {
+      border: none;
+    }
+  }
+</style>
+{% endblock %}
+
   </div>
 </div>
