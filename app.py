@@ -780,41 +780,22 @@ def ph_stocks():
     error_message = None
     # Sample Philippine stock data (20 stocks)
    
-   
     sample_stocks = [
-    # Top movers first
-    {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "4.15", "change": "+0.85", "change_pct": "+25.76%", "high": "4.20", "low": "3.50", "volume": "3,125,400", "sector": "Basic Materials"},
-    {"symbol": "NOW", "name": "NOW Corporation", "last_price": "2.76", "change": "+0.31", "change_pct": "+12.65%", "high": "2.85", "low": "2.42", "volume": "9,812,100", "sector": "Technology"},
-    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "2.30", "change": "+0.16", "change_pct": "+7.48%", "high": "2.35", "low": "2.05", "volume": "4,425,800", "sector": "Real Estate"},
-    {"symbol": "DITO", "name": "DITO CME Holdings Corp.", "last_price": "3.82", "change": "+0.26", "change_pct": "+7.30%", "high": "3.88", "low": "3.58", "volume": "13,405,600", "sector": "Communication Services"},
-    {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "3.50", "change": "+0.18", "change_pct": "+5.42%", "high": "3.60", "low": "3.20", "volume": "7,550,400", "sector": "Real Estate"},
-    
-    # Popular bluechips refreshed
-    {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "285.00", "change": "+6.40", "change_pct": "+2.30%", "high": "288.00", "low": "278.00", "volume": "2,687,900", "sector": "Consumer Cyclical"},
-    {"symbol": "SM", "name": "SM Investments Corporation", "last_price": "1038.50", "change": "+13.75", "change_pct": "+1.34%", "high": "1045.00", "low": "1015.00", "volume": "506,250", "sector": "Conglomerates"},
-    {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "37.10", "change": "+0.85", "change_pct": "+2.34%", "high": "37.25", "low": "36.20", "volume": "3,642,800", "sector": "Real Estate"},
-    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "158.40", "change": "+2.60", "change_pct": "+1.67%", "high": "159.50", "low": "156.00", "volume": "1,465,600", "sector": "Financial Services"},
-    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "44.50", "change": "+0.75", "change_pct": "+1.71%", "high": "44.75", "low": "43.60", "volume": "2,445,800", "sector": "Real Estate"},
-
-    # Other key stocks
-    {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "530.00", "change": "+10.00", "change_pct": "+1.92%", "high": "532.00", "low": "520.00", "volume": "92,400", "sector": "Conglomerates"},
-    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "43.00", "change": "+0.65", "change_pct": "+1.54%", "high": "43.30", "low": "42.20", "volume": "1,704,200", "sector": "Utilities"},
-    {"symbol": "ACEN", "name": "ACEN Corporation", "last_price": "7.10", "change": "+0.23", "change_pct": "+3.35%", "high": "7.20", "low": "6.80", "volume": "5,532,100", "sector": "Utilities"},
-    {"symbol": "MBT", "name": "Metropolitan Bank & Trust Company", "last_price": "63.75", "change": "+0.90", "change_pct": "+1.43%", "high": "64.00", "low": "62.50", "volume": "1,975,400", "sector": "Financial Services"},
-    {"symbol": "ICT", "name": "International Container Terminal Services, Inc.", "last_price": "300.20", "change": "+4.60", "change_pct": "+1.56%", "high": "302.00", "low": "295.00", "volume": "255,780", "sector": "Industrials"},
-
-      {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2176.25", "change": "-45.75", "change_pct": "-2.06%", "high": "2225.00", "low": "2155.00", "volume": "34,580", "sector": "Communication Services"},
-    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1587.50", "change": "-39.50", "change_pct": "-2.43%", "high": "1625.00", "low": "1575.00", "volume": "85,740", "sector": "Communication Services"},
+    {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "5.75", "change": "+0.31", "change_pct": "+5.70%", "high": "5.95", "low": "5.62", "volume": "13,761,100", "sector": "Basic Materials"},
+   
+    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "160.30", "change": "+2.30", "change_pct": "+1.46%", "high": "161.90", "low": "159.60", "volume": "3,780,000", "sector": "Financial Services"},
     {"symbol": "AC", "name": "Ayala Corporation", "last_price": "793.50", "change": "-28.50", "change_pct": "-3.47%", "high": "820.00", "low": "778.00", "volume": "187,920", "sector": "Conglomerates"},
-    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "155.80", "change": "-4.60", "change_pct": "-2.87%", "high": "159.00", "low": "152.00", "volume": "1,435,600", "sector": "Financial Services"},
-    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "42.35", "change": "-1.20", "change_pct": "-2.76%", "high": "43.80", "low": "41.50", "volume": "1,654,200", "sector": "Utilities"},
-    # New tech and consumer defensive picks
-    {"symbol": "MONDE", "name": "Monde Nissin Corporation", "last_price": "14.55", "change": "+0.27", "change_pct": "+1.89%", "high": "14.60", "low": "14.20", "volume": "2,445,700", "sector": "Consumer Defensive"},
-    {"symbol": "NIKL", "name": "Nickel Asia Corporation", "last_price": "5.95", "change": "+0.22", "change_pct": "+3.84%", "high": "6.00", "low": "5.70", "volume": "3,782,400", "sector": "Basic Materials"},
-    {"symbol": "TECH", "name": "Cirtek Holdings Philippines Corp.", "last_price": "4.60", "change": "+0.32", "change_pct": "+7.47%", "high": "4.70", "low": "4.20", "volume": "3,356,700", "sector": "Technology"},
-    {"symbol": "CLI", "name": "Cebu Landmasters, Inc.", "last_price": "3.60", "change": "+0.18", "change_pct": "+5.26%", "high": "3.65", "low": "3.40", "volume": "1,343,800", "sector": "Real Estate"},
-    {"symbol": "FOOD", "name": "Alliance Select Foods International", "last_price": "1.02", "change": "+0.07", "change_pct": "+7.37%", "high": "1.05", "low": "0.95", "volume": "5,334,600", "sector": "Consumer Defensive"},
+    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "41.60", "change": "+0.20", "change_pct": "+0.48%", "high": "42.05", "low": "41.50", "volume": "766,300", "sector": "Utilities"},
+    {"symbol": "NOW", "name": "NOW Corporation", "last_price": "2.76", "change": "-0.15", "change_pct": "-5.15%", "high": "2.85", "low": "2.42", "volume": "9,812,100", "sector": "Technology"},
+     {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,176.25", "change": "-45.75", "change_pct": "-2.06%", "high": "2,225.00", "low": "2,155.00", "volume": "34,580", "sector": "Communication Services"},
+    {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "510.50", "change": "+12.50", "change_pct": "+2.51%", "high": "515.00", "low": "498.00", "volume": "38,520", "sector": "Conglomerates"},
+    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,587.50", "change": "-39.50", "change_pct": "-2.43%", "high": "1,625.00", "low": "1,575.00", "volume": "85,740", "sector": "Communication Services"},
+    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "23.50", "change": "+0.50", "change_pct": "+2.17%", "high": "24.60", "low": "23.30", "volume": "12,058,400", "sector": "Real Estate"},
+    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "2.30", "change": "-0.10", "change_pct": "-4.17%", "high": "2.35", "low": "2.05", "volume": "4,425,800", "sector": "Real Estate"},
 ]
+
+   
+   
 
     # Get all unique sectors for the filter dropdown
     all_sectors = sorted(list({stock["sector"] for stock in sample_stocks}))
@@ -907,11 +888,27 @@ def ph_stocks():
 
 @app.route('/uk_stocks', methods=['GET', 'POST'])
 def uk_stocks():
-    # Extended list of UK stocks (LSE symbols)
-    all_uk_stocks = [
-        'LLOY.L', 'VOD.L', 'BARC.L', 'HSBA.L', 'BP.L', 'TSCO.L', 'RIO.L', 
-        'GLEN.L', 'SHELL.L', 'GSK.L', 'AZN.L', 'ULVR.L', 'HSBA.L', 'DGE.L', 
-        'REL.L', 'AAL.L', 'NWG.L', 'IMB.L', 'NG.L', 'LGEN.L'
+    # Extended list of UK stocks (LSE symbols) with sectors
+    uk_stocks_data = [
+        {'symbol': 'LLOY.L', 'name': 'Lloyds Banking Group', 'sector': 'Banking'},
+        {'symbol': 'VOD.L', 'name': 'Vodafone Group', 'sector': 'Telecommunications'},
+        {'symbol': 'BARC.L', 'name': 'Barclays', 'sector': 'Banking'},
+        {'symbol': 'HSBA.L', 'name': 'HSBC Holdings', 'sector': 'Banking'},
+        {'symbol': 'BP.L', 'name': 'BP', 'sector': 'Energy'},
+        {'symbol': 'TSCO.L', 'name': 'Tesco', 'sector': 'Consumer Goods'},
+        {'symbol': 'RIO.L', 'name': 'Rio Tinto', 'sector': 'Mining'},
+        {'symbol': 'GLEN.L', 'name': 'Glencore', 'sector': 'Mining'},
+        {'symbol': 'SHEL.L', 'name': 'Shell', 'sector': 'Energy'},
+        {'symbol': 'GSK.L', 'name': 'GSK', 'sector': 'Pharmaceuticals'},
+        {'symbol': 'AZN.L', 'name': 'AstraZeneca', 'sector': 'Pharmaceuticals'},
+        {'symbol': 'ULVR.L', 'name': 'Unilever', 'sector': 'Consumer Goods'},
+        {'symbol': 'DGE.L', 'name': 'Diageo', 'sector': 'Consumer Goods'},
+        {'symbol': 'REL.L', 'name': 'RELX', 'sector': 'Media'},
+        {'symbol': 'AAL.L', 'name': 'Anglo American', 'sector': 'Mining'},
+        {'symbol': 'NWG.L', 'name': 'NatWest Group', 'sector': 'Banking'},
+        {'symbol': 'IMB.L', 'name': 'Imperial Brands', 'sector': 'Tobacco'},
+        {'symbol': 'NG.L', 'name': 'National Grid', 'sector': 'Utilities'},
+        {'symbol': 'LGEN.L', 'name': 'Legal & General', 'sector': 'Financial Services'}
     ]
     
     stocks = []
@@ -920,7 +917,6 @@ def uk_stocks():
     if request.method == 'POST':
         stock_symbol = request.form.get('stock_symbol', '').strip().upper()
         if stock_symbol:
-            # Check if it's a UK stock (ends with .L or .LON)
             if not (stock_symbol.endswith('.L') or stock_symbol.endswith('.LON')):
                 error_message = f"'{stock_symbol}' is not a UK stock. Please search for stocks ending with .L or .LON"
             else:
@@ -930,13 +926,71 @@ def uk_stocks():
                 else:
                     error_message = f"Stock symbol '{stock_symbol}' not found or data unavailable."
     else:
-        # If not a POST request, show all UK stocks
-        stocks = [data for symbol in all_uk_stocks 
-                 if (data := fetch_stock_data_yahoo(symbol))]
+        # Get all unique sectors for the filter dropdown
+        sectors = sorted(list(set(stock['sector'] for stock in uk_stocks_data)))
+        
+        # Apply filters
+        filtered_stocks = uk_stocks_data.copy()
+        
+        # Sector filter
+        sector_filter = request.args.get('sector')
+        if sector_filter:
+            filtered_stocks = [stock for stock in filtered_stocks if stock['sector'] == sector_filter]
+        
+        # Price range filter
+        price_range = request.args.get('price_range')
+        if price_range:
+            for stock in filtered_stocks[:]:  # Iterate over a copy
+                data = fetch_stock_data_yahoo(stock['symbol'])
+                if data:
+                    price = data['history'][-1]['close']
+                    if price_range == '0-1' and price >= 1:
+                        filtered_stocks.remove(stock)
+                    elif price_range == '1-5' and (price < 1 or price >= 5):
+                        filtered_stocks.remove(stock)
+                    elif price_range == '5-10' and (price < 5 or price >= 10):
+                        filtered_stocks.remove(stock)
+                    elif price_range == '10-50' and (price < 10 or price >= 50):
+                        filtered_stocks.remove(stock)
+                    elif price_range == '50-100' and (price < 50 or price >= 100):
+                        filtered_stocks.remove(stock)
+                    elif price_range == '100+' and price < 100:
+                        filtered_stocks.remove(stock)
+        
+        # Performance filter
+        performance = request.args.get('performance')
+        if performance:
+            stock_performances = []
+            for stock in filtered_stocks:
+                data = fetch_stock_data_yahoo(stock['symbol'])
+                if data:
+                    price_change = ((data['history'][-1]['close'] - data['history'][0]['open']) / 
+                                  data['history'][0]['open'] * 100)
+                    stock_performances.append((price_change, stock['symbol']))
+            
+            if stock_performances:
+                if performance == 'best_today':
+                    stock_performances.sort(reverse=True)
+                elif performance == 'worst_today':
+                    stock_performances.sort()
+                elif performance == 'best_week':
+                    # In a real app, you'd compare with week-ago prices
+                    stock_performances.sort(reverse=True)
+                elif performance == 'worst_week':
+                    stock_performances.sort()
+                
+                # Keep only the top/bottom 10 performers
+                top_performers = [s[1] for s in stock_performances[:10]]
+                filtered_stocks = [stock for stock in filtered_stocks if stock['symbol'] in top_performers]
+        
+        # Fetch data for filtered stocks
+        stocks = [fetch_stock_data_yahoo(stock['symbol']) for stock in filtered_stocks]
+        stocks = [stock for stock in stocks if stock]  # Remove None values
     
     return render_template('uk_stocks.html', 
                          stocks=stocks, 
-                         error_message=error_message)
+                         error_message=error_message,
+                         sectors=sectors)
 def fetch_stock_data_yahoo(symbol):
     try:
         # Get data for the last 30 days
