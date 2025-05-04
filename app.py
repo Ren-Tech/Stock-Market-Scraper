@@ -1044,21 +1044,70 @@ def fetch_stock_data_yahoo(symbol):
 
 @app.route('/ge_stocks', methods=['GET', 'POST'])
 def ge_stocks():
-    # Full list of German stock symbols you want to always show
-    all_ge_stocks = [
-        'SAP.DE', 'BMW.DE', 'VOW3.DE', 'ALV.DE', 'DBK.DE', 
-        'BAS.DE', 'BAYN.DE', 'DTE.DE', 'RWE.DE', 'SIE.DE',
-        'ADS.DE', 'FRE.DE', 'IFX.DE', 'HEN3.DE', 'LIN.DE'
+    # German stocks with sectors
+    ge_stocks_data = [
+        {'symbol': 'SAP.DE', 'name': 'SAP SE', 'sector': 'Technology'},
+        {'symbol': 'BMW.DE', 'name': 'BMW AG', 'sector': 'Automotive'},
+        {'symbol': 'VOW3.DE', 'name': 'Volkswagen AG', 'sector': 'Automotive'},
+        {'symbol': 'ALV.DE', 'name': 'Allianz SE', 'sector': 'Finance'},
+        {'symbol': 'DBK.DE', 'name': 'Deutsche Bank AG', 'sector': 'Finance'},
+        {'symbol': 'BAS.DE', 'name': 'BASF SE', 'sector': 'Chemicals'},
+        {'symbol': 'BAYN.DE', 'name': 'Bayer AG', 'sector': 'Pharmaceuticals'},
+        {'symbol': 'DTE.DE', 'name': 'Deutsche Telekom AG', 'sector': 'Telecommunications'},
+        {'symbol': 'RWE.DE', 'name': 'RWE AG', 'sector': 'Energy'},
+        {'symbol': 'SIE.DE', 'name': 'Siemens AG', 'sector': 'Industrial'},
+        {'symbol': 'ADS.DE', 'name': 'Adidas AG', 'sector': 'Consumer Goods'},
+        {'symbol': 'FRE.DE', 'name': 'Fresenius SE & Co. KGaA', 'sector': 'Healthcare'},
+        {'symbol': 'IFX.DE', 'name': 'Infineon Technologies AG', 'sector': 'Semiconductors'},
+        {'symbol': 'HEN3.DE', 'name': 'Henkel AG & Co. KGaA', 'sector': 'Consumer Goods'},
+        {'symbol': 'LIN.DE', 'name': 'Linde plc', 'sector': 'Chemicals'}
     ]
-
+    
     stocks = []
     error_message = None
+    sectors = sorted(list(set(stock['sector'] for stock in ge_stocks_data)))
 
-    # Always fetch all German stocks by default
-    stocks = [data for symbol in all_ge_stocks 
-              if (data := fetch_stock_data_yahoo(symbol))]
+    # Apply filters only when sector is selected
+    if request.method == 'GET' and request.args.get('sector'):
+        sector_filter = request.args.get('sector')
+        price_range = request.args.get('price_range')
+        performance = request.args.get('performance')
+        
+        # First filter by sector
+        filtered_stocks = [stock for stock in ge_stocks_data if stock['sector'] == sector_filter]
+        
+        # Fetch data for sector-filtered stocks
+        stocks = [fetch_stock_data_yahoo(stock['symbol']) for stock in filtered_stocks]
+        stocks = [stock for stock in stocks if stock]  # Remove None values
+        
+        # Then apply price range filter if selected
+        if price_range:
+            filtered_by_price = []
+            for stock in stocks:
+                if stock and 'history' in stock and len(stock['history']) > 0:
+                    price = stock['history'][-1]['close']
+                    if price_range == '0-10' and 0 <= price <= 10:
+                        filtered_by_price.append(stock)
+                    elif price_range == '10-50' and 10 < price <= 50:
+                        filtered_by_price.append(stock)
+                    elif price_range == '50-100' and 50 < price <= 100:
+                        filtered_by_price.append(stock)
+                    elif price_range == '100-200' and 100 < price <= 200:
+                        filtered_by_price.append(stock)
+                    elif price_range == '200+' and price > 200:
+                        filtered_by_price.append(stock)
+            stocks = filtered_by_price
+        
+        # Then apply performance filter if selected
+        if performance:
+            if performance == 'gainers':
+                stocks.sort(key=lambda x: ((x['history'][-1]['close'] - x['history'][0]['open']) / x['history'][0]['open'] * 100), reverse=True)
+            elif performance == 'losers':
+                stocks.sort(key=lambda x: ((x['history'][-1]['close'] - x['history'][0]['open']) / x['history'][0]['open'] * 100))
+            elif performance == 'volume':
+                stocks.sort(key=lambda x: x['history'][-1]['volume'], reverse=True)
 
-    # Optionally allow additional search and add to the list (if not already included)
+    # Handle POST requests for search
     if request.method == 'POST':
         stock_symbol = request.form.get('stock_symbol', '').strip().upper()
         if stock_symbol:
@@ -1068,23 +1117,19 @@ def ge_stocks():
                 data = fetch_stock_data_yahoo(stock_symbol)
                 if data:
                     if not any(stock['symbol'] == stock_symbol for stock in stocks):
-                        stocks.insert(0, data)  # Add it on top
+                        stocks.insert(0, data)  # Add searched stock at the top
                 else:
                     error_message = f"Stock symbol '{stock_symbol}' not found or data unavailable."
 
-    return render_template('ge_stocks.html', 
-                           stocks=stocks, 
-                           error_message=error_message)
-
-    
-    # Always show default stocks if no specific symbol was searched
+    # If no filters or search, show all stocks
     if not stocks and request.method != 'POST':
-        stocks = [data for symbol in default_ge_stocks 
-                 if (data := fetch_stock_data_yahoo(symbol))]
-    
+        stocks = [fetch_stock_data_yahoo(stock['symbol']) for stock in ge_stocks_data]
+        stocks = [stock for stock in stocks if stock]  # Remove None values
+
     return render_template('ge_stocks.html', 
-                        stocks=stocks, 
-                        error_message=error_message)
+                         stocks=stocks, 
+                         error_message=error_message,
+                         sectors=sectors)
 
 @app.route("/simulation", methods=["GET", "POST"])
 def simulation():

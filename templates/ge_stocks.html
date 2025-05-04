@@ -47,69 +47,69 @@
 </div>
 
 <!-- Stock Search and Timeframe Controls -->
+<!-- Replace the existing filter section with this -->
+<!-- Replace the filter section with this -->
 <div class="card shadow-sm mb-4">
   <div class="card-body">
     <div class="row align-items-center">
       <div class="col-md-12">
-        <div class="search-container">
-          <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-            </svg>
-            <input type="text" id="stock-search" class="form-control form-control-lg" placeholder="Search German stocks (e.g., BMW.DE, SAP.DE)" autocomplete="off" />
-            <div class="search-results" id="search-results"></div>
+        <form method="POST" class="mb-3">
+          <div class="input-group">
+            <input
+              type="text"
+              name="stock_symbol"
+              class="form-control form-control-lg"
+              placeholder="Search German stocks (e.g., BMW.DE, SAP.DE)"
+              value="{{ request.form.stock_symbol if request.form.stock_symbol else '' }}"
+            />
+            <button class="btn btn-primary" type="submit">
+              <i class="fas fa-search"></i> Search
+            </button>
           </div>
-          <button class="btn btn-primary" id="search-stocks">
-            <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-            </svg>
-            Search
-          </button>
-        </div>
+        </form>
       </div>
     </div>
 
-    <!-- Filter Options -->
-    <div class="row mt-3">
-      <div class="col-md-3 mb-2">
-        <select class="form-select" id="sector-filter">
-          <option value="all">Sector (All)</option>
-          <option value="Technology">Technology</option>
-          <option value="Automotive">Automotive</option>
-          <option value="Finance">Finance</option>
-          <option value="Healthcare">Healthcare</option>
-          <option value="Energy">Energy</option>
-          <option value="Consumer">Consumer</option>
-          <option value="Industrial">Industrial</option>
-          <option value="Telecom">Telecom</option>
-        </select>
+    <form method="GET" id="filter-form">
+      <div class="row align-items-center">
+        <div class="col-md-3">
+          <select class="form-select" name="sector" id="sector-select" required>
+            <option value="" selected disabled>Select Sector</option>
+            {% for sector in sectors %}
+            <option value="{{ sector }}" {% if request.args.get('sector')==sector %}selected{% endif %}>
+              {{ sector }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="price_range" id="price-select" disabled>
+            <option value="" selected disabled>Select Price Range</option>
+            <option value="0-10" {% if request.args.get('price_range')=='0-10' %}selected{% endif %}>€0 - €10</option>
+            <option value="10-50" {% if request.args.get('price_range')=='10-50' %}selected{% endif %}>€10 - €50</option>
+            <option value="50-100" {% if request.args.get('price_range')=='50-100' %}selected{% endif %}>€50 - €100</option>
+            <option value="100-200" {% if request.args.get('price_range')=='100-200' %}selected{% endif %}>€100 - €200</option>
+            <option value="200+" {% if request.args.get('price_range')=='200+' %}selected{% endif %}>€200+</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="performance" id="performance-select" disabled>
+            <option value="" selected disabled>Select Performance</option>
+            <option value="gainers" {% if request.args.get('performance')=='gainers' %}selected{% endif %}>Top Gainers</option>
+            <option value="losers" {% if request.args.get('performance')=='losers' %}selected{% endif %}>Top Losers</option>
+            <option value="volume" {% if request.args.get('performance')=='volume' %}selected{% endif %}>Highest Volume</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100" id="apply-btn" disabled>
+            <i class="fas fa-filter"></i> Apply Filters
+          </button>
+          {% if request.args.get('sector') %}
+          <a href="{{ url_for('ge_stocks') }}" class="btn btn-outline-secondary w-100 mt-2">Reset Filters</a>
+          {% endif %}
+        </div>
       </div>
-      <div class="col-md-3 mb-2">
-        <select class="form-select" id="price-range-filter">
-          <option value="all">Price Range (All)</option>
-          <option value="0-10">€0 - €10</option>
-          <option value="10-50">€10 - €50</option>
-          <option value="50-100">€50 - €100</option>
-          <option value="100-200">€100 - €200</option>
-          <option value="200+">€200+</option>
-        </select>
-      </div>
-      <div class="col-md-3 mb-2">
-        <select class="form-select" id="performance-filter">
-          <option value="all">Performance (All)</option>
-          <option value="gainers">Top Gainers (24h)</option>
-          <option value="losers">Top Losers (24h)</option>
-          <option value="volume">Highest Volume</option>
-          <option value="week-high">52 Week High</option>
-          <option value="week-low">52 Week Low</option>
-        </select>
-      </div>
-      <div class="col-md-3 mb-2">
-        <button class="btn btn-outline-primary w-100" id="apply-filters">
-          <i class="fas fa-filter"></i> Apply Filters
-        </button>
-      </div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -179,7 +179,16 @@
     // Search functionality
     const searchInput = document.getElementById("stock-search");
     const searchResults = document.getElementById("search-results");
-
+    const filterForm = document.getElementById('filter-form');
+    if (filterForm) {
+      const filterSelects = filterForm.querySelectorAll('select');
+      
+      filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+          filterForm.submit();
+        });
+      });
+    }
     // Search input event listener
     searchInput.addEventListener("input", function () {
       const query = this.value.trim().toUpperCase();
