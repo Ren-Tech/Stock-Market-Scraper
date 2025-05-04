@@ -10,6 +10,8 @@ import feedparser
 import os
 import re
 import yfinance as yf
+from urllib.parse import urlparse, urljoin
+from flask import session, flash
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
@@ -267,61 +269,151 @@ def current_affairs():
                          urls=urls, 
                          error_messages=error_messages,
                          urls_provided=urls_provided)
+
 @app.route("/market_news", methods=["GET", "POST"])
 def market_news():
-    # Initialize market_urls dictionary
-    market_urls = {
-        "us": [],
-        "uk": [],
-        "ge": [],
-        "fr": [],
-        "china": [],
-        "europe": [],
-        "asia": [],
-        "south_america": []
-    }
+    # Initialize or get market URLs from session
+    market_urls = session.get('market_urls', {
+        "us": [], "uk": [], "ge": [], "fr": [], 
+        "china": [], "europe": [], "asia": [], "south_america": []
+    })
     
-    # Default selected market
     selected_market = request.args.get("market", "us")
     
-    # Process form submission for URLs
     if request.method == "POST":
-        # Get market selection if provided
-        if "market" in request.form:
-            selected_market = request.form.get("market")
-        
-        # Process URLs for each market
+        selected_market = request.form.get("market", selected_market)
         for market in market_urls.keys():
             urls = request.form.getlist(f"{market}_urls")
-            market_urls[market] = [url for url in urls if url.strip()]
+            market_urls[market] = [url.strip() for url in urls if url.strip()]
+        session['market_urls'] = market_urls
     
-    # Collect news based on the URLs for the selected market
     news_data = []
-    
-    # Check if we have URLs for the selected market
-    if market_urls[selected_market]:
-        # Use the URLs from the selected market to fetch news
+    if market_urls.get(selected_market):
         for url in market_urls[selected_market]:
             try:
-                # Use get_news_from_url function to fetch news from the URL
-                market_news = get_news_from_url(url, selected_market)
-                if market_news:
-                    news_data.extend(market_news)
+                if not url.startswith(('http://', 'https://')):
+                    url = 'https://' + url
+                
+                scraped_news = scrape_news_from_url(url)
+                if scraped_news:
+                    for item in scraped_news:
+                        item['region'] = selected_market.replace('_', ' ').title()
+                        item.setdefault('title', 'Untitled News')
+                        item.setdefault('content', 'No content available')
+                        item.setdefault('link', url)
+                        item.setdefault('source', urlparse(url).netloc)
+                        if 'date' not in item:
+                            item['date'] = extract_date_from_url(url) or datetime.now().strftime("%Y-%m-%d")
+                    
+                    news_data.extend(scraped_news)
+                else:
+                    flash(f"No articles found at {url}", "warning")
+            
+            except requests.exceptions.Timeout:
+                flash(f"Timeout when trying to scrape {url}", "danger")
             except Exception as e:
-                # Log any errors
-                print(f"Error fetching news from {url}: {str(e)}")
-    else:
-        # If no URLs for the selected market, use the default news function
-        news_data = get_stock_market_news()
+                flash(f"Error scraping {url}: {str(e)}", "danger")
+                print(f"Error scraping {url}: {str(e)}")
     
-    # Add news type and image to each news item
-
-    # Render the template with all necessary data
     return render_template("market_news.html",
-                          news_data=news_data,
-                          market_urls=market_urls,
-                          selected_market=selected_market)
+                         news_data=news_data,
+                         market_urls=market_urls,
+                         selected_market=selected_market)
 
+def scrape_news_from_url(url):
+    """Enhanced news scraping function with better error handling"""
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=15)  # Increased timeout
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        articles = []
+        
+        # Common article selectors
+        article_selectors = [
+            'article',
+            '.article',
+            '.post',
+            '.story',
+            '.news-item',
+            '[itemtype="http://schema.org/NewsArticle"]',
+            '.teaser',
+            '.card',
+            'div[role="article"]'
+        ]
+        
+        for selector in article_selectors:
+            article_elements = soup.select(selector, limit=10)
+            if article_elements:
+                for article in article_elements:
+                    try:
+                        # Extract elements with fallbacks
+                        title_elem = (article.find(['h1', 'h2', 'h3']) or 
+                                    article.find(class_=re.compile('title|headline', re.I)))
+                        
+                        link_elem = article.find('a')
+                        content_elem = (article.find('p') or 
+                                      article.find(class_=re.compile('content|summary|description', re.I)))
+                        
+                        image_elem = article.find('img')
+                        date_elem = (article.find('time') or 
+                                   article.find(class_=re.compile('date|timestamp|time', re.I)))
+                        
+                        if title_elem:
+                            title = title_elem.get_text().strip()
+                            content = content_elem.get_text().strip()[:200] + '...' if content_elem else ''
+                            
+                            # Handle relative URLs
+                            link = url
+                            if link_elem and link_elem.get('href'):
+                                link = urljoin(url, link_elem['href'])
+                            
+                            image = None
+                            if image_elem and image_elem.get('src'):
+                                image = urljoin(url, image_elem['src'])
+                            
+                            date = (date_elem.get_text().strip() 
+                                  if date_elem 
+                                  else extract_date_from_url(url) 
+                                  or datetime.now().strftime("%Y-%m-%d"))
+                            
+                            articles.append({
+                                'title': title,
+                                'content': content,
+                                'link': link,
+                                'image': image,
+                                'date': date,
+                                'source': urlparse(url).netloc
+                            })
+                    except Exception as e:
+                        print(f"Error parsing article element: {str(e)}")
+                        continue
+                
+                if articles:
+                    return articles
+        
+        return None
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Request error for {url}: {str(e)}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error scraping {url}: {str(e)}")
+        return None
+
+def extract_date_from_url(url):
+    """Extract date from URL patterns"""
+    try:
+        date_match = re.search(r'/(20\d{2})[/-](0?[1-9]|1[0-2])[/-](0?[1-9]|[12][0-9]|3[01])/', url)
+        if date_match:
+            return f"{date_match.group(1)}-{date_match.group(2)}-{date_match.group(3)}"
+        return None
+    except:
+        return None
 @app.template_filter('url_shorten')
 def url_shorten_filter(url, length=30):
     """Shorten URL for display purposes"""
