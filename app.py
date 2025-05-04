@@ -778,7 +778,6 @@ def ph_stocks():
     stocks_data = []
     news_data = []
     error_message = None
-    
     # Sample Philippine stock data (20 stocks)
    
    
@@ -817,25 +816,94 @@ def ph_stocks():
     {"symbol": "FOOD", "name": "Alliance Select Foods International", "last_price": "1.02", "change": "+0.07", "change_pct": "+7.37%", "high": "1.05", "low": "0.95", "volume": "5,334,600", "sector": "Consumer Defensive"},
 ]
 
-    if request.method == "POST":
-        stock_symbols_input = request.form.get("stock_symbols", "")
-        if stock_symbols_input.strip():
-            symbols = [s.strip().upper() for s in stock_symbols_input.split(",")]
-            # Filter stocks based on user input
-            stocks_data = [stock for stock in sample_stocks if stock["symbol"] in symbols]
-            if not stocks_data:
-                error_message = "No matching stocks found. Please check your symbols and try again."
-        else:
-            # If no input, show all stocks
-            stocks_data = sample_stocks
-            symbols = [stock["symbol"] for stock in sample_stocks]
-    else:
-        # For GET requests, show all stocks
-        stocks_data = sample_stocks
-        symbols = [stock["symbol"] for stock in sample_stocks]
+    # Get all unique sectors for the filter dropdown
+    all_sectors = sorted(list({stock["sector"] for stock in sample_stocks}))
     
-   
-    return render_template("ph_stocks.html", stocks_data=stocks_data, news_data=news_data, symbols=symbols, error_message=error_message)
+    if request.method == "POST":
+        # Handle symbol search
+        stock_symbols_input = request.form.get("stock_symbols", "").strip()
+        
+        # Get filter parameters
+        sector_filter = request.form.get("sector", "")
+        price_min = request.form.get("price_min", "")
+        price_max = request.form.get("price_max", "")
+        performance_filter = request.form.get("performance", "")
+        
+        # Start with all stocks or filtered by symbols
+        if stock_symbols_input:
+            symbols = [s.strip().upper() for s in stock_symbols_input.split(",")]
+            stocks_data = [stock for stock in sample_stocks if stock["symbol"] in symbols]
+        else:
+            stocks_data = sample_stocks.copy()
+        
+        # Apply filters
+        filtered_stocks = []
+        for stock in stocks_data:
+            # Convert price to float for comparison
+            try:
+                price = float(stock["last_price"])
+            except ValueError:
+                price = 0
+            
+            # Sector filter
+            if sector_filter and stock["sector"] != sector_filter:
+                continue
+                
+            # Price range filter
+            if price_min:
+                try:
+                    if price < float(price_min):
+                        continue
+                except ValueError:
+                    pass
+                    
+            if price_max:
+                try:
+                    if price > float(price_max):
+                        continue
+                except ValueError:
+                    pass
+                    
+            # Performance filter
+            if performance_filter:
+                change_pct = stock["change_pct"]
+                is_positive = change_pct.startswith('+')
+                
+                if performance_filter == "gainers" and not is_positive:
+                    continue
+                if performance_filter == "losers" and is_positive:
+                    continue
+                if performance_filter == "most_active" and float(stock["volume"].replace(',', '')) < 5000000:  # Example threshold
+                    continue
+            
+            filtered_stocks.append(stock)
+        
+        stocks_data = filtered_stocks
+        
+        if not stocks_data:
+            error_message = "No stocks match your filters. Please try different criteria."
+        
+        # Keep the symbols in search bar if they were provided
+        if stock_symbols_input:
+            symbols = [s.strip().upper() for s in stock_symbols_input.split(",")]
+    
+    else:
+        # For GET requests, show all stocks with empty filters
+        stocks_data = sample_stocks
+    
+    return render_template(
+        "ph_stocks.html", 
+        stocks_data=stocks_data, 
+        news_data=news_data, 
+        symbols=symbols, 
+        error_message=error_message,
+        all_sectors=all_sectors,
+        current_sector=request.form.get("sector", "") if request.method == "POST" else "",
+        current_price_min=request.form.get("price_min", "") if request.method == "POST" else "",
+        current_price_max=request.form.get("price_max", "") if request.method == "POST" else "",
+        current_performance=request.form.get("performance", "") if request.method == "POST" else ""
+    )
+
 
 @app.route('/uk_stocks', methods=['GET', 'POST'])
 def uk_stocks():

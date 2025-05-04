@@ -48,101 +48,72 @@ Dashboard{% endblock %} {% block content %}
 
   <!-- Search and Filter Section -->
   <div class="control-panel">
-    <div class="search-container">
-      <div class="search-box">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="search-icon"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <input
-          type="text"
-          id="stock-search"
-          placeholder="Search stocks (e.g. JFC, BDO, ALI)"
-          value="{{ ','.join(symbols) if symbols else '' }}"
-          autocomplete="off"
-        />
-        <div class="search-results" id="search-results"></div>
-      </div>
-      <button class="search-btn" id="search-stocks">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="btn-icon"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        Search
-      </button>
-    </div>
+    <form method="POST" action="/ph_stocks" id="stock-filter-form">
+        <div class="search-container">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+                <input type="text" name="stock_symbols" id="stock-search" 
+                       placeholder="Search stocks (e.g. JFC, BDO, ALI)" 
+                       value="{{ ','.join(symbols) if symbols else '' }}" 
+                       autocomplete="off" />
+                <div class="search-results" id="search-results"></div>
+            </div>
+            <button type="submit" class="search-btn" id="search-stocks">
+                <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+                Search
+            </button>
+        </div>
 
-    <div class="filter-group">
-      <div class="filter-dropdown">
-        <label for="sector-filter">Sector</label>
-        <select id="sector-filter">
-          <option value="all">All Sectors</option>
-          <option value="financial">Financials</option>
-          <option value="industrial">Industrial</option>
-          <option value="holding">Holding Firms</option>
-          <option value="property">Property</option>
-          <option value="services">Services</option>
-          <option value="mining">Mining & Oil</option>
-          <option value="sme">SME</option>
-        </select>
-      </div>
+        <div class="filter-group">
+            <div class="filter-dropdown">
+                <label for="sector-filter">Sector</label>
+                <select id="sector-filter" name="sector">
+                    <option value="all" {% if current_sector == 'all' %}selected{% endif %}>All Sectors</option>
+                    <option value="financial" {% if current_sector == 'financial' %}selected{% endif %}>Financials</option>
+                    <option value="industrial" {% if current_sector == 'industrial' %}selected{% endif %}>Industrial</option>
+                    <option value="holding" {% if current_sector == 'holding' %}selected{% endif %}>Holding Firms</option>
+                    <option value="property" {% if current_sector == 'property' %}selected{% endif %}>Property</option>
+                    <option value="services" {% if current_sector == 'services' %}selected{% endif %}>Services</option>
+                    <option value="mining" {% if current_sector == 'mining' %}selected{% endif %}>Mining & Oil</option>
+                    <option value="sme" {% if current_sector == 'sme' %}selected{% endif %}>SME</option>
+                </select>
+            </div>
 
-      <div class="filter-dropdown">
-        <label for="price-filter">Price Range</label>
-        <select id="price-filter">
-          <option value="all">Any Price</option>
-          <option value="0-10">Under ₱10</option>
-          <option value="10-50">₱10 - ₱50</option>
-          <option value="50-100">₱50 - ₱100</option>
-          <option value="100-500">₱100 - ₱500</option>
-          <option value="500">Over ₱500</option>
-        </select>
-      </div>
+            <div class="filter-dropdown">
+                <label for="price-filter">Price Range</label>
+                <select id="price-filter" name="price">
+                    <option value="all" {% if current_price == 'all' %}selected{% endif %}>Any Price</option>
+                    <option value="0-10" {% if current_price == '0-10' %}selected{% endif %}>Under ₱10</option>
+                    <option value="10-50" {% if current_price == '10-50' %}selected{% endif %}>₱10 - ₱50</option>
+                    <option value="50-100" {% if current_price == '50-100' %}selected{% endif %}>₱50 - ₱100</option>
+                    <option value="100-500" {% if current_price == '100-500' %}selected{% endif %}>₱100 - ₱500</option>
+                    <option value="500" {% if current_price == '500' %}selected{% endif %}>Over ₱500</option>
+                </select>
+            </div>
 
-      <div class="filter-dropdown">
-        <label for="performance-filter">Performance</label>
-        <select id="performance-filter">
-          <option value="all">All Performances</option>
-          <option value="gainers">Top Gainers</option>
-          <option value="losers">Top Losers</option>
-          <option value="active">Most Active</option>
-          <option value="volume">Highest Volume</option>
-        </select>
-      </div>
+            <div class="filter-dropdown">
+                <label for="performance-filter">Performance</label>
+                <select id="performance-filter" name="performance">
+                    <option value="all" {% if current_performance == 'all' %}selected{% endif %}>All Performances</option>
+                    <option value="gainers" {% if current_performance == 'gainers' %}selected{% endif %}>Top Gainers</option>
+                    <option value="losers" {% if current_performance == 'losers' %}selected{% endif %}>Top Losers</option>
+                    <option value="active" {% if current_performance == 'active' %}selected{% endif %}>Most Active</option>
+                </select>
+            </div>
 
-      <button class="filter-btn" id="apply-filters">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="btn-icon"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        Apply Filters
-      </button>
-    </div>
-  </div>
+            <button type="submit" class="filter-btn" id="apply-filters">
+                <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                </svg>
+                Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
 
   <!-- Stock Data Grid -->
   <div class="stocks-grid-container">
@@ -695,7 +666,10 @@ Dashboard{% endblock %} {% block content %}
       // Apply filters when button is clicked
       document
         .getElementById("apply-filters")
-        .addEventListener("click", applyFilters);
+        .addEventListener("click", function(e) {
+          e.preventDefault();
+          applyFilters();
+        });
 
       // View stock details (modal) - only for detail button clicks
       document.querySelectorAll(".view-btn").forEach((btn) => {
@@ -735,55 +709,81 @@ Dashboard{% endblock %} {% block content %}
         .addEventListener("click", function () {
           location.reload();
         });
+
+      // Initialize filters on page load
+      initializeFilters();
     });
+
+    // Initialize filters with current values from server
+    function initializeFilters() {
+      // Get filter elements
+      const sectorFilter = document.getElementById("sector-filter");
+      const priceFilter = document.getElementById("price-filter");
+      const performanceFilter = document.getElementById("performance-filter");
+      
+      // Apply initial filters if values are set
+      if (sectorFilter.value !== "all" || priceFilter.value !== "all" || performanceFilter.value !== "all") {
+        applyFilters();
+      }
+    }
 
     // Function to apply filters
     function applyFilters() {
       const sectorFilter = document.getElementById("sector-filter").value;
       const priceFilter = document.getElementById("price-filter").value;
-      const performanceFilter =
-        document.getElementById("performance-filter").value;
-      const searchQuery = document
-        .getElementById("stock-search")
-        .value.trim()
-        .toLowerCase();
+      const performanceFilter = document.getElementById("performance-filter").value;
+      const searchQuery = document.getElementById("stock-search").value.trim().toLowerCase();
 
       const allRows = Array.from(
         document.querySelectorAll(".stocks-grid .grid-row:not(.header-row)")
       );
 
       allRows.forEach((row) => {
-        const rowSector = row.dataset.sector;
-        const rowPrice = parseFloat(row.dataset.price);
+        const rowSector = row.dataset.sector ? row.dataset.sector.toLowerCase() : '';
+        const rowPrice = parseFloat(row.dataset.price) || 0;
         const rowSymbol = row.dataset.symbol.toLowerCase();
         const rowChange = row.querySelector(".pchange-cell").textContent;
+        const rowVolume = parseFloat(row.querySelector(".volume-cell").textContent.replace(/,/g, '')) || 0;
 
         // Filter by sector
-        const sectorMatch =
-          sectorFilter === "all" || rowSector.includes(sectorFilter);
+        const sectorMatch = 
+          sectorFilter === "all" || 
+          (rowSector && rowSector.includes(sectorFilter.toLowerCase()));
 
         // Filter by price range
         let priceMatch = true;
         if (priceFilter !== "all") {
-          const [min, max] = priceFilter.split("-").map(Number);
-          if (priceFilter.endsWith("+")) {
-            priceMatch = rowPrice >= min;
-          } else {
-            priceMatch = rowPrice >= min && rowPrice <= max;
+          if (priceFilter === "0-10") {
+            priceMatch = rowPrice >= 0 && rowPrice <= 10;
+          } else if (priceFilter === "10-50") {
+            priceMatch = rowPrice >= 10 && rowPrice <= 50;
+          } else if (priceFilter === "50-100") {
+            priceMatch = rowPrice >= 50 && rowPrice <= 100;
+          } else if (priceFilter === "100-500") {
+            priceMatch = rowPrice >= 100 && rowPrice <= 500;
+          } else if (priceFilter === "500") {
+            priceMatch = rowPrice >= 500;
           }
         }
 
         // Filter by performance
         let performanceMatch = true;
         if (performanceFilter === "gainers") {
-          performanceMatch = !rowChange.includes("-");
+          performanceMatch = !rowChange.startsWith('-');
         } else if (performanceFilter === "losers") {
-          performanceMatch = rowChange.includes("-");
+          performanceMatch = rowChange.startsWith('-');
+        } else if (performanceFilter === "active") {
+          performanceMatch = rowVolume > 5000000; // Threshold for "active"
+        } else if (performanceFilter === "volume") {
+          // For "Highest Volume" we'll need to sort, handled separately
+          performanceMatch = true;
         }
 
         // Filter by search query
-        const searchMatch =
-          searchQuery === "" || rowSymbol.includes(searchQuery);
+        const searchMatch = 
+          searchQuery === "" || 
+          rowSymbol.includes(searchQuery) || 
+          row.querySelector(".company-name").textContent.toLowerCase().includes(searchQuery);
 
         // Show/hide row based on filters
         if (sectorMatch && priceMatch && performanceMatch && searchMatch) {
@@ -792,14 +792,41 @@ Dashboard{% endblock %} {% block content %}
           row.style.display = "none";
         }
       });
+
+      // Special handling for "Highest Volume" filter
+      if (performanceFilter === "volume") {
+        sortByVolume();
+      }
+    }
+
+    // Function to sort by volume (for Highest Volume filter)
+    function sortByVolume() {
+      const grid = document.querySelector(".stocks-grid");
+      const rows = Array.from(document.querySelectorAll(".grid-row:not(.header-row)"));
+      
+      // Filter out hidden rows
+      const visibleRows = rows.filter(row => row.style.display !== "none");
+      
+      // Sort by volume (descending)
+      visibleRows.sort((a, b) => {
+        const volumeA = parseFloat(a.querySelector(".volume-cell").textContent.replace(/,/g, '')) || 0;
+        const volumeB = parseFloat(b.querySelector(".volume-cell").textContent.replace(/,/g, '')) || 0;
+        return volumeB - volumeA;
+      });
+      
+      // Reattach sorted rows
+      const headerRow = document.querySelector(".grid-row.header-row");
+      grid.insertBefore(headerRow, grid.firstChild);
+      
+      visibleRows.forEach(row => {
+        grid.appendChild(row);
+      });
     }
 
     // Function to view stock details (modal)
     function viewStockDetails(symbol) {
       // Find the row with the matching symbol
-      const stockRow = document.querySelector(
-        `.grid-row[data-symbol="${symbol}"]`
-      );
+      const stockRow = document.querySelector(`.grid-row[data-symbol="${symbol}"]`);
 
       if (!stockRow) {
         alert("Stock details not available for this symbol.");
@@ -810,9 +837,7 @@ Dashboard{% endblock %} {% block content %}
       const stockData = {
         symbol: symbol,
         name: stockRow.querySelector(".company-name").textContent,
-        price: stockRow
-          .querySelector(".price-cell")
-          .textContent.replace("₱", ""),
+        price: stockRow.querySelector(".price-cell").textContent.replace("₱", ""),
         change: stockRow.querySelector(".change-cell").textContent,
         change_pct: stockRow.querySelector(".pchange-cell").textContent,
         sector: stockRow.querySelector(".company-sector").textContent,
@@ -853,33 +878,20 @@ Dashboard{% endblock %} {% block content %}
       };
 
       // Update modal with stock data
-      document.getElementById("modal-stock-symbol").textContent =
-        stockData.symbol;
+      document.getElementById("modal-stock-symbol").textContent = stockData.symbol;
       document.getElementById("modal-stock-name").textContent = stockData.name;
-      document.getElementById(
-        "modal-stock-price"
-      ).textContent = `₱${stockData.price}`;
-      document.getElementById(
-        "modal-stock-change"
-      ).textContent = `${stockData.change} (${stockData.change_pct})`;
-      document.getElementById("modal-stock-sector").textContent =
-        stockData.sector;
-      document.getElementById("modal-stock-industry").textContent =
-        stockData.industry;
-      document.getElementById("modal-stock-marketcap").textContent =
-        stockData.marketCap;
+      document.getElementById("modal-stock-price").textContent = `₱${stockData.price}`;
+      document.getElementById("modal-stock-change").textContent = `${stockData.change} (${stockData.change_pct})`;
+      document.getElementById("modal-stock-sector").textContent = stockData.sector;
+      document.getElementById("modal-stock-industry").textContent = stockData.industry;
+      document.getElementById("modal-stock-marketcap").textContent = stockData.marketCap;
       document.getElementById("metric-open").textContent = `₱${stockData.open}`;
       document.getElementById("metric-high").textContent = `₱${stockData.high}`;
       document.getElementById("metric-low").textContent = `₱${stockData.low}`;
       document.getElementById("metric-volume").textContent = stockData.volume;
-      document.getElementById(
-        "metric-52high"
-      ).textContent = `₱${stockData.yearHigh}`;
-      document.getElementById(
-        "metric-52low"
-      ).textContent = `₱${stockData.yearLow}`;
-      document.getElementById("company-description").textContent =
-        stockData.description;
+      document.getElementById("metric-52high").textContent = `₱${stockData.yearHigh}`;
+      document.getElementById("metric-52low").textContent = `₱${stockData.yearLow}`;
+      document.getElementById("company-description").textContent = stockData.description;
 
       // Set the color for change
       const changeElement = document.getElementById("modal-stock-change");
@@ -922,9 +934,7 @@ Dashboard{% endblock %} {% block content %}
 
       // Activate selected tab
       document.getElementById(`${tabId}-tab`).classList.add("active");
-      document
-        .querySelector(`.tab-btn[data-tab="${tabId}"]`)
-        .classList.add("active");
+      document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add("active");
     }
 
     // Function to initialize chart
@@ -1017,9 +1027,7 @@ Dashboard{% endblock %} {% block content %}
       });
 
       // Activate selected period
-      document
-        .querySelector(`.period-btn[data-period="${period}"]`)
-        .classList.add("active");
+      document.querySelector(`.period-btn[data-period="${period}"]`).classList.add("active");
 
       // In a real app, you would fetch new data for this period
       console.log(`Updating chart for period: ${period}`);
@@ -1040,7 +1048,7 @@ Dashboard{% endblock %} {% block content %}
       // Close the modal
       closeStockModal();
     }
-  </script>
+</script>
   <style>
     /* Base Styles */
     :root {
@@ -2076,6 +2084,111 @@ Dashboard{% endblock %} {% block content %}
     .search-result-item:last-child {
       border-bottom: none;
     }
+    /* Add to your existing CSS */
+.control-panel {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-box {
+    position: relative;
+    flex-grow: 1;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #6b7280;
+}
+
+#stock-search {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0 0 6px 6px;
+    z-index: 10;
+    display: none;
+}
+
+.search-result-item {
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.search-result-item:hover {
+    background: #f3f4f6;
+}
+
+.filter-group {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.filter-dropdown {
+    flex-grow: 1;
+}
+
+.filter-dropdown label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.filter-dropdown select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.filter-btn, .search-btn {
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.filter-btn:hover, .search-btn:hover {
+    background: #2563eb;
+}
+
+.btn-icon {
+    width: 16px;
+    height: 16px;
+}
   </style>
   {% endblock %}
 </div>
