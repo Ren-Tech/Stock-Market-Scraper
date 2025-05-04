@@ -707,6 +707,15 @@ def stocks_data():
             'success': False,
             'error': str(e)
         })
+
+@app.route('/shorten-url', methods=['POST'])
+def shorten_url():
+    data = request.get_json()
+    long_url = data.get('url')
+    short = generate_short_url(long_url)  # Your custom logic
+    return jsonify({"short_url": short})
+
+    
     
 @app.route("/sector_news", methods=["GET", "POST"])
 def sector_news():
@@ -760,6 +769,8 @@ def sector_news():
                          urls=urls,
                          sectors=SECTORS.keys(),
                          has_urls=bool(sector_urls))  # Add this new variable
+
+                         
 
 @app.route("/ph_stocks", methods=["GET", "POST"])
 def ph_stocks():

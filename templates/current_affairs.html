@@ -14,6 +14,53 @@ block content %}
     color: #495057;
     padding: 2px 0;
   }
+
+  /* New styles for consistent news cards */
+  .news-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .news-card .card-img-top {
+    height: 180px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .news-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .news-card .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 60px;
+  }
+
+  .news-card .card-footer {
+    padding: 0.5rem;
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+  }
+
+  .news-badge {
+    font-size: 0.75rem;
+  }
+
+  .news-link {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
 </style>
 
 <div class="container mt-4">
@@ -521,49 +568,33 @@ block content %}
             loop.index0 < 5 and news.title not in seen_titles %} {% set _ =
             seen_titles.append(news.title) %}
             <div class="col-md-6 col-xl-4 mb-3">
-              <div class="card h-100">
-                <div class="row g-0">
-                  <div class="col-md-4">
-                    <img
-                      src="{{ news.image }}"
-                      class="img-fluid rounded-start"
-                      alt="Featured News"
-                      style="height: 100%; object-fit: cover"
-                      onerror="this.src='/static/images/default_news.jpg';"
-                    />
+              <div class="card news-card">
+                <img
+                  src="{{ news.image }}"
+                  class="card-img-top"
+                  alt="Featured News"
+                  onerror="this.src='/static/images/default_news.jpg';"
+                />
+                <div class="card-body">
+                  <h5 class="card-title">{{ news.title }}</h5>
+                </div>
+                <div class="card-footer">
+                  <div
+                    class="d-flex justify-content-between align-items-center"
+                  >
+                    <a
+                      href="{{ news.link }}"
+                      target="_blank"
+                      class="btn btn-sm btn-outline-primary"
+                      >Read</a
+                    >
+                    <span class="badge bg-secondary news-badge"
+                      >{{ news.category|capitalize }}</span
+                    >
                   </div>
-                  <div class="col-md-8">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ news.title }}</h5>
-                      <p class="card-text small">{{ news.content }}</p>
-                      <div class="d-flex justify-content-between">
-                        <a
-                          href="{{ news.link }}"
-                          target="_blank"
-                          class="btn btn-sm btn-outline-primary"
-                          >Read More</a
-                        >
-                        <span class="badge bg-secondary"
-                          >{{ news.category|capitalize }}</span
-                        >
-                      </div>
-                      <div class="mt-2">
-                        <small
-                          class="text-muted url-display"
-                          data-source-region="{{ news.category }}"
-                        >
-                          <a
-                            href="{{ news.link }}"
-                            target="_blank"
-                            class="text-muted text-truncate d-inline-block"
-                            style="max-width: 200px"
-                          >
-                            {{ news.link }}
-                          </a>
-                        </small>
-                      </div>
-                    </div>
-                  </div>
+                  <small class="text-muted news-link mt-1">
+                    {{ news.link|truncate(30, True) }}
+                  </small>
                 </div>
               </div>
             </div>
@@ -584,49 +615,31 @@ block content %}
             data-category="{{ news.category }}"
             data-source-url="{{ news.source_url }}"
           >
-            <div class="card h-100">
-              <div class="row g-0">
-                <div class="col-md-4">
-                  <img
-                    src="{{ news.image }}"
-                    class="img-fluid rounded-start"
-                    alt="News Image"
-                    style="height: 100%; object-fit: cover"
-                    onerror="this.src='/static/images/default_news.jpg';"
-                  />
+            <div class="card news-card">
+              <img
+                src="{{ news.image }}"
+                class="card-img-top"
+                alt="News Image"
+                onerror="this.src='/static/images/default_news.jpg';"
+              />
+              <div class="card-body">
+                <h5 class="card-title">{{ news.title }}</h5>
+              </div>
+              <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                  <a
+                    href="{{ news.link }}"
+                    target="_blank"
+                    class="btn btn-sm btn-outline-primary"
+                    >Read</a
+                  >
+                  <span class="badge bg-secondary news-badge"
+                    >{{ news.category|capitalize }}</span
+                  >
                 </div>
-                <div class="col-md-8">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ news.title }}</h5>
-                    <p class="card-text small">{{ news.content }}</p>
-                    <div class="d-flex justify-content-between">
-                      <a
-                        href="{{ news.link }}"
-                        target="_blank"
-                        class="btn btn-sm btn-outline-primary"
-                        >Read More</a
-                      >
-                      <span class="badge bg-secondary"
-                        >{{ news.category|capitalize }}</span
-                      >
-                    </div>
-                    <div class="mt-2">
-                      <small
-                        class="text-muted url-display"
-                        data-source-region="{{ news.category }}"
-                      >
-                        <a
-                          href="{{ news.link }}"
-                          target="_blank"
-                          class="text-muted text-truncate d-inline-block"
-                          style="max-width: 200px"
-                        >
-                          {{ news.link }}
-                        </a>
-                      </small>
-                    </div>
-                  </div>
-                </div>
+                <small class="text-muted news-link mt-1">
+                  {{ news.link|truncate(30, True) }}
+                </small>
               </div>
             </div>
           </div>
@@ -1186,6 +1199,7 @@ block content %}
     });
 
     // Toggle search panel visibility
+    // Toggle search panel visibility
     toggleButton.addEventListener("click", function () {
       const isSearchVisible = leftColumn.style.display !== "none";
 
@@ -1212,6 +1226,16 @@ block content %}
         document.querySelectorAll(".news-grid-item").forEach((item) => {
           item.className = item.className.replace(/col-md-\d+/g, "col-md-12");
         });
+
+        // Automatically start the timer when search is shown
+        if (!timerIsActive) {
+          startAutoRefresh();
+          timerIsActive = true;
+          timerToggle.classList.remove("btn-success");
+          timerToggle.classList.add("btn-danger");
+          timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
+          saveTimerState(); // Save timer state after starting
+        }
       }
     });
 
