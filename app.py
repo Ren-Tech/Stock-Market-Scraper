@@ -1,5 +1,5 @@
 import random
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, redirect, render_template, request, jsonify, session
 import pandas as pd
 from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
 from datetime import datetime, timedelta
@@ -11,11 +11,17 @@ import os
 import re
 import yfinance as yf
 from urllib.parse import urlparse, urljoin
-from flask import session, flash
+from flask import url_for
 
+from flask import session, flash
+from functools import wraps
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
-
+# Add login credentials (in production, use a proper database)
+VALID_USERS = {
+    'admin': 'password123',
+    'user1': 'mypassword'
+}
 # API_KEY = 'NWV90QOIWFFO75C5'
 
 
@@ -216,7 +222,44 @@ def fetch_top_news(url, max_articles=20):  # Increased from 10 to 15
         
     return news_items
 @app.route("/", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username in VALID_USERS and VALID_USERS[username] == password:
+            session['logged_in'] = True
+            session['username'] = username
+            return jsonify({'success': True, 'redirect': url_for('current_affairs')})
+        else:
+            return jsonify({'success': False, 'message': 'Invalid username or password'})
+    
+    if session.get('logged_in'):
+        return redirect(url_for('current_affairs'))
+    
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop('logged_in', None)
+    session.pop('username', None)
+    flash('You have been logged out', 'info')
+    return redirect(url_for('login'))
+
+# Add login_required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            flash('Please login to access this page', 'warning')
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function@app.route("/current_affairs", methods=["GET", "POST"])
+@app.route("/current_affairs", methods=["GET", "POST"])
 def current_affairs():
+    # Initialize logging for this request
+    app.logger.info(f"Current Affairs page accessed by {request.remote_addr}")
+    
     urls = {
         'world': [],
         'north_america': [],
@@ -229,46 +272,229 @@ def current_affairs():
     }
     news_data = []
     error_messages = []
-    urls_provided = False  # Flag to track if any URLs were provided
+    urls_provided = False
 
     if request.method == "POST":
-        # Get URLs for each region
+        app.logger.info("Current Affairs form submitted")
+        
+        # Log form data received
+        form_data = {k: v for k, v in request.form.items() if not k.endswith('_urls')}
+        app.logger.debug(f"Form data received: {form_data}")
+        
+        # Process URLs for each region
         for region in urls.keys():
             region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
             urls[region] = region_urls
+            
             if region_urls:
                 urls_provided = True
-        
-        # Only fetch news if URLs were provided
+                app.logger.debug(f"URLs provided for {region}: {region_urls}")
+            else:
+                app.logger.debug(f"No URLs provided for {region}")
+
         if urls_provided:
+            app.logger.info(f"Processing {sum(len(urls[r]) for r in urls)} URLs across all regions")
+            
             for region, region_urls in urls.items():
+                if not region_urls:
+                    continue
+                    
+                app.logger.info(f"Processing {len(region_urls)} URLs for {region}")
+                
                 for url in region_urls:
                     try:
-                        # Add protocol if missing
+                        # Validate and normalize URL
                         if not url.startswith(('http://', 'https://')):
                             url = 'https://' + url
+                            app.logger.debug(f"Added protocol to URL: {url}")
                         
+                        # Check robots.txt before scraping
+                        robots_url = f"{urlparse(url).scheme}://{urlparse(url).netloc}/robots.txt"
+                        try:
+                            robots_response = requests.get(robots_url, timeout=5)
+                            if robots_response.status_code == 200:
+                                app.logger.info(f"Found robots.txt for {urlparse(url).netloc}")
+                                # In production, you might want to parse robots.txt here
+                        except Exception as e:
+                            app.logger.debug(f"No robots.txt found for {urlparse(url).netloc}: {str(e)}")
+
+                        # Fetch news from URL
+                        app.logger.info(f"Fetching news from {url}")
                         source_news = fetch_top_news(url, max_articles=20)
+                        
                         if source_news:
-                            # Override the auto-detected category with our region
+                            app.logger.info(f"Found {len(source_news)} articles at {url}")
                             for news_item in source_news:
                                 news_item['category'] = region
                             news_data.extend(source_news)
                         else:
-                            error_messages.append(f"Could not extract news from {url} (Region: {region})")
+                            msg = f"Could not extract news from {url} (Region: {region})"
+                            error_messages.append(msg)
+                            app.logger.warning(msg)
+                            
+                    except requests.exceptions.Timeout:
+                        msg = f"Timeout when trying to access {url}"
+                        error_messages.append(msg)
+                        app.logger.error(msg)
+                    except requests.exceptions.RequestException as e:
+                        msg = f"Network error accessing {url}: {str(e)}"
+                        error_messages.append(msg)
+                        app.logger.error(msg)
                     except Exception as e:
-                        error_messages.append(f"Error processing {url} (Region: {region}): {str(e)}")
+                        msg = f"Error processing {url} (Region: {region}): {str(e)}"
+                        error_messages.append(msg)
+                        app.logger.error(msg, exc_info=True)
         else:
-            error_messages.append("Please provide at least one URL to fetch news")
+            msg = "No URLs provided to fetch news"
+            error_messages.append(msg)
+            app.logger.warning(msg)
 
-    # Sort news by date (most recent first)
-    news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
-    
+    # Process and sort news data
+    if news_data:
+        app.logger.info(f"Total articles collected: {len(news_data)}")
+        news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
+        
+        # Log sample of collected articles
+        sample_articles = [f"{n['title']} ({n['source']})" for n in news_data[:3]]
+        app.logger.debug(f"Sample articles: {sample_articles}")
+    else:
+        app.logger.info("No news articles collected in this request")
+
+    # Log any error messages
+    if error_messages:
+        app.logger.warning(f"Encountered {len(error_messages)} errors during processing")
+        for error in error_messages:
+            app.logger.debug(f"Error detail: {error}")
+
     return render_template("current_affairs.html", 
                          news_data=news_data, 
                          urls=urls, 
                          error_messages=error_messages,
                          urls_provided=urls_provided)
+
+
+def fetch_top_news(url, max_articles=20):
+    """Fetch top news articles from a given URL with enhanced logging"""
+    news_items = []
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        app.logger.debug(f"Making request to: {url}")
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code != 200:
+            app.logger.warning(f"URL returned status {response.status_code}: {url}")
+            return []
+            
+        app.logger.debug(f"Response received from {url}")
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Special handling for known sites
+        if 'cnn.com' in url:
+            app.logger.debug("Processing CNN.com page")
+            articles = soup.select('article, div.container__item, div.card')
+            for article in articles[:max_articles]:
+                try:
+                    title_elem = article.select_one('span.container__headline-text, h3.card__headline')
+                    if not title_elem:
+                        continue
+                        
+                    title = clean_text(title_elem.get_text())
+                    content_elem = article.select_one('div.container__description, div.card__description')
+                    content = clean_text(content_elem.get_text()) if content_elem else title
+                    
+                    if content == "View the latest news and breaking news today for U.S., world, weather, entertainment, politics and health at CNN.com.":
+                        continue
+                        
+                    link_elem = article.find('a', href=True)
+                    if not link_elem:
+                        continue
+                        
+                    link = link_elem['href']
+                    if link.startswith('/'):
+                        link = f"https://www.cnn.com{link}"
+                        
+                    image_elem = article.select_one('img')
+                    image = image_elem['src'] if image_elem and 'src' in image_elem.attrs else "/static/images/default_news.jpg"
+                    
+                    news_items.append({
+                        'title': title,
+                        'content': content[:200] + "..." if content and len(content) > 200 else content,
+                        'image': image,
+                        'link': link,
+                        'category': assign_category(title + " " + content),
+                        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'source': 'cnn.com'
+                    })
+                except Exception as e:
+                    app.logger.debug(f"Error processing CNN article element: {str(e)}")
+                    continue
+            
+            app.logger.debug(f"Found {len(news_items)} articles on CNN page")
+            return news_items
+        
+        # Generic article detection
+        article_selectors = [
+            'article', '.story', '.news-item', '.article', 
+            'div[data-testid="story"]', '.story-body', '.card',
+            '.news-card', '.news-package', '.article-card',
+            'li.js-stream-content', '.post', '.entry'
+        ]
+        
+        app.logger.debug("Attempting generic article detection")
+        for selector in article_selectors:
+            articles = soup.select(selector, limit=max_articles)
+            if articles:
+                app.logger.debug(f"Found {len(articles)} elements with selector: {selector}")
+                for article in articles:
+                    try:
+                        title_elem = article.find(['h1', 'h2', 'h3']) or \
+                                    article.find(class_=re.compile('title|headline', re.I))
+                        if not title_elem:
+                            continue
+                            
+                        title = clean_text(title_elem.get_text())
+                        content_elem = article.find(class_=re.compile('content|entry|post-body', re.I)) or \
+                                      article.find(['p', 'div'])
+                        content = clean_text(content_elem.get_text()) if content_elem else title
+                        
+                        link_elem = article.find('a', href=True)
+                        link = link_elem['href'] if link_elem else url
+                        if link.startswith('/'):
+                            link = urljoin(url, link)
+                            
+                        image_elem = article.find('img')
+                        image = urljoin(url, image_elem['src']) if image_elem and image_elem.get('src') else None
+                        
+                        date_elem = article.find('time') or \
+                                   article.find(class_=re.compile('date|timestamp|time', re.I))
+                        date = date_elem.get('datetime') or date_elem.get_text() if date_elem else \
+                              datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        news_items.append({
+                            'title': title,
+                            'content': content,
+                            'link': link,
+                            'image': image,
+                            'date': date,
+                            'source': urlparse(url).netloc
+                        })
+                    except Exception as e:
+                        app.logger.debug(f"Error processing article element: {str(e)}")
+                        continue
+                
+                if news_items:
+                    app.logger.debug(f"Returning {len(news_items)} articles found")
+                    return news_items
+        
+        app.logger.warning(f"No articles found at URL using standard selectors: {url}")
+        return []
+    
+    except Exception as e:
+        app.logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
+        return []
 
 @app.route("/market_news", methods=["GET", "POST"])
 def market_news():
@@ -1235,9 +1461,6 @@ def analytics():
 def register():
     return render_template("register.html")
 
-@app.route("/login")
-def login():
-    return render_template("login.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))  # Default to 10000 if PORT is not set
