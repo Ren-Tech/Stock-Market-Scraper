@@ -28,8 +28,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 # Add login credentials (in production, use a proper database)
 VALID_USERS = {
-    'admin': 'password123',
-    'user1': 'mypassword'
+    'oxbrigdeit@gmail.com': 'solutions2025',
 }
 # API_KEY = 'NWV90QOIWFFO75C5'
 
@@ -1398,17 +1397,40 @@ def ph_stocks():
     # Sample Philippine stock data (20 stocks)
    
     sample_stocks = [
-    {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "5.75", "change": "+0.31", "change_pct": "+5.70%", "high": "5.95", "low": "5.62", "volume": "13,761,100", "sector": "Basic Materials"},
-   
-    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "160.30", "change": "+2.30", "change_pct": "+1.46%", "high": "161.90", "low": "159.60", "volume": "3,780,000", "sector": "Financial Services"},
-    {"symbol": "AC", "name": "Ayala Corporation", "last_price": "793.50", "change": "-28.50", "change_pct": "-3.47%", "high": "820.00", "low": "778.00", "volume": "187,920", "sector": "Conglomerates"},
-    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "41.60", "change": "+0.20", "change_pct": "+0.48%", "high": "42.05", "low": "41.50", "volume": "766,300", "sector": "Utilities"},
-    {"symbol": "NOW", "name": "NOW Corporation", "last_price": "2.76", "change": "-0.15", "change_pct": "-5.15%", "high": "2.85", "low": "2.42", "volume": "9,812,100", "sector": "Technology"},
-     {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,176.25", "change": "-45.75", "change_pct": "-2.06%", "high": "2,225.00", "low": "2,155.00", "volume": "34,580", "sector": "Communication Services"},
-    {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "510.50", "change": "+12.50", "change_pct": "+2.51%", "high": "515.00", "low": "498.00", "volume": "38,520", "sector": "Conglomerates"},
-    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,587.50", "change": "-39.50", "change_pct": "-2.43%", "high": "1,625.00", "low": "1,575.00", "volume": "85,740", "sector": "Communication Services"},
-    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "23.50", "change": "+0.50", "change_pct": "+2.17%", "high": "24.60", "low": "23.30", "volume": "12,058,400", "sector": "Real Estate"},
-    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "2.30", "change": "-0.10", "change_pct": "-4.17%", "high": "2.35", "low": "2.05", "volume": "4,425,800", "sector": "Real Estate"},
+  {"symbol": "PX", "name": "Philex Mining Corporation", "last_price": "6.25", "change": "+0.50", "change_pct": "+8.70%", "high": "6.42", "low": "6.10", "volume": "15,983,600", "sector": "Basic Materials"},
+    
+    {"symbol": "BDO", "name": "BDO Unibank, Inc.", "last_price": "172.50", "change": "+3.80", "change_pct": "+2.25%", "high": "173.20", "low": "170.10", "volume": "4,251,300", "sector": "Financial Services"},
+    
+    {"symbol": "AC", "name": "Ayala Corporation", "last_price": "765.00", "change": "-12.30", "change_pct": "-1.58%", "high": "775.50", "low": "762.00", "volume": "210,450", "sector": "Conglomerates"},
+    
+    {"symbol": "AP", "name": "Aboitiz Power Corporation", "last_price": "44.85", "change": "+1.15", "change_pct": "+2.63%", "high": "45.10", "low": "44.25", "volume": "892,700", "sector": "Utilities"},
+    
+    {"symbol": "NOW", "name": "NOW Corporation", "last_price": "2.18", "change": "-0.32", "change_pct": "-12.80%", "high": "2.25", "low": "2.12", "volume": "11,543,200", "sector": "Technology"},
+    
+    {"symbol": "GLO", "name": "Globe Telecom, Inc.", "last_price": "2,310.75", "change": "+46.50", "change_pct": "+2.05%", "high": "2,315.00", "low": "2,280.50", "volume": "42,380", "sector": "Communication Services"},
+    
+    {"symbol": "GTCAP", "name": "GT Capital Holdings, Inc.", "last_price": "535.25", "change": "+14.75", "change_pct": "+2.84%", "high": "538.00", "low": "522.50", "volume": "45,120", "sector": "Conglomerates"},
+    
+    {"symbol": "TEL", "name": "PLDT Inc.", "last_price": "1,495.00", "change": "-37.50", "change_pct": "-2.45%", "high": "1,510.25", "low": "1,490.00", "volume": "92,340", "sector": "Communication Services"},
+    
+    {"symbol": "SMPH", "name": "SM Prime Holdings, Inc.", "last_price": "25.80", "change": "+1.20", "change_pct": "+4.88%", "high": "26.10", "low": "25.50", "volume": "14,320,600", "sector": "Real Estate"},
+    
+    {"symbol": "VLL", "name": "Vista Land & Lifescapes, Inc.", "last_price": "1.85", "change": "-0.28", "change_pct": "-13.15%", "high": "1.95", "low": "1.82", "volume": "5,732,400", "sector": "Real Estate"},
+    
+    # Added 7 more stocks
+    {"symbol": "JFC", "name": "Jollibee Foods Corporation", "last_price": "287.40", "change": "+12.60", "change_pct": "+4.58%", "high": "290.00", "low": "275.80", "volume": "1,247,300", "sector": "Consumer Cyclical"},
+    
+    {"symbol": "MBT", "name": "Metropolitan Bank & Trust Company", "last_price": "63.75", "change": "+1.25", "change_pct": "+2.00%", "high": "64.10", "low": "62.90", "volume": "2,154,800", "sector": "Financial Services"},
+    
+    {"symbol": "PGOLD", "name": "Puregold Price Club, Inc.", "last_price": "32.15", "change": "-2.85", "change_pct": "-8.14%", "high": "33.50", "low": "31.90", "volume": "3,542,700", "sector": "Consumer Defensive"},
+    
+    {"symbol": "ALI", "name": "Ayala Land, Inc.", "last_price": "34.70", "change": "+1.85", "change_pct": "+5.63%", "high": "35.00", "low": "33.80", "volume": "8,974,500", "sector": "Real Estate"},
+    
+    {"symbol": "MEG", "name": "Megaworld Corporation", "last_price": "2.52", "change": "+0.35", "change_pct": "+16.13%", "high": "2.58", "low": "2.41", "volume": "21,657,400", "sector": "Real Estate"},
+    
+    {"symbol": "DITO", "name": "DITO CME Holdings Corp.", "last_price": "1.87", "change": "-0.41", "change_pct": "-17.98%", "high": "2.15", "low": "1.78", "volume": "32,561,900", "sector": "Communication Services"},
+    
+    {"symbol": "FGEN", "name": "First Gen Corporation", "last_price": "19.35", "change": "-0.82", "change_pct": "-4.07%", "high": "20.05", "low": "19.20", "volume": "2,876,400", "sector": "Utilities"}
 ]
 
    
