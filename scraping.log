@@ -1,0 +1,65 @@
+2025-05-10 02:44:12,767 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://192.168.1.48:10000
+2025-05-10 02:44:12,767 - INFO - [33mPress CTRL+C to quit[0m
+2025-05-10 02:44:14,444 - INFO - 127.0.0.1 - - [10/May/2025 02:44:14] "GET / HTTP/1.1" 200 -
+2025-05-10 02:44:22,441 - INFO - 127.0.0.1 - - [10/May/2025 02:44:22] "POST / HTTP/1.1" 200 -
+2025-05-10 02:44:23,660 - INFO - Current Affairs page accessed by 127.0.0.1
+2025-05-10 02:44:23,661 - INFO - No news articles collected in this request
+2025-05-10 02:44:23,726 - INFO - 127.0.0.1 - - [10/May/2025 02:44:23] "GET /current_affairs HTTP/1.1" 200 -
+2025-05-10 02:44:24,712 - INFO - Current Affairs page accessed by 127.0.0.1
+2025-05-10 02:44:24,712 - INFO - Current Affairs form submitted
+2025-05-10 02:44:24,717 - INFO - Processing 1 URLs across all regions
+2025-05-10 02:44:24,718 - INFO - Processing 1 URLs for world
+2025-05-10 02:44:24,784 - INFO - Found robots.txt for asia.nikkei.com
+2025-05-10 02:44:24,784 - INFO - Fetching news from https://asia.nikkei.com/
+2025-05-10 02:44:25,705 - WARNING - No articles found at URL using standard selectors: https://asia.nikkei.com/
+2025-05-10 02:44:25,705 - WARNING - Could not extract news from https://asia.nikkei.com/ (Region: world)
+2025-05-10 02:44:25,705 - INFO - No news articles collected in this request
+2025-05-10 02:44:25,705 - WARNING - Encountered 1 errors during processing
+2025-05-10 02:44:25,705 - INFO - 127.0.0.1 - - [10/May/2025 02:44:25] "POST /current_affairs HTTP/1.1" 200 -
+2025-05-10 02:44:26,194 - INFO - Current Affairs page accessed by 127.0.0.1
+2025-05-10 02:44:26,194 - INFO - Current Affairs form submitted
+2025-05-10 02:44:26,196 - INFO - Processing 1 URLs across all regions
+2025-05-10 02:44:26,196 - INFO - Processing 1 URLs for world
+2025-05-10 02:44:26,237 - INFO - Found robots.txt for asia.nikkei.com
+2025-05-10 02:44:26,237 - INFO - Fetching news from https://asia.nikkei.com/
+2025-05-10 02:44:26,736 - WARNING - No articles found at URL using standard selectors: https://asia.nikkei.com/
+2025-05-10 02:44:26,736 - WARNING - Could not extract news from https://asia.nikkei.com/ (Region: world)
+2025-05-10 02:44:26,736 - INFO - No news articles collected in this request
+2025-05-10 02:44:26,736 - WARNING - Encountered 1 errors during processing
+2025-05-10 02:44:26,736 - INFO - 127.0.0.1 - - [10/May/2025 02:44:26] "POST /current_affairs HTTP/1.1" 200 -
+2025-05-10 02:44:40,242 - INFO - Current Affairs page accessed by 127.0.0.1
+2025-05-10 02:44:40,242 - INFO - Current Affairs form submitted
+2025-05-10 02:44:40,243 - INFO - Processing 2 URLs across all regions
+2025-05-10 02:44:40,243 - INFO - Processing 2 URLs for world
+2025-05-10 02:44:40,299 - INFO - Found robots.txt for asia.nikkei.com
+2025-05-10 02:44:40,299 - INFO - Fetching news from https://asia.nikkei.com/
+2025-05-10 02:44:40,762 - WARNING - No articles found at URL using standard selectors: https://asia.nikkei.com/
+2025-05-10 02:44:40,763 - WARNING - Could not extract news from https://asia.nikkei.com/ (Region: world)
+2025-05-10 02:44:40,901 - INFO - Found robots.txt for www.msnbc.com
+2025-05-10 02:44:40,902 - INFO - Fetching news from https://www.msnbc.com/
+2025-05-10 02:44:41,325 - WARNING - No articles found at URL using standard selectors: https://www.msnbc.com/
+2025-05-10 02:44:41,326 - WARNING - Could not extract news from https://www.msnbc.com/ (Region: world)
+2025-05-10 02:44:41,327 - INFO - No news articles collected in this request
+2025-05-10 02:44:41,327 - WARNING - Encountered 2 errors during processing
+2025-05-10 02:44:41,329 - INFO - 127.0.0.1 - - [10/May/2025 02:44:41] "POST /current_affairs HTTP/1.1" 200 -
+2025-05-10 02:44:45,270 - INFO - Current Affairs page accessed by 127.0.0.1
+2025-05-10 02:44:45,270 - INFO - Current Affairs form submitted
+2025-05-10 02:44:45,271 - INFO - Processing 3 URLs across all regions
+2025-05-10 02:44:45,272 - INFO - Processing 3 URLs for world
+2025-05-10 02:44:45,314 - INFO - Found robots.txt for asia.nikkei.com
+2025-05-10 02:44:45,314 - INFO - Fetching news from https://asia.nikkei.com/
+2025-05-10 02:44:45,810 - WARNING - No articles found at URL using standard selectors: https://asia.nikkei.com/
+2025-05-10 02:44:45,811 - WARNING - Could not extract news from https://asia.nikkei.com/ (Region: world)
+2025-05-10 02:44:45,873 - INFO - Found robots.txt for www.msnbc.com
+2025-05-10 02:44:45,873 - INFO - Fetching news from https://www.msnbc.com/
+2025-05-10 02:44:46,273 - WARNING - No articles found at URL using standard selectors: https://www.msnbc.com/
+2025-05-10 02:44:46,274 - WARNING - Could not extract news from https://www.msnbc.com/ (Region: world)
+2025-05-10 02:44:46,358 - INFO - Found robots.txt for www.bbc.com
+2025-05-10 02:44:46,358 - INFO - Fetching news from https://www.bbc.com/news
+2025-05-10 02:44:46,542 - INFO - Found 1 articles at https://www.bbc.com/news
+2025-05-10 02:44:46,543 - INFO - Total articles collected: 1
+2025-05-10 02:44:46,543 - WARNING - Encountered 2 errors during processing
+2025-05-10 02:44:46,546 - INFO - 127.0.0.1 - - [10/May/2025 02:44:46] "POST /current_affairs HTTP/1.1" 200 -

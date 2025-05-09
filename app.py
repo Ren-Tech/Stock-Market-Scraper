@@ -12,11 +12,20 @@ import re
 import yfinance as yf
 from urllib.parse import urlparse, urljoin
 from flask import url_for
-
+import logging
 from flask import session, flash
 from functools import wraps
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Add login credentials (in production, use a proper database)
 VALID_USERS = {
     'admin': 'password123',
@@ -37,6 +46,92 @@ SECTORS = {
     "automotive": ["TSLA", "TM", "F", "GM", "HMC"]
 }
 # Mock functions - replace with your actual implementations
+# Configure request headers with multiple user agents
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1'
+]
+
+# Dictionary of site-specific selectors for better targeting
+SITE_SPECIFIC_SELECTORS = {
+    'msnbc.com': {
+        'article': '.gs-c-promo, article, .article-body, .info-card, .content-card',
+        'title': '.gs-c-promo-heading__title, h1, h2, h3, .headline, .card-headline',
+        'content': '.gs-c-promo-summary, .article-body__content, .info-card__content, p, .dek',
+        'link': 'a',
+        'image': 'img',
+        'date': 'time, .date, .timestamp, .published-date'
+    },
+    'cnbc.com': {
+        'article': '.Card-titleContainer, .summary, .LatestNews-item, .Card-standardBreakerCard, article',
+        'title': '.Card-title, .headline, .title, h1, h2, h3',
+        'content': '.Card-description, .desc, .summary, p, .card-text',
+        'link': 'a',
+        'image': 'img',
+        'date': 'time, .time, .Card-time, .timestamp'
+    },
+    'batimes.com': {
+        'article': 'article, .article, .news-article, .card',
+        'title': 'h1, h2, h3, .article-title, .headline',
+        'content': '.article-summary, .lead, p, .article-text',
+        'link': 'a',
+        'image': 'img',
+        'date': '.article-date, time, .published-date'
+    },
+    'apnews.com': {
+        'article': '.FeedCard, .CardHeadline, article, .Article, .hub-card',
+        'title': '.CardHeadline-headlineText, h1, h2, h3, .headline',
+        'content': '.CardHeadline-description, .content-text, p, .dek',
+        'link': 'a',
+        'image': 'img',
+        'date': 'time, .timestamp, .published'
+    },
+    'folha.uol.com.br': {
+        'article': '.c-headline, .c-list-links, article, .c-news-item',
+        'title': '.c-headline__title, h1, h2, h3, .title',
+        'content': '.c-headline__summary, p, .summary, .content',
+        'link': 'a',
+        'image': 'img',
+        'date': '.c-headline__dateline, time, .date'
+    },
+    'france24.com': {
+        'article': '.o-layout-list__item, article, .news-card, .m-item-list-article',
+        'title': '.article__title, h1, h2, h3, .title',
+        'content': '.article__desc, .article__summary, p, .desc',
+        'link': 'a',
+        'image': 'img',
+        'date': '.article__date, time, .date'
+    },
+    'asia.nikkei.com': {
+        'article': '.ezil__article, article, .article-card, .news-item',
+        'title': '.ezil__title, h1, h2, h3, .headline',
+        'content': '.ezil__subtitle, .ezil__summary, p, .summary',
+        'link': 'a',
+        'image': 'img',
+        'date': '.ezil__date, time, .date'
+    },
+    'nhk.or.jp': {
+        'article': '.p-article, article, .m-news-item, .news-card',
+        'title': '.p-article__title, h1, h2, h3, .title',
+        'content': '.p-article__text, p, .summary, .content',
+        'link': 'a',
+        'image': 'img',
+        'date': '.p-article__date, time, .date'
+    },
+    'cnn.com': {
+        'article': 'article, div.container__item, div.card, .card--section, .el__storyelement--standard',
+        'title': 'span.container__headline-text, h3.card__headline, .headline, h1, h2, h3',
+        'content': 'div.container__description, div.card__description, .description, p',
+        'link': 'a',
+        'image': 'img',
+        'date': '.timestamp, time, .date'
+    }
+}
+
+# Helper function to clean text
 def clean_text(text):
     """Clean and normalize text"""
     if not text:
@@ -140,9 +235,10 @@ def assign_category(text):
     elif any(word in text for word in ['middle east', 'mena', 'arab', 'saudi', 'uae', 'qatar', 'iran', 'iraq']):
         return 'mena'
     else:
-        return 'world'  # Default category
-def fetch_top_news(url, max_articles=20):  # Increased from 10 to 15
-    """Fetch top news articles from a given URL
+        return 'world'  # Default categor
+def fetch_top_news(url, max_articles=20):
+    """
+    Fetch top news articles from a given URL with enhanced support for various news sites
     
     Args:
         url (str): The URL of the news website
@@ -152,75 +248,517 @@ def fetch_top_news(url, max_articles=20):  # Increased from 10 to 15
         list: List of news article dictionaries
     """
     news_items = []
+    domain = urlparse(url).netloc.replace('www.', '')
+    
+    # Determine if we should use site-specific selectors
+    site_key = next((k for k in SITE_SPECIFIC_SELECTORS.keys() if k in domain), None)
+    
+    logger.info(f"Fetching news from {url} (Site key: {site_key})")
+    
     try:
+        # Use a random user agent for each request
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': random.choice(USER_AGENTS),
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'max-age=0',
         }
         
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code != 200:
-            return []
+        # Handle RSS feeds
+        if any(ext in url.lower() for ext in ['rss', 'feed', 'xml']):
+            logger.info(f"Processing as RSS feed: {url}")
+            feed = feedparser.parse(url)
             
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # CNN-specific handling
-        if 'cnn.com' in url:
-            articles = soup.select('article, div.container__item, div.card')
-            for article in articles[:max_articles]:
-                title_elem = article.select_one('span.container__headline-text, h3.card__headline')
-                if not title_elem:
-                    continue
-                    
-                title = clean_text(title_elem.get_text())
+            if not feed.entries:
+                logger.warning(f"No entries found in feed: {url}")
+                return []
                 
-                # Try to find the actual article content, not just the headline
-                content_elem = article.select_one('div.container__description, div.card__description')
-                content = clean_text(content_elem.get_text()) if content_elem else title
+            for entry in feed.entries[:max_articles]:
+                title = clean_text(entry.get('title', 'No title'))
+                description = clean_text(entry.get('description', title))
+                link = entry.get('link', url)
+                date = entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 
-                # Skip generic CNN descriptions
-                if content == "View the latest news and breaking news today for U.S., world, weather, entertainment, politics and health at CNN.com.":
-                    continue
-                    
-                link_elem = article.find('a', href=True)
-                if not link_elem:
-                    continue
-                    
-                link = link_elem['href']
-                if link.startswith('/'):
-                    link = f"https://www.cnn.com{link}"
-                    
-                image_elem = article.select_one('img')
-                image = image_elem['src'] if image_elem and 'src' in image_elem.attrs else "/static/images/default_news.jpg"
-                
-                date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                # Try to get image from media content or enclosures
+                image = None
+                if 'media_content' in entry and entry.media_content:
+                    media = entry.media_content[0]
+                    if 'url' in media:
+                        image = media.url
+                elif 'enclosures' in entry and entry.enclosures:
+                    for enclosure in entry.enclosures:
+                        if 'type' in enclosure and enclosure.type.startswith('image'):
+                            image = enclosure.href
+                            break
                 
                 news_items.append({
                     'title': title,
-                    'content': content[:200] + "..." if content and len(content) > 200 else content,
-                    'image': image,
+                    'content': description[:200] + "..." if description and len(description) > 200 else description,
+                    'image': image or "/static/images/default_news.jpg",
                     'link': link,
-                    'category': assign_category(title + " " + content),
+                    'category': assign_category(title + " " + description),
                     'date': date,
-                    'source': 'cnn.com'
+                    'source': domain
                 })
                 
+            logger.info(f"Found {len(news_items)} articles in RSS feed")
             return news_items
         
-        # Rest of the original scraping logic for other sites
-        article_selectors = [
-            'article', '.story', '.news-item', '.article', 
-            'div[data-testid="story"]', '.story-body', '.card',
-            '.news-card', '.news-package', '.article-card',
-            'li.js-stream-content', '.post', '.entry'
-        ]
+        # Make HTTP request with retries
+        max_retries = 3
+        retry_count = 0
+        session = requests.Session()
         
-        # ... rest of the original function ...
+        while retry_count < max_retries:
+            try:
+                # Add delay to avoid rate limiting
+                if retry_count > 0:
+                    time.sleep(2)
+                
+                logger.info(f"Making request to {url} (Attempt {retry_count+1}/{max_retries})")
+                response = session.get(url, headers=headers, timeout=15)
+                
+                # Check if we need to handle cookies or redirects
+                if response.status_code == 403 or response.status_code == 301 or response.status_code == 302:
+                    logger.info(f"Received status code {response.status_code}, retrying with cookies")
+                    response = session.get(url, headers=headers, timeout=15, allow_redirects=True)
+                
+                if response.status_code != 200:
+                    logger.warning(f"URL returned status {response.status_code}: {url}")
+                    retry_count += 1
+                    continue
+                
+                break  # Success, exit retry loop
+                
+            except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
+                logger.warning(f"Request failed (Attempt {retry_count+1}/{max_retries}): {str(e)}")
+                retry_count += 1
+                
+                # If all retries failed
+                if retry_count >= max_retries:
+                    logger.error(f"All retry attempts failed for {url}")
+                    return []
+        
+        # Try different parsers if the default one fails
+        for parser in ['html.parser', 'lxml', 'html5lib']:
+            try:
+                soup = BeautifulSoup(response.content, parser)
+                break
+            except Exception as e:
+                logger.warning(f"Parser {parser} failed: {str(e)}")
+                if parser == 'html5lib':  # Last parser option
+                    logger.error("All parsers failed")
+                    return []
+        
+        # Use site-specific selectors if available
+        if site_key:
+            selectors = SITE_SPECIFIC_SELECTORS[site_key]
+            logger.info(f"Using site-specific selectors for {site_key}")
+            
+            # Try to find articles using site-specific selectors
+            articles = soup.select(selectors['article'])
+            
+            # If no articles found with the first selector, try a more generic approach
+            if not articles:
+                logger.info(f"No articles found with site-specific selector, trying generic selectors")
+                articles = soup.find_all(['article', 'div', 'li', 'section'], 
+                                        class_=lambda c: c and any(term in c.lower() 
+                                                                for term in ['article', 'story', 'news', 'card', 'item', 'entry']))
+            
+            # Process each article
+            for article in articles[:max_articles]:
+                try:
+                    # Try to find title
+                    title_elem = article.select_one(selectors['title'])
+                    if not title_elem:
+                        continue
+                    title = clean_text(title_elem.get_text())
+                    
+                    # Try to find content
+                    content_elem = article.select_one(selectors['content'])
+                    content = clean_text(content_elem.get_text()) if content_elem else title
+                    
+                    # Skip if content is generic default text
+                    if any(default_text in content.lower() for default_text in 
+                           ["view the latest news", "breaking news today", "all rights reserved"]):
+                        continue
+                    
+                    # Try to find link
+                    link_elem = article.select_one(selectors['link'])
+                    if not link_elem or not link_elem.has_attr('href'):
+                        continue
+                    
+                    link = link_elem['href']
+                    if link.startswith('/'):
+                        link = urljoin(url, link)
+                    
+                    # Try to find image
+                    image_elem = article.select_one(selectors['image'])
+                    image = None
+                    
+                    if image_elem:
+                        if image_elem.has_attr('src'):
+                            image = image_elem['src']
+                        elif image_elem.has_attr('data-src'):
+                            image = image_elem['data-src']
+                        elif image_elem.has_attr('srcset'):
+                            srcset = image_elem['srcset'].split(',')[0]
+                            image = srcset.split(' ')[0]
+                            
+                    if image and image.startswith('/'):
+                        image = urljoin(url, image)
+                    
+                    # Try to find date
+                    date_elem = article.select_one(selectors['date'])
+                    date = None
+                    
+                    if date_elem:
+                        if date_elem.has_attr('datetime'):
+                            date = date_elem['datetime']
+                        else:
+                            date = clean_text(date_elem.get_text())
+                            
+                    if not date:
+                        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    # Add article to results
+                    news_items.append({
+                        'title': title,
+                        'content': content[:200] + "..." if content and len(content) > 200 else content,
+                        'image': image or "/static/images/default_news.jpg",
+                        'link': link,
+                        'category': assign_category(title + " " + content),
+                        'date': date,
+                        'source': domain
+                    })
+                    
+                except Exception as e:
+                    logger.warning(f"Error processing article: {str(e)}")
+                    continue
+                    
+        else:
+            # Generic article detection for sites without specific selectors
+            logger.info("Using generic article detection")
+            
+            # Common article selectors
+            article_selectors = [
+                'article', '.story', '.news-item', '.article', 
+                'div[data-testid="story"]', '.story-body', '.card',
+                '.news-card', '.news-package', '.article-card',
+                'li.js-stream-content', '.post', '.entry',
+                '.item', '.news', '.headline-list li', '.story-wrapper'
+            ]
+            
+            articles_found = False
+            
+            # Try each selector until we find articles
+            for selector in article_selectors:
+                try:
+                    articles = soup.select(selector)
+                    
+                    if articles:
+                        logger.info(f"Found {len(articles)} elements with selector: {selector}")
+                        articles_found = True
+                        
+                        for article in articles[:max_articles]:
+                            try:
+                                # Find title (try multiple approaches)
+                                title_elem = None
+                                for title_selector in ['h1', 'h2', 'h3', 'h4', '.title', '.headline', '.heading']:
+                                    title_elem = article.select_one(title_selector)
+                                    if title_elem:
+                                        break
+                                        
+                                if not title_elem:
+                                    continue
+                                    
+                                title = clean_text(title_elem.get_text())
+                                
+                                # Find content
+                                content_elem = None
+                                for content_selector in ['p', '.summary', '.description', '.content', '.excerpt', '.teaser']:
+                                    content_elem = article.select_one(content_selector)
+                                    if content_elem:
+                                        break
+                                        
+                                content = clean_text(content_elem.get_text()) if content_elem else title
+                                
+                                # Skip generic content
+                                if len(content) < 20 or any(default_text in content.lower() for default_text in 
+                                                        ["view the latest news", "breaking news today", "all rights reserved"]):
+                                    continue
+                                
+                                # Find link
+                                link_elem = article.find('a', href=True)
+                                if not link_elem:
+                                    continue
+                                    
+                                link = link_elem['href']
+                                if link.startswith('/'):
+                                    link = urljoin(url, link)
+                                    
+                                # Find image (try multiple attributes)
+                                image_elem = article.find('img')
+                                image = None
+                                
+                                if image_elem:
+                                    for attr in ['src', 'data-src', 'data-original', 'data-lazy-src']:
+                                        if image_elem.has_attr(attr):
+                                            image = image_elem[attr]
+                                            break
+                                            
+                                    if not image and image_elem.has_attr('srcset'):
+                                        srcset = image_elem['srcset'].split(',')[0]
+                                        image = srcset.split(' ')[0]
+                                        
+                                if image and image.startswith('/'):
+                                    image = urljoin(url, image)
+                                
+                                # Find date
+                                date_elem = article.find('time') or article.select_one('.date, .timestamp, .published')
+                                date = None
+                                
+                                if date_elem:
+                                    if date_elem.has_attr('datetime'):
+                                        date = date_elem['datetime']
+                                    else:
+                                        date = clean_text(date_elem.get_text())
+                                        
+                                if not date:
+                                    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                
+                                # Add article to results
+                                news_items.append({
+                                    'title': title,
+                                    'content': content[:200] + "..." if content and len(content) > 200 else content,
+                                    'image': image or "/static/images/default_news.jpg",
+                                    'link': link,
+                                    'category': assign_category(title + " " + content),
+                                    'date': date,
+                                    'source': domain
+                                })
+                                
+                            except Exception as e:
+                                logger.warning(f"Error processing generic article: {str(e)}")
+                                continue
+                                
+                        # If we found articles with this selector, break the loop
+                        if news_items:
+                            break
+                            
+                except Exception as e:
+                    logger.warning(f"Error with selector {selector}: {str(e)}")
+                    continue
+            
+            # If no articles found with standard selectors, try a broad approach
+            if not articles_found or not news_items:
+                logger.info("No articles found with standard selectors. Trying broader approach.")
+                
+                # Look for any link with text that might be a news headline
+                links = soup.find_all('a', href=True)
+                processed_links = set()
+                
+                for link in links:
+                    if len(news_items) >= max_articles:
+                        break
+                        
+                    try:
+                        href = link['href']
+                        
+                        # Skip duplicates, short links, anchors, and non-news links
+                        if (href in processed_links or len(href) < 5 or href.startswith('#') or 
+                            any(x in href.lower() for x in ['login', 'signin', 'subscribe', 'account'])):
+                            continue
+                            
+                        processed_links.add(href)
+                        
+                        # Get link text and skip if too short
+                        link_text = clean_text(link.get_text())
+                        if len(link_text) < 15 or len(link_text) > 150:
+                            continue
+                            
+                        # Normalize link
+                        if href.startswith('/'):
+                            href = urljoin(url, href)
+                            
+                        # Find image near the link
+                        image = None
+                        parent = link.parent
+                        sibling = link.next_sibling
+                        
+                        # Look for image in parent or sibling elements
+                        for elem in [link, parent, sibling]:
+                            if elem:
+                                img = elem.find('img')
+                                if img and img.has_attr('src'):
+                                    image = img['src']
+                                    if image.startswith('/'):
+                                        image = urljoin(url, image)
+                                    break
+                        
+                        # Add article to results
+                        news_items.append({
+                            'title': link_text,
+                            'content': link_text,  # Use title as content since we don't have content
+                            'image': image or "/static/images/default_news.jpg",
+                            'link': href,
+                            'category': assign_category(link_text),
+                            'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            'source': domain
+                        })
+                        
+                    except Exception as e:
+                        logger.warning(f"Error processing link: {str(e)}")
+                        continue
+        
+        # Make sure all news items have all required fields
+        for item in news_items:
+            for field in ['title', 'content', 'link', 'image', 'date', 'source', 'category']:
+                if field not in item or not item[field]:
+                    if field in ['title', 'content', 'link']:
+                        # These fields are required - remove item if missing
+                        news_items.remove(item)
+                        break
+                    else:
+                        # These fields can have defaults
+                        if field == 'image':
+                            item[field] = "/static/images/default_news.jpg"
+                        elif field == 'date':
+                            item[field] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        elif field == 'source':
+                            item[field] = domain
+                        elif field == 'category':
+                            item[field] = 'world'
+        
+        # Remove duplicates (based on title)
+        titles_seen = set()
+        unique_news_items = []
+        
+        for item in news_items:
+            if item['title'] not in titles_seen:
+                titles_seen.add(item['title'])
+                unique_news_items.append(item)
+                
+        news_items = unique_news_items
+        
+        logger.info(f"Successfully scraped {len(news_items)} articles from {url}")
+        return news_items
         
     except Exception as e:
-        print(f"Error fetching news from {url}: {str(e)}")
+        logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
+        return []
+
+@app.route("/current_affairs", methods=["GET", "POST"])
+def current_affairs():
+    # Initialize logging for this request
+    logger.info(f"Current Affairs page accessed by {request.remote_addr}")
+    
+    urls = {
+        'world': [],
+        'north_america': [],
+        'south_america': [],
+        'europe': [],
+        'asia': [],
+        'africa': [],
+        'australia': [],
+        'mena': []
+    }
+    news_data = []
+    error_messages = []
+    urls_provided = False
+
+    if request.method == "POST":
+        logger.info("Current Affairs form submitted")
         
-    return news_items
+        # Log form data received
+        form_data = {k: v for k, v in request.form.items() if not k.endswith('_urls')}
+        logger.debug(f"Form data received: {form_data}")
+        
+        # Process URLs for each region
+        for region in urls.keys():
+            region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
+            urls[region] = region_urls
+            
+            if region_urls:
+                urls_provided = True
+                logger.debug(f"URLs provided for {region}: {region_urls}")
+            else:
+                logger.debug(f"No URLs provided for {region}")
+
+        if urls_provided:
+            logger.info(f"Processing {sum(len(urls[r]) for r in urls)} URLs across all regions")
+            
+            for region, region_urls in urls.items():
+                if not region_urls:
+                    continue
+                    
+                logger.info(f"Processing {len(region_urls)} URLs for {region}")
+                
+                for url in region_urls:
+                    try:
+                        # Validate and normalize URL
+                        if not url.startswith(('http://', 'https://')):
+                            url = 'https://' + url
+                            logger.debug(f"Added protocol to URL: {url}")
+                        
+                        # Fetch news from URL
+                        logger.info(f"Fetching news from {url}")
+                        source_news = fetch_top_news(url, max_articles=20)
+                        
+                        if source_news:
+                            logger.info(f"Found {len(source_news)} articles at {url}")
+                            for news_item in source_news:
+                                news_item['category'] = region
+                            news_data.extend(source_news)
+                        else:
+                            msg = f"Could not extract news from {url} (Region: {region})"
+                            error_messages.append(msg)
+                            logger.warning(msg)
+                            
+                    except requests.exceptions.Timeout:
+                        msg = f"Timeout when trying to access {url}"
+                        error_messages.append(msg)
+                        logger.error(msg)
+                    except requests.exceptions.RequestException as e:
+                        msg = f"Network error accessing {url}: {str(e)}"
+                        error_messages.append(msg)
+                        logger.error(msg)
+                    except Exception as e:
+                        msg = f"Error processing {url} (Region: {region}): {str(e)}"
+                        error_messages.append(msg)
+                        logger.error(msg, exc_info=True)
+        else:
+            msg = "No URLs provided to fetch news"
+            error_messages.append(msg)
+            logger.warning(msg)
+
+    # Process and sort news data
+    if news_data:
+        logger.info(f"Total articles collected: {len(news_data)}")
+        news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
+        
+        # Log sample of collected articles
+        sample_articles = [f"{n['title']} ({n['source']})" for n in news_data[:3]]
+        logger.debug(f"Sample articles: {sample_articles}")
+    else:
+        logger.info("No news articles collected in this request")
+
+    # Log any error messages
+    if error_messages:
+        logger.warning(f"Encountered {len(error_messages)} errors during processing")
+        for error in error_messages:
+            logger.debug(f"Error detail: {error}")
+
+    return render_template("current_affairs.html", 
+                         news_data=news_data, 
+                         urls=urls, 
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
+
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -255,246 +793,7 @@ def login_required(f):
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function@app.route("/current_affairs", methods=["GET", "POST"])
-@app.route("/current_affairs", methods=["GET", "POST"])
-def current_affairs():
-    # Initialize logging for this request
-    app.logger.info(f"Current Affairs page accessed by {request.remote_addr}")
-    
-    urls = {
-        'world': [],
-        'north_america': [],
-        'south_america': [],
-        'europe': [],
-        'asia': [],
-        'africa': [],
-        'australia': [],
-        'mena': []
-    }
-    news_data = []
-    error_messages = []
-    urls_provided = False
 
-    if request.method == "POST":
-        app.logger.info("Current Affairs form submitted")
-        
-        # Log form data received
-        form_data = {k: v for k, v in request.form.items() if not k.endswith('_urls')}
-        app.logger.debug(f"Form data received: {form_data}")
-        
-        # Process URLs for each region
-        for region in urls.keys():
-            region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
-            urls[region] = region_urls
-            
-            if region_urls:
-                urls_provided = True
-                app.logger.debug(f"URLs provided for {region}: {region_urls}")
-            else:
-                app.logger.debug(f"No URLs provided for {region}")
-
-        if urls_provided:
-            app.logger.info(f"Processing {sum(len(urls[r]) for r in urls)} URLs across all regions")
-            
-            for region, region_urls in urls.items():
-                if not region_urls:
-                    continue
-                    
-                app.logger.info(f"Processing {len(region_urls)} URLs for {region}")
-                
-                for url in region_urls:
-                    try:
-                        # Validate and normalize URL
-                        if not url.startswith(('http://', 'https://')):
-                            url = 'https://' + url
-                            app.logger.debug(f"Added protocol to URL: {url}")
-                        
-                        # Check robots.txt before scraping
-                        robots_url = f"{urlparse(url).scheme}://{urlparse(url).netloc}/robots.txt"
-                        try:
-                            robots_response = requests.get(robots_url, timeout=5)
-                            if robots_response.status_code == 200:
-                                app.logger.info(f"Found robots.txt for {urlparse(url).netloc}")
-                                # In production, you might want to parse robots.txt here
-                        except Exception as e:
-                            app.logger.debug(f"No robots.txt found for {urlparse(url).netloc}: {str(e)}")
-
-                        # Fetch news from URL
-                        app.logger.info(f"Fetching news from {url}")
-                        source_news = fetch_top_news(url, max_articles=20)
-                        
-                        if source_news:
-                            app.logger.info(f"Found {len(source_news)} articles at {url}")
-                            for news_item in source_news:
-                                news_item['category'] = region
-                            news_data.extend(source_news)
-                        else:
-                            msg = f"Could not extract news from {url} (Region: {region})"
-                            error_messages.append(msg)
-                            app.logger.warning(msg)
-                            
-                    except requests.exceptions.Timeout:
-                        msg = f"Timeout when trying to access {url}"
-                        error_messages.append(msg)
-                        app.logger.error(msg)
-                    except requests.exceptions.RequestException as e:
-                        msg = f"Network error accessing {url}: {str(e)}"
-                        error_messages.append(msg)
-                        app.logger.error(msg)
-                    except Exception as e:
-                        msg = f"Error processing {url} (Region: {region}): {str(e)}"
-                        error_messages.append(msg)
-                        app.logger.error(msg, exc_info=True)
-        else:
-            msg = "No URLs provided to fetch news"
-            error_messages.append(msg)
-            app.logger.warning(msg)
-
-    # Process and sort news data
-    if news_data:
-        app.logger.info(f"Total articles collected: {len(news_data)}")
-        news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
-        
-        # Log sample of collected articles
-        sample_articles = [f"{n['title']} ({n['source']})" for n in news_data[:3]]
-        app.logger.debug(f"Sample articles: {sample_articles}")
-    else:
-        app.logger.info("No news articles collected in this request")
-
-    # Log any error messages
-    if error_messages:
-        app.logger.warning(f"Encountered {len(error_messages)} errors during processing")
-        for error in error_messages:
-            app.logger.debug(f"Error detail: {error}")
-
-    return render_template("current_affairs.html", 
-                         news_data=news_data, 
-                         urls=urls, 
-                         error_messages=error_messages,
-                         urls_provided=urls_provided)
-
-
-def fetch_top_news(url, max_articles=20):
-    """Fetch top news articles from a given URL with enhanced logging"""
-    news_items = []
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        
-        app.logger.debug(f"Making request to: {url}")
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code != 200:
-            app.logger.warning(f"URL returned status {response.status_code}: {url}")
-            return []
-            
-        app.logger.debug(f"Response received from {url}")
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Special handling for known sites
-        if 'cnn.com' in url:
-            app.logger.debug("Processing CNN.com page")
-            articles = soup.select('article, div.container__item, div.card')
-            for article in articles[:max_articles]:
-                try:
-                    title_elem = article.select_one('span.container__headline-text, h3.card__headline')
-                    if not title_elem:
-                        continue
-                        
-                    title = clean_text(title_elem.get_text())
-                    content_elem = article.select_one('div.container__description, div.card__description')
-                    content = clean_text(content_elem.get_text()) if content_elem else title
-                    
-                    if content == "View the latest news and breaking news today for U.S., world, weather, entertainment, politics and health at CNN.com.":
-                        continue
-                        
-                    link_elem = article.find('a', href=True)
-                    if not link_elem:
-                        continue
-                        
-                    link = link_elem['href']
-                    if link.startswith('/'):
-                        link = f"https://www.cnn.com{link}"
-                        
-                    image_elem = article.select_one('img')
-                    image = image_elem['src'] if image_elem and 'src' in image_elem.attrs else "/static/images/default_news.jpg"
-                    
-                    news_items.append({
-                        'title': title,
-                        'content': content[:200] + "..." if content and len(content) > 200 else content,
-                        'image': image,
-                        'link': link,
-                        'category': assign_category(title + " " + content),
-                        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        'source': 'cnn.com'
-                    })
-                except Exception as e:
-                    app.logger.debug(f"Error processing CNN article element: {str(e)}")
-                    continue
-            
-            app.logger.debug(f"Found {len(news_items)} articles on CNN page")
-            return news_items
-        
-        # Generic article detection
-        article_selectors = [
-            'article', '.story', '.news-item', '.article', 
-            'div[data-testid="story"]', '.story-body', '.card',
-            '.news-card', '.news-package', '.article-card',
-            'li.js-stream-content', '.post', '.entry'
-        ]
-        
-        app.logger.debug("Attempting generic article detection")
-        for selector in article_selectors:
-            articles = soup.select(selector, limit=max_articles)
-            if articles:
-                app.logger.debug(f"Found {len(articles)} elements with selector: {selector}")
-                for article in articles:
-                    try:
-                        title_elem = article.find(['h1', 'h2', 'h3']) or \
-                                    article.find(class_=re.compile('title|headline', re.I))
-                        if not title_elem:
-                            continue
-                            
-                        title = clean_text(title_elem.get_text())
-                        content_elem = article.find(class_=re.compile('content|entry|post-body', re.I)) or \
-                                      article.find(['p', 'div'])
-                        content = clean_text(content_elem.get_text()) if content_elem else title
-                        
-                        link_elem = article.find('a', href=True)
-                        link = link_elem['href'] if link_elem else url
-                        if link.startswith('/'):
-                            link = urljoin(url, link)
-                            
-                        image_elem = article.find('img')
-                        image = urljoin(url, image_elem['src']) if image_elem and image_elem.get('src') else None
-                        
-                        date_elem = article.find('time') or \
-                                   article.find(class_=re.compile('date|timestamp|time', re.I))
-                        date = date_elem.get('datetime') or date_elem.get_text() if date_elem else \
-                              datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        
-                        news_items.append({
-                            'title': title,
-                            'content': content,
-                            'link': link,
-                            'image': image,
-                            'date': date,
-                            'source': urlparse(url).netloc
-                        })
-                    except Exception as e:
-                        app.logger.debug(f"Error processing article element: {str(e)}")
-                        continue
-                
-                if news_items:
-                    app.logger.debug(f"Returning {len(news_items)} articles found")
-                    return news_items
-        
-        app.logger.warning(f"No articles found at URL using standard selectors: {url}")
-        return []
-    
-    except Exception as e:
-        app.logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
-        return []
 
 @app.route("/market_news", methods=["GET", "POST"])
 def market_news():
