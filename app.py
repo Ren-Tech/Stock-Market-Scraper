@@ -303,8 +303,11 @@ def get_news_from_url(url, sector):
     except Exception as e:
         print(f"Error scraping {url}: {str(e)}")
         return []
-def assign_category(text):
-    """Assign a news category based on text content"""
+def assign_category(text, region=None):
+    """Assign a news category based on text content with region override"""
+    if region:
+        return region.lower()
+    
     text = text.lower()
     
     # Simple keyword-based categorization
@@ -323,11 +326,19 @@ def assign_category(text):
     elif any(word in text for word in ['middle east', 'mena', 'arab', 'saudi', 'uae', 'qatar', 'iran', 'iraq']):
         return 'mena'
     else:
-        return 'world'  # Default categor
-def fetch_top_news(url, max_articles=20):
+        return 'world'  # Default category
+def fetch_top_news(url, max_articles=20, region=None):
     """
     Fetch top news articles from a given URL with source mapping functionality.
     Handles HTML and RSS feeds, with comprehensive domain replacement.
+    
+    Args:
+        url (str): The URL to fetch news from
+        max_articles (int): Maximum number of articles to return
+        region (str): Optional region to assign to articles (e.g., 'north_america')
+    
+    Returns:
+        list: List of news article dictionaries
     """
     # Parse and normalize the input URL
     parsed_url = urlparse(url)
@@ -372,7 +383,8 @@ def fetch_top_news(url, max_articles=20):
                     'link': entry.get('link', actual_url),
                     'date': entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
                     'source': source_domain,
-                    'read_more': entry.get('link', actual_url)
+                    'read_more': entry.get('link', actual_url),
+                    'category': assign_category(entry.get('title', '') + " " + entry.get('description', ''), region)
                 }
                 
                 # Extract image
@@ -495,7 +507,7 @@ def fetch_top_news(url, max_articles=20):
                         'date': date,
                         'source': source_domain,
                         'read_more': link,
-                        'category': assign_category(title + " " + content)
+                        'category': assign_category(title + " " + content, region)
                     })
                 except Exception as e:
                     logger.warning(f"Error processing article: {str(e)}")
@@ -524,6 +536,10 @@ def fetch_top_news(url, max_articles=20):
             item.setdefault('date', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             item.setdefault('source', input_domain)
             item.setdefault('read_more', item['link'])
+            
+            # Ensure category is set (should already be set by assign_category)
+            if 'category' not in item:
+                item['category'] = assign_category(item.get('title', '') + " " + item.get('content', ''), region)
             
             final_items.append(item)
         
@@ -613,7 +629,8 @@ def current_affairs():
     # Initialize logging for this request
     logger.info(f"Current Affairs page accessed by {request.remote_addr}")
     
-    urls = {
+    # Define all possible regions
+    regions = {
         'world': [],
         'north_america': [],
         'south_america': [],
@@ -623,6 +640,7 @@ def current_affairs():
         'australia': [],
         'mena': []
     }
+    
     news_data = []
     error_messages = []
     urls_provided = False
@@ -630,25 +648,19 @@ def current_affairs():
     if request.method == "POST":
         logger.info("Current Affairs form submitted")
         
-        # Log form data received
-        form_data = {k: v for k, v in request.form.items() if not k.endswith('_urls')}
-        logger.debug(f"Form data received: {form_data}")
-        
         # Process URLs for each region
-        for region in urls.keys():
+        for region in regions.keys():
             region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
-            urls[region] = region_urls
+            regions[region] = region_urls
             
             if region_urls:
                 urls_provided = True
                 logger.debug(f"URLs provided for {region}: {region_urls}")
-            else:
-                logger.debug(f"No URLs provided for {region}")
 
         if urls_provided:
-            logger.info(f"Processing {sum(len(urls[r]) for r in urls)} URLs across all regions")
+            logger.info(f"Processing {sum(len(regions[r]) for r in regions)} URLs across all regions")
             
-            for region, region_urls in urls.items():
+            for region, region_urls in regions.items():
                 if not region_urls:
                     continue
                     
@@ -661,14 +673,13 @@ def current_affairs():
                             url = 'https://' + url
                             logger.debug(f"Added protocol to URL: {url}")
                         
-                        # Fetch news from URL
-                        logger.info(f"Fetching news from {url}")
-                        source_news = fetch_top_news(url, max_articles=20)
+                        # Fetch news from URL with explicit region (except for 'world')
+                        fetch_region = region if region != 'world' else None
+                        logger.info(f"Fetching news from {url} for region {fetch_region}")
+                        source_news = fetch_top_news(url, max_articles=20, region=fetch_region)
                         
                         if source_news:
                             logger.info(f"Found {len(source_news)} articles at {url}")
-                            for news_item in source_news:
-                                news_item['category'] = region
                             news_data.extend(source_news)
                         else:
                             msg = f"Could not extract news from {url} (Region: {region})"
@@ -695,23 +706,42 @@ def current_affairs():
     # Process and sort news data
     if news_data:
         logger.info(f"Total articles collected: {len(news_data)}")
-        news_data = sorted(news_data, key=lambda x: x.get('date', ''), reverse=True)
         
-        # Log sample of collected articles
-        sample_articles = [f"{n['title']} ({n['source']})" for n in news_data[:3]]
-        logger.debug(f"Sample articles: {sample_articles}")
+        # Sort by date (newest first)
+        news_data = sorted(news_data, 
+                          key=lambda x: x.get('date', ''),
+                          reverse=True)
+        
+        # Categorize news for template display
+        categorized_news = {region: [] for region in regions}
+        categorized_news['all'] = news_data  # For "All News" view
+        
+        for item in news_data:
+            category = item.get('category', 'world')
+            
+            # Add to specific region if categorized
+            if category in categorized_news:
+                categorized_news[category].append(item)
+            
+            # Always add to world view
+            if category != 'world':
+                categorized_news['world'].append(item)
+        
+        # Log categorization stats
+        for region, items in categorized_news.items():
+            logger.debug(f"Category {region} has {len(items)} articles")
     else:
         logger.info("No news articles collected in this request")
+        categorized_news = {region: [] for region in regions}
+        categorized_news['all'] = []
 
     # Log any error messages
     if error_messages:
         logger.warning(f"Encountered {len(error_messages)} errors during processing")
-        for error in error_messages:
-            logger.debug(f"Error detail: {error}")
 
     return render_template("current_affairs.html", 
-                         news_data=news_data, 
-                         urls=urls, 
+                         news_data=categorized_news,
+                         regions=regions,
                          error_messages=error_messages,
                          urls_provided=urls_provided)
 

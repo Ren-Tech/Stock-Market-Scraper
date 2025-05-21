@@ -15,7 +15,6 @@ block content %}
     padding: 2px 0;
   }
 
-  /* New styles for consistent news cards */
   .news-card {
     height: 100%;
     display: flex;
@@ -60,6 +59,22 @@ block content %}
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
+  }
+
+  .region-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+  }
+
+  .trending-label {
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 8px;
   }
 </style>
 
@@ -107,13 +122,12 @@ block content %}
       <i class="bi bi-arrow-right-circle"></i> Show Search
     </button>
 
-    <!-- Timer Container with added spacing -->
+    <!-- Timer Container -->
     <div class="timer-container ms-3 d-flex align-items-center">
       <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
         <i class="bi bi-play-fill"></i>
       </button>
 
-      <!-- Wrapped timer display with border and padding -->
       <div class="timer-display-wrapper border rounded px-2 mx-1">
         <span id="countdownDisplay" class="timer-display">--:--</span>
       </div>
@@ -126,9 +140,10 @@ block content %}
       </button>
     </div>
   </div>
+
   <!-- Two-Column Layout -->
   <div class="row mt-4">
-    <!-- Left Column: Input Fields (Hidden after submitting) -->
+    <!-- Left Column: Input Fields -->
     <div
       class="col-md-4"
       id="leftColumn"
@@ -146,34 +161,34 @@ block content %}
         <form method="POST" id="urlForm">
           <!-- Region-specific URL inputs -->
           <div class="accordion" id="regionAccordion">
-            <!-- World -->
-            <div class="accordion-item region-tab" data-region="world">
+            {% for region in regions %}
+            <div class="accordion-item region-tab" data-region="{{ region }}">
               <h2 class="accordion-header">
                 <button
-                  class="accordion-button"
+                  class="accordion-button {% if region != 'world' %}collapsed{% endif %}"
                   type="button"
                   data-bs-toggle="collapse"
-                  data-bs-target="#collapseWorld"
+                  data-bs-target="#collapse{{ region|title|replace('_', '') }}"
                 >
-                  World
+                  {{ region|replace('_', ' ')|title }}
                 </button>
               </h2>
               <div
-                id="collapseWorld"
-                class="accordion-collapse collapse show"
+                id="collapse{{ region|title|replace('_', '') }}"
+                class="accordion-collapse collapse {% if region == 'world' %}show{% endif %}"
                 data-bs-parent="#regionAccordion"
               >
                 <div class="accordion-body">
-                  <div id="worldContainer" class="source-container">
+                  <div id="{{ region }}Container" class="source-container">
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
                       <input
                         type="text"
-                        name="world_urls"
+                        name="{{ region }}_urls"
                         class="form-control"
                         placeholder="Enter URL"
-                        value="{{ urls.world[i-1] if urls.world and i <= urls.world|length else '' }}"
+                        value="{{ regions[region][i-1] if regions[region] and i <= regions[region]|length else '' }}"
                         data-source-order="{{ i }}"
                       />
                     </div>
@@ -182,321 +197,14 @@ block content %}
                   <button
                     type="button"
                     class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="world"
+                    data-region="{{ region }}"
                   >
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
               </div>
             </div>
-
-            <!-- North America -->
-            <div class="accordion-item region-tab" data-region="north_america">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseNorthAmerica"
-                >
-                  North America
-                </button>
-              </h2>
-              <div
-                id="collapseNorthAmerica"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="north_americaContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="north_america_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.north_america[i-1] if urls.north_america and i <= urls.north_america|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="north_america"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- South America -->
-            <div class="accordion-item region-tab" data-region="south_america">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseSouthAmerica"
-                >
-                  South America
-                </button>
-              </h2>
-              <div
-                id="collapseSouthAmerica"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="south_americaContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="south_america_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.south_america[i-1] if urls.south_america and i <= urls.south_america|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="south_america"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Europe -->
-            <div class="accordion-item region-tab" data-region="europe">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseEurope"
-                >
-                  Europe
-                </button>
-              </h2>
-              <div
-                id="collapseEurope"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="europeContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="europe_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.europe[i-1] if urls.europe and i <= urls.europe|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="europe"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Asia -->
-            <div class="accordion-item region-tab" data-region="asia">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseAsia"
-                >
-                  Asia
-                </button>
-              </h2>
-              <div
-                id="collapseAsia"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="asiaContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="asia_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.asia[i-1] if urls.asia and i <= urls.asia|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="asia"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Africa -->
-            <div class="accordion-item region-tab" data-region="africa">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseAfrica"
-                >
-                  Africa
-                </button>
-              </h2>
-              <div
-                id="collapseAfrica"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="africaContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="africa_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.africa[i-1] if urls.africa and i <= urls.africa|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="africa"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Australia -->
-            <div class="accordion-item region-tab" data-region="australia">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseAustralia"
-                >
-                  Australia
-                </button>
-              </h2>
-              <div
-                id="collapseAustralia"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="australiaContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="australia_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.australia[i-1] if urls.australia and i <= urls.australia|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="australia"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- MENA -->
-            <div class="accordion-item region-tab" data-region="mena">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseMENA"
-                >
-                  MENA
-                </button>
-              </h2>
-              <div
-                id="collapseMENA"
-                class="accordion-collapse collapse"
-                data-bs-parent="#regionAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="menaContainer" class="source-container">
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="mena_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ urls.mena[i-1] if urls.mena and i <= urls.mena|length else '' }}"
-                        data-source-order="{{ i }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="mena"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
+            {% endfor %}
           </div>
 
           <!-- Update Frequency Selection -->
@@ -517,7 +225,7 @@ block content %}
             </select>
           </div>
 
-          <!-- Submit Button (now also starts auto-refresh) -->
+          <!-- Submit Button -->
           <button
             id="submitSources"
             type="submit"
@@ -562,12 +270,13 @@ block content %}
             </h5>
           </div>
 
-          <!-- Featured News Items (Top 6 stories) in grid layout -->
+          <!-- Featured News Items -->
           <div class="row">
-            {% set seen_titles = [] %} {% for news in news_data %} {% if
-            loop.index0 < 5 and news.title not in seen_titles %} {% set _ =
-            seen_titles.append(news.title) %}
-            <div class="col-md-6 col-xl-4 mb-3">
+            {% for news in news_data.all[:6] %}
+            <div
+              class="col-md-6 col-xl-4 mb-3 news-grid-item"
+              data-category="{{ news.category }}"
+            >
               <div class="card news-card">
                 <img
                   src="{{ news.image }}"
@@ -588,9 +297,9 @@ block content %}
                       class="btn btn-sm btn-outline-primary"
                       >Read</a
                     >
-                    <span class="badge bg-secondary news-badge"
-                      >{{ news.category|capitalize }}</span
-                    >
+                    <span class="badge bg-secondary news-badge">
+                      {{ news.category|replace('_', ' ')|title }}
+                    </span>
                   </div>
                   <small class="text-muted news-link mt-1">
                     {{ news.link|truncate(30, True) }}
@@ -598,22 +307,17 @@ block content %}
                 </div>
               </div>
             </div>
-            {% endif %} {% endfor %}
+            {% endfor %}
           </div>
         </div>
         {% endif %}
 
         <!-- Regular News Grid -->
         <div class="row" id="newsItems">
-          {% if news_data %} {% set seen_titles = [] %} {% for news in news_data
-          %} {% if loop.index0 >= 6 %}
-          <!-- Skip the first 6 items as they're shown in the featured section -->
-          {% if news.title not in seen_titles %} {% set _ =
-          seen_titles.append(news.title) %}
+          {% if news_data %} {% for news in news_data.all[6:] %}
           <div
             class="col-md-6 col-xl-4 mb-3 news-grid-item"
             data-category="{{ news.category }}"
-            data-source-url="{{ news.source_url }}"
           >
             <div class="card news-card">
               <img
@@ -633,9 +337,9 @@ block content %}
                     class="btn btn-sm btn-outline-primary"
                     >Read</a
                   >
-                  <span class="badge bg-secondary news-badge"
-                    >{{ news.category|capitalize }}</span
-                  >
+                  <span class="badge bg-secondary news-badge">
+                    {{ news.category|replace('_', ' ')|title }}
+                  </span>
                 </div>
                 <small class="text-muted news-link mt-1">
                   {{ news.link|truncate(30, True) }}
@@ -643,7 +347,7 @@ block content %}
               </div>
             </div>
           </div>
-          {% endif %} {% endif %} {% endfor %} {% else %}
+          {% endfor %} {% else %}
           <div class="col-12 text-center py-5">
             <p>No news data available. Submit the form to fetch news.</p>
             {% if request.method == "POST" and not news_data %}
@@ -662,27 +366,25 @@ block content %}
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    let urlForm = document.querySelector("form");
-    let leftColumn = document.querySelector("#leftColumn");
-    let newsColumn = document.querySelector("#newsColumn");
-    let newsItems = document.querySelector("#newsItems");
-    let toggleButton = document.querySelector("#toggleSearch");
-    let submitButton = document.querySelector("#submitSources");
-    let newsRotationCounter = parseInt(
-      localStorage.getItem("newsRotationCounter") || "0"
-    );
-
-    // Auto-refresh elements
+    // Initialize variables and elements
+    const urlForm = document.querySelector("form");
+    const leftColumn = document.querySelector("#leftColumn");
+    const newsColumn = document.querySelector("#newsColumn");
+    const newsItems = document.querySelector("#newsItems");
+    const toggleButton = document.querySelector("#toggleSearch");
+    const submitButton = document.querySelector("#submitSources");
     const frequencyDropdown = document.getElementById("frequencyDropdown");
     const refreshStatus = document.getElementById("refreshStatus");
     const refreshProgress = document.getElementById("refreshProgress");
     const minutesDisplay = document.getElementById("minutesDisplay");
-
-    // Timer elements
     const timerToggle = document.getElementById("timerToggle");
     const timerReset = document.getElementById("timerReset");
     const countdownDisplay = document.getElementById("countdownDisplay");
 
+    let newsRotationCounter = parseInt(
+      localStorage.getItem("newsRotationCounter") || "0"
+    );
+    let currentActiveCategory = "all";
     let refreshInterval;
     let progressInterval;
     let countdownInterval;
@@ -692,7 +394,65 @@ block content %}
     let announcementMade = false;
     let urlSourceOrder = {};
 
-    // Function to add new source field for a specific region
+    // Function to filter news by category
+    function filterNewsByCategory(category) {
+      const allNewsItems = document.querySelectorAll(".news-grid-item");
+
+      allNewsItems.forEach((item) => {
+        const itemCategory = item.getAttribute("data-category");
+
+        if (category === "all") {
+          // Show all items in World tab
+          item.style.display = "";
+        } else if (itemCategory === category || itemCategory === "world") {
+          // Show items matching the selected region or world news
+          item.style.display = "";
+        } else {
+          // Hide other items
+          item.style.display = "none";
+        }
+      });
+    }
+
+    // Tab click event handlers
+    document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
+      tab.addEventListener("click", function (e) {
+        e.preventDefault();
+        const tabName = this.getAttribute("data-tab");
+
+        // Update active tab
+        document.querySelectorAll("#newsTabs .nav-link").forEach((t) => {
+          t.classList.remove("active");
+        });
+        this.classList.add("active");
+
+        // Update URL hash
+        window.location.hash = tabName;
+
+        // Filter news
+        currentActiveCategory = tabName;
+        filterNewsByCategory(tabName);
+      });
+    });
+
+    // Handle initial load with hash
+    function activateTabFromHash() {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        const tabToActivate = document.querySelector(
+          `#newsTabs .nav-link[href="#${hash}"]`
+        );
+        if (tabToActivate) {
+          tabToActivate.click();
+        }
+      }
+    }
+
+    // Initialize
+    activateTabFromHash();
+    window.addEventListener("hashchange", activateTabFromHash);
+
+    // Function to add new source field
     function addSourceField(region, value = "") {
       const container = document.getElementById(`${region}Container`);
       const existingFields = container.querySelectorAll(".source-field").length;
@@ -725,132 +485,12 @@ block content %}
           saveUrlsToLocalStorage();
         });
 
-      // Add input event listener to save on change
       newField
         .querySelector('input[name^="' + region + '"]')
         .addEventListener("input", saveUrlsToLocalStorage);
-
-      // Add this to your addSourceField function after creating the new field
-      function attachURLHandlers(newField) {
-        const input = newField.querySelector('input[type="text"]');
-
-        input.addEventListener("paste", function (e) {
-          setTimeout(() => {
-            let value = this.value;
-            if (value) {
-              value = value.replace(/^https?:\/\//, "");
-              this.value = value;
-              saveUrlsToLocalStorage();
-            }
-          }, 0);
-        });
-
-        input.addEventListener("blur", function () {
-          let value = this.value;
-          if (value && value.match(/^https?:\/\//)) {
-            this.value = value.replace(/^https?:\/\//, "");
-            saveUrlsToLocalStorage();
-          }
-        });
-      }
-
-      // Attach URL handlers
-      attachURLHandlers(newField);
     }
 
-    // Function to activate a tab based on hash
-    function activateTabFromHash() {
-      const hash = window.location.hash.substring(1); // Remove the #
-      if (hash) {
-        const tabToActivate = document.querySelector(
-          `#newsTabs .nav-link[href="#${hash}"]`
-        );
-        if (tabToActivate) {
-          // Remove active class from all tabs
-          document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
-            tab.classList.remove("active");
-          });
-
-          // Add active class to the correct tab
-          tabToActivate.classList.add("active");
-
-          // Update the current active category and apply filter
-          currentActiveCategory = hash;
-          applyCurrentCategoryFilter();
-
-          // Show/hide URL inputs based on active tab
-          updateURLInputVisibility(hash);
-        }
-      }
-    }
-
-    // Function to show/hide URL inputs based on active tab
-    function updateURLInputVisibility(activeTab) {
-      // Show all region tabs if "all" is selected
-      if (activeTab === "all") {
-        document.querySelectorAll(".region-tab").forEach((tab) => {
-          tab.style.display = "block";
-        });
-      } else {
-        // Hide all region tabs first
-        document.querySelectorAll(".region-tab").forEach((tab) => {
-          if (tab.getAttribute("data-region") === activeTab) {
-            tab.style.display = "block";
-          } else {
-            tab.style.display = "none";
-          }
-        });
-      }
-
-      // Show/hide URL displays in news items
-      document.querySelectorAll(".url-display").forEach((urlDisplay) => {
-        const region = urlDisplay.getAttribute("data-source-region");
-        if (activeTab === "all" || region === activeTab) {
-          urlDisplay.style.display = "block";
-        } else {
-          urlDisplay.style.display = "none";
-        }
-      });
-    }
-
-    // Function to strip protocol from URLs on paste
-    function setupURLInputs() {
-      // Select all URL input fields
-      const urlInputs = document.querySelectorAll('input[name$="_urls"]');
-
-      urlInputs.forEach((input) => {
-        // Add paste event listener
-        input.addEventListener("paste", function (e) {
-          // Let the paste happen normally
-          setTimeout(() => {
-            // After paste, get the value and remove protocol if present
-            let value = this.value;
-            if (value) {
-              // Strip http:// or https:// from the beginning
-              value = value.replace(/^https?:\/\//, "");
-              this.value = value;
-
-              // Save the modified URLs to localStorage
-              saveUrlsToLocalStorage();
-            }
-          }, 0);
-        });
-
-        // Also handle manual input to catch if someone types a URL with protocol
-        input.addEventListener("blur", function () {
-          let value = this.value;
-          if (value && value.match(/^https?:\/\//)) {
-            this.value = value.replace(/^https?:\/\//, "");
-            saveUrlsToLocalStorage();
-          }
-        });
-      });
-    }
-
-    // Call this function to initialize the URL input handlers
-    setupURLInputs();
-
-    // Function to renumber fields after removal for a specific container
+    // Function to renumber fields
     function renumberFields(container) {
       const fields = container.querySelectorAll(".source-field");
       fields.forEach((field, index) => {
@@ -861,7 +501,77 @@ block content %}
       });
     }
 
-    // Store the URL order for sorting news items
+    // Function to save URLs to local storage
+    function saveUrlsToLocalStorage() {
+      const regions = [
+        "world",
+        "north_america",
+        "south_america",
+        "europe",
+        "asia",
+        "africa",
+        "australia",
+        "mena",
+      ];
+
+      const savedUrls = {};
+
+      regions.forEach((region) => {
+        const inputs = document.querySelectorAll(
+          `input[name="${region}_urls"]`
+        );
+        savedUrls[region] = Array.from(inputs).map((input) => input.value);
+      });
+
+      localStorage.setItem("currentAffairsUrls", JSON.stringify(savedUrls));
+      storeUrlOrder();
+    }
+
+    // Function to load URLs from local storage
+    function loadUrlsFromLocalStorage() {
+      const savedUrls = localStorage.getItem("currentAffairsUrls");
+      if (savedUrls) {
+        const urls = JSON.parse(savedUrls);
+        const regions = [
+          "world",
+          "north_america",
+          "south_america",
+          "europe",
+          "asia",
+          "africa",
+          "australia",
+          "mena",
+        ];
+
+        regions.forEach((region) => {
+          if (urls[region]) {
+            const container = document.getElementById(`${region}Container`);
+            const existingFields = container.querySelectorAll(".source-field");
+            for (let i = 4; i < existingFields.length; i++) {
+              existingFields[i].remove();
+            }
+
+            const inputs = container.querySelectorAll(
+              'input[name^="' + region + '"]'
+            );
+            inputs.forEach((input, index) => {
+              if (index < urls[region].length) {
+                input.value = urls[region][index];
+              }
+            });
+
+            if (urls[region].length > 4) {
+              for (let i = 4; i < urls[region].length; i++) {
+                addSourceField(region, urls[region][i]);
+              }
+            }
+          }
+        });
+      }
+      storeUrlOrder();
+    }
+
+    // Function to store URL order
     function storeUrlOrder() {
       const regions = [
         "world",
@@ -894,294 +604,24 @@ block content %}
       });
     }
 
-    // Sort news items based on source URL order and region
-    function sortNewsBySourceOrder() {
-      const newsContainer = document.getElementById("newsItems");
-      const trendingContainer = document.getElementById("trendingNews");
+    // Load saved URLs when the page loads
+    loadUrlsFromLocalStorage();
 
-      if (!newsContainer || !trendingContainer) return;
+    // Toggle search panel visibility
+    toggleButton.addEventListener("click", function () {
+      const isSearchVisible = leftColumn.style.display !== "none";
 
-      // Get and sort all news items (including trending)
-      const allNewsItems = Array.from(
-        document.querySelectorAll("[data-source-url]")
-      );
-
-      // Before sorting, organize news items by region for better rotation
-      const newsByRegion = {};
-      const regionOrder = [
-        "world",
-        "north_america",
-        "south_america",
-        "europe",
-        "asia",
-        "africa",
-        "australia",
-        "mena",
-      ];
-
-      // Group items by region
-      allNewsItems.forEach((item) => {
-        const category = item.getAttribute("data-category");
-        if (!newsByRegion[category]) {
-          newsByRegion[category] = [];
-        }
-        newsByRegion[category].push(item);
-      });
-
-      // Sort each region's items by original URL order
-      regionOrder.forEach((region) => {
-        if (newsByRegion[region]) {
-          newsByRegion[region].sort((a, b) => {
-            const urlA = a.getAttribute("data-source-url");
-            const urlB = b.getAttribute("data-source-url");
-
-            // Extract domains
-            let domainA, domainB;
-            try {
-              domainA = new URL(urlA).hostname;
-            } catch (e) {
-              domainA = urlA;
-            }
-
-            try {
-              domainB = new URL(urlB).hostname;
-            } catch (e) {
-              domainB = urlB;
-            }
-
-            // Get order (default to high number if not found)
-            const orderA = urlSourceOrder[domainA]?.order || 999;
-            const orderB = urlSourceOrder[domainB]?.order || 999;
-
-            return orderA - orderB;
-          });
-
-          // Apply rotation to each region's items
-          if (newsByRegion[region].length > 0) {
-            // Calculate rotation for this region based on counter
-            const rotationAmount =
-              newsRotationCounter % newsByRegion[region].length;
-            if (rotationAmount > 0) {
-              // Move first N items to the end based on rotation counter
-              const itemsToRotate = newsByRegion[region].splice(
-                0,
-                rotationAmount
-              );
-              newsByRegion[region] = [
-                ...newsByRegion[region],
-                ...itemsToRotate,
-              ];
-            }
-          }
-        }
-      });
-
-      // Flatten the items back into a single array, maintaining region order
-      const sortedItems = [];
-      regionOrder.forEach((region) => {
-        if (newsByRegion[region]) {
-          sortedItems.push(...newsByRegion[region]);
-        }
-      });
-
-      // Use the sorted and rotated items
-      const topSix = sortedItems.slice(0, 6);
-      const rest = sortedItems.slice(6);
-
-      // Clear and repopulate trending section
-      const trendingContent = document.querySelector("#trendingNews .row");
-      if (trendingContent) {
-        trendingContent.innerHTML = "";
-
-        // Add top 6 items to trending
-        topSix.forEach((item) => {
-          const clone = item.cloneNode(true);
-          clone.classList.add("col-md-6", "col-xl-4", "mb-3");
-          trendingContent.appendChild(clone);
-        });
-      }
-
-      // Clear and repopulate regular news grid
-      newsContainer.innerHTML = "";
-      rest.forEach((item) => {
-        newsContainer.appendChild(item);
-      });
-    }
-
-    // Function to save timer state to local storage with timestamp
-    function saveTimerState() {
-      localStorage.setItem("timerIsActive", timerIsActive);
-      localStorage.setItem("secondsRemaining", secondsRemaining);
-      localStorage.setItem("lastTimerCheckpoint", Date.now());
-    }
-
-    // Function to load timer state from local storage
-    function loadTimerState() {
-      const savedTimerIsActive = localStorage.getItem("timerIsActive");
-      const savedSecondsRemaining = localStorage.getItem("secondsRemaining");
-      const savedTimerCheckpoint = localStorage.getItem("lastTimerCheckpoint");
-
-      if (savedTimerIsActive !== null) {
-        timerIsActive = savedTimerIsActive === "true";
-
-        // Calculate how much time has passed since the timer state was saved
-        if (savedTimerCheckpoint && timerIsActive) {
-          const elapsedTime = Math.floor(
-            (Date.now() - parseInt(savedTimerCheckpoint)) / 1000
-          );
-          secondsRemaining = Math.max(
-            0,
-            parseInt(savedSecondsRemaining, 10) - elapsedTime
-          );
-
-          // If timer ran out while page was closed, reset it to the selected frequency
-          if (secondsRemaining <= 0) {
-            const minutes = parseInt(
-              frequencyDropdown.value.replace("min", "")
-            );
-            secondsRemaining = minutes * 60;
-          }
-        } else {
-          secondsRemaining = parseInt(savedSecondsRemaining, 10);
-        }
-
-        // Update the display immediately
-        countdownDisplay.textContent = formatTime(secondsRemaining);
-      }
-    }
-
-    // Periodically save timer state while page is open
-    setInterval(saveTimerState, 5000);
-
-    // Save timer state when page is about to unload
-    window.addEventListener("beforeunload", saveTimerState);
-
-    // Function to announce page refresh using text-to-speech
-    function announceRefresh() {
-      if ("speechSynthesis" in window) {
-        const announcement = new SpeechSynthesisUtterance(
-          "Page will now be refreshed"
-        );
-        window.speechSynthesis.speak(announcement);
-      }
-    }
-
-    // Format time as MM:SS
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins
-        .toString()
-        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
-
-    // Function to save URLs to local storage
-    function saveUrlsToLocalStorage() {
-      const regions = [
-        "world",
-        "north_america",
-        "south_america",
-        "europe",
-        "asia",
-        "africa",
-        "australia",
-        "mena",
-      ];
-
-      const savedUrls = {};
-
-      regions.forEach((region) => {
-        const inputs = document.querySelectorAll(
-          `input[name="${region}_urls"]`
-        );
-        savedUrls[region] = Array.from(inputs).map((input) => input.value);
-      });
-
-      localStorage.setItem("currentAffairsUrls", JSON.stringify(savedUrls));
-      // Also store URL order
-      storeUrlOrder();
-    }
-
-    // Function to load URLs from local storage
-    function loadUrlsFromLocalStorage() {
-      const savedUrls = localStorage.getItem("currentAffairsUrls");
-      if (savedUrls) {
-        const urls = JSON.parse(savedUrls);
-        const regions = [
-          "world",
-          "north_america",
-          "south_america",
-          "europe",
-          "asia",
-          "africa",
-          "australia",
-          "mena",
-        ];
-
-        regions.forEach((region) => {
-          if (urls[region]) {
-            const container = document.getElementById(`${region}Container`);
-            // Clear existing fields beyond the first 4
-            const existingFields = container.querySelectorAll(".source-field");
-            for (let i = 4; i < existingFields.length; i++) {
-              existingFields[i].remove();
-            }
-
-            // Fill existing fields
-            const inputs = container.querySelectorAll(
-              'input[name^="' + region + '"]'
-            );
-            inputs.forEach((input, index) => {
-              if (index < urls[region].length) {
-                input.value = urls[region][index];
-              }
-            });
-
-            // Add additional fields if needed
-            if (urls[region].length > 4) {
-              for (let i = 4; i < urls[region].length; i++) {
-                addSourceField(region, urls[region][i]);
-              }
-            }
-          }
-        });
-      }
-      // Store URL order
-      storeUrlOrder();
-    }
-
-    // Timer toggle functionality
-    timerToggle.addEventListener("click", function () {
-      if (timerIsActive) {
-        // Stop timer
-        stopAutoRefresh();
-        timerIsActive = false;
-        this.classList.remove("btn-danger");
-        this.classList.add("btn-success");
-        this.innerHTML = '<i class="bi bi-play-fill"></i>';
+      if (isSearchVisible) {
+        leftColumn.style.display = "none";
+        toggleButton.innerHTML =
+          '<i class="bi bi-arrow-right-circle"></i> Show Search';
+        newsColumn.className = "col-md-12";
       } else {
-        // Start timer
-        startAutoRefresh();
-        timerIsActive = true;
-        this.classList.remove("btn-success");
-        this.classList.add("btn-danger");
-        this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        leftColumn.style.display = "block";
+        toggleButton.innerHTML =
+          '<i class="bi bi-arrow-left-circle"></i> Hide Search';
+        newsColumn.className = "col-md-8";
       }
-      saveTimerState();
-    });
-
-    // Timer reset functionality
-    timerReset.addEventListener("click", function () {
-      if (timerIsActive) {
-        stopAutoRefresh();
-        startAutoRefresh();
-      } else {
-        // Just reset the display without starting
-        const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
-        secondsRemaining = minutes * 60;
-        countdownDisplay.textContent = formatTime(secondsRemaining);
-      }
-      saveTimerState();
     });
 
     // Add event listeners to all "Add Source" buttons
@@ -1193,53 +633,13 @@ block content %}
       });
     });
 
-    // Add event listeners to all existing URL inputs
-    document.querySelectorAll('input[name$="_urls"]').forEach((input) => {
-      input.addEventListener("input", saveUrlsToLocalStorage);
+    // Submit form handler
+    urlForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      this.submit();
     });
 
-    // Toggle search panel visibility
-    // Toggle search panel visibility
-    toggleButton.addEventListener("click", function () {
-      const isSearchVisible = leftColumn.style.display !== "none";
-
-      if (isSearchVisible) {
-        leftColumn.style.display = "none";
-        toggleButton.innerHTML =
-          '<i class="bi bi-arrow-right-circle"></i> Show Search';
-        newsColumn.className = "col-md-12";
-
-        // Preserve the 3-column layout on large screens
-        document.querySelectorAll(".news-grid-item").forEach((item) => {
-          item.className = item.className.replace(
-            /col-md-\d+/g,
-            "col-md-6 col-xl-4"
-          );
-        });
-      } else {
-        leftColumn.style.display = "block";
-        toggleButton.innerHTML =
-          '<i class="bi bi-arrow-left-circle"></i> Hide Search';
-        newsColumn.className = "col-md-8";
-
-        // Adjust to 2-column layout when sidebar is visible
-        document.querySelectorAll(".news-grid-item").forEach((item) => {
-          item.className = item.className.replace(/col-md-\d+/g, "col-md-12");
-        });
-
-        // Automatically start the timer when search is shown
-        if (!timerIsActive) {
-          startAutoRefresh();
-          timerIsActive = true;
-          timerToggle.classList.remove("btn-success");
-          timerToggle.classList.add("btn-danger");
-          timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
-          saveTimerState(); // Save timer state after starting
-        }
-      }
-    });
-
-    // Auto-refresh functionality
+    // Timer functionality
     function startAutoRefresh() {
       if (refreshInterval) {
         clearInterval(refreshInterval);
@@ -1262,17 +662,11 @@ block content %}
       announcementMade = false;
 
       // Start countdown interval
-      // Start countdown interval
       countdownInterval = setInterval(() => {
         secondsRemaining--;
 
-        // When countdown reaches 0, make the voice announcement
         if (secondsRemaining <= 0) {
-          if (
-            !announcementMade &&
-            document.visibilityState === "visible" &&
-            window.location.hostname === "insightedge.pro"
-          ) {
+          if (!announcementMade) {
             announceRefresh();
             announcementMade = true;
           }
@@ -1280,7 +674,6 @@ block content %}
         }
 
         countdownDisplay.textContent = formatTime(secondsRemaining);
-        saveTimerState(); // Save timer state on each tick
       }, 1000);
 
       refreshInterval = setInterval(() => {
@@ -1292,58 +685,17 @@ block content %}
           .then((html) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
-            function incrementNewsRotation() {
-              newsRotationCounter++;
-              localStorage.setItem("newsRotationCounter", newsRotationCounter);
-              console.log(
-                `News rotation incremented to: ${newsRotationCounter}`
-              );
-            }
-            // Update both trending news and regular news grid
-            const newTrendingNews = doc.querySelector("#trendingNews");
             const newNewsItems = doc.querySelector("#newsItems");
-
-            if (newTrendingNews) {
-              const trendingNewsSection =
-                document.querySelector("#trendingNews");
-              if (trendingNewsSection) {
-                trendingNewsSection.innerHTML = newTrendingNews.innerHTML;
-              }
-            }
 
             if (newNewsItems) {
               newsItems.innerHTML = newNewsItems.innerHTML;
-
-              // Increment rotation counter
-              incrementNewsRotation();
-
-              // Sort news by source URL order with rotation
-              sortNewsBySourceOrder();
-
-              // Reapply column classes after refresh
-              const isSearchVisible = leftColumn.style.display !== "none";
-              if (!isSearchVisible) {
-                document.querySelectorAll(".news-grid-item").forEach((item) => {
-                  item.className = item.className.replace(
-                    /col-md-\d+/g,
-                    "col-md-6 col-xl-4"
-                  );
-                });
-              }
+              filterNewsByCategory(currentActiveCategory);
             }
 
             refreshProgress.style.width = "0%";
-            // Reset countdown timer
             secondsRemaining = minutes * 60;
             countdownDisplay.textContent = formatTime(secondsRemaining);
             announcementMade = false;
-            saveTimerState(); // Save timer state after refresh
-
-            // Apply category filtering
-            applyCurrentCategoryFilter();
-          })
-          .catch((error) => {
-            console.error("Error refreshing news:", error);
           });
       }, milliseconds);
 
@@ -1366,156 +718,56 @@ block content %}
         clearInterval(refreshInterval);
         clearInterval(progressInterval);
         clearInterval(countdownInterval);
-        refreshInterval = null;
-        progressInterval = null;
-        countdownInterval = null;
       }
 
       refreshStatus.classList.add("d-none");
       refreshProgress.style.width = "0%";
-      saveTimerState(); // Save timer state when stopped
     }
 
-    // Load timer state when the page loads
-    loadTimerState();
-
-    // If the timer was active, start it again
-    if (timerIsActive) {
-      startAutoRefresh();
-      timerToggle.classList.remove("btn-success");
-      timerToggle.classList.add("btn-danger");
-      timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
 
-    // Update minutes display when frequency changes
-    frequencyDropdown.addEventListener("change", function () {
-      const minutes = parseInt(this.value.replace("min", ""));
-      minutesDisplay.textContent = minutes;
-      localStorage.setItem("selectedFrequency", this.value);
-
-      // Update countdown timer to reflect new frequency
-      secondsRemaining = minutes * 60;
-      countdownDisplay.textContent = formatTime(secondsRemaining);
-
-      if (refreshStatus.classList.contains("d-none") === false) {
-        stopAutoRefresh();
-        startAutoRefresh();
+    function announceRefresh() {
+      if ("speechSynthesis" in window) {
+        const announcement = new SpeechSynthesisUtterance(
+          "Page will now be refreshed"
+        );
+        window.speechSynthesis.speak(announcement);
       }
+    }
 
-      // If timer is active, restart it with new time
+    // Timer toggle functionality
+    timerToggle.addEventListener("click", function () {
+      if (timerIsActive) {
+        stopAutoRefresh();
+        timerIsActive = false;
+        this.classList.remove("btn-danger");
+        this.classList.add("btn-success");
+        this.innerHTML = '<i class="bi bi-play-fill"></i>';
+      } else {
+        startAutoRefresh();
+        timerIsActive = true;
+        this.classList.remove("btn-success");
+        this.classList.add("btn-danger");
+        this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+      }
+    });
+
+    // Timer reset functionality
+    timerReset.addEventListener("click", function () {
       if (timerIsActive) {
         stopAutoRefresh();
         startAutoRefresh();
+      } else {
+        const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
+        secondsRemaining = minutes * 60;
+        countdownDisplay.textContent = formatTime(secondsRemaining);
       }
-    });
-
-    // Submit form with validation and start auto-refresh
-    urlForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      // Reset rotation counter when manually submitting form
-      newsRotationCounter = 0;
-      localStorage.setItem("newsRotationCounter", newsRotationCounter);
-
-      const selectedFrequency = frequencyDropdown.value;
-      localStorage.setItem("selectedFrequency", selectedFrequency);
-
-      // Save the URLs to local storage
-      saveUrlsToLocalStorage();
-
-      if (leftColumn) {
-        leftColumn.style.display = "none";
-      }
-
-      if (newsColumn) {
-        newsColumn.className = "col-md-12";
-      }
-
-      toggleButton.classList.remove("d-none");
-      toggleButton.classList.add("visible");
-      toggleButton.innerHTML =
-        '<i class="bi bi-arrow-right-circle"></i> Show Search';
-
-      this.submit();
-
-      setTimeout(function () {
-        // Start auto-refresh and activate timer
-        startAutoRefresh();
-        timerIsActive = true;
-        timerToggle.classList.remove("btn-success");
-        timerToggle.classList.add("btn-danger");
-        timerToggle.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        saveTimerState(); // Save timer state after starting
-      }, 1000);
-    });
-
-    // Call this
-
-    // Keep track of current active category
-    let currentActiveCategory = "all";
-
-    // Function to apply current category filter
-    // Update the applyCurrentCategoryFilter function to handle the special case for "world" tab
-    function applyCurrentCategoryFilter() {
-      document
-        .querySelectorAll("#newsItems > div[data-category]")
-        .forEach((row) => {
-          const rowCategory = row.getAttribute("data-category");
-
-          if (currentActiveCategory === "all") {
-            // Show all news in World tab
-            row.style.display = "";
-          } else if (rowCategory === currentActiveCategory) {
-            // Show news that matches the current region
-            row.style.display = "";
-          } else {
-            // Hide news that doesn't match
-            row.style.display = "none";
-          }
-        });
-
-      // Handle featured news section visibility
-      const trendingSection = document.querySelector(".trending-news-section");
-      if (trendingSection) {
-        if (currentActiveCategory === "all") {
-          trendingSection.style.display = "block";
-        } else {
-          // Check if any featured news matches the current region
-          const hasMatchingNews = Array.from(
-            document.querySelectorAll(".featured-news-card")
-          ).some((card) => {
-            const badge = card.querySelector(".badge");
-            return (
-              badge && badge.textContent.toLowerCase() === currentActiveCategory
-            );
-          });
-
-          trendingSection.style.display = hasMatchingNews ? "block" : "none";
-        }
-      }
-    }
-    // Category filtering for news
-    // Category filtering for news
-    let tabs = document.querySelectorAll("#newsTabs .nav-link");
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", function (e) {
-        e.preventDefault();
-        const tabName = this.getAttribute("data-tab");
-
-        // Update URL hash
-        window.location.hash = tabName;
-
-        // Update active tab
-        tabs.forEach((t) => t.classList.remove("active"));
-        this.classList.add("active");
-
-        // Set current category and apply filter
-        currentActiveCategory = tabName;
-        applyCurrentCategoryFilter();
-
-        // Update URL input visibility
-        updateURLInputVisibility(tabName);
-      });
     });
 
     // Initialize with previously selected frequency if available
@@ -1523,40 +775,15 @@ block content %}
     if (savedFrequency) {
       frequencyDropdown.value = savedFrequency;
       minutesDisplay.textContent = parseInt(savedFrequency.replace("min", ""));
-
-      // Initialize countdown display with saved frequency
       const minutes = parseInt(savedFrequency.replace("min", ""));
       secondsRemaining = minutes * 60;
       countdownDisplay.textContent = formatTime(secondsRemaining);
     } else {
-      // Initialize with default frequency
       const defaultMinutes = parseInt(
         frequencyDropdown.value.replace("min", "")
       );
       secondsRemaining = defaultMinutes * 60;
       countdownDisplay.textContent = formatTime(secondsRemaining);
-    }
-
-    // If there's news data, display the timer but don't start it automatically
-    if (
-      document.querySelectorAll("#newsItems > div[data-category]").length > 0
-    ) {
-      const timerContainer = document.querySelector(".timer-container");
-      if (timerContainer) {
-        timerContainer.style.display = "inline-flex";
-      }
-    }
-
-    // Load saved URLs when the page loads
-    loadUrlsFromLocalStorage();
-    // Add this at the end:
-    activateTabFromHash();
-    window.addEventListener("hashchange", activateTabFromHash);
-    if (
-      newsRotationCounter > 0 &&
-      document.querySelectorAll("[data-source-url]").length > 0
-    ) {
-      sortNewsBySourceOrder();
     }
   });
 </script>
