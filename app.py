@@ -162,7 +162,34 @@ SITE_SPECIFIC_SELECTORS = {
         'date': '.timestamp, time, .date, .cd__timestamp, .cnn-search__result-publish-date'
     }
 }
-
+def scrape_article(url):
+    try:
+        response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Special handling for CNN
+        if 'cnn.com' in url:
+            title = (
+                soup.find('h1', class_='headline__text') or 
+                soup.find('meta', property='og:title') or
+                soup.find('title')
+            )
+            if title:
+                title_text = title.get_text().strip()
+                return title_text if title_text else "CNN News Update"
+            return "CNN News Update"
+        
+        # Default handling for other sites
+        title = (
+            soup.find('meta', property='og:title') or
+            soup.find('title') or
+            soup.find('h1')
+        )
+        return title.get_text().strip() if title else "No title available"
+        
+    except Exception as e:
+        print(f"Error scraping {url}: {e}")
+        return "No title available" if 'cnn.com' not in url else "CNN News Update"
 def clean_text(text):
     """Clean and normalize text"""
     if not text:
