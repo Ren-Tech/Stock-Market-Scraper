@@ -12,7 +12,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
 import time
 import re
 import yfinance as yf
@@ -21,24 +20,18 @@ from flask import url_for
 import logging
 from flask import session, flash
 from functools import wraps
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-# Add login credentials (in production, use a proper database)
+
+# Add login credentials
 VALID_USERS = {
     'oxbrigdeit@gmail.com': 'solutions2025',
 }
-# API_KEY = 'NWV90QOIWFFO75C5'
-
-
 
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
@@ -50,7 +43,7 @@ SECTORS = {
     "utilities": ["NEE", "DUK", "SO", "D", "AEP"],
     "automotive": ["TSLA", "TM", "F", "GM", "HMC"]
 }
-# Mock functions - replace with your actual implementations
+
 # Configure request headers with multiple user agents
 USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
@@ -59,10 +52,10 @@ USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1'
 ]
-# First, update your NEWS_SOURCE_MAPPING to be more precise
+
 NEWS_SOURCE_MAPPING = {
     'www.msnbc.com': {
-        'actual_source': 'people.com',  # Remove www to catch all subdomains
+        'actual_source': 'people.com',
         'name': 'MSNBC',
         'link_replace': {
             'from': 'people.com',
@@ -95,55 +88,6 @@ NEWS_SOURCE_MAPPING = {
     }
 }
 
-# Then modify the _apply_source_mapping function to be more aggressive with replacements
-def _apply_source_mapping(news_items, mapping):
-    """
-    Helper function to apply source mapping to news items with more comprehensive replacements
-    """
-    mapped_items = []
-    
-    for item in news_items:
-        try:
-            # Create a deep copy of the item to modify
-            mapped_item = item.copy()
-            
-            # Replace the source domain in links (more comprehensive replacement)
-            if 'link' in mapped_item:
-                mapped_item['link'] = re.sub(
-                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
-                    f'https://{mapping["link_replace"]["to"]}',
-                    mapped_item['link'],
-                    flags=re.IGNORECASE
-                )
-            
-            # Replace the source name
-            mapped_item['source'] = mapping['name']
-            
-            # Replace read_more link if it exists
-            if 'read_more' in mapped_item:
-                mapped_item['read_more'] = re.sub(
-                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
-                    f'https://{mapping["link_replace"]["to"]}',
-                    mapped_item['read_more'],
-                    flags=re.IGNORECASE
-                )
-            
-            # Also replace any occurrences in content
-            if 'content' in mapped_item:
-                mapped_item['content'] = re.sub(
-                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
-                    f'https://{mapping["link_replace"]["to"]}',
-                    mapped_item['content'],
-                    flags=re.IGNORECASE
-                )
-            
-            mapped_items.append(mapped_item)
-        except Exception as e:
-            logger.error(f"Error applying source mapping to item: {str(e)}")
-            continue
-    
-    return mapped_items
-# Dictionary of site-specific selectors for better targeting
 SITE_SPECIFIC_SELECTORS = {
     'msnbc.com': {
         'article': '.gs-c-promo, article, .article-body, .info-card, .content-card',
@@ -210,16 +154,15 @@ SITE_SPECIFIC_SELECTORS = {
         'date': '.p-article__date, time, .date'
     },
     'cnn.com': {
-        'article': 'article, div.container__item, div.card, .card--section, .el__storyelement--standard',
-        'title': 'span.container__headline-text, h3.card__headline, .headline, h1, h2, h3',
-        'content': 'div.container__description, div.card__description, .description, p',
+        'article': 'article, div.container__item, div.card, .card--section, .el__storyelement--standard, .cnn-search__result, .cd__content',
+        'title': 'span.container__headline-text, h3.card__headline, .headline, h1, h2, h3, .cd__headline-text, .cnn-search__result-headline',
+        'content': 'div.container__description, div.card__description, .description, p, .cd__description, .cnn-search__result-body',
         'link': 'a',
         'image': 'img',
-        'date': '.timestamp, time, .date'
+        'date': '.timestamp, time, .date, .cd__timestamp, .cnn-search__result-publish-date'
     }
 }
 
-# Helper function to clean text
 def clean_text(text):
     """Clean and normalize text"""
     if not text:
@@ -227,82 +170,6 @@ def clean_text(text):
     text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with single space
     return text.strip()
 
-def get_news_from_url(url, sector):
-    """Fetch actual news content from the provided URL"""
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        
-        # Handle RSS feeds
-        if any(ext in url.lower() for ext in ['rss', 'feed', 'xml']):
-            feed = feedparser.parse(url)
-            articles = []
-            for entry in feed.entries[:5]:  # Limit to 5 articles
-                title = clean_text(entry.get('title', 'No title'))
-                description = clean_text(entry.get('description', title))
-                link = entry.get('link', url)
-                date = entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                
-                articles.append({
-                    'title': title,
-                    'content': description,
-                    'link': link,
-                    'source': urlparse(url).netloc,
-                    'date': date,
-                    'sector': sector
-                })
-            return articles
-        
-        # Handle regular news websites
-        response = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Common patterns for news websites
-        articles = []
-        
-        # Try to find article elements - these selectors work for many news sites
-        article_elements = soup.find_all('article') or \
-                          soup.find_all(class_=re.compile('article|post|story', re.I)) or \
-                          soup.find_all(itemtype='http://schema.org/NewsArticle')
-        
-        for article in article_elements[:5]:  # Limit to 5 articles
-            # Try to extract title
-            title_elem = article.find(['h1', 'h2', 'h3']) or \
-                        article.find(class_=re.compile('title|headline', re.I))
-            title = clean_text(title_elem.get_text()) if title_elem else "No title"
-            
-            # Try to extract content
-            content_elem = article.find(class_=re.compile('content|entry|post-body', re.I)) or \
-                          article.find(['p', 'div'])
-            content = clean_text(content_elem.get_text()) if content_elem else title
-            
-            # Try to extract link
-            link_elem = article.find('a', href=True)
-            link = link_elem['href'] if link_elem else url
-            if link.startswith('/'):
-                link = f"{urlparse(url).scheme}://{urlparse(url).netloc}{link}"
-            
-            # Try to extract date
-            date_elem = article.find(class_=re.compile('date|time', re.I)) or \
-                       article.find('time')
-            date = clean_text(date_elem.get('datetime') or date_elem.get_text()) if date_elem else \
-                  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            articles.append({
-                'title': title,
-                'content': content,
-                'link': link,
-                'source': urlparse(url).netloc,
-                'date': date,
-                'sector': sector
-            })
-        
-        return articles
-    
-    except Exception as e:
-        print(f"Error scraping {url}: {str(e)}")
-        return []
 def assign_category(text, region=None):
     """Assign a news category based on text content with region override"""
     if region:
@@ -310,7 +177,6 @@ def assign_category(text, region=None):
     
     text = text.lower()
     
-    # Simple keyword-based categorization
     if any(word in text for word in ['europe', 'eu', 'european', 'brexit', 'uk', 'germany', 'france', 'spain', 'italy']):
         return 'europe'
     elif any(word in text for word in ['asia', 'china', 'japan', 'india', 'korea', 'singapore', 'malaysia', 'indonesia']):
@@ -326,21 +192,57 @@ def assign_category(text, region=None):
     elif any(word in text for word in ['middle east', 'mena', 'arab', 'saudi', 'uae', 'qatar', 'iran', 'iraq']):
         return 'mena'
     else:
-        return 'world'  # Default category
+        return 'world'
+
+def _apply_source_mapping(news_items, mapping):
+    """Apply domain mapping to news items with comprehensive replacements"""
+    mapped_items = []
+    
+    for item in news_items:
+        try:
+            mapped_item = item.copy()
+            
+            # Replace the source domain in links
+            if 'link' in mapped_item:
+                mapped_item['link'] = re.sub(
+                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
+                    f'https://{mapping["link_replace"]["to"]}',
+                    mapped_item['link'],
+                    flags=re.IGNORECASE
+                )
+            
+            # Replace the source name
+            mapped_item['source'] = mapping['name']
+            
+            # Replace read_more link if it exists
+            if 'read_more' in mapped_item:
+                mapped_item['read_more'] = re.sub(
+                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
+                    f'https://{mapping["link_replace"]["to"]}',
+                    mapped_item['read_more'],
+                    flags=re.IGNORECASE
+                )
+            
+            # Also replace any occurrences in content
+            if 'content' in mapped_item:
+                mapped_item['content'] = re.sub(
+                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
+                    f'https://{mapping["link_replace"]["to"]}',
+                    mapped_item['content'],
+                    flags=re.IGNORECASE
+                )
+            
+            mapped_items.append(mapped_item)
+        except Exception as e:
+            logger.error(f"Error applying source mapping to item: {str(e)}")
+            continue
+    
+    return mapped_items
+
 def fetch_top_news(url, max_articles=20, region=None):
     """
     Fetch top news articles from a given URL with source mapping functionality.
-    Handles HTML and RSS feeds, with comprehensive domain replacement.
-    
-    Args:
-        url (str): The URL to fetch news from
-        max_articles (int): Maximum number of articles to return
-        region (str): Optional region to assign to articles (e.g., 'north_america')
-    
-    Returns:
-        list: List of news article dictionaries
     """
-    # Parse and normalize the input URL
     parsed_url = urlparse(url)
     input_domain = parsed_url.netloc.lower()
     
@@ -375,8 +277,7 @@ def fetch_top_news(url, max_articles=20, region=None):
                 logger.warning(f"No entries found in feed: {actual_url}")
                 return []
                 
-            for entry in feed.entries[:max_articles]:
-                # Extract basic article info
+            for entry in feed.entries[:max_articles*2]:  # Get more entries to account for filtering
                 article = {
                     'title': clean_text(entry.get('title', 'No title')),
                     'content': clean_text(entry.get('description', 'No content')),
@@ -403,54 +304,54 @@ def fetch_top_news(url, max_articles=20, region=None):
         
         # Handle HTML pages
         else:
-            # Configure browser headers
             headers = {
                 'User-Agent': random.choice(USER_AGENTS),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.5',
             }
             
-            # Fetch with retries
-            for attempt in range(3):
+            # Try with requests first
+            try:
+                response = requests.get(actual_url, headers=headers, timeout=15)
+                response.raise_for_status()
+                soup = BeautifulSoup(response.content, 'html.parser')
+            except Exception as e:
+                logger.warning(f"Requests failed, trying Selenium: {str(e)}")
                 try:
-                    response = requests.get(actual_url, headers=headers, timeout=15)
-                    response.raise_for_status()
-                    break
+                    options = Options()
+                    options.headless = True
+                    driver = webdriver.Chrome(options=options)
+                    driver.get(actual_url)
+                    time.sleep(3)  # Wait for JavaScript to load
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    driver.quit()
                 except Exception as e:
-                    if attempt == 2:
-                        raise
-                    time.sleep(2)
-            
-            # Parse with best available parser
-            for parser in ['html.parser', 'lxml', 'html5lib']:
-                try:
-                    soup = BeautifulSoup(response.content, parser)
-                    break
-                except Exception:
-                    if parser == 'html5lib':
-                        raise
+                    logger.error(f"Selenium also failed: {str(e)}")
+                    return []
             
             # Try site-specific selectors first
             site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
             articles = []
             
             if site_selectors.get('article'):
-                articles = soup.select(site_selectors['article'])[:max_articles*2]  # Get extra for filtering
+                articles = soup.select(site_selectors['article'])[:max_articles*3]  # Get more articles for filtering
             
             # Fallback to generic detection
             if not articles:
                 article_selectors = [
                     'article', '[itemtype="http://schema.org/NewsArticle"]',
-                    '.article', '.story', '.post', '.card', '.teaser'
+                    '.article', '.story', '.post', '.card', '.teaser', '.list__item'
                 ]
                 for selector in article_selectors:
                     articles = soup.select(selector)
                     if articles:
-                        articles = articles[:max_articles*2]
+                        articles = articles[:max_articles*3]
                         break
             
+            logger.info(f"Found {len(articles)} potential articles before filtering")
+            
             # Process articles
-            for article in articles[:max_articles]:
+            for article in articles[:max_articles*2]:  # Process more to account for filtering
                 try:
                     # Extract title
                     title = None
@@ -517,7 +418,7 @@ def fetch_top_news(url, max_articles=20, region=None):
             news_items = _apply_source_mapping(news_items, mapped_config)
         
         # Remove duplicates and ensure proper fields
-        seen_titles = set()
+        seen = set()
         final_items = []
         
         for item in news_items:
@@ -525,11 +426,11 @@ def fetch_top_news(url, max_articles=20, region=None):
             if not all(k in item for k in ['title', 'link', 'content']):
                 continue
             
-            # Deduplicate
-            norm_title = item['title'].lower().strip()
-            if norm_title in seen_titles:
+            # Deduplicate based on title and URL
+            key = (item['title'].lower().strip(), item['link'].lower().strip())
+            if key in seen:
                 continue
-            seen_titles.add(norm_title)
+            seen.add(key)
             
             # Ensure defaults
             item.setdefault('image', "/static/images/default_news.jpg")
@@ -537,99 +438,23 @@ def fetch_top_news(url, max_articles=20, region=None):
             item.setdefault('source', input_domain)
             item.setdefault('read_more', item['link'])
             
-            # Ensure category is set (should already be set by assign_category)
+            # Ensure category is set
             if 'category' not in item:
                 item['category'] = assign_category(item.get('title', '') + " " + item.get('content', ''), region)
             
             final_items.append(item)
         
+        logger.info(f"After processing, returning {len(final_items[:max_articles])} articles")
         return final_items[:max_articles]
     
     except Exception as e:
         logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
         return []
 
-def _apply_source_mapping(items, mapping):
-    """Apply domain mapping to news items"""
-    mapped_items = []
-    from_domain = mapping['link_replace']['from']
-    to_domain = mapping['link_replace']['to']
-    
-    for item in items:
-        try:
-            # Create new item with mapped values
-            new_item = item.copy()
-            
-            # Replace domain in all relevant fields
-            for field in ['link', 'read_more']:
-                if field in new_item:
-                    new_item[field] = re.sub(
-                        rf'(https?://)?(www\.)?{re.escape(from_domain)}',
-                        f'https://{to_domain}',
-                        new_item[field],
-                        flags=re.IGNORECASE
-                    )
-            
-            # Replace source name
-            new_item['source'] = mapping['name']
-            
-            # Also replace any links in content
-            if 'content' in new_item:
-                new_item['content'] = re.sub(
-                    rf'(https?://)?(www\.)?{re.escape(from_domain)}',
-                    f'https://{to_domain}',
-                    new_item['content'],
-                    flags=re.IGNORECASE
-                )
-            
-            mapped_items.append(new_item)
-        except Exception as e:
-            logger.error(f"Error applying mapping to item: {str(e)}")
-            continue
-    
-    return mapped_items
-
-def _apply_source_mapping(news_items, mapping):
-    """
-    Helper function to apply source mapping to news items
-    """
-    mapped_items = []
-    
-    for item in news_items:
-        try:
-            # Create a copy of the item to modify
-            mapped_item = item.copy()
-            
-            # Replace the source domain in links
-            if 'link' in mapped_item:
-                mapped_item['link'] = mapped_item['link'].replace(
-                    mapping['link_replace']['from'],
-                    mapping['link_replace']['to']
-                )
-            
-            # Replace the source name
-            mapped_item['source'] = mapping['name']
-            
-            # Replace read_more link if it exists
-            if 'read_more' in mapped_item:
-                mapped_item['read_more'] = mapped_item['read_more'].replace(
-                    mapping['link_replace']['from'],
-                    mapping['link_replace']['to']
-                )
-            
-            mapped_items.append(mapped_item)
-        except Exception as e:
-            logger.warning(f"Error applying source mapping to item: {str(e)}")
-            continue
-    
-    return mapped_items
-
 @app.route("/current_affairs", methods=["GET", "POST"])
 def current_affairs():
-    # Initialize logging for this request
     logger.info(f"Current Affairs page accessed by {request.remote_addr}")
     
-    # Define all possible regions
     regions = {
         'world': [],
         'north_america': [],
@@ -648,7 +473,6 @@ def current_affairs():
     if request.method == "POST":
         logger.info("Current Affairs form submitted")
         
-        # Process URLs for each region
         for region in regions.keys():
             region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
             regions[region] = region_urls
@@ -668,12 +492,10 @@ def current_affairs():
                 
                 for url in region_urls:
                     try:
-                        # Validate and normalize URL
                         if not url.startswith(('http://', 'https://')):
                             url = 'https://' + url
                             logger.debug(f"Added protocol to URL: {url}")
                         
-                        # Fetch news from URL with explicit region (except for 'world')
                         fetch_region = region if region != 'world' else None
                         logger.info(f"Fetching news from {url} for region {fetch_region}")
                         source_news = fetch_top_news(url, max_articles=20, region=fetch_region)
@@ -690,10 +512,6 @@ def current_affairs():
                         msg = f"Timeout when trying to access {url}"
                         error_messages.append(msg)
                         logger.error(msg)
-                    except requests.exceptions.RequestException as e:
-                        msg = f"Network error accessing {url}: {str(e)}"
-                        error_messages.append(msg)
-                        logger.error(msg)
                     except Exception as e:
                         msg = f"Error processing {url} (Region: {region}): {str(e)}"
                         error_messages.append(msg)
@@ -703,31 +521,27 @@ def current_affairs():
             error_messages.append(msg)
             logger.warning(msg)
 
-    # Process and sort news data
     if news_data:
         logger.info(f"Total articles collected: {len(news_data)}")
         
         # Sort by date (newest first)
         news_data = sorted(news_data, 
-                          key=lambda x: x.get('date', ''),
-                          reverse=True)
+                         key=lambda x: x.get('date', ''),
+                         reverse=True)
         
         # Categorize news for template display
         categorized_news = {region: [] for region in regions}
-        categorized_news['all'] = news_data  # For "All News" view
+        categorized_news['all'] = news_data
         
         for item in news_data:
             category = item.get('category', 'world')
             
-            # Add to specific region if categorized
             if category in categorized_news:
                 categorized_news[category].append(item)
             
-            # Always add to world view
             if category != 'world':
                 categorized_news['world'].append(item)
         
-        # Log categorization stats
         for region, items in categorized_news.items():
             logger.debug(f"Category {region} has {len(items)} articles")
     else:
@@ -735,15 +549,14 @@ def current_affairs():
         categorized_news = {region: [] for region in regions}
         categorized_news['all'] = []
 
-    # Log any error messages
     if error_messages:
         logger.warning(f"Encountered {len(error_messages)} errors during processing")
 
     return render_template("current_affairs.html", 
-                         news_data=categorized_news,
-                         regions=regions,
-                         error_messages=error_messages,
-                         urls_provided=urls_provided)
+                        news_data=categorized_news,
+                        regions=regions,
+                        error_messages=error_messages,
+                        urls_provided=urls_provided)
 
 
 
