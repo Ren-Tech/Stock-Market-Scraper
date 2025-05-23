@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %} Current Affairs {% endblock %} {%
+{% extends "base.html" %} {% block title %}Current Affairs{% endblock %} {%
 block content %}
 
 <style>
@@ -7,32 +7,27 @@ block content %}
     text-align: center;
     background-color: #f8f9fa;
   }
-
   .timer-display {
     font-family: monospace;
     font-weight: bold;
     color: #495057;
     padding: 2px 0;
   }
-
   .news-card {
     height: 100%;
     display: flex;
     flex-direction: column;
   }
-
   .news-card .card-img-top {
     height: 180px;
     object-fit: cover;
     width: 100%;
   }
-
   .news-card .card-body {
     flex: 1;
     display: flex;
     flex-direction: column;
   }
-
   .news-card .card-title {
     font-size: 1rem;
     margin-bottom: 0.5rem;
@@ -42,17 +37,14 @@ block content %}
     overflow: hidden;
     min-height: 60px;
   }
-
   .news-card .card-footer {
     padding: 0.5rem;
     background: white;
     border-top: 1px solid rgba(0, 0, 0, 0.125);
   }
-
   .news-badge {
     font-size: 0.75rem;
   }
-
   .news-link {
     font-size: 0.75rem;
     white-space: nowrap;
@@ -60,14 +52,12 @@ block content %}
     text-overflow: ellipsis;
     display: block;
   }
-
   .region-badge {
     position: absolute;
     top: 10px;
     right: 10px;
     z-index: 1;
   }
-
   .trending-label {
     background-color: #dc3545;
     color: white;
@@ -76,10 +66,16 @@ block content %}
     font-size: 0.8rem;
     margin-right: 8px;
   }
+  .source-field .remove-field {
+    visibility: hidden;
+  }
+  .source-field:hover .remove-field {
+    visibility: visible;
+  }
 </style>
 
 <div class="container mt-4">
-  <!-- Mini Tab Navigation (Top Right) -->
+  <!-- Navigation Tabs -->
   <ul
     class="nav nav-pills nav-fill bg-light rounded p-2 shadow-sm"
     id="newsTabs"
@@ -114,24 +110,20 @@ block content %}
     </li>
   </ul>
 
-  <!-- Toggle Button for Search Panel and Timer Controls -->
+  <!-- Controls -->
   <div
     class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}"
   >
     <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
       <i class="bi bi-arrow-right-circle"></i> Show Search
     </button>
-
-    <!-- Timer Container -->
     <div class="timer-container ms-3 d-flex align-items-center">
       <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
         <i class="bi bi-play-fill"></i>
       </button>
-
       <div class="timer-display-wrapper border rounded px-2 mx-1">
         <span id="countdownDisplay" class="timer-display">--:--</span>
       </div>
-
       <button
         id="timerReset"
         class="btn btn-sm btn-outline-secondary timer-btn"
@@ -159,7 +151,6 @@ block content %}
       <div class="card shadow-sm p-3" id="urlFormCard">
         <h6 class="text-center text-primary">Web URLs by Region</h6>
         <form method="POST" id="urlForm">
-          <!-- Region-specific URL inputs -->
           <div class="accordion" id="regionAccordion">
             {% for region in regions %}
             <div class="accordion-item region-tab" data-region="{{ region }}">
@@ -180,17 +171,23 @@ block content %}
               >
                 <div class="accordion-body">
                   <div id="{{ region }}Container" class="source-container">
+                    <!-- Initial 4 empty fields -->
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
                       <input
                         type="text"
                         name="{{ region }}_urls"
-                        class="form-control"
+                        class="form-control url-input"
                         placeholder="Enter URL"
-                        value="{{ regions[region][i-1] if regions[region] and i <= regions[region]|length else '' }}"
                         data-source-order="{{ i }}"
                       />
+                      {% if i > 3 %}<button
+                        type="button"
+                        class="btn btn-outline-danger remove-field"
+                      >
+                        <i class="bi bi-x"></i></button
+                      >{% endif %}
                     </div>
                     {% endfor %}
                   </div>
@@ -207,7 +204,7 @@ block content %}
             {% endfor %}
           </div>
 
-          <!-- Update Frequency Selection -->
+          <!-- Controls -->
           <div
             class="d-flex align-items-center justify-content-between mb-2 mt-3"
           >
@@ -225,7 +222,6 @@ block content %}
             </select>
           </div>
 
-          <!-- Submit Button -->
           <button
             id="submitSources"
             type="submit"
@@ -234,7 +230,14 @@ block content %}
             <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
           </button>
 
-          <!-- Auto-refresh status indicator -->
+          <button
+            type="button"
+            id="clearAllUrls"
+            class="btn btn-outline-danger btn-sm w-100 mt-2"
+          >
+            <i class="bi bi-trash"></i> Clear All URLs
+          </button>
+
           <div id="refreshStatus" class="small text-center mt-2 d-none">
             <span class="badge bg-success">
               <i class="bi bi-arrow-repeat"></i>
@@ -310,11 +313,10 @@ block content %}
             {% endfor %}
           </div>
         </div>
-        {% endif %}
 
         <!-- Regular News Grid -->
         <div class="row" id="newsItems">
-          {% if news_data %} {% for news in news_data.all[6:] %}
+          {% for news in news_data.all[6:] %}
           <div
             class="col-md-6 col-xl-4 mb-3 news-grid-item"
             data-category="{{ news.category }}"
@@ -347,18 +349,19 @@ block content %}
               </div>
             </div>
           </div>
-          {% endfor %} {% else %}
-          <div class="col-12 text-center py-5">
-            <p>No news data available. Submit the form to fetch news.</p>
-            {% if request.method == "POST" and not news_data %}
-            <div class="alert alert-warning">
-              No news could be fetched from the provided URLs. Please check the
-              URLs or try again later.
-            </div>
-            {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+          <p>No news data available. Submit the form to fetch news.</p>
+          {% if request.method == "POST" and not news_data %}
+          <div class="alert alert-warning">
+            No news could be fetched from the provided URLs. Please check the
+            URLs or try again later.
           </div>
           {% endif %}
         </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -366,13 +369,22 @@ block content %}
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Initialize variables and elements
-    const urlForm = document.querySelector("form");
-    const leftColumn = document.querySelector("#leftColumn");
-    const newsColumn = document.querySelector("#newsColumn");
-    const newsItems = document.querySelector("#newsItems");
-    const toggleButton = document.querySelector("#toggleSearch");
-    const submitButton = document.querySelector("#submitSources");
+    // ====== CONSTANTS AND ELEMENTS ======
+    const regions = [
+      "world",
+      "north_america",
+      "south_america",
+      "europe",
+      "asia",
+      "africa",
+      "australia",
+      "mena",
+    ];
+    const urlForm = document.getElementById("urlForm");
+    const leftColumn = document.getElementById("leftColumn");
+    const newsColumn = document.getElementById("newsColumn");
+    const toggleButton = document.getElementById("toggleSearch");
+    const clearAllButton = document.getElementById("clearAllUrls");
     const frequencyDropdown = document.getElementById("frequencyDropdown");
     const refreshStatus = document.getElementById("refreshStatus");
     const refreshProgress = document.getElementById("refreshProgress");
@@ -381,20 +393,168 @@ block content %}
     const timerReset = document.getElementById("timerReset");
     const countdownDisplay = document.getElementById("countdownDisplay");
 
-    let newsRotationCounter = parseInt(
-      localStorage.getItem("newsRotationCounter") || "0"
-    );
-    let currentActiveCategory = "all";
-    let refreshInterval;
-    let progressInterval;
-    let countdownInterval;
+    // ====== STATE VARIABLES ======
+    let refreshInterval = null;
+    let progressInterval = null;
+    let countdownInterval = null;
     let timerIsActive = false;
     let secondsRemaining = 0;
-    let lastTimerCheckpoint = Date.now();
     let announcementMade = false;
-    let urlSourceOrder = {};
+    let currentActiveCategory = "all";
 
-    // Function to filter news by category
+    // ====== URL MANAGEMENT SYSTEM ======
+
+    // Save all URLs to localStorage
+    function saveUrlsToStorage() {
+      const urlData = {};
+
+      regions.forEach((region) => {
+        const inputs = document.querySelectorAll(
+          `input[name="${region}_urls"]`
+        );
+        urlData[region] = Array.from(inputs)
+          .map((input) => input.value.trim())
+          .filter((url) => url);
+      });
+
+      localStorage.setItem("currentAffairsUrls", JSON.stringify(urlData));
+      console.log("URLs saved to storage:", urlData);
+    }
+
+    // Load URLs from localStorage
+    function loadUrlsFromStorage() {
+      const savedData = JSON.parse(
+        localStorage.getItem("currentAffairsUrls") || "{}"
+      );
+
+      regions.forEach((region) => {
+        const container = document.getElementById(`${region}Container`);
+
+        // Clear all existing fields first
+        const existingFields = container.querySelectorAll(".source-field");
+        existingFields.forEach((field) => field.remove());
+
+        // Check if we have saved URLs for this region
+        if (savedData[region] && savedData[region].length > 0) {
+          savedData[region].forEach((url, index) => {
+            if (index < 4) {
+              // Create basic field (first 4 fields)
+              const fieldHTML = `
+                <div class="input-group mb-2 source-field">
+                  <span class="input-group-text">#${index + 1}</span>
+                  <input type="text" name="${region}_urls" class="form-control url-input" 
+                         placeholder="Enter URL" value="${url}" data-source-order="${
+                index + 1
+              }" />
+                  ${
+                    index >= 3
+                      ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
+                      : ""
+                  }
+                </div>
+              `;
+              container.insertAdjacentHTML("beforeend", fieldHTML);
+            } else {
+              // Create additional fields
+              addSourceField(region, url);
+            }
+          });
+        } else {
+          // Create 4 empty fields if no saved data
+          for (let i = 1; i <= 4; i++) {
+            const fieldHTML = `
+              <div class="input-group mb-2 source-field">
+                <span class="input-group-text">#${i}</span>
+                <input type="text" name="${region}_urls" class="form-control url-input" 
+                       placeholder="Enter URL" data-source-order="${i}" />
+                ${
+                  i > 3
+                    ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
+                    : ""
+                }
+              </div>
+            `;
+            container.insertAdjacentHTML("beforeend", fieldHTML);
+          }
+        }
+      });
+
+      // Attach events to all inputs
+      document.querySelectorAll(".url-input").forEach((input) => {
+        input.addEventListener("input", saveUrlsToStorage);
+      });
+
+      // Attach events to all remove buttons
+      document.querySelectorAll(".remove-field").forEach((button) => {
+        button.addEventListener("click", function () {
+          this.closest(".source-field").remove();
+          renumberFields(this.closest(".source-container"));
+          saveUrlsToStorage();
+        });
+      });
+    }
+
+    // Add new source field
+    function addSourceField(region, url = "") {
+      const container = document.getElementById(`${region}Container`);
+      const fieldCount = container.querySelectorAll(".source-field").length;
+      const nextOrder = fieldCount + 1;
+
+      const fieldHTML = `
+        <div class="input-group mb-2 source-field">
+          <span class="input-group-text">#${nextOrder}</span>
+          <input type="text" name="${region}_urls" class="form-control url-input" 
+                 placeholder="Enter URL" value="${url}" data-source-order="${nextOrder}" />
+          <button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>
+        </div>
+      `;
+
+      container.insertAdjacentHTML("beforeend", fieldHTML);
+
+      // Attach events to the new field
+      const newField = container.lastElementChild;
+      newField
+        .querySelector(".url-input")
+        .addEventListener("input", saveUrlsToStorage);
+      newField
+        .querySelector(".remove-field")
+        .addEventListener("click", function () {
+          newField.remove();
+          renumberFields(container);
+          saveUrlsToStorage();
+        });
+    }
+
+    // Renumber fields after deletion
+    function renumberFields(container) {
+      container.querySelectorAll(".source-field").forEach((field, index) => {
+        field.querySelector(".input-group-text").textContent = `#${index + 1}`;
+        field
+          .querySelector("input")
+          .setAttribute("data-source-order", index + 1);
+      });
+    }
+
+    // Clear all URLs
+    function clearAllUrls() {
+      if (
+        confirm(
+          "Are you sure you want to clear all URLs? This cannot be undone."
+        )
+      ) {
+        regions.forEach((region) => {
+          const container = document.getElementById(`${region}Container`);
+          container.querySelectorAll(".source-field").forEach((field) => {
+            field.querySelector("input").value = "";
+          });
+        });
+        localStorage.removeItem("currentAffairsUrls");
+      }
+    }
+
+    // ====== TAB FUNCTIONALITY ======
+
+    // Filter news by category
     function filterNewsByCategory(category) {
       const allNewsItems = document.querySelectorAll(".news-grid-item");
 
@@ -402,36 +562,32 @@ block content %}
         const itemCategory = item.getAttribute("data-category");
 
         if (category === "all") {
-          // Show all items in World tab
           item.style.display = "";
         } else if (itemCategory === category || itemCategory === "world") {
-          // Show items matching the selected region or world news
           item.style.display = "";
         } else {
-          // Hide other items
           item.style.display = "none";
         }
       });
     }
 
-    // Tab click event handlers
+    // Tab click handlers
     document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
       tab.addEventListener("click", function (e) {
         e.preventDefault();
-        const tabName = this.getAttribute("data-tab");
 
         // Update active tab
-        document.querySelectorAll("#newsTabs .nav-link").forEach((t) => {
-          t.classList.remove("active");
-        });
+        document
+          .querySelectorAll("#newsTabs .nav-link")
+          .forEach((t) => t.classList.remove("active"));
         this.classList.add("active");
 
         // Update URL hash
-        window.location.hash = tabName;
+        window.location.hash = this.getAttribute("href");
 
         // Filter news
-        currentActiveCategory = tabName;
-        filterNewsByCategory(tabName);
+        currentActiveCategory = this.getAttribute("data-tab");
+        filterNewsByCategory(currentActiveCategory);
       });
     });
 
@@ -442,210 +598,15 @@ block content %}
         const tabToActivate = document.querySelector(
           `#newsTabs .nav-link[href="#${hash}"]`
         );
-        if (tabToActivate) {
-          tabToActivate.click();
-        }
+        if (tabToActivate) tabToActivate.click();
       }
     }
 
-    // Initialize
-    activateTabFromHash();
-    window.addEventListener("hashchange", activateTabFromHash);
+    // ====== TIMER FUNCTIONALITY ======
 
-    // Function to add new source field
-    function addSourceField(region, value = "") {
-      const container = document.getElementById(`${region}Container`);
-      const existingFields = container.querySelectorAll(".source-field").length;
-      const nextNum = existingFields + 1;
-
-      const newField = document.createElement("div");
-      newField.className = "input-group mb-2 source-field";
-      newField.innerHTML = `
-            <span class="input-group-text">#${nextNum}</span>
-            <input
-              type="text"
-              name="${region}_urls"
-              class="form-control"
-              placeholder="Enter URL"
-              value="${value}"
-              data-source-order="${nextNum}"
-            />
-            <button type="button" class="btn btn-outline-danger remove-field">
-              <i class="bi bi-x"></i>
-            </button>
-          `;
-
-      container.appendChild(newField);
-
-      newField
-        .querySelector(".remove-field")
-        .addEventListener("click", function () {
-          newField.remove();
-          renumberFields(container);
-          saveUrlsToLocalStorage();
-        });
-
-      newField
-        .querySelector('input[name^="' + region + '"]')
-        .addEventListener("input", saveUrlsToLocalStorage);
-    }
-
-    // Function to renumber fields
-    function renumberFields(container) {
-      const fields = container.querySelectorAll(".source-field");
-      fields.forEach((field, index) => {
-        field.querySelector(".input-group-text").textContent = `#${index + 1}`;
-        field
-          .querySelector('input[type="text"]')
-          .setAttribute("data-source-order", index + 1);
-      });
-    }
-
-    // Function to save URLs to local storage
-    function saveUrlsToLocalStorage() {
-      const regions = [
-        "world",
-        "north_america",
-        "south_america",
-        "europe",
-        "asia",
-        "africa",
-        "australia",
-        "mena",
-      ];
-
-      const savedUrls = {};
-
-      regions.forEach((region) => {
-        const inputs = document.querySelectorAll(
-          `input[name="${region}_urls"]`
-        );
-        savedUrls[region] = Array.from(inputs).map((input) => input.value);
-      });
-
-      localStorage.setItem("currentAffairsUrls", JSON.stringify(savedUrls));
-      storeUrlOrder();
-    }
-
-    // Function to load URLs from local storage
-    function loadUrlsFromLocalStorage() {
-      const savedUrls = localStorage.getItem("currentAffairsUrls");
-      if (savedUrls) {
-        const urls = JSON.parse(savedUrls);
-        const regions = [
-          "world",
-          "north_america",
-          "south_america",
-          "europe",
-          "asia",
-          "africa",
-          "australia",
-          "mena",
-        ];
-
-        regions.forEach((region) => {
-          if (urls[region]) {
-            const container = document.getElementById(`${region}Container`);
-            const existingFields = container.querySelectorAll(".source-field");
-            for (let i = 4; i < existingFields.length; i++) {
-              existingFields[i].remove();
-            }
-
-            const inputs = container.querySelectorAll(
-              'input[name^="' + region + '"]'
-            );
-            inputs.forEach((input, index) => {
-              if (index < urls[region].length) {
-                input.value = urls[region][index];
-              }
-            });
-
-            if (urls[region].length > 4) {
-              for (let i = 4; i < urls[region].length; i++) {
-                addSourceField(region, urls[region][i]);
-              }
-            }
-          }
-        });
-      }
-      storeUrlOrder();
-    }
-
-    // Function to store URL order
-    function storeUrlOrder() {
-      const regions = [
-        "world",
-        "north_america",
-        "south_america",
-        "europe",
-        "asia",
-        "africa",
-        "australia",
-        "mena",
-      ];
-
-      urlSourceOrder = {};
-
-      regions.forEach((region) => {
-        const inputs = document.querySelectorAll(
-          `input[name="${region}_urls"]`
-        );
-        inputs.forEach((input, index) => {
-          if (input.value) {
-            try {
-              const url = new URL(input.value);
-              const domain = url.hostname;
-              urlSourceOrder[domain] = { region, order: index };
-            } catch (e) {
-              urlSourceOrder[input.value] = { region, order: index };
-            }
-          }
-        });
-      });
-    }
-
-    // Load saved URLs when the page loads
-    loadUrlsFromLocalStorage();
-
-    // Toggle search panel visibility
-    toggleButton.addEventListener("click", function () {
-      const isSearchVisible = leftColumn.style.display !== "none";
-
-      if (isSearchVisible) {
-        leftColumn.style.display = "none";
-        toggleButton.innerHTML =
-          '<i class="bi bi-arrow-right-circle"></i> Show Search';
-        newsColumn.className = "col-md-12";
-      } else {
-        leftColumn.style.display = "block";
-        toggleButton.innerHTML =
-          '<i class="bi bi-arrow-left-circle"></i> Hide Search';
-        newsColumn.className = "col-md-8";
-      }
-    });
-
-    // Add event listeners to all "Add Source" buttons
-    document.querySelectorAll(".add-source-btn").forEach((button) => {
-      button.addEventListener("click", function () {
-        const region = this.getAttribute("data-region");
-        addSourceField(region);
-        saveUrlsToLocalStorage();
-      });
-    });
-
-    // Submit form handler
-    urlForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      this.submit();
-    });
-
-    // Timer functionality
+    // Start auto-refresh
     function startAutoRefresh() {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        clearInterval(progressInterval);
-        clearInterval(countdownInterval);
-      }
+      stopAutoRefresh(); // Clear any existing intervals
 
       const selectedValue = frequencyDropdown.value;
       const minutes = parseInt(selectedValue.replace("min", ""));
@@ -654,14 +615,12 @@ block content %}
       minutesDisplay.textContent = minutes;
       refreshStatus.classList.remove("d-none");
 
-      // Initialize countdown timer
-      if (secondsRemaining <= 0) {
-        secondsRemaining = minutes * 60;
-      }
+      // Initialize countdown
+      secondsRemaining = minutes * 60;
       countdownDisplay.textContent = formatTime(secondsRemaining);
       announcementMade = false;
 
-      // Start countdown interval
+      // Countdown timer
       countdownInterval = setInterval(() => {
         secondsRemaining--;
 
@@ -676,6 +635,7 @@ block content %}
         countdownDisplay.textContent = formatTime(secondsRemaining);
       }, 1000);
 
+      // Auto-refresh
       refreshInterval = setInterval(() => {
         fetch(window.location.href, {
           method: "POST",
@@ -688,7 +648,8 @@ block content %}
             const newNewsItems = doc.querySelector("#newsItems");
 
             if (newNewsItems) {
-              newsItems.innerHTML = newNewsItems.innerHTML;
+              document.querySelector("#newsItems").innerHTML =
+                newNewsItems.innerHTML;
               filterNewsByCategory(currentActiveCategory);
             }
 
@@ -699,6 +660,7 @@ block content %}
           });
       }, milliseconds);
 
+      // Progress bar
       const updateProgress = () => {
         const step = 100 / (minutes * 60);
         let currentProgress = 0;
@@ -713,17 +675,17 @@ block content %}
       updateProgress();
     }
 
+    // Stop auto-refresh
     function stopAutoRefresh() {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        clearInterval(progressInterval);
-        clearInterval(countdownInterval);
-      }
+      if (refreshInterval) clearInterval(refreshInterval);
+      if (progressInterval) clearInterval(progressInterval);
+      if (countdownInterval) clearInterval(countdownInterval);
 
       refreshStatus.classList.add("d-none");
       refreshProgress.style.width = "0%";
     }
 
+    // Format time as MM:SS
     function formatTime(seconds) {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
@@ -732,16 +694,44 @@ block content %}
         .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
 
+    // Announce refresh
     function announceRefresh() {
       if ("speechSynthesis" in window) {
         const announcement = new SpeechSynthesisUtterance(
-          "Page will now be refreshed"
+          "Page will now refresh"
         );
         window.speechSynthesis.speak(announcement);
       }
     }
 
-    // Timer toggle functionality
+    // ====== EVENT LISTENERS ======
+
+    // Toggle search panel
+    toggleButton.addEventListener("click", function () {
+      const isVisible = leftColumn.style.display !== "none";
+
+      if (isVisible) {
+        leftColumn.style.display = "none";
+        newsColumn.className = "col-md-12";
+        this.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Show Search';
+      } else {
+        leftColumn.style.display = "block";
+        newsColumn.className = "col-md-8";
+        this.innerHTML = '<i class="bi bi-arrow-left-circle"></i> Hide Search';
+      }
+    });
+
+    // Add source buttons
+    document.querySelectorAll(".add-source-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        addSourceField(this.getAttribute("data-region"));
+      });
+    });
+
+    // Clear all URLs
+    clearAllButton.addEventListener("click", clearAllUrls);
+
+    // Timer controls
     timerToggle.addEventListener("click", function () {
       if (timerIsActive) {
         stopAutoRefresh();
@@ -758,7 +748,6 @@ block content %}
       }
     });
 
-    // Timer reset functionality
     timerReset.addEventListener("click", function () {
       if (timerIsActive) {
         stopAutoRefresh();
@@ -770,21 +759,31 @@ block content %}
       }
     });
 
-    // Initialize with previously selected frequency if available
-    const savedFrequency = localStorage.getItem("selectedFrequency");
-    if (savedFrequency) {
-      frequencyDropdown.value = savedFrequency;
-      minutesDisplay.textContent = parseInt(savedFrequency.replace("min", ""));
-      const minutes = parseInt(savedFrequency.replace("min", ""));
-      secondsRemaining = minutes * 60;
-      countdownDisplay.textContent = formatTime(secondsRemaining);
-    } else {
-      const defaultMinutes = parseInt(
-        frequencyDropdown.value.replace("min", "")
-      );
-      secondsRemaining = defaultMinutes * 60;
-      countdownDisplay.textContent = formatTime(secondsRemaining);
-    }
+    // Form submission
+    urlForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      // Disable empty inputs before submission
+      document.querySelectorAll(".url-input").forEach((input) => {
+        input.disabled = !input.value.trim();
+      });
+
+      this.submit();
+    });
+
+    // ====== INITIALIZATION ======
+
+    // Load saved URLs
+    loadUrlsFromStorage();
+
+    // Activate tab from URL hash
+    activateTabFromHash();
+    window.addEventListener("hashchange", activateTabFromHash);
+
+    // Initialize timer display
+    const defaultMinutes = parseInt(frequencyDropdown.value.replace("min", ""));
+    secondsRemaining = defaultMinutes * 60;
+    countdownDisplay.textContent = formatTime(secondsRemaining);
   });
 </script>
 {% endblock %}
