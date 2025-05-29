@@ -1,5 +1,6 @@
-{% extends "base.html" %} {% block title %}Current Affairs{% endblock %} {%
-block content %}
+{% extends "base.html" %}
+{% block title %}Current Affairs{% endblock %}
+{% block content %}
 
 <style>
   .timer-display-wrapper {
@@ -33,6 +34,7 @@ block content %}
     margin-bottom: 0.5rem;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 60px;
@@ -84,22 +86,15 @@ block content %}
 
 <div class="container mt-4">
   <!-- Navigation Tabs -->
-  <ul
-    class="nav nav-pills nav-fill bg-light rounded p-2 shadow-sm"
-    id="newsTabs"
-  >
+  <ul class="nav nav-pills nav-fill bg-light rounded p-2 shadow-sm" id="newsTabs">
     <li class="nav-item">
       <a class="nav-link active" data-tab="all" href="#all">World</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="north_america" href="#north_america"
-        >North America</a
-      >
+      <a class="nav-link" data-tab="north_america" href="#north_america">North America</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-tab="south_america" href="#south_america"
-        >South America</a
-      >
+      <a class="nav-link" data-tab="south_america" href="#south_america">South America</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" data-tab="europe" href="#europe">Europe</a>
@@ -119,9 +114,7 @@ block content %}
   </ul>
 
   <!-- Controls -->
-  <div
-    class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}"
-  >
+  <div class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}">
     <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
       <i class="bi bi-arrow-right-circle"></i> Show Search
     </button>
@@ -132,10 +125,7 @@ block content %}
       <div class="timer-display-wrapper border rounded px-2 mx-1">
         <span id="countdownDisplay" class="timer-display">--:--</span>
       </div>
-      <button
-        id="timerReset"
-        class="btn btn-sm btn-outline-secondary timer-btn"
-      >
+      <button id="timerReset" class="btn btn-sm btn-outline-secondary timer-btn">
         <i class="bi bi-arrow-counterclockwise"></i>
       </button>
     </div>
@@ -144,18 +134,7 @@ block content %}
   <!-- Two-Column Layout -->
   <div class="row mt-4">
     <!-- Left Column: Input Fields -->
-    <div
-      class="col-md-4"
-      id="leftColumn"
-      {%
-      if
-      news_data
-      %}
-      style="display: none"
-      {%
-      endif
-      %}
-    >
+    <div class="col-md-4" id="leftColumn" {% if news_data %} style="display: none" {% endif %}>
       <div class="card shadow-sm p-3" id="urlFormCard">
         <h6 class="text-center text-primary">Web URLs by Region</h6>
         <form method="POST" id="urlForm">
@@ -163,47 +142,24 @@ block content %}
             {% for region in regions %}
             <div class="accordion-item region-tab" data-region="{{ region }}">
               <h2 class="accordion-header">
-                <button
-                  class="accordion-button {% if region != 'world' %}collapsed{% endif %}"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapse{{ region|title|replace('_', '') }}"
-                >
+                <button class="accordion-button {% if region != 'world' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ region|title|replace('_', '') }}">
                   {{ region|replace('_', ' ')|title }}
                 </button>
               </h2>
-              <div
-                id="collapse{{ region|title|replace('_', '') }}"
-                class="accordion-collapse collapse {% if region == 'world' %}show{% endif %}"
-                data-bs-parent="#regionAccordion"
-              >
+              <div id="collapse{{ region|title|replace('_', '') }}" class="accordion-collapse collapse {% if region == 'world' %}show{% endif %}" data-bs-parent="#regionAccordion">
                 <div class="accordion-body">
                   <div id="{{ region }}Container" class="source-container">
                     <!-- Initial 4 empty fields -->
                     {% for i in range(1, 5) %}
                     <div class="input-group mb-2 source-field">
                       <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="{{ region }}_urls"
-                        class="form-control url-input"
-                        placeholder="Enter URL"
-                        data-source-order="{{ i }}"
-                      />
-                      {% if i > 3 %}<button
-                        type="button"
-                        class="btn btn-outline-danger remove-field"
-                      >
-                        <i class="bi bi-x"></i></button
-                      >{% endif %}
+                      <input type="text" name="{{ region }}_urls" class="form-control url-input" placeholder="Enter URL" data-source-order="{{ i }}" />
+                      {% if i > 3 %}<button type="button" class="btn btn-outline-danger remove-field">
+                        <i class="bi bi-x"></i></button>{% endif %}
                     </div>
                     {% endfor %}
                   </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-region="{{ region }}"
-                  >
+                  <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-region="{{ region }}">
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
@@ -213,15 +169,9 @@ block content %}
           </div>
 
           <!-- Controls -->
-          <div
-            class="d-flex align-items-center justify-content-between mb-2 mt-3"
-          >
+          <div class="d-flex align-items-center justify-content-between mb-2 mt-3">
             <label class="small mb-0">Update Frequency</label>
-            <select
-              id="frequencyDropdown"
-              class="form-select form-select-sm"
-              style="width: 70%"
-            >
+            <select id="frequencyDropdown" class="form-select form-select-sm" style="width: 70%">
               <option value="2min">2 Min</option>
               <option value="5min">5 Min</option>
               <option value="10min">10 Min</option>
@@ -230,19 +180,11 @@ block content %}
             </select>
           </div>
 
-          <button
-            id="submitSources"
-            type="submit"
-            class="btn btn-primary btn-sm w-100 mt-2"
-          >
+          <button id="submitSources" type="submit" class="btn btn-primary btn-sm w-100 mt-2">
             <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
           </button>
 
-          <button
-            type="button"
-            id="clearAllUrls"
-            class="btn btn-outline-danger btn-sm w-100 mt-2"
-          >
+          <button type="button" id="clearAllUrls" class="btn btn-outline-danger btn-sm w-100 mt-2">
             <i class="bi bi-trash"></i> Clear All URLs
           </button>
 
@@ -252,12 +194,7 @@ block content %}
               Auto-refreshing every <span id="minutesDisplay">2</span> minutes
             </span>
             <div class="progress mt-1" style="height: 4px">
-              <div
-                id="refreshProgress"
-                class="progress-bar"
-                role="progressbar"
-                style="width: 0%"
-              ></div>
+              <div id="refreshProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
             </div>
           </div>
         </form>
@@ -265,10 +202,7 @@ block content %}
     </div>
 
     <!-- Right Column: News -->
-    <div
-      class="col-md-{% if news_data %}12{% else %}8{% endif %}"
-      id="newsColumn"
-    >
+    <div class="col-md-{% if news_data %}12{% else %}8{% endif %}" id="newsColumn">
       <div class="card shadow-sm p-3" id="newsCard">
         <h6 class="text-center text-primary">News Feed</h6>
 
@@ -284,40 +218,19 @@ block content %}
           <!-- Featured News Items -->
           <div class="row">
             {% for news in news_data.all[:6] %}
-            <div
-              class="col-md-6 col-xl-4 mb-3 news-grid-item"
-              data-category="{{ news.category }}"
-            >
+            <div class="col-md-6 col-xl-4 mb-3 news-grid-item" data-category="{{ news.category }}">
               <div class="card news-card">
-                <img
-                  src="{{ news.image }}"
-                  class="card-img-top"
-                  alt="Featured News"
-                  onerror="this.src='/static/images/default_news.jpg';"
-                />
+                <img src="{{ news.image }}" class="card-img-top" alt="Featured News" onerror="this.src='/static/images/default_news.jpg';" />
                 <div class="card-body">
-                  <h5
-                    class="card-title {% if 'cnn.com' in news.link %}cnn-title{% endif %}"
-                  >
-                    {% if news.title and news.title != "No title" %} {{
-                    news.title }} {% else %} {% if 'cnn.com' in news.link %} {%
-                    set url_parts = news.link.split('/') %} {% set last_part =
-                    url_parts[-1].replace('-', ' ').title() if url_parts[-1]
-                    else 'CNN Breaking News' %} CNN: {{ last_part }} {% else %}
+                  <h5 class="card-title {% if 'cnn.com' in news.link %}cnn-title{% endif %}">
+                    {% if news.title and news.title != "No title" %} {{ news.title }} {% else %} {% if 'cnn.com' in news.link %} {% set url_parts = news.link.split('/') %} {% set last_part = url_parts[-1].replace('-', ' ').title() if url_parts[-1] else 'CNN Breaking News' %} CNN: {{ last_part }} {% else %}
                     <span class="no-title">No title available</span>
                     {% endif %} {% endif %}
                   </h5>
                 </div>
                 <div class="card-footer">
-                  <div
-                    class="d-flex justify-content-between align-items-center"
-                  >
-                    <a
-                      href="{{ news.link }}"
-                      target="_blank"
-                      class="btn btn-sm btn-outline-primary"
-                      >Read</a
-                    >
+                  <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ news.link }}" target="_blank" class="btn btn-sm btn-outline-primary">Read</a>
                     <span class="badge bg-secondary news-badge">
                       {{ news.category|replace('_', ' ')|title }}
                     </span>
@@ -335,38 +248,19 @@ block content %}
         <!-- Regular News Grid -->
         <div class="row" id="newsItems">
           {% for news in news_data.all[6:] %}
-          <div
-            class="col-md-6 col-xl-4 mb-3 news-grid-item"
-            data-category="{{ news.category }}"
-          >
+          <div class="col-md-6 col-xl-4 mb-3 news-grid-item" data-category="{{ news.category }}">
             <div class="card news-card">
-              <img
-                src="{{ news.image }}"
-                class="card-img-top"
-                alt="News Image"
-                onerror="this.src='/static/images/default_news.jpg';"
-              />
+              <img src="{{ news.image }}" class="card-img-top" alt="News Image" onerror="this.src='/static/images/default_news.jpg';" />
               <div class="card-body">
-                <h5
-                  class="card-title {% if 'cnn.com' in news.link %}cnn-title{% endif %}"
-                >
-                  {% if news.title and news.title != "No title" %} {{ news.title
-                  }} {% else %} {% if 'cnn.com' in news.link %} {% set url_parts
-                  = news.link.split('/') %} {% set last_part =
-                  url_parts[-1].replace('-', ' ').title() if url_parts[-1] else
-                  'CNN Breaking News' %} CNN: {{ last_part }} {% else %}
+                <h5 class="card-title {% if 'cnn.com' in news.link %}cnn-title{% endif %}">
+                  {% if news.title and news.title != "No title" %} {{ news.title }} {% else %} {% if 'cnn.com' in news.link %} {% set url_parts = news.link.split('/') %} {% set last_part = url_parts[-1].replace('-', ' ').title() if url_parts[-1] else 'CNN Breaking News' %} CNN: {{ last_part }} {% else %}
                   <span class="no-title">No title available</span>
                   {% endif %} {% endif %}
                 </h5>
               </div>
               <div class="card-footer">
                 <div class="d-flex justify-content-between align-items-center">
-                  <a
-                    href="{{ news.link }}"
-                    target="_blank"
-                    class="btn btn-sm btn-outline-primary"
-                    >Read</a
-                  >
+                  <a href="{{ news.link }}" target="_blank" class="btn btn-sm btn-outline-primary">Read</a>
                   <span class="badge bg-secondary news-badge">
                     {{ news.category|replace('_', ' ')|title }}
                   </span>
@@ -384,8 +278,7 @@ block content %}
           <p>No news data available. Submit the form to fetch news.</p>
           {% if request.method == "POST" and not news_data %}
           <div class="alert alert-warning">
-            No news could be fetched from the provided URLs. Please check the
-            URLs or try again later.
+            No news could be fetched from the provided URLs. Please check the URLs or try again later.
           </div>
           {% endif %}
         </div>
@@ -846,6 +739,12 @@ block content %}
         input.disabled = !input.value.trim();
       });
 
+      // Add submitted parameter to the form action
+      const formAction = this.action;
+      this.action = formAction.includes('?') ? 
+          `${formAction}&submitted=true` : 
+          `${formAction}?submitted=true`;
+          
       this.submit();
     });
 
@@ -865,6 +764,17 @@ block content %}
 
     // Enhance CNN titles on load
     enhanceCNNTitles();
+
+    // Auto-start timer if we have news data (meaning form was submitted)
+    // {% if news_data %}
+    //   timerToggle.click();
+    // {% endif %}
+
+    // Alternatively, check URL parameter (works with GET requests)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('submitted')) {
+      timerToggle.click();
+    }
   });
 </script>
 {% endblock %}
