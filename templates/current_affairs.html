@@ -492,23 +492,28 @@
 
     // ====== TAB FUNCTIONALITY ======
 
-    // Filter news by category
-    function filterNewsByCategory(category) {
-      const allNewsItems = document.querySelectorAll(".news-grid-item");
+    // Modified filterNewsByCategory function
+function filterNewsByCategory(category) {
+  const allNewsItems = document.querySelectorAll(".news-grid-item");
 
-      allNewsItems.forEach((item) => {
-        const itemCategory = item.getAttribute("data-category");
+  allNewsItems.forEach((item) => {
+    const itemCategory = item.getAttribute("data-category");
 
-        if (category === "all") {
-          item.style.display = "";
-        } else if (itemCategory === category || itemCategory === "world") {
-          item.style.display = "";
-        } else {
-          item.style.display = "none";
-        }
-      });
+    if (category === "all") {
+      // Show all items in World tab
+      item.style.display = "";
+    } else if (itemCategory === category) {
+      // Show items from the selected region
+      item.style.display = "";
+    } else if (itemCategory === "world" && category !== "all") {
+      // Hide world items when viewing specific regions
+      item.style.display = "none";
+    } else {
+      // Hide items from other regions
+      item.style.display = "none";
     }
-
+  });
+}
     // Tab click handlers
     document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
       tab.addEventListener("click", function (e) {

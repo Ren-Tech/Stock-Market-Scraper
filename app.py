@@ -556,16 +556,16 @@ def current_affairs():
                             url = 'https://' + url
                             logger.debug(f"Added protocol to URL: {url}")
                         
-                        fetch_region = region if region != 'world' else None
-                        logger.info(f"Fetching news from {url} for region {fetch_region}")
-                        source_news = fetch_top_news(url, max_articles=20, region=fetch_region)
+                        logger.info(f"Fetching news from {url} for region {region}")
+                        source_news = fetch_top_news(url, max_articles=20)
                         
                         if source_news:
                             logger.info(f"Found {len(source_news)} articles at {url}")
-                            # Add source order and URL to each article
+                            # Add source order, URL, and category to each article
                             for article in source_news:
                                 article['source_order'] = order_num
                                 article['source_url'] = url
+                                article['category'] = region  # Set category to the region it was submitted under
                             news_data.extend(source_news)
                         else:
                             msg = f"Could not extract news from {url} (Region: {region})"
@@ -595,16 +595,15 @@ def current_affairs():
         
         # Categorize news for template display while preserving order
         categorized_news = {region: [] for region in regions}
+        
+        # Add all news to the 'all' category
         categorized_news['all'] = news_data
         
+        # Categorize news by their region
         for item in news_data:
             category = item.get('category', 'world')
-            
             if category in categorized_news:
                 categorized_news[category].append(item)
-            
-            if category != 'world':
-                categorized_news['world'].append(item)
         
         for region, items in categorized_news.items():
             logger.debug(f"Category {region} has {len(items)} articles")
