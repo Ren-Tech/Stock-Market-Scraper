@@ -164,32 +164,54 @@ SITE_SPECIFIC_SELECTORS = {
 }
 def scrape_article(url):
     try:
-        response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
         # Special handling for CNN
         if 'cnn.com' in url:
-            title = (
-                soup.find('h1', class_='headline__text') or 
-                soup.find('meta', property='og:title') or
-                soup.find('title')
-            )
-            if title:
-                title_text = title.get_text().strip()
-                return title_text if title_text else "CNN News Update"
-            return "CNN News Update"
+            try:
+                response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
+                soup = BeautifulSoup(response.text, 'html.parser')
+                title = (
+                    soup.find('h1', class_='headline__text') or 
+                    soup.find('meta', property='og:title') or
+                    soup.find('title')
+                )
+                if title:
+                    title_text = title.get_text().strip()
+                    return title_text if title_text else generate_title_from_url(url)
+                return generate_title_from_url(url)
+            except:
+                return generate_title_from_url(url)
         
         # Default handling for other sites
-        title = (
-            soup.find('meta', property='og:title') or
-            soup.find('title') or
-            soup.find('h1')
-        )
-        return title.get_text().strip() if title else "No title available"
+        try:
+            response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            title = (
+                soup.find('meta', property='og:title') or
+                soup.find('title') or
+                soup.find('h1')
+            )
+            return title.get_text().strip() if title else generate_title_from_url(url)
+        except:
+            return generate_title_from_url(url)
         
     except Exception as e:
         print(f"Error scraping {url}: {e}")
-        return "No title available" if 'cnn.com' not in url else "CNN News Update"
+        return generate_title_from_url(url)
+
+def generate_title_from_url(url):
+    """Generate a reasonable title from the URL when no title can be scraped"""
+    try:
+        domain = urlparse(url).netloc.replace('www.', '').replace('.com', '').title()
+        path = urlparse(url).path
+        if path:
+            # Take the last part of the path and clean it up
+            last_part = path.split('/')[-1]
+            if last_part:
+                return f"{domain}: {last_part.replace('-', ' ').replace('_', ' ').title()}"
+        return f"{domain} News Update"
+    except:
+        return "Latest News Update"
 def clean_text(text):
     """Clean and normalize text"""
     if not text:
@@ -477,6 +499,8 @@ def fetch_top_news(url, max_articles=20, region=None):
     except Exception as e:
         logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
         return []
+    
+    
 
 @app.route("/current_affairs", methods=["GET", "POST"])
 def current_affairs():
@@ -597,6 +621,7 @@ def current_affairs():
                         regions=regions,
                         error_messages=error_messages,
                         urls_provided=urls_provided)
+
 
 
 
