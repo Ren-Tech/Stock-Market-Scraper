@@ -500,24 +500,33 @@ def current_affairs():
     if request.method == "POST":
         logger.info("Current Affairs form submitted")
         
+        # Dictionary to store URLs with their order
+        ordered_urls = {region: {} for region in regions.keys()}
+        
         for region in regions.keys():
-            region_urls = [url.strip() for url in request.form.getlist(f"{region}_urls") if url.strip()]
-            regions[region] = region_urls
+            # Get URLs with their order numbers
+            region_inputs = request.form.getlist(f"{region}_urls")
+            for i, url in enumerate(region_inputs, start=1):
+                url = url.strip()
+                if url:
+                    ordered_urls[region][i] = url
+                    regions[region].append(url)
             
-            if region_urls:
+            if ordered_urls[region]:
                 urls_provided = True
-                logger.debug(f"URLs provided for {region}: {region_urls}")
+                logger.debug(f"URLs provided for {region}: {ordered_urls[region]}")
 
         if urls_provided:
             logger.info(f"Processing {sum(len(regions[r]) for r in regions)} URLs across all regions")
             
-            for region, region_urls in regions.items():
-                if not region_urls:
+            for region, url_dict in ordered_urls.items():
+                if not url_dict:
                     continue
                     
-                logger.info(f"Processing {len(region_urls)} URLs for {region}")
+                logger.info(f"Processing {len(url_dict)} URLs for {region}")
                 
-                for url in region_urls:
+                # Process URLs in their specified order
+                for order_num, url in sorted(url_dict.items()):
                     try:
                         if not url.startswith(('http://', 'https://')):
                             url = 'https://' + url
@@ -529,6 +538,10 @@ def current_affairs():
                         
                         if source_news:
                             logger.info(f"Found {len(source_news)} articles at {url}")
+                            # Add source order and URL to each article
+                            for article in source_news:
+                                article['source_order'] = order_num
+                                article['source_url'] = url
                             news_data.extend(source_news)
                         else:
                             msg = f"Could not extract news from {url} (Region: {region})"
@@ -551,12 +564,12 @@ def current_affairs():
     if news_data:
         logger.info(f"Total articles collected: {len(news_data)}")
         
-        # Sort by date (newest first)
-        news_data = sorted(news_data, 
-                         key=lambda x: x.get('date', ''),
-                         reverse=True)
+        # First sort by source order (as specified in the form)
+        # Then sort by date within each source (newest first)
+        news_data.sort(key=lambda x: (x.get('source_order', 0), 
+                                    -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
         
-        # Categorize news for template display
+        # Categorize news for template display while preserving order
         categorized_news = {region: [] for region in regions}
         categorized_news['all'] = news_data
         
