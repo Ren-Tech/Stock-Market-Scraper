@@ -20,6 +20,7 @@ from flask import url_for
 import logging
 from flask import session, flash
 from functools import wraps
+from newspaper import Article
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
@@ -57,10 +58,10 @@ USER_AGENTS = [
 
 NEWS_SOURCE_MAPPING = {
     'www.msnbc.com': {
-        'actual_source': 'people.com',
+        'actual_source': 'pressgazette.co.uk',
         'name': 'MSNBC',
         'link_replace': {
-            'from': 'people.com',
+            'from': 'pressgazette.co.uk',
             'to': 'www.msnbc.com'
         }
     },
@@ -502,7 +503,121 @@ def fetch_top_news(url, max_articles=20, region=None):
         logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
         return []
     
+def get_news_from_url(url, sector):
+    """
+    Extract news articles from a given URL and categorize them by sector.
     
+    Args:
+        url (str): The URL to scrape news from
+        sector (str): The sector/category for these news articles
+        
+    Returns:
+        list: A list of dictionaries containing news article data
+    """
+    articles = []
+    
+    try:
+        # Check if URL is a news article directly
+        if is_article_url(url):
+            article_data = process_single_article(url, sector)
+            if article_data:
+                articles.append(article_data)
+        else:
+            # Otherwise, treat as a news portal/page with multiple articles
+            articles = scrape_news_portal(url, sector)
+            
+    except Exception as e:
+        print(f"Error processing {url}: {str(e)}")
+    
+    return articles
+
+def is_article_url(url):
+    """
+    Heuristic to determine if a URL points directly to a news article.
+    """
+    parsed = urlparse(url)
+    path = parsed.path.lower()
+    
+    # Common patterns in article URLs
+    article_patterns = [
+        '/article/', '/story/', '/news/', '/post/',
+        '/blog/', '/entry/', '/20', '/19'  # Dates in path
+    ]
+    
+    return any(pattern in path for pattern in article_patterns)
+
+def process_single_article(url, sector):
+    """
+    Process a single news article URL using newspaper3k.
+    """
+    try:
+        article = Article(url)
+        article.download()
+        article.parse()
+        
+        # Basic validation - skip if no meaningful content
+        if not article.text or len(article.text.strip()) < 200:
+            return None
+            
+        return {
+            'title': article.title,
+            'url': url,
+            'source': article.source_url,
+            'summary': article.meta_description or article.text[:200] + "...",
+            'content': article.text,
+            'published_date': str(article.publish_date) if article.publish_date else str(datetime.datetime.now()),
+            'image_url': article.top_image,
+            'sector': sector,
+            'authors': article.authors
+        }
+    except Exception as e:
+        print(f"Error processing article {url}: {str(e)}")
+        return None
+
+def scrape_news_portal(url, sector):
+    """
+    Scrape a news portal homepage for article links, then process each article.
+    """
+    articles = []
+    
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find potential article links - these selectors might need adjustment
+        potential_links = []
+        for a in soup.find_all('a', href=True):
+            href = a['href']
+            
+            # Make relative URLs absolute
+            if href.startswith('/'):
+                parsed = urlparse(url)
+                href = f"{parsed.scheme}://{parsed.netloc}{href}"
+            
+            # Filter out non-article links
+            if is_article_url(href) and href not in potential_links:
+                potential_links.append(href)
+        
+        # Process each article link (with limit to avoid too many requests)
+        for article_url in potential_links[:20]:  # Limit to 20 articles per portal
+            try:
+                article_data = process_single_article(article_url, sector)
+                if article_data:
+                    articles.append(article_data)
+            except Exception as e:
+                print(f"Error processing {article_url}: {str(e)}")
+                continue
+                
+    except Exception as e:
+        print(f"Error scraping portal {url}: {str(e)}")
+    
+    return articles
 
 @app.route("/current_affairs", methods=["GET", "POST"])
 def current_affairs():

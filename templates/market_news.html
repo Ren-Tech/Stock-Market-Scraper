@@ -1,196 +1,49 @@
-{% extends "base.html" %} {% block title %}Market News{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Market News{% endblock %}
+{% block content %}
+
 <style>
-  /* Base Styles */
-  body {
-    background-color: #f8f9fa;
-  }
-
-  /* Timer and Form Styles */
-  .timer-container {
-    background-color: #f8f9fa;
-    padding: 5px 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  .timer-display-wrapper {
-    min-width: 60px;
-    text-align: center;
-    background-color: white;
-  }
-  .timer-display {
-    font-family: monospace;
-    font-weight: bold;
-  }
-  .timer-btn {
-    padding: 0.15rem 0.5rem;
-    font-size: 0.875rem;
-    transition: all 0.3s;
-  }
-
-  /* Market Nav Styles */
-  .market-nav {
-    background-color: #fff;
-    padding: 10px 15px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    margin-bottom: 20px;
-    position: sticky;
-    top: 10px;
-    z-index: 100;
-  }
-  .market-nav-scroll {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 5px 0;
-  }
-  .market-nav-scroll::-webkit-scrollbar {
-    display: none;
-  }
-  .market-nav-btn {
-    flex: 0 0 auto;
-    padding: 8px 15px;
-    margin-right: 12px;
-    border-radius: 20px;
-    background-color: #e9ecef;
-    border: none;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #495057;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
-  }
-  .market-nav-btn:hover {
-    background-color: #dee2e6;
-    transform: translateY(-2px);
-  }
-  .market-nav-btn.active {
-    background-color: #0d6efd;
-    color: white;
-    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
-  }
-  .market-nav-btn i {
-    margin-right: 5px;
-  }
-
-  /* Accordion Styles */
-  .accordion-button {
-    font-weight: 500;
-  }
-  .accordion-button:not(.collapsed) {
-    background-color: rgba(13, 110, 253, 0.05);
-    color: #0d6efd;
-  }
-  .accordion-button:focus {
-    box-shadow: none;
-    border-color: rgba(13, 110, 253, 0.25);
-  }
-
-  /* News Card Styles */
-  .news-card {
-    height: 100%;
-    transition: all 0.3s ease;
-    margin-bottom: 20px;
-    border: none;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  }
-  .news-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  }
-  .news-image {
-    height: 150px;
-    object-fit: cover;
-    width: 100%;
-    transition: transform 0.5s ease;
-  }
-  .news-card:hover .news-image {
-    transform: scale(1.05);
-  }
-  .region-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 0.7rem;
-    background-color: rgba(0, 0, 0, 0.7);
-  }
-  .news-content {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .source-url {
-    font-size: 0.7rem;
-    word-break: break-all;
-    color: #6c757d;
-  }
-  .card-body {
-    padding: 1.25rem;
-  }
-
-  /* Source Input Styles */
-  .source-container {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 5px;
-  }
-  .source-field {
-    transition: all 0.3s;
-  }
-  .source-field:hover {
-    transform: translateX(3px);
-  }
-  .input-group-text {
-    background-color: #f8f9fa;
-    font-weight: 500;
-  }
-
-  /* Animations */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .news-card {
-    animation: fadeIn 0.5s ease forwards;
-  }
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  .pulse {
-    animation: pulse 1.5s infinite;
-  }
-
-  /* Responsive Adjustments */
+  body { background-color: #f8f9fa; }
+  
+  .timer-container { background-color: #f8f9fa; padding: 5px 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  .timer-display-wrapper { min-width: 60px; text-align: center; background-color: white; }
+  .timer-display { font-family: monospace; font-weight: bold; }
+  .timer-btn { padding: 0.15rem 0.5rem; font-size: 0.875rem; transition: all 0.3s; }
+  
+  .market-nav { background-color: #fff; padding: 10px 15px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 20px; position: sticky; top: 10px; z-index: 100; }
+  .market-nav-scroll { display: flex; overflow-x: auto; scrollbar-width: none; padding: 5px 0; }
+  .market-nav-scroll::-webkit-scrollbar { display: none; }
+  .market-nav-btn { flex: 0 0 auto; padding: 8px 15px; margin-right: 12px; border-radius: 20px; background-color: #e9ecef; border: none; font-size: 0.85rem; font-weight: 500; color: #495057; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; box-shadow: 0 2px 3px rgba(0,0,0,0.05); }
+  .market-nav-btn:hover { background-color: #dee2e6; transform: translateY(-2px); }
+  .market-nav-btn.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 8px rgba(13,110,253,0.2); }
+  .market-nav-btn i { margin-right: 5px; }
+  
+  .accordion-button { font-weight: 500; }
+  .accordion-button:not(.collapsed) { background-color: rgba(13,110,253,0.05); color: #0d6efd; }
+  .accordion-button:focus { box-shadow: none; border-color: rgba(13,110,253,0.25); }
+  
+  .news-card { height: 100%; transition: all 0.3s ease; margin-bottom: 20px; border: none; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+  .news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+  .news-image { height: 150px; object-fit: cover; width: 100%; transition: transform 0.5s ease; }
+  .news-card:hover .news-image { transform: scale(1.05); }
+  .region-badge { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; background-color: rgba(0,0,0,0.7); }
+  .news-content { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+  .source-url { font-size: 0.7rem; word-break: break-all; color: #6c757d; }
+  .card-body { padding: 1.25rem; }
+  
+  .source-container { max-height: 300px; overflow-y: auto; padding-right: 5px; }
+  .source-field { transition: all 0.3s; }
+  .source-field:hover { transform: translateX(3px); }
+  .input-group-text { background-color: #f8f9fa; font-weight: 500; }
+  
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .news-card { animation: fadeIn 0.5s ease forwards; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+  .pulse { animation: pulse 1.5s infinite; }
+  
   @media (max-width: 768px) {
-    .market-nav-btn {
-      padding: 6px 12px;
-      font-size: 0.75rem;
-    }
-    .news-image {
-      height: 120px;
-    }
+    .market-nav-btn { padding: 6px 12px; font-size: 0.75rem; }
+    .news-image { height: 120px; }
   }
 </style>
 
@@ -200,8 +53,6 @@ content %}
     <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
       <i class="bi bi-arrow-right-circle"></i> Show Search
     </button>
-
-    <!-- Timer Container -->
     <div class="timer-container ms-3 d-flex align-items-center">
       <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
         <i class="bi bi-play-fill"></i>
@@ -209,10 +60,7 @@ content %}
       <div class="timer-display-wrapper border rounded px-2 mx-1">
         <span id="countdownDisplay" class="timer-display">--:--</span>
       </div>
-      <button
-        id="timerReset"
-        class="btn btn-sm btn-outline-secondary timer-btn"
-      >
+      <button id="timerReset" class="btn btn-sm btn-outline-secondary timer-btn">
         <i class="bi bi-arrow-counterclockwise"></i>
       </button>
     </div>
@@ -220,162 +68,26 @@ content %}
 
   <!-- Market Navigation Bar -->
   <div class="market-nav mt-3">
-    <h6 class="text-center text-primary mb-2">
-      <i class="bi bi-globe"></i> Market Regions
-    </h6>
+    <h6 class="text-center text-primary mb-2"><i class="bi bi-globe"></i> Market Regions</h6>
     <div class="market-nav-scroll d-flex flex-wrap justify-content-center">
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn active" data-market="us">
-          <img
-            src="https://flagcdn.com/w40/us.png"
-            alt="US Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          US
+      {% set markets = [
+        ('us', 'US', 'us.png'),
+        ('uk', 'UK', 'gb.png'),
+        ('ge', 'DE', 'de.png'),
+        ('fr', 'FR', 'fr.png'),
+        ('china', 'CN', 'cn.png'),
+        ('europe', 'EU', 'eu.png'),
+        ('asia', 'AS', 'jp.png'),
+        ('south_america', 'SA', 'br.png')
+      ] %}
+      {% for market_id, market_name, flag in markets %}
+      <div class="card market-nav-card text-center mx-2 mb-2" style="width: 120px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 10px;">
+        <button class="market-nav-btn {{ 'active' if market_id == selected_market else '' }}" data-market="{{ market_id }}">
+          <img src="https://flagcdn.com/w40/{{ flag }}" alt="{{ market_name }} Flag" class="me-2" style="width: 20px; height: 15px"/>
+          {{ market_name }}
         </button>
       </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="uk">
-          <img
-            src="https://flagcdn.com/w40/gb.png"
-            alt="UK Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          UK
-        </button>
-      </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="ge">
-          <img
-            src="https://flagcdn.com/w40/de.png"
-            alt="Germany Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          DE
-        </button>
-      </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="fr">
-          <img
-            src="https://flagcdn.com/w40/fr.png"
-            alt="France Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          FR
-        </button>
-      </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="china">
-          <img
-            src="https://flagcdn.com/w40/cn.png"
-            alt="China Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          CN
-        </button>
-      </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="europe">
-          <img
-            src="https://flagcdn.com/w40/eu.png"
-            alt="Europe Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          EU
-        </button>
-      </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="asia">
-          <img
-            src="https://flagcdn.com/w40/jp.png"
-            alt="Asia Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          AS
-        </button>
-      </div>
-      <div
-        class="card market-nav-card text-center mx-2 mb-2"
-        style="
-          width: 120px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
-        "
-      >
-        <button class="market-nav-btn" data-market="south_america">
-          <img
-            src="https://flagcdn.com/w40/br.png"
-            alt="South America Flag"
-            class="me-2"
-            style="width: 20px; height: 15px"
-          />
-          SA
-        </button>
-      </div>
+      {% endfor %}
     </div>
   </div>
 
@@ -384,417 +96,49 @@ content %}
     <!-- Left Column: Market Selection -->
     <div class="col-md-4" id="leftColumn">
       <div class="card shadow-sm p-3" style="border-radius: 10px">
-        <h6 class="text-center text-primary mb-3">
-          <i class="bi bi-list-check"></i> Market Sources
-        </h6>
-
+        <h6 class="text-center text-primary mb-3"><i class="bi bi-list-check"></i> Market Sources</h6>
+        
         <form method="POST" id="marketForm">
+          <input type="hidden" name="market" id="selectedMarket" value="{{ selected_market }}">
           <div class="accordion" id="marketAccordion">
-            <!-- US Markets -->
-            <div class="accordion-item market-tab" data-market="us">
+            {% for market_id, market_name, flag in markets %}
+            <div class="accordion-item market-tab {{ 'border-primary' if market_id == selected_market else '' }}" data-market="{{ market_id }}">
               <h2 class="accordion-header">
-                <button
-                  class="accordion-button"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseUS"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/us.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  US Markets
+                <button class="accordion-button {{ 'collapsed' if market_id != selected_market else '' }}" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#collapse{{ market_id }}">
+                  <img src="https://flagcdn.com/w40/{{ flag }}" alt="{{ market_name }} Flag" class="me-2" style="width: 20px; height: 15px"/>
+                  {{ market_name }} Markets
                 </button>
               </h2>
-              <div
-                id="collapseUS"
-                class="accordion-collapse collapse show"
-                data-bs-parent="#marketAccordion"
-              >
+              <div id="collapse{{ market_id }}" class="accordion-collapse collapse {{ 'show' if market_id == selected_market else '' }}" data-bs-parent="#marketAccordion">
                 <div class="accordion-body">
-                  <div id="usContainer" class="source-container">
-                    {% for i in range(1, 4) %}
+                  <div id="{{ market_id }}Container" class="source-container">
+                    {% for url in market_urls.get(market_id, []) %}
                     <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="us_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.us[i-1] if market_urls.us and i <= market_urls.us|length else '' }}"
-                      />
+                      <span class="input-group-text">#{{ loop.index }}</span>
+                      <input type="text" name="{{ market_id }}_urls" class="form-control" placeholder="Enter URL" value="{{ url }}"/>
                     </div>
                     {% endfor %}
+                    {% if not market_urls.get(market_id) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#1</span>
+                      <input type="text" name="{{ market_id }}_urls" class="form-control" placeholder="Enter URL"/>
+                    </div>
+                    {% endif %}
                   </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="us"
-                  >
+                  <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-market="{{ market_id }}">
                     <i class="bi bi-plus-circle"></i> Add Source
                   </button>
                 </div>
               </div>
             </div>
-
-            <!-- UK Markets -->
-            <div class="accordion-item market-tab" data-market="uk">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseUK"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/gb.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  UK Markets
-                </button>
-              </h2>
-              <div
-                id="collapseUK"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="ukContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="uk_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.uk[i-1] if market_urls.uk and i <= market_urls.uk|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="uk"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Germany Markets -->
-            <div class="accordion-item market-tab" data-market="ge">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseGE"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/de.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  Germany Markets
-                </button>
-              </h2>
-              <div
-                id="collapseGE"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="geContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="ge_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.ge[i-1] if market_urls.ge and i <= market_urls.ge|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="ge"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- France Markets -->
-            <div class="accordion-item market-tab" data-market="fr">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseFR"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/fr.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  France Markets
-                </button>
-              </h2>
-              <div
-                id="collapseFR"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="frContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="fr_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.fr[i-1] if market_urls.fr and i <= market_urls.fr|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="fr"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- China Markets -->
-            <div class="accordion-item market-tab" data-market="china">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseChina"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/cn.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  China Markets
-                </button>
-              </h2>
-              <div
-                id="collapseChina"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="chinaContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="china_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.china[i-1] if market_urls.china and i <= market_urls.china|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="china"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Europe Markets -->
-            <div class="accordion-item market-tab" data-market="europe">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseEurope"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/eu.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  Europe Markets
-                </button>
-              </h2>
-              <div
-                id="collapseEurope"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="europeContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="europe_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.europe[i-1] if market_urls.europe and i <= market_urls.europe|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="europe"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Asia Markets -->
-            <div class="accordion-item market-tab" data-market="asia">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseAsia"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/jp.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  Asia Markets
-                </button>
-              </h2>
-              <div
-                id="collapseAsia"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="asiaContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="asia_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.asia[i-1] if market_urls.asia and i <= market_urls.asia|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="asia"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- South America Markets -->
-            <div class="accordion-item market-tab" data-market="south_america">
-              <h2 class="accordion-header">
-                <button
-                  class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseSouthAmerica"
-                >
-                  <img
-                    src="https://flagcdn.com/w40/br.png"
-                    alt="US Flag"
-                    class="me-2"
-                    style="width: 20px; height: 15px"
-                  />
-                  South America Markets
-                </button>
-              </h2>
-              <div
-                id="collapseSouthAmerica"
-                class="accordion-collapse collapse"
-                data-bs-parent="#marketAccordion"
-              >
-                <div class="accordion-body">
-                  <div id="south_americaContainer" class="source-container">
-                    {% for i in range(1, 4) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input
-                        type="text"
-                        name="south_america_urls"
-                        class="form-control"
-                        placeholder="Enter URL"
-                        value="{{ market_urls.south_america[i-1] if market_urls.south_america and i <= market_urls.south_america|length else '' }}"
-                      />
-                    </div>
-                    {% endfor %}
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="south_america"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
+            {% endfor %}
           </div>
 
           <!-- Update Frequency Selection -->
-          <div
-            class="d-flex align-items-center justify-content-between mb-2 mt-3"
-          >
-            <label class="small mb-0"
-              ><i class="bi bi-clock-history me-1"></i> Update Frequency</label
-            >
-            <select
-              id="frequencyDropdown"
-              class="form-select form-select-sm"
-              style="width: 70%"
-            >
+          <div class="d-flex align-items-center justify-content-between mb-2 mt-3">
+            <label class="small mb-0"><i class="bi bi-clock-history me-1"></i> Update Frequency</label>
+            <select id="frequencyDropdown" class="form-select form-select-sm" style="width: 70%">
               <option value="120">2 Min</option>
               <option value="300">5 Min</option>
               <option value="600">10 Min</option>
@@ -804,27 +148,17 @@ content %}
           </div>
 
           <!-- Submit Button -->
-          <button
-            id="submitSources"
-            type="submit"
-            class="btn btn-primary btn-sm w-100 mt-2"
-          >
+          <button id="submitSources" type="submit" class="btn btn-primary btn-sm w-100 mt-2">
             <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
           </button>
 
           <!-- Auto-refresh status indicator -->
           <div id="refreshStatus" class="small text-center mt-2 d-none">
             <span class="badge bg-success">
-              <i class="bi bi-arrow-repeat"></i>
-              Auto-refreshing every <span id="minutesDisplay">2</span> minutes
+              <i class="bi bi-arrow-repeat"></i> Auto-refreshing every <span id="minutesDisplay">2</span> minutes
             </span>
             <div class="progress mt-1" style="height: 4px">
-              <div
-                id="refreshProgress"
-                class="progress-bar"
-                role="progressbar"
-                style="width: 0%"
-              ></div>
+              <div id="refreshProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
             </div>
           </div>
         </form>
@@ -833,23 +167,12 @@ content %}
 
     <!-- Right Column: News Display -->
     <div class="col-md-8">
-      <div
-        class="card"
-        style="
-          border-radius: 10px;
-          border: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        "
-      >
-        <div
-          class="card-header bg-info text-white"
-          style="border-radius: 10px 10px 0 0 !important"
-        >
+      <div class="card" style="border-radius: 10px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div class="card-header bg-info text-white" style="border-radius: 10px 10px 0 0 !important">
           <div class="d-flex justify-content-between align-items-center">
             <h3 class="mb-0">
               <i class="bi bi-newspaper me-2"></i>
-              Latest {{ selected_market|default('Global', true)|replace('_', '
-              ')|title }} Market News
+              Latest {{ selected_market|default('Global', true)|replace('_', ' ')|title }} Market News
             </h3>
             {% if news_data %}
             <span class="badge bg-light text-dark">
@@ -866,61 +189,46 @@ content %}
               <div class="card news-card h-100">
                 {% if news.image %}
                 <div style="overflow: hidden">
-                  <img
-                    src="{{ news.image }}"
-                    class="card-img-top news-image"
-                    alt="News image"
-                  />
+                  <img src="{{ news.image }}" class="card-img-top news-image" alt="News image"/>
                 </div>
                 {% endif %}
                 <div class="card-body d-flex flex-column">
                   <span class="badge bg-primary region-badge">
-                    {{ news.region|default(selected_market|default('Global',
-                    true)|replace('_', ' ')|title) }}
+                    {{ news.region|default(selected_market|default('Global', true)|replace('_', ' ')|title) }}
                   </span>
                   <h5 class="card-title">{{ news.title }}</h5>
                   <p class="card-text news-content">{{ news.content }}</p>
                   <div class="mt-auto">
                     <p class="card-text">
                       <small class="text-muted">
-                        {% if news.date %} <i class="bi bi-calendar me-1"></i>{{
-                        news.date }} | {% endif %}
+                        {% if news.date %}<i class="bi bi-calendar me-1"></i>{{ news.date }} | {% endif %}
                         <i class="bi bi-newspaper me-1"></i>{{ news.source }}
                       </small>
                     </p>
                     <p class="source-url">
                       <small>
                         <i class="bi bi-link-45deg me-1"></i>
-                        {% set short_url = news.link.replace('https://',
-                        '').replace('http://', '') %} {% if short_url|length >
-                        30 %} {{ short_url[:30] }}... {% else %} {{ short_url }}
-                        {% endif %}
+                        {% set short_url = news.link.replace('https://', '').replace('http://', '') %}
+                        {% if short_url|length > 30 %}{{ short_url[:30] }}...{% else %}{{ short_url }}{% endif %}
                       </small>
                     </p>
                   </div>
-                  <a
-                    href="{{ news.link }}"
-                    class="btn btn-sm btn-outline-primary mt-2"
-                    target="_blank"
-                  >
+                  <a href="{{ news.link }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">
                     <i class="bi bi-arrow-right-circle me-1"></i> Read More
                   </a>
                 </div>
               </div>
             </div>
-
-            {% if loop.index % 3 == 0 and not loop.last %}
+            {% if loop.index % 3 == 0 and not loop.last %}</div><div class="row">{% endif %}
+            {% endfor %}
           </div>
-          <div class="row">{% endif %} {% endfor %}</div>
           {% else %}
           <div class="alert alert-info">
             {% if market_urls[selected_market] %}
-            <i class="bi bi-info-circle me-2"></i>No recent news found for {{
-            selected_market|default('Global', true)|replace('_', ' ')|title }}
-            markets. {% else %}
-            <i class="bi bi-exclamation-triangle me-2"></i>Please add URLs for
-            {{ selected_market|default('Global', true)|replace('_', ' ')|title
-            }} markets to display news. {% endif %}
+            <i class="bi bi-info-circle me-2"></i>No recent news found for {{ selected_market|default('Global', true)|replace('_', ' ')|title }} markets.
+            {% else %}
+            <i class="bi bi-exclamation-triangle me-2"></i>Please add URLs for {{ selected_market|default('Global', true)|replace('_', ' ')|title }} markets to display news.
+            {% endif %}
           </div>
           {% endif %}
         </div>
@@ -932,188 +240,137 @@ content %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  $(document).ready(function () {
-    // Timer functionality
-    let timerInterval;
-    let timerSeconds = 120;
-    let isTimerRunning = false;
+$(document).ready(function() {
+  // Timer functionality
+  let timerInterval, timerSeconds = 120, isTimerRunning = false;
 
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timerSeconds / 60);
-      const seconds = timerSeconds % 60;
-      $("#countdownDisplay").text(
-        `${minutes.toString().padStart(2, "0")}:${seconds
-          .toString()
-          .padStart(2, "0")}`
-      );
+  function updateTimerDisplay() {
+    const minutes = Math.floor(timerSeconds / 60);
+    const seconds = timerSeconds % 60;
+    $("#countdownDisplay").text(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+  }
+
+  function startTimer() {
+    if (!isTimerRunning) {
+      isTimerRunning = true;
+      $("#timerToggle").html('<i class="bi bi-pause-fill"></i>').removeClass("btn-success").addClass("btn-warning");
+      $("#refreshStatus").removeClass("d-none");
+      const totalSeconds = timerSeconds;
+
+      timerInterval = setInterval(function() {
+        timerSeconds--;
+        updateTimerDisplay();
+        const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
+        $("#refreshProgress").css("width", progress + "%");
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          $("#marketForm").submit();
+        }
+      }, 1000);
     }
+  }
 
-    function startTimer() {
-      if (!isTimerRunning) {
-        isTimerRunning = true;
-        $("#timerToggle")
-          .html('<i class="bi bi-pause-fill"></i>')
-          .removeClass("btn-success")
-          .addClass("btn-warning");
-        $("#refreshStatus").removeClass("d-none");
-
-        const totalSeconds = timerSeconds;
-
-        timerInterval = setInterval(function () {
-          timerSeconds--;
-          updateTimerDisplay();
-
-          const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
-          $("#refreshProgress").css("width", progress + "%");
-
-          if (timerSeconds <= 0) {
-            clearInterval(timerInterval);
-            $("#marketForm").submit();
-          }
-        }, 1000);
-      }
-    }
-
-    function pauseTimer() {
-      if (isTimerRunning) {
-        clearInterval(timerInterval);
-        isTimerRunning = false;
-        $("#timerToggle")
-          .html('<i class="bi bi-play-fill"></i>')
-          .removeClass("btn-warning")
-          .addClass("btn-success");
-      }
-    }
-
-    function resetTimer() {
+  function pauseTimer() {
+    if (isTimerRunning) {
       clearInterval(timerInterval);
       isTimerRunning = false;
-      timerSeconds = parseInt($("#frequencyDropdown").val());
-      updateTimerDisplay();
-      $("#timerToggle")
-        .html('<i class="bi bi-play-fill"></i>')
-        .removeClass("btn-warning")
-        .addClass("btn-success");
-      $("#refreshProgress").css("width", "0%");
+      $("#timerToggle").html('<i class="bi bi-play-fill"></i>').removeClass("btn-warning").addClass("btn-success");
     }
+  }
 
-    // Timer controls
-    $("#timerToggle").click(function () {
-      if (isTimerRunning) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-    });
-
-    $("#timerReset").click(resetTimer);
-
-    // Set initial timer value
-    $("#frequencyDropdown").change(function () {
-      timerSeconds = parseInt($(this).val());
-      $("#minutesDisplay").text(
-        $(this).find("option:selected").text().replace(" Min", "")
-      );
-      resetTimer();
-    });
-
-    // Initialize timer
+  function resetTimer() {
+    clearInterval(timerInterval);
+    isTimerRunning = false;
     timerSeconds = parseInt($("#frequencyDropdown").val());
-    $("#minutesDisplay").text(
-      $("#frequencyDropdown").find("option:selected").text().replace(" Min", "")
-    );
     updateTimerDisplay();
+    $("#timerToggle").html('<i class="bi bi-play-fill"></i>').removeClass("btn-warning").addClass("btn-success");
+    $("#refreshProgress").css("width", "0%");
+  }
 
-    // Start timer if news exists
-    if ($(".news-card").length > 0) {
-      startTimer();
-    }
+  // Timer controls
+  $("#timerToggle").click(() => isTimerRunning ? pauseTimer() : startTimer());
+  $("#timerReset").click(resetTimer);
 
-    // Search toggle functionality
-    let isSearchVisible = true;
-    $("#toggleSearch").click(function () {
-      if (isSearchVisible) {
-        $("#leftColumn").hide();
-        $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
-        $(this).removeClass("btn-outline-primary").addClass("btn-primary");
-      } else {
-        $("#leftColumn").show();
-        $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
-        $(this).removeClass("btn-primary").addClass("btn-outline-primary");
-      }
-      isSearchVisible = !isSearchVisible;
-    });
-
-    // Mini tabs functionality
-    $(".market-tab-btn").click(function () {
-      const market = $(this).data("market");
-
-      // Update active tab
-      $(".market-tab-btn").removeClass("active");
-      $(this).addClass("active");
-
-      // Show corresponding accordion item
-      $(`.market-tab[data-market="${market}"] .accordion-button`).click();
-
-      // Add pulse animation
-      $(this).addClass("pulse");
-      setTimeout(() => {
-        $(this).removeClass("pulse");
-      }, 1500);
-    });
-
-    // Add source field functionality
-    $(".add-source-btn").click(function () {
-      const market = $(this).data("market");
-      const container = $(`#${market}Container`);
-      const nextOrder = container.find(".source-field").length + 1;
-
-      const newField = `
-        <div class="input-group mb-2 source-field">
-          <span class="input-group-text">#${nextOrder}</span>
-          <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL" data-source-order="${nextOrder}">
-        </div>
-      `;
-
-      container.append(newField);
-
-      // Scroll to the new field
-      container.animate(
-        {
-          scrollTop: container[0].scrollHeight,
-        },
-        500
-      );
-    });
-
-    // Form submission
-    $("#marketForm").submit(function (e) {
-      e.preventDefault();
-      $("#refreshStatus").removeClass("d-none");
-      startTimer();
-
-      $.ajax({
-        type: "POST",
-        url: window.location.href,
-        data: $(this).serialize(),
-        success: function () {
-          window.location.reload();
-        },
-        error: function () {
-          alert("Error saving configuration. Please try again.");
-        },
-      });
-    });
-
-    // Highlight current market
-    $(".market-tab").removeClass("border-primary");
-    $(`.market-tab[data-market="{{ selected_market }}"]`).addClass(
-      "border-primary"
-    );
-
-    // Activate corresponding mini tab on page load
-    const currentMarket = "{{ selected_market|default('us') }}";
-    $(`.market-tab-btn[data-market="${currentMarket}"]`).addClass("active");
+  // Frequency change
+  $("#frequencyDropdown").change(function() {
+    timerSeconds = parseInt($(this).val());
+    $("#minutesDisplay").text($(this).find("option:selected").text().replace(" Min", ""));
+    resetTimer();
   });
+
+  // Initialize timer
+  timerSeconds = parseInt($("#frequencyDropdown").val());
+  $("#minutesDisplay").text($("#frequencyDropdown").find("option:selected").text().replace(" Min", ""));
+  updateTimerDisplay();
+  if ($(".news-card").length > 0) startTimer();
+
+  // Search toggle
+  let isSearchVisible = true;
+  $("#toggleSearch").click(function() {
+    if (isSearchVisible) {
+      $("#leftColumn").hide();
+      $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search').removeClass("btn-outline-primary").addClass("btn-primary");
+    } else {
+      $("#leftColumn").show();
+      $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search').removeClass("btn-primary").addClass("btn-outline-primary");
+    }
+    isSearchVisible = !isSearchVisible;
+  });
+
+  // Add source field
+  $(".add-source-btn").click(function() {
+    const market = $(this).data("market");
+    const container = $(`#${market}Container`);
+    const nextOrder = container.find(".source-field").length + 1;
+    const newField = `
+      <div class="input-group mb-2 source-field">
+        <span class="input-group-text">#${nextOrder}</span>
+        <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL" data-source-order="${nextOrder}">
+      </div>`;
+    container.append(newField);
+    container.animate({scrollTop: container[0].scrollHeight}, 500);
+  });
+
+  // Market tab switching
+  $(".market-nav-btn").click(function() {
+    const market = $(this).data("market");
+    $("#selectedMarket").val(market);
+    
+    // Update UI
+    $(".market-nav-btn").removeClass("active");
+    $(this).addClass("active");
+    $(".market-tab").removeClass("border-primary");
+    $(`.market-tab[data-market="${market}"]`).addClass("border-primary");
+    
+    // Submit form to load new market data
+    $("#marketForm").submit();
+  });
+
+  // Form submission
+  $("#marketForm").submit(function(e) {
+    e.preventDefault();
+    $("#refreshStatus").removeClass("d-none");
+    startTimer();
+    $.ajax({
+      type: "POST",
+      url: window.location.href,
+      data: $(this).serialize(),
+      success: function(response) {
+        // Only reload if we're not just switching tabs
+        if ($("#selectedMarket").val() === "{{ selected_market }}") {
+          window.location.reload();
+        } else {
+          // For market switching, we'll let the server handle the redirect
+          window.location.href = window.location.pathname + "?market=" + $("#selectedMarket").val();
+        }
+      },
+      error: () => alert("Error saving configuration. Please try again.")
+    });
+  });
+
+  // Highlight current market
+  const currentMarket = "{{ selected_market|default('us') }}";
+  $(`.market-nav-btn[data-market="${currentMarket}"]`).addClass("active");
+});
 </script>
 {% endblock %}
