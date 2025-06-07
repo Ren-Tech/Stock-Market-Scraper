@@ -18,10 +18,6 @@
   .market-nav-btn.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 8px rgba(13,110,253,0.2); }
   .market-nav-btn i { margin-right: 5px; }
   
-  .accordion-button { font-weight: 500; }
-  .accordion-button:not(.collapsed) { background-color: rgba(13,110,253,0.05); color: #0d6efd; }
-  .accordion-button:focus { box-shadow: none; border-color: rgba(13,110,253,0.25); }
-  
   .news-card { height: 100%; transition: all 0.3s ease; margin-bottom: 20px; border: none; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
   .news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
   .news-image { height: 150px; object-fit: cover; width: 100%; transition: transform 0.5s ease; }
@@ -70,20 +66,9 @@
   <div class="market-nav mt-3">
     <h6 class="text-center text-primary mb-2"><i class="bi bi-globe"></i> Market Regions</h6>
     <div class="market-nav-scroll d-flex flex-wrap justify-content-center">
-      {% set markets = [
-        ('us', 'US', 'us.png'),
-        ('uk', 'UK', 'gb.png'),
-        ('ge', 'DE', 'de.png'),
-        ('fr', 'FR', 'fr.png'),
-        ('china', 'CN', 'cn.png'),
-        ('europe', 'EU', 'eu.png'),
-        ('asia', 'AS', 'jp.png'),
-        ('south_america', 'SA', 'br.png')
-      ] %}
-      {% for market_id, market_name, flag in markets %}
+      {% for market_id, market_name in markets.items() %}
       <div class="card market-nav-card text-center mx-2 mb-2" style="width: 120px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 10px;">
         <button class="market-nav-btn {{ 'active' if market_id == selected_market else '' }}" data-market="{{ market_id }}">
-          <img src="https://flagcdn.com/w40/{{ flag }}" alt="{{ market_name }} Flag" class="me-2" style="width: 20px; height: 15px"/>
           {{ market_name }}
         </button>
       </div>
@@ -100,39 +85,29 @@
         
         <form method="POST" id="marketForm">
           <input type="hidden" name="market" id="selectedMarket" value="{{ selected_market }}">
-          <div class="accordion" id="marketAccordion">
-            {% for market_id, market_name, flag in markets %}
-            <div class="accordion-item market-tab {{ 'border-primary' if market_id == selected_market else '' }}" data-market="{{ market_id }}">
-              <h2 class="accordion-header">
-                <button class="accordion-button {{ 'collapsed' if market_id != selected_market else '' }}" type="button" 
-                        data-bs-toggle="collapse" data-bs-target="#collapse{{ market_id }}">
-                  <img src="https://flagcdn.com/w40/{{ flag }}" alt="{{ market_name }} Flag" class="me-2" style="width: 20px; height: 15px"/>
-                  {{ market_name }} Markets
-                </button>
-              </h2>
-              <div id="collapse{{ market_id }}" class="accordion-collapse collapse {{ 'show' if market_id == selected_market else '' }}" data-bs-parent="#marketAccordion">
-                <div class="accordion-body">
-                  <div id="{{ market_id }}Container" class="source-container">
-                    {% for url in market_urls.get(market_id, []) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ loop.index }}</span>
-                      <input type="text" name="{{ market_id }}_urls" class="form-control" placeholder="Enter URL" value="{{ url }}"/>
-                    </div>
-                    {% endfor %}
-                    {% if not market_urls.get(market_id) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#1</span>
-                      <input type="text" name="{{ market_id }}_urls" class="form-control" placeholder="Enter URL"/>
-                    </div>
-                    {% endif %}
-                  </div>
-                  <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-market="{{ market_id }}">
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
+          
+          <!-- Current Market Sources -->
+          <div class="mb-3">
+            <h6 class="d-flex align-items-center">
+              {{ markets[selected_market] }} Sources
+            </h6>
+            <div id="{{ selected_market }}Container" class="source-container">
+              {% for url in market_urls[selected_market] %}
+              <div class="input-group mb-2 source-field">
+                <span class="input-group-text">#{{ loop.index }}</span>
+                <input type="text" name="{{ selected_market }}_urls" class="form-control" placeholder="Enter URL" value="{{ url }}"/>
               </div>
+              {% endfor %}
+              {% if not market_urls[selected_market] %}
+              <div class="input-group mb-2 source-field">
+                <span class="input-group-text">#1</span>
+                <input type="text" name="{{ selected_market }}_urls" class="form-control" placeholder="Enter URL"/>
+              </div>
+              {% endif %}
             </div>
-            {% endfor %}
+            <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-market="{{ selected_market }}">
+              <i class="bi bi-plus-circle"></i> Add Source
+            </button>
           </div>
 
           <!-- Update Frequency Selection -->
@@ -172,7 +147,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <h3 class="mb-0">
               <i class="bi bi-newspaper me-2"></i>
-              Latest {{ selected_market|default('Global', true)|replace('_', ' ')|title }} Market News
+              Latest {{ markets[selected_market] }} Market News
             </h3>
             {% if news_data %}
             <span class="badge bg-light text-dark">
@@ -194,7 +169,7 @@
                 {% endif %}
                 <div class="card-body d-flex flex-column">
                   <span class="badge bg-primary region-badge">
-                    {{ news.region|default(selected_market|default('Global', true)|replace('_', ' ')|title) }}
+                    {{ news.market }}
                   </span>
                   <h5 class="card-title">{{ news.title }}</h5>
                   <p class="card-text news-content">{{ news.content }}</p>
@@ -225,9 +200,9 @@
           {% else %}
           <div class="alert alert-info">
             {% if market_urls[selected_market] %}
-            <i class="bi bi-info-circle me-2"></i>No recent news found for {{ selected_market|default('Global', true)|replace('_', ' ')|title }} markets.
+            <i class="bi bi-info-circle me-2"></i>No recent news found for {{ markets[selected_market] }} markets.
             {% else %}
-            <i class="bi bi-exclamation-triangle me-2"></i>Please add URLs for {{ selected_market|default('Global', true)|replace('_', ' ')|title }} markets to display news.
+            <i class="bi bi-exclamation-triangle me-2"></i>Please add URLs for {{ markets[selected_market] }} markets to display news.
             {% endif %}
           </div>
           {% endif %}
@@ -237,12 +212,62 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+  // Token for localStorage to avoid conflicts
+  const TIMER_STORAGE_KEY = 'marketNewsTimerState_v1';
+  
   // Timer functionality
   let timerInterval, timerSeconds = 120, isTimerRunning = false;
+
+  // Load saved timer state if available
+  function loadTimerState() {
+    const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        if (state) {
+          // Calculate how much time has passed since last save
+          const secondsElapsed = Math.floor((Date.now() - (state.timestamp || 0)) / 1000);
+          const remainingSeconds = Math.max(0, (state.secondsRemaining || 120) - secondsElapsed);
+          
+          // Update UI with saved values
+          timerSeconds = remainingSeconds;
+          isTimerRunning = state.isRunning || false;
+          $("#frequencyDropdown").val(state.frequency || 120);
+          $("#minutesDisplay").text($("#frequencyDropdown").find("option:selected").text().replace(" Min", ""));
+          
+          if (isTimerRunning) {
+            if (remainingSeconds > 0) {
+              startTimer();
+            } else {
+              // Timer expired while page was closed
+              resetTimer();
+              $("#marketForm").submit();
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing timer state:", e);
+        localStorage.removeItem(TIMER_STORAGE_KEY);
+      }
+    } else {
+      // No saved state, initialize with default values
+      timerSeconds = parseInt($("#frequencyDropdown").val());
+    }
+    updateTimerDisplay();
+  }
+
+  // Save timer state to localStorage
+  function saveTimerState() {
+    const state = {
+      secondsRemaining: timerSeconds,
+      isRunning: isTimerRunning,
+      frequency: parseInt($("#frequencyDropdown").val()),
+      timestamp: Date.now()
+    };
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(state));
+  }
 
   function updateTimerDisplay() {
     const minutes = Math.floor(timerSeconds / 60);
@@ -256,14 +281,22 @@ $(document).ready(function() {
       $("#timerToggle").html('<i class="bi bi-pause-fill"></i>').removeClass("btn-success").addClass("btn-warning");
       $("#refreshStatus").removeClass("d-none");
       const totalSeconds = timerSeconds;
+      saveTimerState(); // Save initial state
 
       timerInterval = setInterval(function() {
         timerSeconds--;
         updateTimerDisplay();
         const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
         $("#refreshProgress").css("width", progress + "%");
+        
+        // Save state every 5 seconds
+        if (timerSeconds % 5 === 0) {
+          saveTimerState();
+        }
+        
         if (timerSeconds <= 0) {
           clearInterval(timerInterval);
+          localStorage.removeItem(TIMER_STORAGE_KEY);
           $("#marketForm").submit();
         }
       }, 1000);
@@ -275,6 +308,7 @@ $(document).ready(function() {
       clearInterval(timerInterval);
       isTimerRunning = false;
       $("#timerToggle").html('<i class="bi bi-play-fill"></i>').removeClass("btn-warning").addClass("btn-success");
+      saveTimerState();
     }
   }
 
@@ -285,7 +319,11 @@ $(document).ready(function() {
     updateTimerDisplay();
     $("#timerToggle").html('<i class="bi bi-play-fill"></i>').removeClass("btn-warning").addClass("btn-success");
     $("#refreshProgress").css("width", "0%");
+    localStorage.removeItem(TIMER_STORAGE_KEY);
   }
+
+  // Initialize timer with saved state or defaults
+  loadTimerState();
 
   // Timer controls
   $("#timerToggle").click(() => isTimerRunning ? pauseTimer() : startTimer());
@@ -296,13 +334,17 @@ $(document).ready(function() {
     timerSeconds = parseInt($(this).val());
     $("#minutesDisplay").text($(this).find("option:selected").text().replace(" Min", ""));
     resetTimer();
+    if ($(".news-card").length > 0) {
+      startTimer();
+    }
   });
 
-  // Initialize timer
-  timerSeconds = parseInt($("#frequencyDropdown").val());
-  $("#minutesDisplay").text($("#frequencyDropdown").find("option:selected").text().replace(" Min", ""));
-  updateTimerDisplay();
-  if ($(".news-card").length > 0) startTimer();
+  // Save state when leaving the page
+  $(window).on('beforeunload', function() {
+    if (isTimerRunning) {
+      saveTimerState();
+    }
+  });
 
   // Search toggle
   let isSearchVisible = true;
@@ -339,8 +381,6 @@ $(document).ready(function() {
     // Update UI
     $(".market-nav-btn").removeClass("active");
     $(this).addClass("active");
-    $(".market-tab").removeClass("border-primary");
-    $(`.market-tab[data-market="${market}"]`).addClass("border-primary");
     
     // Submit form to load new market data
     $("#marketForm").submit();
@@ -369,7 +409,7 @@ $(document).ready(function() {
   });
 
   // Highlight current market
-  const currentMarket = "{{ selected_market|default('us') }}";
+  const currentMarket = "{{ selected_market }}";
   $(`.market-nav-btn[data-market="${currentMarket}"]`).addClass("active");
 });
 </script>

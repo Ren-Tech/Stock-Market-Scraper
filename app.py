@@ -774,58 +774,117 @@ def login_required(f):
             flash('Please login to access this page', 'warning')
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
+    return decorated_function
     return decorated_function@app.route("/current_affairs", methods=["GET", "POST"])
 
 
 @app.route("/market_news", methods=["GET", "POST"])
+@login_required
 def market_news():
-    # Initialize or get market URLs from session
-    market_urls = session.get('market_urls', {
-        "us": [], "uk": [], "ge": [], "fr": [], 
-        "china": [], "europe": [], "asia": [], "south_america": []
-    })
+    logger.info(f"Market News page accessed by {request.remote_addr}")
     
+    # Initialize market regions with the same structure as current affairs
+    markets = {
+        'us': "United States",
+        'uk': "United Kingdom",
+        'ge': "Germany",
+        'fr': "France",
+        'china': "China",
+        'europe': "Europe",
+        'asia': "Asia",
+        'south_america': "South America"
+    }
+    
+    # Get or initialize market URLs from session
+    market_urls = session.get('market_urls', {market: [] for market in markets})
     selected_market = request.args.get("market", "us")
     
-    if request.method == "POST":
-        selected_market = request.form.get("market", selected_market)
-        for market in market_urls.keys():
-            urls = request.form.getlist(f"{market}_urls")
-            market_urls[market] = [url.strip() for url in urls if url.strip()]
-        session['market_urls'] = market_urls
-    
     news_data = []
-    if market_urls.get(selected_market):
-        for url in market_urls[selected_market]:
-            try:
-                if not url.startswith(('http://', 'https://')):
-                    url = 'https://' + url
-                
-                scraped_news = scrape_news_from_url(url)
-                if scraped_news:
-                    for item in scraped_news:
-                        item['region'] = selected_market.replace('_', ' ').title()
-                        item.setdefault('title', 'Untitled News')
-                        item.setdefault('content', 'No content available')
-                        item.setdefault('link', url)
-                        item.setdefault('source', urlparse(url).netloc)
-                        if 'date' not in item:
-                            item['date'] = extract_date_from_url(url) or datetime.now().strftime("%Y-%m-%d")
-                    
-                    news_data.extend(scraped_news)
-                else:
-                    flash(f"No articles found at {url}", "warning")
+    error_messages = []
+    urls_provided = False
+
+    if request.method == "POST":
+        logger.info("Market News form submitted")
+        selected_market = request.form.get("market", selected_market)
+        
+        # Store URLs with their order numbers
+        ordered_urls = {}
+        market_inputs = request.form.getlist(f"{selected_market}_urls")
+        
+        for i, url in enumerate(market_inputs, start=1):
+            url = url.strip()
+            if url:
+                ordered_urls[i] = url
+                market_urls[selected_market].append(url)
+        
+        if ordered_urls:
+            urls_provided = True
+            logger.debug(f"URLs provided for {selected_market}: {ordered_urls}")
+
+        if urls_provided:
+            logger.info(f"Processing {len(ordered_urls)} URLs for market {selected_market}")
             
-            except requests.exceptions.Timeout:
-                flash(f"Timeout when trying to scrape {url}", "danger")
-            except Exception as e:
-                flash(f"Error scraping {url}: {str(e)}", "danger")
-                print(f"Error scraping {url}: {str(e)}")
-    
-    return render_template("market_news.html",
+            # Process URLs in their specified order
+            for order_num, url in sorted(ordered_urls.items()):
+                try:
+                    if not url.startswith(('http://', 'https://')):
+                        url = 'https://' + url
+                        logger.debug(f"Added protocol to URL: {url}")
+                    
+                    logger.info(f"Fetching market news from {url} for market {selected_market}")
+                    
+                    # Use the same fetch_top_news function as current affairs
+                    source_news = fetch_top_news(url, max_articles=20, region=selected_market)
+                    
+                    if source_news:
+                        logger.info(f"Found {len(source_news)} articles at {url}")
+                        # Add market-specific metadata
+                        for article in source_news:
+                            article['market'] = markets[selected_market]
+                            article['source_order'] = order_num
+                            article['source_url'] = url
+                        news_data.extend(source_news)
+                    else:
+                        msg = f"Could not extract news from {url} (Market: {selected_market})"
+                        error_messages.append(msg)
+                        logger.warning(msg)
+                        
+                except requests.exceptions.Timeout:
+                    msg = f"Timeout when trying to access {url}"
+                    error_messages.append(msg)
+                    logger.error(msg)
+                except Exception as e:
+                    msg = f"Error processing {url} (Market: {selected_market}): {str(e)}"
+                    error_messages.append(msg)
+                    logger.error(msg, exc_info=True)
+            
+            # Update session with the latest URLs
+            session['market_urls'] = market_urls
+        else:
+            msg = "No URLs provided to fetch market news"
+            error_messages.append(msg)
+            logger.warning(msg)
+
+    if news_data:
+        logger.info(f"Total market articles collected: {len(news_data)}")
+        
+        # Sort by source order (as specified in the form)
+        # Then sort by date within each source (newest first)
+        news_data.sort(key=lambda x: (x.get('source_order', 0), 
+                                    -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
+    else:
+        logger.info("No market news articles collected in this request")
+
+    if error_messages:
+        logger.warning(f"Encountered {len(error_messages)} errors during processing")
+
+    return render_template("market_news.html", 
                          news_data=news_data,
                          market_urls=market_urls,
-                         selected_market=selected_market)
+                         markets=markets,
+                         selected_market=selected_market,
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
 
 def scrape_news_from_url(url):
     """Enhanced news scraping function with better error handling"""
