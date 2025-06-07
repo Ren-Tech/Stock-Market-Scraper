@@ -24,7 +24,10 @@ from newspaper import Article
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
-
+options = Options()
+options.headless = True
+options.add_argument(f"--user-data-dir=/tmp/selenium-{uuid.uuid4()}")
+driver = webdriver.Chrome(options=options)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,6 +38,22 @@ VALID_USERS = {
     'admin1@gmail.com': 'admin1',
     'admin2@gmail.com': 'admin2',
 }
+
+
+def get_headers():
+    return {
+        'User-Agent': random.choice(USER_AGENTS),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
+    }
 
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
