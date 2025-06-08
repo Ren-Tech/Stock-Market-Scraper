@@ -21,8 +21,6 @@ import logging
 from flask import session, flash
 from functools import wraps
 from newspaper import Article
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
@@ -61,83 +59,8 @@ USER_AGENTS = [
     'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1'
 ]
 
-def get_enhanced_headers():
-    return {
-        'User-Agent': random.choice(USER_AGENTS),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Cache-Control': 'max-age=0',
-        'TE': 'trailers'
-    }
 
-PROXIES = {
-    'http': os.getenv('PROXY_URL', ''),
-    'https': os.getenv('PROXY_URL', '')
-}
 
-def fetch_with_proxies(url):
-    try:
-        response = requests.get(url, headers=get_enhanced_headers(), proxies=PROXIES, timeout=15)
-        response.raise_for_status()
-        return response
-    except Exception as e:
-        logger.warning(f"Proxy request failed: {str(e)}")
-        return None
-    
-def get_selenium_driver():
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--window-size=1920,1080')
-    
-    # For deployment
-    service = Service(executable_path='/usr/bin/chromedriver')
-    return webdriver.Chrome(service=service, options=options)
-
-def fetch_with_retries(url, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            # Try direct request first
-            response = requests.get(url, headers=get_enhanced_headers(), timeout=15)
-            response.raise_for_status()
-            return response
-            
-        except Exception as e:
-            if attempt == max_retries - 1:
-                logger.warning(f"All retries failed, trying Selenium")
-                try:
-                    driver = get_selenium_driver()
-                    driver.get(url)
-                    time.sleep(2 + attempt)  # Increasing delay
-                    html = driver.page_source
-                    driver.quit()
-                    return html
-                except Exception as se:
-                    logger.error(f"Selenium failed: {str(se)}")
-                    raise
-            else:
-                wait_time = (2 ** attempt) + random.random()
-                logger.info(f"Retry {attempt + 1} in {wait_time:.2f} seconds...")
-                time.sleep(wait_time)
-FOX_API_URL = "https://api.foxnews.com/v1/content/search"
-
-def fetch_fox_news_api(query="latest"):
-    params = {
-        "q": query,
-        "fields": "date,description,title,url,image",
-        "size": 20
-    }
-    response = requests.get(FOX_API_URL, params=params, headers=get_enhanced_headers())
-    return response.json()
 NEWS_SOURCE_MAPPING = {
     'www.msnbc.com': {
         'actual_source': 'pressgazette.co.uk',
