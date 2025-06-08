@@ -24,10 +24,8 @@ from newspaper import Article
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
-options = Options()
-options.headless = True
-options.add_argument(f"--user-data-dir=/tmp/selenium-{uuid.uuid4()}")
-driver = webdriver.Chrome(options=options)
+
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,25 +33,11 @@ logger = logging.getLogger(__name__)
 # Add login credentials
 VALID_USERS = {
     'developertest@gmail.com': 'solutions2025',
-    'admin1@gmail.com': 'admin1',
+    'admin1@gmail.com': 'admin/2002',
     'admin2@gmail.com': 'admin2',
 }
 
 
-def get_headers():
-    return {
-        'User-Agent': random.choice(USER_AGENTS),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Cache-Control': 'max-age=0',
-    }
 
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
@@ -830,11 +814,15 @@ def market_news():
         ordered_urls = {}
         market_inputs = request.form.getlist(f"{selected_market}_urls")
         
+        # DEBUG: Log the form inputs
+        logger.debug(f"Form inputs for {selected_market}: {market_inputs}")
+        
         for i, url in enumerate(market_inputs, start=1):
             url = url.strip()
             if url:
                 ordered_urls[i] = url
-                market_urls[selected_market].append(url)
+                # FIX: Don't append to session list here, do it after processing
+                # market_urls[selected_market].append(url)
         
         if ordered_urls:
             urls_provided = True
@@ -842,6 +830,9 @@ def market_news():
 
         if urls_provided:
             logger.info(f"Processing {len(ordered_urls)} URLs for market {selected_market}")
+            
+            # FIX: Clear existing URLs for this market before processing
+            market_urls[selected_market] = []
             
             # Process URLs in their specified order
             for order_num, url in sorted(ordered_urls.items()):
@@ -863,6 +854,9 @@ def market_news():
                             article['source_order'] = order_num
                             article['source_url'] = url
                         news_data.extend(source_news)
+                        
+                        # FIX: Add URL to session only after successful processing
+                        market_urls[selected_market].append(url)
                     else:
                         msg = f"Could not extract news from {url} (Market: {selected_market})"
                         error_messages.append(msg)
@@ -883,6 +877,11 @@ def market_news():
             msg = "No URLs provided to fetch market news"
             error_messages.append(msg)
             logger.warning(msg)
+
+    # DEBUG: Log what we're about to pass to template
+    logger.info(f"Passing to template: {len(news_data)} articles, selected_market: {selected_market}")
+    logger.info(f"Market URLs in session: {market_urls}")
+    logger.debug(f"Sample news data: {news_data[:2] if news_data else 'None'}")
 
     if news_data:
         logger.info(f"Total market articles collected: {len(news_data)}")

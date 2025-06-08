@@ -3,43 +3,225 @@
 {% block content %}
 
 <style>
-  body { background-color: #f8f9fa; }
+  /* Base Styles */
+  body {
+    background-color: #f8f9fa;
+  }
   
-  .timer-container { background-color: #f8f9fa; padding: 5px 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-  .timer-display-wrapper { min-width: 60px; text-align: center; background-color: white; }
-  .timer-display { font-family: monospace; font-weight: bold; }
-  .timer-btn { padding: 0.15rem 0.5rem; font-size: 0.875rem; transition: all 0.3s; }
-  
-  .market-nav { background-color: #fff; padding: 10px 15px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 20px; position: sticky; top: 10px; z-index: 100; }
-  .market-nav-scroll { display: flex; overflow-x: auto; scrollbar-width: none; padding: 5px 0; }
-  .market-nav-scroll::-webkit-scrollbar { display: none; }
-  .market-nav-btn { flex: 0 0 auto; padding: 8px 15px; margin-right: 12px; border-radius: 20px; background-color: #e9ecef; border: none; font-size: 0.85rem; font-weight: 500; color: #495057; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; box-shadow: 0 2px 3px rgba(0,0,0,0.05); }
-  .market-nav-btn:hover { background-color: #dee2e6; transform: translateY(-2px); }
-  .market-nav-btn.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 8px rgba(13,110,253,0.2); }
-  .market-nav-btn i { margin-right: 5px; }
-  
-  .news-card { height: 100%; transition: all 0.3s ease; margin-bottom: 20px; border: none; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-  .news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-  .news-image { height: 150px; object-fit: cover; width: 100%; transition: transform 0.5s ease; }
-  .news-card:hover .news-image { transform: scale(1.05); }
-  .region-badge { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; background-color: rgba(0,0,0,0.7); }
-  .news-content { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
-  .source-url { font-size: 0.7rem; word-break: break-all; color: #6c757d; }
-  .card-body { padding: 1.25rem; }
-  
-  .source-container { max-height: 300px; overflow-y: auto; padding-right: 5px; }
-  .source-field { transition: all 0.3s; }
-  .source-field:hover { transform: translateX(3px); }
-  .input-group-text { background-color: #f8f9fa; font-weight: 500; }
-  
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  .news-card { animation: fadeIn 0.5s ease forwards; }
-  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-  .pulse { animation: pulse 1.5s infinite; }
-  
+  /* Timer and Form Styles */
+  .timer-container {
+    background-color: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .timer-display-wrapper {
+    min-width: 60px;
+    text-align: center;
+    background-color: white;
+  }
+
+  .timer-display {
+    font-family: monospace;
+    font-weight: bold;
+  }
+
+  .timer-btn {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.3s;
+  }
+
+  /* Market Navigation Bar - Enhanced from Sector News */
+  .market-navbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 15px 0;
+    justify-content: center;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .market-nav-btn {
+    padding: 10px 18px;
+    border-radius: 25px;
+    background-color: #f1f3f5;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #343a40;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .market-nav-btn:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+    color: #343a40;
+  }
+
+  .market-nav-btn.active {
+    background-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+    border-color: #0d6efd;
+  }
+
+  /* Accordion Styles */
+  .accordion-button {
+    font-weight: 500;
+  }
+
+  .accordion-button:not(.collapsed) {
+    background-color: rgba(13, 110, 253, 0.05);
+    color: #0d6efd;
+  }
+
+  .accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(13, 110, 253, 0.25);
+  }
+
+  /* News Card Styles - Enhanced */
+  .news-card {
+    height: 100%;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  .news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .news-image {
+    height: 180px;
+    object-fit: cover;
+    width: 100%;
+    transition: transform 0.5s ease;
+  }
+
+  .news-card:hover .news-image {
+    transform: scale(1.05);
+  }
+
+  .market-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(13, 110, 253, 0.9);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    text-transform: capitalize;
+  }
+
+  .source-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+  }
+
+  .source-order-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(220, 53, 69, 0.8);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+  }
+
+  .news-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .source-url {
+    font-size: 0.7rem;
+    word-break: break-all;
+    color: #6c757d;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+
+  .source-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+
+  .source-field:hover {
+    transform: translateX(3px);
+  }
+
+  .input-group-text {
+    background-color: #f8f9fa;
+    font-weight: 500;
+  }
+
+  .current-market {
+    border-left: 4px solid #0d6efd;
+  }
+
+  .error-alert {
+    margin-bottom: 15px;
+  }
+
+  .refresh-status {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (max-width: 768px) {
-    .market-nav-btn { padding: 6px 12px; font-size: 0.75rem; }
-    .news-image { height: 120px; }
+    .market-nav-btn {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+    }
+
+    .news-image {
+      height: 150px;
+    }
   }
 </style>
 
@@ -47,8 +229,10 @@
   <!-- Header with Timer and Search Toggle -->
   <div class="d-flex align-items-center mt-3">
     <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-arrow-right-circle"></i> Show Search
+      <i class="bi bi-arrow-right-circle"></i> Hide Search
     </button>
+
+    <!-- Timer Container -->
     <div class="timer-container ms-3 d-flex align-items-center">
       <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
         <i class="bi bi-play-fill"></i>
@@ -56,94 +240,168 @@
       <div class="timer-display-wrapper border rounded px-2 mx-1">
         <span id="countdownDisplay" class="timer-display">--:--</span>
       </div>
-      <button id="timerReset" class="btn btn-sm btn-outline-secondary timer-btn">
+      <button
+        id="timerReset"
+        class="btn btn-sm btn-outline-secondary timer-btn"
+      >
         <i class="bi bi-arrow-counterclockwise"></i>
       </button>
     </div>
   </div>
 
-  <!-- Market Navigation Bar -->
-  <div class="market-nav mt-3">
-    <h6 class="text-center text-primary mb-2"><i class="bi bi-globe"></i> Market Regions</h6>
-    <div class="market-nav-scroll d-flex flex-wrap justify-content-center">
-      {% for market_id, market_name in markets.items() %}
-      <div class="card market-nav-card text-center mx-2 mb-2" style="width: 120px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 10px;">
-        <button class="market-nav-btn {{ 'active' if market_id == selected_market else '' }}" data-market="{{ market_id }}">
-          {{ market_name }}
-        </button>
-      </div>
+  <!-- Top Navbar for Markets -->
+  <div class="market-navbar mt-4">
+    {% for market_id, market_name in markets.items() %}
+    <a href="{{ url_for('market_news', market=market_id) }}"
+       class="market-nav-btn {% if market_id == selected_market %}active{% endif %}"
+       data-market="{{ market_id }}">
+      {{ market_name }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Error Messages -->
+  {% if error_messages %}
+  <div class="alert alert-warning error-alert">
+    <h6><i class="bi bi-exclamation-triangle me-2"></i>Processing Warnings:</h6>
+    <ul class="mb-0">
+      {% for error in error_messages %}
+      <li>{{ error }}</li>
       {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Refresh Status (Hidden by default) -->
+  <div id="refreshStatus" class="refresh-status d-none">
+    <div class="d-flex align-items-center">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      <span>Refreshing market news...</span>
+    </div>
+    <div class="progress mt-2" style="height: 4px;">
+      <div id="refreshProgress" class="progress-bar" style="width: 0%"></div>
     </div>
   </div>
 
-  <!-- Two-Column Layout -->
-  <div class="row mt-4">
-    <!-- Left Column: Market Selection -->
+  <div class="row mt-3">
+    <!-- Left Column: Form -->
     <div class="col-md-4" id="leftColumn">
-      <div class="card shadow-sm p-3" style="border-radius: 10px">
-        <h6 class="text-center text-primary mb-3"><i class="bi bi-list-check"></i> Market Sources</h6>
+      <form method="POST" id="marketForm">
+        <input type="hidden" name="market" value="{{ selected_market }}" id="selectedMarket">
         
-        <form method="POST" id="marketForm">
-          <input type="hidden" name="market" id="selectedMarket" value="{{ selected_market }}">
-          
-          <!-- Current Market Sources -->
-          <div class="mb-3">
-            <h6 class="d-flex align-items-center">
-              {{ markets[selected_market] }} Sources
-            </h6>
-            <div id="{{ selected_market }}Container" class="source-container">
-              {% for url in market_urls[selected_market] %}
-              <div class="input-group mb-2 source-field">
-                <span class="input-group-text">#{{ loop.index }}</span>
-                <input type="text" name="{{ selected_market }}_urls" class="form-control" placeholder="Enter URL" value="{{ url }}"/>
+        <div class="card shadow-sm p-3" style="border-radius: 10px">
+          <h6 class="text-center text-primary mb-3">
+            <i class="bi bi-globe"></i> Market Regions
+          </h6>
+
+          <div class="accordion" id="marketAccordion">
+            {% for market_id, market_name in markets.items() %}
+            <div
+              class="accordion-item {% if market_id == selected_market %}current-market{% endif %}"
+              data-market-target="{{ market_id }}"
+            >
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button {% if market_id != selected_market %}collapsed{% endif %}"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse{{ market_id }}"
+                >
+                  <i class="bi bi-geo-alt-fill me-2"></i>
+                  {{ market_name }}
+                </button>
+              </h2>
+              <div
+                id="collapse{{ market_id }}"
+                class="accordion-collapse collapse {% if market_id == selected_market %}show{% endif %}"
+                data-bs-parent="#marketAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="{{ market_id }}Container" class="source-container">
+                    {% set market_url_list = market_urls.get(market_id, []) %}
+                    {% for i in range(1, 6) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="{{ market_id }}_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ market_url_list[i-1] if i <= market_url_list|length else '' }}"
+                      />
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Show additional URL fields if there are more than 5 URLs -->
+                    {% if market_url_list|length > 5 %}
+                      {% for i in range(6, market_url_list|length + 1) %}
+                      <div class="input-group mb-2 source-field">
+                        <span class="input-group-text">#{{ i }}</span>
+                        <input
+                          type="text"
+                          name="{{ market_id }}_urls"
+                          class="form-control"
+                          placeholder="Enter URL"
+                          value="{{ market_url_list[i-1] }}"
+                        />
+                      </div>
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-market="{{ market_id }}"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
               </div>
-              {% endfor %}
-              {% if not market_urls[selected_market] %}
-              <div class="input-group mb-2 source-field">
-                <span class="input-group-text">#1</span>
-                <input type="text" name="{{ selected_market }}_urls" class="form-control" placeholder="Enter URL"/>
-              </div>
-              {% endif %}
             </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-market="{{ selected_market }}">
-              <i class="bi bi-plus-circle"></i> Add Source
-            </button>
+            {% endfor %}
           </div>
 
-          <!-- Update Frequency Selection -->
-          <div class="d-flex align-items-center justify-content-between mb-2 mt-3">
-            <label class="small mb-0"><i class="bi bi-clock-history me-1"></i> Update Frequency</label>
-            <select id="frequencyDropdown" class="form-select form-select-sm" style="width: 70%">
+          <!-- Frequency Dropdown -->
+          <div class="d-flex align-items-center justify-content-between mt-3">
+            <label class="small mb-0">
+              <i class="bi bi-clock-history me-1"></i> Update Frequency
+            </label>
+            <select
+              id="frequencyDropdown"
+              class="form-select form-select-sm"
+              style="width: 70%"
+            >
               <option value="120">2 Min</option>
               <option value="300">5 Min</option>
               <option value="600">10 Min</option>
               <option value="1200">20 Min</option>
-              <option value="1800">30 Min</option>
             </select>
           </div>
 
           <!-- Submit Button -->
-          <button id="submitSources" type="submit" class="btn btn-primary btn-sm w-100 mt-2">
-            <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
-          </button>
-
-          <!-- Auto-refresh status indicator -->
-          <div id="refreshStatus" class="small text-center mt-2 d-none">
-            <span class="badge bg-success">
-              <i class="bi bi-arrow-repeat"></i> Auto-refreshing every <span id="minutesDisplay">2</span> minutes
-            </span>
-            <div class="progress mt-1" style="height: 4px">
-              <div id="refreshProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
-            </div>
+          <div class="mt-4 text-center">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-save2"></i> Fetch Market News
+            </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
 
     <!-- Right Column: News Display -->
-    <div class="col-md-8">
-      <div class="card" style="border-radius: 10px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-        <div class="card-header bg-info text-white" style="border-radius: 10px 10px 0 0 !important">
+    <div class="col-md-8" id="rightColumn">
+      <div
+        class="card"
+        style="
+          border-radius: 10px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        "
+      >
+        <div
+          class="card-header bg-info text-white"
+          style="border-radius: 10px 10px 0 0 !important"
+        >
           <div class="d-flex justify-content-between align-items-center">
             <h3 class="mb-0">
               <i class="bi bi-newspaper me-2"></i>
@@ -151,58 +409,73 @@
             </h3>
             {% if news_data %}
             <span class="badge bg-light text-dark">
-              <i class="bi bi-collection me-1"></i> {{ news_data|length }} items
+              {{ news_data|length }} Articles
             </span>
             {% endif %}
           </div>
         </div>
         <div class="card-body">
           {% if news_data %}
-          <div class="row">
+          <div class="row" id="newsContainer">
             {% for news in news_data %}
-            <div class="col-md-4 mb-4">
-              <div class="card news-card h-100">
+            <div class="col-md-6">
+              <div class="card news-card position-relative">
                 {% if news.image %}
-                <div style="overflow: hidden">
-                  <img src="{{ news.image }}" class="card-img-top news-image" alt="News image"/>
-                </div>
+                <img
+                  src="{{ news.image }}"
+                  class="news-image"
+                  alt="News Image"
+                  onerror="this.style.display='none'"
+                />
                 {% endif %}
-                <div class="card-body d-flex flex-column">
-                  <span class="badge bg-primary region-badge">
-                    {{ news.market }}
-                  </span>
+                <div class="card-body">
                   <h5 class="card-title">{{ news.title }}</h5>
-                  <p class="card-text news-content">{{ news.content }}</p>
-                  <div class="mt-auto">
-                    <p class="card-text">
-                      <small class="text-muted">
-                        {% if news.date %}<i class="bi bi-calendar me-1"></i>{{ news.date }} | {% endif %}
-                        <i class="bi bi-newspaper me-1"></i>{{ news.source }}
-                      </small>
-                    </p>
-                    <p class="source-url">
-                      <small>
-                        <i class="bi bi-link-45deg me-1"></i>
-                        {% set short_url = news.link.replace('https://', '').replace('http://', '') %}
-                        {% if short_url|length > 30 %}{{ short_url[:30] }}...{% else %}{{ short_url }}{% endif %}
-                      </small>
-                    </p>
+                  <p class="card-text news-content">{{ news.content or news.description or '' }}</p>
+                  
+                  <!-- Show source URL -->
+                  {% if news.source_url %}
+                  <p class="source-url mb-2">
+                    <i class="bi bi-link-45deg"></i> {{ news.source_url[:50] }}...
+                  </p>
+                  {% endif %}
+                  
+                  <!-- Show date if available -->
+                  {% if news.date %}
+                  <small class="text-muted">
+                    <i class="bi bi-calendar3"></i> {{ news.date }}
+                  </small>
+                  {% endif %}
+                  
+                  <div class="mt-2">
+                    <a
+                      href="{{ news.link }}"
+                      target="_blank"
+                      class="btn btn-sm btn-primary"
+                    >
+                      Read More <i class="bi bi-arrow-up-right"></i>
+                    </a>
                   </div>
-                  <a href="{{ news.link }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">
-                    <i class="bi bi-arrow-right-circle me-1"></i> Read More
-                  </a>
                 </div>
+                
+                <!-- Badges -->
+                <div class="market-badge">{{ news.market }}</div>
+                {% if news.source %}
+                <div class="source-badge">{{ news.source }}</div>
+                {% endif %}
+                {% if news.source_order %}
+                <div class="source-order-badge">#{{ news.source_order }}</div>
+                {% endif %}
               </div>
             </div>
-            {% if loop.index % 3 == 0 and not loop.last %}</div><div class="row">{% endif %}
             {% endfor %}
           </div>
           {% else %}
           <div class="alert alert-info">
-            {% if market_urls[selected_market] %}
-            <i class="bi bi-info-circle me-2"></i>No recent news found for {{ markets[selected_market] }} markets.
+            <i class="bi bi-info-circle me-2"></i>
+            {% if market_urls.get(selected_market) %}
+              No recent news found for {{ markets[selected_market] }} markets. Try refreshing or adding different news sources.
             {% else %}
-            <i class="bi bi-exclamation-triangle me-2"></i>Please add URLs for {{ markets[selected_market] }} markets to display news.
+              Please add URLs for {{ markets[selected_market] }} markets to display news. Enter news website URLs in the form on the left.
             {% endif %}
           </div>
           {% endif %}
@@ -212,205 +485,180 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-  // Token for localStorage to avoid conflicts
-  const TIMER_STORAGE_KEY = 'marketNewsTimerState_v1';
-  
-  // Timer functionality
-  let timerInterval, timerSeconds = 120, isTimerRunning = false;
+  $(document).ready(function () {
+    // Timer functionality
+    let timerInterval;
+    let timerSeconds = 120;
+    let isTimerRunning = false;
 
-  // Load saved timer state if available
-  function loadTimerState() {
-    const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        if (state) {
-          // Calculate how much time has passed since last save
-          const secondsElapsed = Math.floor((Date.now() - (state.timestamp || 0)) / 1000);
-          const remainingSeconds = Math.max(0, (state.secondsRemaining || 120) - secondsElapsed);
-          
-          // Update UI with saved values
-          timerSeconds = remainingSeconds;
-          isTimerRunning = state.isRunning || false;
-          $("#frequencyDropdown").val(state.frequency || 120);
-          $("#minutesDisplay").text($("#frequencyDropdown").find("option:selected").text().replace(" Min", ""));
-          
-          if (isTimerRunning) {
-            if (remainingSeconds > 0) {
-              startTimer();
-            } else {
-              // Timer expired while page was closed
-              resetTimer();
-              $("#marketForm").submit();
-            }
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timerSeconds / 60);
+      const seconds = timerSeconds % 60;
+      $("#countdownDisplay").text(
+        `${minutes.toString().padStart(2, "0")}:${seconds
+          .toString()
+          .padStart(2, "0")}`
+      );
+    }
+
+    function startTimer() {
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        $("#timerToggle")
+          .html('<i class="bi bi-pause-fill"></i>')
+          .removeClass("btn-success")
+          .addClass("btn-warning");
+        $("#refreshStatus").removeClass("d-none");
+
+        const totalSeconds = timerSeconds;
+
+        timerInterval = setInterval(function () {
+          timerSeconds--;
+          updateTimerDisplay();
+
+          const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
+          $("#refreshProgress").css("width", progress + "%");
+
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            $("#marketForm").submit();
           }
-        }
-      } catch (e) {
-        console.error("Error parsing timer state:", e);
-        localStorage.removeItem(TIMER_STORAGE_KEY);
+        }, 1000);
       }
-    } else {
-      // No saved state, initialize with default values
-      timerSeconds = parseInt($("#frequencyDropdown").val());
     }
-    updateTimerDisplay();
-  }
 
-  // Save timer state to localStorage
-  function saveTimerState() {
-    const state = {
-      secondsRemaining: timerSeconds,
-      isRunning: isTimerRunning,
-      frequency: parseInt($("#frequencyDropdown").val()),
-      timestamp: Date.now()
-    };
-    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function updateTimerDisplay() {
-    const minutes = Math.floor(timerSeconds / 60);
-    const seconds = timerSeconds % 60;
-    $("#countdownDisplay").text(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
-  }
-
-  function startTimer() {
-    if (!isTimerRunning) {
-      isTimerRunning = true;
-      $("#timerToggle").html('<i class="bi bi-pause-fill"></i>').removeClass("btn-success").addClass("btn-warning");
-      $("#refreshStatus").removeClass("d-none");
-      const totalSeconds = timerSeconds;
-      saveTimerState(); // Save initial state
-
-      timerInterval = setInterval(function() {
-        timerSeconds--;
-        updateTimerDisplay();
-        const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
-        $("#refreshProgress").css("width", progress + "%");
-        
-        // Save state every 5 seconds
-        if (timerSeconds % 5 === 0) {
-          saveTimerState();
-        }
-        
-        if (timerSeconds <= 0) {
-          clearInterval(timerInterval);
-          localStorage.removeItem(TIMER_STORAGE_KEY);
-          $("#marketForm").submit();
-        }
-      }, 1000);
+    function pauseTimer() {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        $("#timerToggle")
+          .html('<i class="bi bi-play-fill"></i>')
+          .removeClass("btn-warning")
+          .addClass("btn-success");
+      }
     }
-  }
 
-  function pauseTimer() {
-    if (isTimerRunning) {
+    function resetTimer() {
       clearInterval(timerInterval);
       isTimerRunning = false;
-      $("#timerToggle").html('<i class="bi bi-play-fill"></i>').removeClass("btn-warning").addClass("btn-success");
-      saveTimerState();
+      timerSeconds = parseInt($("#frequencyDropdown").val());
+      updateTimerDisplay();
+      $("#timerToggle")
+        .html('<i class="bi bi-play-fill"></i>')
+        .removeClass("btn-warning")
+        .addClass("btn-success");
+      $("#refreshProgress").css("width", "0%");
+      $("#refreshStatus").addClass("d-none");
     }
-  }
 
-  function resetTimer() {
-    clearInterval(timerInterval);
-    isTimerRunning = false;
+    // Timer controls
+    $("#timerToggle").click(function () {
+      if (isTimerRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    $("#timerReset").click(resetTimer);
+
+    // Set initial timer value
+    $("#frequencyDropdown").change(function () {
+      timerSeconds = parseInt($(this).val());
+      resetTimer();
+    });
+
+    // Initialize timer
     timerSeconds = parseInt($("#frequencyDropdown").val());
     updateTimerDisplay();
-    $("#timerToggle").html('<i class="bi bi-play-fill"></i>').removeClass("btn-warning").addClass("btn-success");
-    $("#refreshProgress").css("width", "0%");
-    localStorage.removeItem(TIMER_STORAGE_KEY);
-  }
 
-  // Initialize timer with saved state or defaults
-  loadTimerState();
-
-  // Timer controls
-  $("#timerToggle").click(() => isTimerRunning ? pauseTimer() : startTimer());
-  $("#timerReset").click(resetTimer);
-
-  // Frequency change
-  $("#frequencyDropdown").change(function() {
-    timerSeconds = parseInt($(this).val());
-    $("#minutesDisplay").text($(this).find("option:selected").text().replace(" Min", ""));
-    resetTimer();
+    // Start timer if news exists
     if ($(".news-card").length > 0) {
       startTimer();
     }
-  });
 
-  // Save state when leaving the page
-  $(window).on('beforeunload', function() {
-    if (isTimerRunning) {
-      saveTimerState();
-    }
-  });
-
-  // Search toggle
-  let isSearchVisible = true;
-  $("#toggleSearch").click(function() {
-    if (isSearchVisible) {
-      $("#leftColumn").hide();
-      $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search').removeClass("btn-outline-primary").addClass("btn-primary");
-    } else {
-      $("#leftColumn").show();
-      $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search').removeClass("btn-primary").addClass("btn-outline-primary");
-    }
-    isSearchVisible = !isSearchVisible;
-  });
-
-  // Add source field
-  $(".add-source-btn").click(function() {
-    const market = $(this).data("market");
-    const container = $(`#${market}Container`);
-    const nextOrder = container.find(".source-field").length + 1;
-    const newField = `
-      <div class="input-group mb-2 source-field">
-        <span class="input-group-text">#${nextOrder}</span>
-        <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL" data-source-order="${nextOrder}">
-      </div>`;
-    container.append(newField);
-    container.animate({scrollTop: container[0].scrollHeight}, 500);
-  });
-
-  // Market tab switching
-  $(".market-nav-btn").click(function() {
-    const market = $(this).data("market");
-    $("#selectedMarket").val(market);
-    
-    // Update UI
-    $(".market-nav-btn").removeClass("active");
-    $(this).addClass("active");
-    
-    // Submit form to load new market data
-    $("#marketForm").submit();
-  });
-
-  // Form submission
-  $("#marketForm").submit(function(e) {
-    e.preventDefault();
-    $("#refreshStatus").removeClass("d-none");
-    startTimer();
-    $.ajax({
-      type: "POST",
-      url: window.location.href,
-      data: $(this).serialize(),
-      success: function(response) {
-        // Only reload if we're not just switching tabs
-        if ($("#selectedMarket").val() === "{{ selected_market }}") {
-          window.location.reload();
-        } else {
-          // For market switching, we'll let the server handle the redirect
-          window.location.href = window.location.pathname + "?market=" + $("#selectedMarket").val();
-        }
-      },
-      error: () => alert("Error saving configuration. Please try again.")
+    // Search toggle functionality
+    let isSearchVisible = true;
+    $("#toggleSearch").click(function () {
+      if (isSearchVisible) {
+        $("#leftColumn").hide();
+        $("#rightColumn").removeClass("col-md-8").addClass("col-md-12");
+        $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
+        $(this).removeClass("btn-outline-primary").addClass("btn-primary");
+      } else {
+        $("#leftColumn").show();
+        $("#rightColumn").removeClass("col-md-12").addClass("col-md-8");
+        $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
+        $(this).removeClass("btn-primary").addClass("btn-outline-primary");
+      }
+      isSearchVisible = !isSearchVisible;
     });
-  });
 
-  // Highlight current market
-  const currentMarket = "{{ selected_market }}";
-  $(`.market-nav-btn[data-market="${currentMarket}"]`).addClass("active");
-});
+    // Market navigation functionality
+    $(".market-nav-btn").click(function (e) {
+      const market = $(this).data("market");
+      
+      // Update selected market in form
+      $("#selectedMarket").val(market);
+      
+      // Navigate to the market (the href will handle this)
+      // No need to prevent default - let the link work naturally
+    });
+
+    // Add source field functionality
+    $(".add-source-btn").click(function () {
+      const market = $(this).data("market");
+      const container = $(`#${market}Container`);
+      const nextOrder = container.find(".source-field").length + 1;
+
+      const newField = `
+        <div class="input-group mb-2 source-field">
+          <span class="input-group-text">#${nextOrder}</span>
+          <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL">
+        </div>
+      `;
+
+      container.append(newField);
+
+      // Scroll to the new field
+      container.animate(
+        {
+          scrollTop: container[0].scrollHeight,
+        },
+        500
+      );
+    });
+
+    // Form submission - FIXED VERSION (No AJAX, normal form submission)
+    $("#marketForm").submit(function (e) {
+      // Don't prevent default - let form submit normally
+      $("#refreshStatus").removeClass("d-none");
+      
+      // Show loading state
+      const submitBtn = $(this).find('button[type="submit"]');
+      submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
+      
+      // Form will submit naturally and page will reload with new data
+      // No e.preventDefault() - this was the issue!
+    });
+
+    // Highlight current market
+    $(".accordion-item").removeClass("current-market");
+    $(`.accordion-item[data-market-target="{{ selected_market }}"]`).addClass("current-market");
+
+    // Show only selected market accordion on mobile
+    if ($(window).width() < 768) {
+      $(".accordion-item").not(`[data-market-target="{{ selected_market }}"]`).hide();
+    }
+
+    // Auto-refresh functionality based on timer
+    // Start timer automatically if we have news data
+    if ($(".news-card").length > 0) {
+      setTimeout(startTimer, 1000);
+    }
+  });
 </script>
 {% endblock %}
