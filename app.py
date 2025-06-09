@@ -25,57 +25,19 @@ from newspaper import Article
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
 
-options = Options()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--remote-debugging-port=9222")  # Add unique port
-options.add_argument(f"--user-data-dir={os.path.join(os.getcwd(), 'chrome_profile')}")  # Unique profile dir
 
-driver = webdriver.Chrome(options=options)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-IS_PRODUCTION = os.environ.get('FLASK_ENV') == 'production'
-
-# Then modify request behavior accordingly
-if IS_PRODUCTION:
-    # Use more conservative timeouts and retries
-    timeout = 15
-    max_retries = 2
-else:
-    timeout = 30
-    max_retries = 3
 # Add login credentials
 VALID_USERS = {
     'developertest@gmail.com': 'solutions2025',
     'admin1@gmail.com': 'admin/2002',
     'admin2@gmail.com': 'admin2',
 }
-def fetch_fox_news():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://www.google.com/',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-    }
-    
-    try:
-        response = requests.get('https://www.foxnews.com', headers=headers, timeout=15)
-        # Add parsing logic
-    except Exception as e:
-        logger.error(f"Fox News fetch failed: {str(e)}")
-        return []
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Referer': 'https://www.google.com/',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-}
+
+
 
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
