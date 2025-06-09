@@ -22,14 +22,6 @@ from flask import session, flash
 from functools import wraps
 from newspaper import Article
 
-
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from fake_useragent import UserAgent
-import uuid
-import tempfile
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
 
@@ -60,189 +52,12 @@ SECTORS = {
 
 # Configure request headers with multiple user agents
 USER_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/120.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1'
 ]
-def get_enhanced_headers():
-    """Generate realistic request headers"""
-    ua = UserAgent()
-    return {
-        'User-Agent': random.choice(USER_AGENTS),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Cache-Control': 'max-age=0',
-        'Referer': 'https://www.google.com/',
-    }
-
-def create_selenium_driver():
-    """Create a properly configured Selenium WebDriver for production deployment"""
-    options = Options()
-    
-    # Essential options for production deployment
-    options.add_argument('--headless=new')  # Use new headless mode
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--disable-web-security')
-    options.add_argument('--disable-features=VizDisplayCompositor')
-    options.add_argument('--disable-extensions')
-    options.add_argument('--disable-plugins')
-    options.add_argument('--disable-images')
-    options.add_argument('--disable-javascript')  # Disable JS for faster loading
-    options.add_argument('--disable-notifications')
-    options.add_argument('--disable-popup-blocking')
-    
-    # Memory and performance optimization
-    options.add_argument('--memory-pressure-off')
-    options.add_argument('--max_old_space_size=4096')
-    options.add_argument('--disable-background-timer-throttling')
-    options.add_argument('--disable-renderer-backgrounding')
-    options.add_argument('--disable-backgrounding-occluded-windows')
-    
-    # Create unique user data directory to avoid conflicts
-    temp_dir = tempfile.mkdtemp()
-    user_data_dir = os.path.join(temp_dir, f'chrome_user_data_{uuid.uuid4().hex[:8]}')
-    options.add_argument(f'--user-data-dir={user_data_dir}')
-    
-    # Random user agent
-    options.add_argument(f'--user-agent={random.choice(USER_AGENTS)}')
-    
-    # Window size
-    options.add_argument('--window-size=1920,1080')
-    
-    # Additional stealth options
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    
-    try:
-        # Try to create driver with Chrome
-        driver = webdriver.Chrome(options=options)
-        
-        # Execute script to remove webdriver property
-        driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-        
-        return driver, user_data_dir
-    except Exception as e:
-        print(f"Failed to create Chrome driver: {e}")
-        # Cleanup temp directory if driver creation fails
-        try:
-            import shutil
-            shutil.rmtree(temp_dir, ignore_errors=True)
-        except:
-            pass
-        raise
-
-def make_request_with_retry(url, max_retries=3, delay_range=(1, 3)):
-    """Make HTTP request with retry logic and rotating headers"""
-    for attempt in range(max_retries):
-        try:
-            headers = get_enhanced_headers()
-            
-            # Add random delay between requests
-            if attempt > 0:
-                time.sleep(random.uniform(*delay_range))
-            
-            # Use session for connection pooling
-            session = requests.Session()
-            session.headers.update(headers)
-            
-            response = session.get(
-                url, 
-                timeout=15,
-                allow_redirects=True,
-                verify=True
-            )
-            
-            # Check for common blocking responses
-            if response.status_code == 403:
-                print(f"403 Forbidden for {url}, attempt {attempt + 1}")
-                if attempt < max_retries - 1:
-                    time.sleep(random.uniform(2, 5))
-                    continue
-                else:
-                    raise requests.exceptions.HTTPError(f"403 Forbidden after {max_retries} attempts")
-            
-            if response.status_code == 429:
-                print(f"Rate limited for {url}, waiting...")
-                time.sleep(random.uniform(5, 10))
-                continue
-                
-            response.raise_for_status()
-            return response
-            
-        except requests.exceptions.RequestException as e:
-            print(f"Request attempt {attempt + 1} failed for {url}: {str(e)}")
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(random.uniform(1, 3))
-    
-    return None
-
-def fetch_with_selenium_fallback(url, max_retries=2):
-    """Fetch content using Selenium with proper cleanup"""
-    driver = None
-    user_data_dir = None
-    
-    try:
-        driver, user_data_dir = create_selenium_driver()
-        
-        # Set page load timeout
-        driver.set_page_load_timeout(30)
-        
-        # Navigate to URL
-        driver.get(url)
-        
-        # Wait for page to load
-        time.sleep(random.uniform(2, 4))
-        
-        # Wait for content to load (optional)
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-        except:
-            pass  # Continue even if wait fails
-        
-        # Get page source
-        page_source = driver.page_source
-        return BeautifulSoup(page_source, 'html.parser')
-        
-    except Exception as e:
-        print(f"Selenium fetch failed for {url}: {str(e)}")
-        raise
-    finally:
-        # Cleanup
-        if driver:
-            try:
-                driver.quit()
-            except:
-                pass
-        
-        # Cleanup temp directory
-        if user_data_dir:
-            try:
-                import shutil
-                parent_dir = os.path.dirname(user_data_dir)
-                shutil.rmtree(parent_dir, ignore_errors=True)
-            except:
-                pass
-
 
 NEWS_SOURCE_MAPPING = {
     'www.msnbc.com': {
@@ -403,12 +218,11 @@ def generate_title_from_url(url):
         return f"{domain} News Update"
     except:
         return "Latest News Update"
-    
 def clean_text(text):
     """Clean and normalize text"""
     if not text:
         return ""
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with single space
     return text.strip()
 
 def assign_category(text, region=None):
@@ -464,21 +278,30 @@ def _apply_source_mapping(news_items, mapping):
                     flags=re.IGNORECASE
                 )
             
+            # Also replace any occurrences in content
+            if 'content' in mapped_item:
+                mapped_item['content'] = re.sub(
+                    rf'(https?://)?(www\.)?{re.escape(mapping["link_replace"]["from"])}',
+                    f'https://{mapping["link_replace"]["to"]}',
+                    mapped_item['content'],
+                    flags=re.IGNORECASE
+                )
+            
             mapped_items.append(mapped_item)
         except Exception as e:
-            print(f"Error applying source mapping to item: {str(e)}")
+            logger.error(f"Error applying source mapping to item: {str(e)}")
             continue
     
     return mapped_items
 
 def fetch_top_news(url, max_articles=20, region=None):
     """
-    Enhanced news fetching with better error handling and anti-blocking measures
+    Fetch top news articles from a given URL with source mapping functionality.
     """
     parsed_url = urlparse(url)
     input_domain = parsed_url.netloc.lower()
     
-    # Check for domain mapping (your existing logic)
+    # Check for domain mapping
     mapped_config = None
     for display_domain, config in NEWS_SOURCE_MAPPING.items():
         display_domain_clean = display_domain.replace('www.', '').lower()
@@ -492,7 +315,7 @@ def fetch_top_news(url, max_articles=20, region=None):
     if mapped_config:
         actual_domain = mapped_config['actual_source']
         actual_url = url.replace(input_domain, actual_domain)
-        print(f"Domain mapping active: {input_domain} → {actual_domain}")
+        logger.info(f"Domain mapping active: {input_domain} → {actual_domain}")
     else:
         actual_url = url
     
@@ -500,149 +323,150 @@ def fetch_top_news(url, max_articles=20, region=None):
     source_domain = urlparse(actual_url).netloc.lower()
     
     try:
-        # Handle RSS feeds first (usually more reliable)
+        # Handle RSS feeds
         if any(ext in actual_url.lower() for ext in ['rss', 'feed', 'xml']):
-            print(f"Processing as RSS feed: {actual_url}")
-            try:
-                response = make_request_with_retry(actual_url)
-                feed = feedparser.parse(response.content)
-                
-                if not feed.entries:
-                    print(f"No entries found in feed: {actual_url}")
-                    return []
-                    
-                for entry in feed.entries[:max_articles*2]:
-                    article = {
-                        'title': clean_text(entry.get('title', 'No title')),
-                        'content': clean_text(entry.get('description', 'No content')),
-                        'link': entry.get('link', actual_url),
-                        'date': entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                        'source': source_domain,
-                        'read_more': entry.get('link', actual_url),
-                        'category': assign_category(entry.get('title', '') + " " + entry.get('description', ''), region)
-                    }
-                    
-                    # Extract image
-                    if 'media_content' in entry and entry.media_content:
-                        for media in entry.media_content:
-                            if media.get('type', '').startswith('image'):
-                                article['image'] = media['url']
-                                break
-                    
-                    news_items.append(article)
-                    
-            except Exception as e:
-                print(f"RSS parsing failed: {str(e)}")
-                # Fall through to HTML parsing
-        
-        # Handle HTML pages
-        if not news_items:  # Only try HTML if RSS failed
-            soup = None
+            logger.info(f"Processing as RSS feed: {actual_url}")
+            feed = feedparser.parse(actual_url)
             
-            # First try with requests
-            try:
-                print(f"Trying requests for {actual_url}")
-                response = make_request_with_retry(actual_url)
-                soup = BeautifulSoup(response.content, 'html.parser')
-                print(f"Successfully fetched with requests")
+            if not feed.entries:
+                logger.warning(f"No entries found in feed: {actual_url}")
+                return []
                 
-            except Exception as e:
-                print(f"Requests failed: {str(e)}")
+            for entry in feed.entries[:max_articles*2]:  # Get more entries to account for filtering
+                article = {
+                    'title': clean_text(entry.get('title', 'No title')),
+                    'content': clean_text(entry.get('description', 'No content')),
+                    'link': entry.get('link', actual_url),
+                    'date': entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                    'source': source_domain,
+                    'read_more': entry.get('link', actual_url),
+                    'category': assign_category(entry.get('title', '') + " " + entry.get('description', ''), region)
+                }
                 
-                # Fallback to Selenium
-                try:
-                    print(f"Trying Selenium for {actual_url}")
-                    soup = fetch_with_selenium_fallback(actual_url)
-                    print(f"Successfully fetched with Selenium")
-                    
-                except Exception as selenium_error:
-                    print(f"Selenium also failed: {str(selenium_error)}")
-                    return []
-            
-            if soup:
-                # Process articles from HTML (your existing logic)
-                site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
-                articles = []
-                
-                if site_selectors.get('article'):
-                    articles = soup.select(site_selectors['article'])[:max_articles*3]
-                
-                # Fallback to generic detection
-                if not articles:
-                    article_selectors = [
-                        'article', '[itemtype="http://schema.org/NewsArticle"]',
-                        '.article', '.story', '.post', '.card', '.teaser', '.list__item'
-                    ]
-                    for selector in article_selectors:
-                        articles = soup.select(selector)
-                        if articles:
-                            articles = articles[:max_articles*3]
+                # Extract image
+                if 'media_content' in entry and entry.media_content:
+                    for media in entry.media_content:
+                        if media.get('type', '').startswith('image'):
+                            article['image'] = media['url']
+                            break
+                elif 'enclosures' in entry and entry.enclosures:
+                    for enc in entry.enclosures:
+                        if enc.get('type', '').startswith('image'):
+                            article['image'] = enc.href
                             break
                 
-                print(f"Found {len(articles)} potential articles")
-                
-                # Process articles (your existing processing logic here)
-                for article in articles[:max_articles*2]:
-                    try:
-                        # Extract title
-                        title = None
-                        if site_selectors.get('title'):
-                            title_elem = article.select_one(site_selectors['title'])
-                        else:
-                            for tag in ['h1', 'h2', 'h3']:
-                                title_elem = article.find(tag)
-                                if title_elem:
-                                    break
-                        title = clean_text(title_elem.get_text()) if title_elem else 'No title'
-                        
-                        # Extract content
-                        content = None
-                        if site_selectors.get('content'):
-                            content_elem = article.select_one(site_selectors['content'])
-                        else:
-                            content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
-                        content = clean_text(content_elem.get_text()) if content_elem else title
-                        
-                        # Extract link
-                        if site_selectors.get('link'):
-                            link_elem = article.select_one(site_selectors['link'])
-                        else:
-                            link_elem = article.find('a', href=True)
-                        link = urljoin(actual_url, link_elem['href']) if link_elem and 'href' in link_elem.attrs else actual_url
-                        
-                        # Extract image
-                        if site_selectors.get('image'):
-                            img_elem = article.select_one(site_selectors['image'])
-                        else:
-                            img_elem = article.find('img')
-                        image = None
-                        if img_elem:
-                            for attr in ['src', 'data-src', 'data-original']:
-                                if img_elem.has_attr(attr):
-                                    image = urljoin(actual_url, img_elem[attr])
-                                    break
-                        
-                        # Extract date
-                        if site_selectors.get('date'):
-                            date_elem = article.select_one(site_selectors['date'])
-                        else:
-                            date_elem = article.find('time') or article.find(class_=re.compile('date|time', re.I))
-                        date = clean_text(date_elem['datetime']) if date_elem and date_elem.has_attr('datetime') else \
-                              clean_text(date_elem.get_text()) if date_elem else \
-                              datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        
-                        news_items.append({
-                            'title': title,
-                            'content': content[:200] + "..." if len(content) > 200 else content,
-                            'link': link,
-                            'image': image or "/static/images/default_news.jpg",
-                            'date': date,
-                            'source': source_domain,
-                            'read_more': link,
-                            'category': assign_category(title + " " + content, region)
-                        })
-                    except Exception as e:
-                        print(f"Error processing article: {str(e)}")
+                news_items.append(article)
+        
+        # Handle HTML pages
+        else:
+            headers = {
+                'User-Agent': random.choice(USER_AGENTS),
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            }
+            
+            # Try with requests first
+            try:
+                response = requests.get(actual_url, headers=headers, timeout=15)
+                response.raise_for_status()
+                soup = BeautifulSoup(response.content, 'html.parser')
+            except Exception as e:
+                logger.warning(f"Requests failed, trying Selenium: {str(e)}")
+                try:
+                    options = Options()
+                    options.headless = True
+                    driver = webdriver.Chrome(options=options)
+                    driver.get(actual_url)
+                    time.sleep(3)  # Wait for JavaScript to load
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    driver.quit()
+                except Exception as e:
+                    logger.error(f"Selenium also failed: {str(e)}")
+                    return []
+            
+            # Try site-specific selectors first
+            site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
+            articles = []
+            
+            if site_selectors.get('article'):
+                articles = soup.select(site_selectors['article'])[:max_articles*3]  # Get more articles for filtering
+            
+            # Fallback to generic detection
+            if not articles:
+                article_selectors = [
+                    'article', '[itemtype="http://schema.org/NewsArticle"]',
+                    '.article', '.story', '.post', '.card', '.teaser', '.list__item'
+                ]
+                for selector in article_selectors:
+                    articles = soup.select(selector)
+                    if articles:
+                        articles = articles[:max_articles*3]
+                        break
+            
+            logger.info(f"Found {len(articles)} potential articles before filtering")
+            
+            # Process articles
+            for article in articles[:max_articles*2]:  # Process more to account for filtering
+                try:
+                    # Extract title
+                    title = None
+                    if site_selectors.get('title'):
+                        title_elem = article.select_one(site_selectors['title'])
+                    else:
+                        for tag in ['h1', 'h2', 'h3']:
+                            title_elem = article.find(tag)
+                            if title_elem:
+                                break
+                    title = clean_text(title_elem.get_text()) if title_elem else 'No title'
+                    
+                    # Extract content
+                    content = None
+                    if site_selectors.get('content'):
+                        content_elem = article.select_one(site_selectors['content'])
+                    else:
+                        content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
+                    content = clean_text(content_elem.get_text()) if content_elem else title
+                    
+                    # Extract link
+                    if site_selectors.get('link'):
+                        link_elem = article.select_one(site_selectors['link'])
+                    else:
+                        link_elem = article.find('a', href=True)
+                    link = urljoin(actual_url, link_elem['href']) if link_elem and 'href' in link_elem.attrs else actual_url
+                    
+                    # Extract image
+                    if site_selectors.get('image'):
+                        img_elem = article.select_one(site_selectors['image'])
+                    else:
+                        img_elem = article.find('img')
+                    image = None
+                    if img_elem:
+                        for attr in ['src', 'data-src', 'data-original']:
+                            if img_elem.has_attr(attr):
+                                image = urljoin(actual_url, img_elem[attr])
+                                break
+                    
+                    # Extract date
+                    if site_selectors.get('date'):
+                        date_elem = article.select_one(site_selectors['date'])
+                    else:
+                        date_elem = article.find('time') or article.find(class_=re.compile('date|time', re.I))
+                    date = clean_text(date_elem['datetime']) if date_elem and date_elem.has_attr('datetime') else \
+                          clean_text(date_elem.get_text()) if date_elem else \
+                          datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    news_items.append({
+                        'title': title,
+                        'content': content[:200] + "..." if len(content) > 200 else content,
+                        'link': link,
+                        'image': image or "/static/images/default_news.jpg",
+                        'date': date,
+                        'source': source_domain,
+                        'read_more': link,
+                        'category': assign_category(title + " " + content, region)
+                    })
+                except Exception as e:
+                    logger.warning(f"Error processing article: {str(e)}")
         
         # Apply domain mapping if needed
         if mapped_config:
@@ -675,11 +499,11 @@ def fetch_top_news(url, max_articles=20, region=None):
             
             final_items.append(item)
         
-        print(f"Returning {len(final_items[:max_articles])} articles")
+        logger.info(f"After processing, returning {len(final_items[:max_articles])} articles")
         return final_items[:max_articles]
     
     except Exception as e:
-        print(f"Error fetching news from {url}: {str(e)}")
+        logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
         return []
     
 def get_news_from_url(url, sector):
