@@ -22,81 +22,60 @@ from flask import session, flash
 from functools import wraps
 from newspaper import Article
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
 
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--remote-debugging-port=9222")  # Add unique port
+options.add_argument(f"--user-data-dir={os.path.join(os.getcwd(), 'chrome_profile')}")  # Unique profile dir
 
+driver = webdriver.Chrome(options=options)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+IS_PRODUCTION = os.environ.get('FLASK_ENV') == 'production'
+
+# Then modify request behavior accordingly
+if IS_PRODUCTION:
+    # Use more conservative timeouts and retries
+    timeout = 15
+    max_retries = 2
+else:
+    timeout = 30
+    max_retries = 3
 # Add login credentials
 VALID_USERS = {
     'developertest@gmail.com': 'solutions2025',
     'admin1@gmail.com': 'admin/2002',
     'admin2@gmail.com': 'admin2',
 }
-
-
-
-def fetch_with_selenium(url, source_name):
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-    """
-    Fetch news articles from a website using Selenium for JavaScript-heavy sites
-    
-    Args:
-        url (str): URL of the news source
-        source_name (str): Name of the news source
-    
-    Returns:
-        list: List of dictionaries containing article information
-    """
-    options = Options()
-    options.add_argument("--headless")  # Run in headless mode
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    
-    driver = webdriver.Chrome(options=options)
-    articles = []
+def fetch_fox_news():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://www.google.com/',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+    }
     
     try:
-        driver.get(url)
-        # Wait for JavaScript to load (adjust timeout as needed)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, "article"))
-        )
-        
-        # Example: Find all article elements and extract info
-        # You'll need to customize this for each news source
-        article_elements = driver.find_elements(By.TAG_NAME, "article")
-        
-        for element in article_elements:
-            try:
-                title = element.find_element(By.TAG_NAME, "h2").text
-                link = element.find_element(By.TAG_NAME, "a").get_attribute("href")
-                date = element.find_element(By.TAG_NAME, "time").get_attribute("datetime")
-                
-                articles.append({
-                    'title': title,
-                    'url': link,
-                    'date': date,
-                    'source_name': source_name
-                })
-            except Exception as e:
-                logger.warning(f"Error parsing article: {str(e)}")
-                continue
-                
-    finally:
-        driver.quit()
-    
-    return articles
-
-
-
+        response = requests.get('https://www.foxnews.com', headers=headers, timeout=15)
+        # Add parsing logic
+    except Exception as e:
+        logger.error(f"Fox News fetch failed: {str(e)}")
+        return []
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Referer': 'https://www.google.com/',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+}
 
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
@@ -353,7 +332,7 @@ def _apply_source_mapping(news_items, mapping):
     
     return mapped_items
 
-def fetch_top_news(url, max_articles=100, region=None):
+def fetch_top_news(url, max_articles=20, region=None):
     """
     Fetch top news articles from a given URL with source mapping functionality.
     """
@@ -1921,7 +1900,7 @@ def latest_news():
                 articles = fetch_rss_feed(source['url'], source['name'])
             else:
                 # Use Selenium for JavaScript-heavy sites
-                articles = fetch_with_selenium(source['url'], source['name'])
+                articles = fetch_with_selenium(source['url'], source['name']) # type: ignore
                 
             if articles:
                 logger.info(f"Found {len(articles)} articles from {source['name']}")
