@@ -1,10 +1,9 @@
 import random
-from flask import Flask, redirect, render_template, request, jsonify, session, flash, url_for
-from flask import logging as flask_logging
-from functools import wraps
+from flask import Flask, redirect, render_template, request, jsonify, session
 import pandas as pd
+from scraping import get_stock_market_news, get_stock_data, get_stock_specific_news
 from datetime import datetime, timedelta
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import requests
 import feedparser
@@ -16,57 +15,88 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import re
 import yfinance as yf
+from urllib.parse import urlparse, urljoin
+from flask import url_for
 import logging
+from flask import session, flash
+from functools import wraps
 from newspaper import Article
 
-# Constants and Configuration
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuration dictionaries
+# Add login credentials
 VALID_USERS = {
     'developertest@gmail.com': 'solutions2025',
     'admin1@gmail.com': 'admin/2002',
     'admin2@gmail.com': 'admin2',
 }
 
-def get_stock_data(symbol):
-        """
-        Fetch historical stock data for a given symbol using yfinance.
-        Returns a pandas DataFrame with the stock's historical data.
-        """
-        try:
-            stock = yf.Ticker(symbol)
-            hist = stock.history(period="1mo")  # You can adjust the period as needed
-            return hist
-        except Exception as e:
-            print(f"Error in get_stock_data for {symbol}: {str(e)}")
-            return pd.DataFrame()
+
+
+def fetch_with_selenium(url, source_name):
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    """
+    Fetch news articles from a website using Selenium for JavaScript-heavy sites
+    
+    Args:
+        url (str): URL of the news source
+        source_name (str): Name of the news source
+    
+    Returns:
+        list: List of dictionaries containing article information
+    """
+    options = Options()
+    options.add_argument("--headless")  # Run in headless mode
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    
+    driver = webdriver.Chrome(options=options)
+    articles = []
+    
+    try:
+        driver.get(url)
+        # Wait for JavaScript to load (adjust timeout as needed)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, "article"))
+        )
         
-def get_stock_specific_news(symbol):
-        """
-        Fetch recent news headlines for a given stock symbol using yfinance.
-        Returns a list of dictionaries with 'title', 'link', and 'date'.
-        """
-        try:
-            stock = yf.Ticker(symbol)
-            news = []
-            if hasattr(stock, "news"):
-                for item in stock.news[:5]:  # Limit to 5 news items per symbol
-                    news.append({
-                        "title": item.get("title", ""),
-                        "link": item.get("link", ""),
-                        "date": item.get("providerPublishTime", ""),
-                        "publisher": item.get("publisher", ""),
-                    })
-            return news
-        except Exception as e:
-            print(f"Error fetching news for {symbol}: {str(e)}")
-            return []
+        # Example: Find all article elements and extract info
+        # You'll need to customize this for each news source
+        article_elements = driver.find_elements(By.TAG_NAME, "article")
+        
+        for element in article_elements:
+            try:
+                title = element.find_element(By.TAG_NAME, "h2").text
+                link = element.find_element(By.TAG_NAME, "a").get_attribute("href")
+                date = element.find_element(By.TAG_NAME, "time").get_attribute("datetime")
+                
+                articles.append({
+                    'title': title,
+                    'url': link,
+                    'date': date,
+                    'source_name': source_name
+                })
+            except Exception as e:
+                logger.warning(f"Error parsing article: {str(e)}")
+                continue
+                
+    finally:
+        driver.quit()
+    
+    return articles
+
+
+
 
 SECTORS = {
     "technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "INTC", "AMD"],
@@ -79,6 +109,7 @@ SECTORS = {
     "automotive": ["TSLA", "TM", "F", "GM", "HMC"]
 }
 
+# Configure request headers with multiple user agents
 USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
@@ -196,8 +227,56 @@ SITE_SPECIFIC_SELECTORS = {
         'date': '.timestamp, time, .date, .cd__timestamp, .cnn-search__result-publish-date'
     }
 }
+def scrape_article(url):
+    try:
+        # Special handling for CNN
+        if 'cnn.com' in url:
+            try:
+                response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
+                soup = BeautifulSoup(response.text, 'html.parser')
+                title = (
+                    soup.find('h1', class_='headline__text') or 
+                    soup.find('meta', property='og:title') or
+                    soup.find('title')
+                )
+                if title:
+                    title_text = title.get_text().strip()
+                    return title_text if title_text else generate_title_from_url(url)
+                return generate_title_from_url(url)
+            except:
+                return generate_title_from_url(url)
+        
+        # Default handling for other sites
+        try:
+            response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            title = (
+                soup.find('meta', property='og:title') or
+                soup.find('title') or
+                soup.find('h1')
+            )
+            return title.get_text().strip() if title else generate_title_from_url(url)
+        except:
+            return generate_title_from_url(url)
+        
+    except Exception as e:
+        print(f"Error scraping {url}: {e}")
+        return generate_title_from_url(url)
 
-# Helper Functions
+def generate_title_from_url(url):
+    """Generate a reasonable title from the URL when no title can be scraped"""
+    try:
+        domain = urlparse(url).netloc.replace('www.', '').replace('.com', '').title()
+        path = urlparse(url).path
+        if path:
+            # Take the last part of the path and clean it up
+            last_part = path.split('/')[-1]
+            if last_part:
+                return f"{domain}: {last_part.replace('-', ' ').replace('_', ' ').title()}"
+        return f"{domain} News Update"
+    except:
+        return "Latest News Update"
 def clean_text(text):
     """Clean and normalize text"""
     if not text:
@@ -228,43 +307,6 @@ def assign_category(text, region=None):
         return 'mena'
     else:
         return 'world'
-
-def generate_title_from_url(url):
-    """Generate a reasonable title from the URL when no title can be scraped"""
-    try:
-        domain = urlparse(url).netloc.replace('www.', '').replace('.com', '').title()
-        path = urlparse(url).path
-        if path:
-            # Take the last part of the path and clean it up
-            last_part = path.split('/')[-1]
-            if last_part:
-                return f"{domain}: {last_part.replace('-', ' ').replace('_', ' ').title()}"
-        return f"{domain} News Update"
-    except:
-        return "Latest News Update"
-
-def extract_date_from_url(url):
-    """Extract date from URL patterns"""
-    try:
-        date_match = re.search(r'/(20\d{2})[/-](0?[1-9]|1[0-2])[/-](0?[1-9]|[12][0-9]|3[01])/', url)
-        if date_match:
-            return f"{date_match.group(1)}-{date_match.group(2)}-{date_match.group(3)}"
-        return None
-    except:
-        return None
-
-def is_article_url(url):
-    """Heuristic to determine if a URL points directly to a news article."""
-    parsed = urlparse(url)
-    path = parsed.path.lower()
-    
-    # Common patterns in article URLs
-    article_patterns = [
-        '/article/', '/story/', '/news/', '/post/',
-        '/blog/', '/entry/', '/20', '/19'  # Dates in path
-    ]
-    
-    return any(pattern in path for pattern in article_patterns)
 
 def _apply_source_mapping(news_items, mapping):
     """Apply domain mapping to news items with comprehensive replacements"""
@@ -311,116 +353,7 @@ def _apply_source_mapping(news_items, mapping):
     
     return mapped_items
 
-def get_selenium_driver():
-    """Create and return a configured Selenium WebDriver"""
-    options = Options()
-    options.headless = True
-    driver = webdriver.Chrome(options=options)
-    return driver
-
-def process_article_element(article, site_selectors, actual_url):
-    """Process a single article element from BeautifulSoup"""
-    try:
-        # Extract title
-        title = None
-        if site_selectors.get('title'):
-            title_elem = article.select_one(site_selectors['title'])
-        else:
-            for tag in ['h1', 'h2', 'h3']:
-                title_elem = article.find(tag)
-                if title_elem:
-                    break
-        title = clean_text(title_elem.get_text()) if title_elem else 'No title'
-        
-        # Extract content
-        content = None
-        if site_selectors.get('content'):
-            content_elem = article.select_one(site_selectors['content'])
-        else:
-            content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
-        content = clean_text(content_elem.get_text()) if content_elem else title
-        
-        # Extract link
-        if site_selectors.get('link'):
-            link_elem = article.select_one(site_selectors['link'])
-        else:
-            link_elem = article.find('a', href=True)
-        link = urljoin(actual_url, link_elem['href']) if link_elem and 'href' in link_elem.attrs else actual_url
-        
-        # Extract image
-        if site_selectors.get('image'):
-            img_elem = article.select_one(site_selectors['image'])
-        else:
-            img_elem = article.find('img')
-        image = None
-        if img_elem:
-            for attr in ['src', 'data-src', 'data-original']:
-                if img_elem.has_attr(attr):
-                    image = urljoin(actual_url, img_elem[attr])
-                    break
-        
-        # Extract date
-        if site_selectors.get('date'):
-            date_elem = article.select_one(site_selectors['date'])
-        else:
-            date_elem = article.find('time') or article.find(class_=re.compile('date|time', re.I))
-        date = clean_text(date_elem['datetime']) if date_elem and date_elem.has_attr('datetime') else \
-              clean_text(date_elem.get_text()) if date_elem else \
-              datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        return {
-            'title': title,
-            'content': content[:200] + "..." if len(content) > 200 else content,
-            'link': link,
-            'image': image or "/static/images/default_news.jpg",
-            'date': date,
-            'source': urlparse(actual_url).netloc,
-            'read_more': link,
-            'category': assign_category(title + " " + content, None)
-        }
-    except Exception as e:
-        logger.warning(f"Error processing article: {str(e)}")
-        return None
-
-# Core Functions (unchanged but now more DRY)
-def scrape_article(url):
-    try:
-        # Special handling for CNN
-        if 'cnn.com' in url:
-            try:
-                response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-                soup = BeautifulSoup(response.text, 'html.parser')
-                title = (
-                    soup.find('h1', class_='headline__text') or 
-                    soup.find('meta', property='og:title') or
-                    soup.find('title')
-                )
-                if title:
-                    title_text = title.get_text().strip()
-                    return title_text if title_text else generate_title_from_url(url)
-                return generate_title_from_url(url)
-            except:
-                return generate_title_from_url(url)
-        
-        # Default handling for other sites
-        try:
-            response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            title = (
-                soup.find('meta', property='og:title') or
-                soup.find('title') or
-                soup.find('h1')
-            )
-            return title.get_text().strip() if title else generate_title_from_url(url)
-        except:
-            return generate_title_from_url(url)
-        
-    except Exception as e:
-        print(f"Error scraping {url}: {e}")
-        return generate_title_from_url(url)
-
-def fetch_top_news(url, max_articles=20, region=None):
+def fetch_top_news(url, max_articles=100, region=None):
     """
     Fetch top news articles from a given URL with source mapping functionality.
     """
@@ -499,7 +432,9 @@ def fetch_top_news(url, max_articles=20, region=None):
             except Exception as e:
                 logger.warning(f"Requests failed, trying Selenium: {str(e)}")
                 try:
-                    driver = get_selenium_driver()
+                    options = Options()
+                    options.headless = True
+                    driver = webdriver.Chrome(options=options)
                     driver.get(actual_url)
                     time.sleep(3)  # Wait for JavaScript to load
                     soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -531,9 +466,66 @@ def fetch_top_news(url, max_articles=20, region=None):
             
             # Process articles
             for article in articles[:max_articles*2]:  # Process more to account for filtering
-                processed_article = process_article_element(article, site_selectors, actual_url)
-                if processed_article:
-                    news_items.append(processed_article)
+                try:
+                    # Extract title
+                    title = None
+                    if site_selectors.get('title'):
+                        title_elem = article.select_one(site_selectors['title'])
+                    else:
+                        for tag in ['h1', 'h2', 'h3']:
+                            title_elem = article.find(tag)
+                            if title_elem:
+                                break
+                    title = clean_text(title_elem.get_text()) if title_elem else 'No title'
+                    
+                    # Extract content
+                    content = None
+                    if site_selectors.get('content'):
+                        content_elem = article.select_one(site_selectors['content'])
+                    else:
+                        content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
+                    content = clean_text(content_elem.get_text()) if content_elem else title
+                    
+                    # Extract link
+                    if site_selectors.get('link'):
+                        link_elem = article.select_one(site_selectors['link'])
+                    else:
+                        link_elem = article.find('a', href=True)
+                    link = urljoin(actual_url, link_elem['href']) if link_elem and 'href' in link_elem.attrs else actual_url
+                    
+                    # Extract image
+                    if site_selectors.get('image'):
+                        img_elem = article.select_one(site_selectors['image'])
+                    else:
+                        img_elem = article.find('img')
+                    image = None
+                    if img_elem:
+                        for attr in ['src', 'data-src', 'data-original']:
+                            if img_elem.has_attr(attr):
+                                image = urljoin(actual_url, img_elem[attr])
+                                break
+                    
+                    # Extract date
+                    if site_selectors.get('date'):
+                        date_elem = article.select_one(site_selectors['date'])
+                    else:
+                        date_elem = article.find('time') or article.find(class_=re.compile('date|time', re.I))
+                    date = clean_text(date_elem['datetime']) if date_elem and date_elem.has_attr('datetime') else \
+                          clean_text(date_elem.get_text()) if date_elem else \
+                          datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    news_items.append({
+                        'title': title,
+                        'content': content[:200] + "..." if len(content) > 200 else content,
+                        'link': link,
+                        'image': image or "/static/images/default_news.jpg",
+                        'date': date,
+                        'source': source_domain,
+                        'read_more': link,
+                        'category': assign_category(title + " " + content, region)
+                    })
+                except Exception as e:
+                    logger.warning(f"Error processing article: {str(e)}")
         
         # Apply domain mapping if needed
         if mapped_config:
@@ -1366,28 +1358,24 @@ def stocks():
         # For GET requests, use default symbols
         symbols = default_symbols
     
-        # Fetch stock data for each symbol
-        for symbol in symbols:
-            try:
-                data = get_stock_data(symbol)
-                if not data.empty:
-                    stock_data[symbol] = data
-            except Exception as e:
-                print(f"Error fetching stock data for {symbol}: {str(e)}")
-    
-    
+    # Fetch stock data for each symbol
+    for symbol in symbols:
+        try:
+            data = get_stock_data(symbol)
+            if not data.empty:
+                stock_data[symbol] = data
+        except Exception as e:
+            print(f"Error fetching stock data for {symbol}: {str(e)}")
     
     # Also get news related to these stocks
     news_data = []
     if symbols:
-            for symbol in symbols[:3]:  # Limit to first 3 symbols to avoid too many requests
-                try:
-                    symbol_news = get_stock_specific_news(symbol)
-                    news_data.extend(symbol_news)
-                except Exception as e:
-                    print(f"Error fetching news for {symbol}: {str(e)}")
-    
-    
+        for symbol in symbols[:3]:  # Limit to first 3 symbols to avoid too many requests
+            try:
+                symbol_news = get_stock_specific_news(symbol)
+                news_data.extend(symbol_news)
+            except Exception as e:
+                print(f"Error fetching news for {symbol}: {str(e)}")
     
     return render_template("stocks.html", 
                           stock_data=stock_data, 
@@ -1455,21 +1443,6 @@ def stocks_data():
             'error': str(e)
         })
 
-def generate_short_url(long_url):
-    """Simple short URL generator using a hash (for demonstration purposes)."""
-    import hashlib
-    if not long_url:
-        return ""
-    hash_object = hashlib.md5(long_url.encode())
-    short_hash = hash_object.hexdigest()[:8]
-    return f"https://short.url/{short_hash}"
-
-@app.route('/shorten-url', methods=['POST'])
-def shorten_url():
-    data = request.get_json()
-    long_url = data.get('url')
-    short = generate_short_url(long_url)  # Your custom logic
-    return jsonify({"short_url": short})
 
     
     
@@ -1921,6 +1894,7 @@ def analytics():
 @app.route("/register")
 def register():
     return render_template("register.html")
+
 @app.route("/latest_news", methods=["GET"])
 def latest_news():
     """Display latest news from major news sources with improved scraping"""
@@ -1992,44 +1966,6 @@ def fetch_rss_feed(url, source_name):
             'image': find_image_in_rss_entry(entry)
         })
     
-    return articles
-
-def fetch_with_selenium(url, source_name):
-    """Fetch articles from a JavaScript-heavy site using Selenium and extract with site-specific logic."""
-    articles = []
-    try:
-        options = Options()
-        options.headless = True
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(url)
-        time.sleep(3)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        driver.quit()
-        # Site-specific extraction
-        if "msnbc.com" in url:
-            articles = extract_msnbc_articles(soup, source_name)
-        elif "cnbc.com" in url:
-            articles = extract_cnbc_articles(soup, source_name)
-        elif "apnews.com" in url:
-            articles = extract_apnews_articles(soup, source_name)
-        else:
-            # Fallback: try to extract generic articles
-            for article in soup.find_all('article')[:5]:
-                title_elem = article.find(['h1', 'h2', 'h3'])
-                link_elem = article.find('a', href=True)
-                content_elem = article.find('p')
-                image_elem = article.find('img')
-                if title_elem and link_elem:
-                    articles.append({
-                        'title': clean_text(title_elem.get_text()),
-                        'content': clean_text(content_elem.get_text()) if content_elem else '',
-                        'link': urljoin(url, link_elem['href']),
-                        'image': image_elem['src'] if image_elem and 'src' in image_elem.attrs else '',
-                        'date': datetime.now().strftime("%Y-%m-%d"),
-                        'source_name': source_name
-                    })
-    except Exception as e:
-        logger.warning(f"Error in fetch_with_selenium for {url}: {str(e)}")
     return articles
 
 def find_image_in_rss_entry(entry):
