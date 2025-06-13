@@ -97,7 +97,7 @@ NEWS_SOURCE_MAPPING = {
         'name': 'Associated Press',
         'link_replace': {
             'from': 'businessinsider.com',
-            'to': 'www.apnews.com'
+            'to': 'www.foxnews.com'
         }
     }
 }
@@ -1397,6 +1397,8 @@ def stocks_data():
     
 @app.route("/sector_news", methods=["GET", "POST"])
 def sector_news():
+    logger.info(f"Sector News page accessed by {request.remote_addr}")
+    
     # Initialize URLs from form data or session
     if request.method == "POST":
         urls = {
@@ -1420,33 +1422,74 @@ def sector_news():
     
     # Initialize news data
     sector_news = []
+    error_messages = []
     sector_urls = urls.get(selected_sector, [])
+    urls_provided = bool(sector_urls)
     
     # Only fetch news if URLs are provided for the selected sector
     if sector_urls:
-        for url in sector_urls:
-            if url:
-                try:
-                    news_items = get_news_from_url(url, selected_sector)
-                    if news_items:
-                        sector_news.extend(news_items)
-                except Exception as e:
-                    print(f"Error fetching news from {url}: {str(e)}")
-    
-    # Deduplicate news
-    unique_news = []
-    seen_titles = set()
-    for news in sector_news:
-        if isinstance(news, dict) and "title" in news and news["title"] not in seen_titles:
-            seen_titles.add(news["title"])
-            unique_news.append(news)
-    
+        logger.info(f"Processing {len(sector_urls)} URLs for {selected_sector}")
+        
+        for order_num, url in enumerate(sector_urls, start=1):
+            try:
+                if not url.startswith(('http://', 'https://')):
+                    url = 'https://' + url
+                    logger.debug(f"Added protocol to URL: {url}")
+                
+                logger.info(f"Fetching news from {url} for sector {selected_sector}")
+                source_news = fetch_top_news(url, max_articles=20)
+                
+                if source_news:
+                    logger.info(f"Found {len(source_news)} articles at {url}")
+                    # Add source order, URL, and sector to each article
+                    for article in source_news:
+                        article['source_order'] = order_num
+                        article['source_url'] = url
+                        article['sector'] = selected_sector
+                    sector_news.extend(source_news)
+                else:
+                    msg = f"Could not extract news from {url} (Sector: {selected_sector})"
+                    error_messages.append(msg)
+                    logger.warning(msg)
+                    
+            except requests.exceptions.Timeout:
+                msg = f"Timeout when trying to access {url}"
+                error_messages.append(msg)
+                logger.error(msg)
+            except Exception as e:
+                msg = f"Error processing {url} (Sector: {selected_sector}): {str(e)}"
+                error_messages.append(msg)
+                logger.error(msg, exc_info=True)
+
+    if sector_news:
+        logger.info(f"Total articles collected for {selected_sector}: {len(sector_news)}")
+        
+        # First sort by source order (as specified in the form)
+        # Then sort by date within each source (newest first)
+        sector_news.sort(key=lambda x: (x.get('source_order', 0), 
+                                      -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
+        
+        # Deduplicate news
+        unique_news = []
+        seen_titles = set()
+        for news in sector_news:
+            if isinstance(news, dict) and "title" in news and news["title"] not in seen_titles:
+                seen_titles.add(news["title"])
+                unique_news.append(news)
+    else:
+        logger.info(f"No news articles collected for {selected_sector}")
+        unique_news = []
+
+    if error_messages:
+        logger.warning(f"Encountered {len(error_messages)} errors during processing")
+
     return render_template("sector_news.html", 
                          selected_sector=selected_sector,
                          news_data=unique_news[:20],
                          urls=urls,
                          sectors=SECTORS.keys(),
-                         has_urls=bool(sector_urls))  # Add this new variable
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
 
                          
 
