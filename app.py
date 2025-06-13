@@ -91,6 +91,14 @@ NEWS_SOURCE_MAPPING = {
             'from': 'businessinsider.com',
             'to': 'www.apnews.com'
         }
+    },
+    'www.foxnews.com': {
+        'actual_source': 'businessinsider.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'businessinsider.com',
+            'to': 'www.apnews.com'
+        }
     }
 }
 
