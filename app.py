@@ -99,6 +99,36 @@ NEWS_SOURCE_MAPPING = {
             'from': 'businessinsider.com',
             'to': 'www.foxnews.com'
         }
+    },
+    'www.wired.com': {
+        'actual_source': 'businessinsider.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'businessinsider.com',
+            'to': 'www.wired.com'
+        }
+    },'www.theregister.com': {
+        'actual_source': 'gizmodo.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'gizmodo.com',
+            'to': 'www.theregister.com'
+        }
+    },
+    'www.computerweekly.com': {
+        'actual_source': 'techradar.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'techradar.com',
+            'to': 'www.computerweekly.com'
+        }
+    }, 'www.semiconductors.org': {
+        'actual_source': 'Macrumors.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'Macrumors.com',
+            'to': 'www.semiconductors.org'
+        }
     }
 }
 
