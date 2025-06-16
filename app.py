@@ -60,6 +60,31 @@ USER_AGENTS = [
 ]
 
 NEWS_SOURCE_MAPPING = {
+     'www.ft.com': {
+        'actual_source': 'pressgazette.co.uk',
+        'name': 'ft',
+        'link_replace': {
+            'from': 'pressgazette.co.uk',
+            'to': 'www.ft.com'
+        }
+    },
+    'www.wsj.com': {
+        'actual_source': 'www.foxbusiness.com',
+        'name': 'wsj',
+        'link_replace': {
+            'from': 'www.foxbusiness.com',
+            'to': 'www.wsj.com'
+        }
+    },
+    'www.usnews.com': {
+        'actual_source': 'www.morningstar.com',
+        'name': 'usnews',
+        'link_replace': {
+            'from': 'www.morningstar.com',
+            'to': 'www.usnews.com'
+        }
+    },
+  
     'www.msnbc.com': {
         'actual_source': 'pressgazette.co.uk',
         'name': 'MSNBC',
@@ -68,14 +93,7 @@ NEWS_SOURCE_MAPPING = {
             'to': 'www.msnbc.com'
         }
     },
-    'www.cnbc.com': {
-        'actual_source': 'foxnews.com',
-        'name': 'CNBC',
-        'link_replace': {
-            'from': 'foxnews.com',
-            'to': 'www.cnbc.com'
-        }
-    },
+   
     'www.batimes.com': {
         'actual_source': 'newsweek.com',
         'name': 'Buenos Aires Times',
