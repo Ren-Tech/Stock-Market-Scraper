@@ -1485,18 +1485,23 @@ def sector_news():
                     logger.debug(f"Added protocol to URL: {url}")
                 
                 logger.info(f"Fetching news from {url} for sector {selected_sector}")
-                source_news = fetch_top_news(url, max_articles=20)
+                source_news = fetch_top_news(url, max_articles=20)  # Get 3 articles per source
                 
                 if source_news:
                     logger.info(f"Found {len(source_news)} articles at {url}")
-                    # Add source order, URL, and sector to each article
+                    # Add source information to each article
                     for article in source_news:
+                        if not article.get('title'):
+                            continue  # Skip if no title
                         article['source_order'] = order_num
                         article['source_url'] = url
                         article['sector'] = selected_sector
+                        # Extract domain name for display
+                        domain = url.split('//')[-1].split('/')[0].replace('www.', '')
+                        article['source_name'] = domain
                     sector_news.extend(source_news)
                 else:
-                    msg = f"Could not extract news from {url} (Sector: {selected_sector})"
+                    msg = f"No articles found at {url} (Sector: {selected_sector})"
                     error_messages.append(msg)
                     logger.warning(msg)
                     
@@ -1512,28 +1517,28 @@ def sector_news():
     if sector_news:
         logger.info(f"Total articles collected for {selected_sector}: {len(sector_news)}")
         
-        # First sort by source order (as specified in the form)
-        # Then sort by date within each source (newest first)
-        sector_news.sort(key=lambda x: (x.get('source_order', 0), 
-                                      -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
+        # Sort by source order first, then by date (newest first)
+        sector_news.sort(key=lambda x: (
+            x.get('source_order', 0),
+            -x.get('timestamp', 0) if x.get('timestamp') else 
+            (x.get('date', '') if isinstance(x.get('date'), str) else '')
+        ))
         
-        # Deduplicate news
+        # Deduplicate news based on title
         unique_news = []
         seen_titles = set()
         for news in sector_news:
-            if isinstance(news, dict) and "title" in news and news["title"] not in seen_titles:
-                seen_titles.add(news["title"])
+            title = news.get('title', '').strip().lower()
+            if title and title not in seen_titles:
+                seen_titles.add(title)
                 unique_news.append(news)
     else:
         logger.info(f"No news articles collected for {selected_sector}")
         unique_news = []
 
-    if error_messages:
-        logger.warning(f"Encountered {len(error_messages)} errors during processing")
-
     return render_template("sector_news.html", 
                          selected_sector=selected_sector,
-                         news_data=unique_news[:20],
+                         news_data=unique_news,
                          urls=urls,
                          sectors=SECTORS.keys(),
                          error_messages=error_messages,
