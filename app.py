@@ -842,7 +842,7 @@ def login_required(f):
 def market_news():
     logger.info(f"Market News page accessed by {request.remote_addr}")
     
-    # Initialize market regions with the same structure as current affairs
+    # Initialize market regions
     markets = {
         'us': "United States",
         'uk': "United Kingdom",
@@ -870,15 +870,11 @@ def market_news():
         ordered_urls = {}
         market_inputs = request.form.getlist(f"{selected_market}_urls")
         
-        # DEBUG: Log the form inputs
-        logger.debug(f"Form inputs for {selected_market}: {market_inputs}")
-        
+        # Process each URL in order
         for i, url in enumerate(market_inputs, start=1):
             url = url.strip()
             if url:
                 ordered_urls[i] = url
-                # FIX: Don't append to session list here, do it after processing
-                # market_urls[selected_market].append(url)
         
         if ordered_urls:
             urls_provided = True
@@ -887,7 +883,7 @@ def market_news():
         if urls_provided:
             logger.info(f"Processing {len(ordered_urls)} URLs for market {selected_market}")
             
-            # FIX: Clear existing URLs for this market before processing
+            # Clear existing URLs for this market before processing
             market_urls[selected_market] = []
             
             # Process URLs in their specified order
@@ -895,11 +891,10 @@ def market_news():
                 try:
                     if not url.startswith(('http://', 'https://')):
                         url = 'https://' + url
-                        logger.debug(f"Added protocol to URL: {url}")
                     
                     logger.info(f"Fetching market news from {url} for market {selected_market}")
                     
-                    # Use the same fetch_top_news function as current affairs
+                    # Fetch news from this URL
                     source_news = fetch_top_news(url, max_articles=20, region=selected_market)
                     
                     if source_news:
@@ -907,21 +902,17 @@ def market_news():
                         # Add market-specific metadata
                         for article in source_news:
                             article['market'] = markets[selected_market]
-                            article['source_order'] = order_num
-                            article['source_url'] = url
+                            article['source_order'] = order_num  # Track the order number
+                            article['source_url'] = url  # Track the source URL
                         news_data.extend(source_news)
                         
-                        # FIX: Add URL to session only after successful processing
+                        # Add URL to session after successful processing
                         market_urls[selected_market].append(url)
                     else:
                         msg = f"Could not extract news from {url} (Market: {selected_market})"
                         error_messages.append(msg)
                         logger.warning(msg)
                         
-                except requests.exceptions.Timeout:
-                    msg = f"Timeout when trying to access {url}"
-                    error_messages.append(msg)
-                    logger.error(msg)
                 except Exception as e:
                     msg = f"Error processing {url} (Market: {selected_market}): {str(e)}"
                     error_messages.append(msg)
@@ -929,28 +920,11 @@ def market_news():
             
             # Update session with the latest URLs
             session['market_urls'] = market_urls
-        else:
-            msg = "No URLs provided to fetch market news"
-            error_messages.append(msg)
-            logger.warning(msg)
 
-    # DEBUG: Log what we're about to pass to template
-    logger.info(f"Passing to template: {len(news_data)} articles, selected_market: {selected_market}")
-    logger.info(f"Market URLs in session: {market_urls}")
-    logger.debug(f"Sample news data: {news_data[:2] if news_data else 'None'}")
-
-    if news_data:
-        logger.info(f"Total market articles collected: {len(news_data)}")
-        
-        # Sort by source order (as specified in the form)
-        # Then sort by date within each source (newest first)
-        news_data.sort(key=lambda x: (x.get('source_order', 0), 
-                                    -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
-    else:
-        logger.info("No market news articles collected in this request")
-
-    if error_messages:
-        logger.warning(f"Encountered {len(error_messages)} errors during processing")
+    # Sort news by source order (as specified in the form)
+    # Then sort by date within each source (newest first)
+    news_data.sort(key=lambda x: (x.get('source_order', 0), 
+                                -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
 
     return render_template("market_news.html", 
                          news_data=news_data,

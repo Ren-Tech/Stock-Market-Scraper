@@ -33,7 +33,7 @@
     transition: all 0.3s;
   }
 
-  /* Market Navigation Bar - Enhanced from Sector News */
+  /* Market Navigation Bar */
   .market-navbar {
     display: flex;
     flex-wrap: wrap;
@@ -89,7 +89,7 @@
     border-color: rgba(13, 110, 253, 0.25);
   }
 
-  /* News Card Styles - Enhanced */
+  /* News Card Styles */
   .news-card {
     height: 100%;
     transition: all 0.3s ease;
@@ -200,6 +200,41 @@
     padding: 8px 12px;
     border-radius: 5px;
     margin-bottom: 15px;
+  }
+
+  /* New styles for grouped news by source */
+  .source-group {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 15px;
+  }
+  
+  .source-header {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .source-number {
+    background-color: #0d6efd;
+    color: white;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+  
+  .source-url-display {
+    font-family: monospace;
+    word-break: break-all;
+    flex-grow: 1;
   }
 
   @keyframes fadeIn {
@@ -416,59 +451,68 @@
         </div>
         <div class="card-body">
           {% if news_data %}
-          <div class="row" id="newsContainer">
+            <!-- Group news by source URL -->
+            {% set grouped_news = {} %}
             {% for news in news_data %}
-            <div class="col-md-6">
-              <div class="card news-card position-relative">
-                {% if news.image %}
-                <img
-                  src="{{ news.image }}"
-                  class="news-image"
-                  alt="News Image"
-                  onerror="this.style.display='none'"
-                />
-                {% endif %}
-                <div class="card-body">
-                  <h5 class="card-title">{{ news.title }}</h5>
-                  <p class="card-text news-content">{{ news.content or news.description or '' }}</p>
-                  
-                  <!-- Show source URL -->
-                  {% if news.source_url %}
-                  <p class="source-url mb-2">
-                    <i class="bi bi-link-45deg"></i> {{ news.source_url[:50] }}...
-                  </p>
-                  {% endif %}
-                  
-                  <!-- Show date if available -->
-                  {% if news.date %}
-                  <small class="text-muted">
-                    <i class="bi bi-calendar3"></i> {{ news.date }}
-                  </small>
-                  {% endif %}
-                  
-                  <div class="mt-2">
-                    <a
-                      href="{{ news.link }}"
-                      target="_blank"
-                      class="btn btn-sm btn-primary"
-                    >
-                      Read More <i class="bi bi-arrow-up-right"></i>
-                    </a>
-                  </div>
+              {% if news.source_url not in grouped_news %}
+                {% set _ = grouped_news.update({news.source_url: []}) %}
+              {% endif %}
+              {% set _ = grouped_news[news.source_url].append(news) %}
+            {% endfor %}
+            
+            <!-- Display news grouped by source URL in order -->
+            {% for url, articles in grouped_news.items() %}
+              <div class="source-group">
+                <div class="source-header">
+                  <div class="source-number">{{ articles[0].source_order }}</div>
+                  <div class="source-url-display">{{ url }}</div>
                 </div>
                 
-                <!-- Badges -->
-                <div class="market-badge">{{ news.market }}</div>
-                {% if news.source %}
-                <div class="source-badge">{{ news.source }}</div>
-                {% endif %}
-                {% if news.source_order %}
-                <div class="source-order-badge">#{{ news.source_order }}</div>
-                {% endif %}
+                <div class="row">
+                  {% for news in articles %}
+                  <div class="col-md-6">
+                    <div class="card news-card position-relative">
+                      {% if news.image %}
+                      <img
+                        src="{{ news.image }}"
+                        class="news-image"
+                        alt="News Image"
+                        onerror="this.style.display='none'"
+                      />
+                      {% endif %}
+                      <div class="card-body">
+                        <h5 class="card-title">{{ news.title }}</h5>
+                        <p class="card-text news-content">{{ news.content or news.description or '' }}</p>
+                        
+                        <!-- Show date if available -->
+                        {% if news.date %}
+                        <small class="text-muted">
+                          <i class="bi bi-calendar3"></i> {{ news.date }}
+                        </small>
+                        {% endif %}
+                        
+                        <div class="mt-2">
+                          <a
+                            href="{{ news.link }}"
+                            target="_blank"
+                            class="btn btn-sm btn-primary"
+                          >
+                            Read More <i class="bi bi-arrow-up-right"></i>
+                          </a>
+                        </div>
+                      </div>
+                      
+                      <!-- Badges -->
+                      <div class="market-badge">{{ news.market }}</div>
+                      {% if news.source %}
+                      <div class="source-badge">{{ news.source }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
               </div>
-            </div>
             {% endfor %}
-          </div>
           {% else %}
           <div class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>
@@ -603,9 +647,6 @@
       
       // Update selected market in form
       $("#selectedMarket").val(market);
-      
-      // Navigate to the market (the href will handle this)
-      // No need to prevent default - let the link work naturally
     });
 
     // Add source field functionality
@@ -632,7 +673,7 @@
       );
     });
 
-    // Form submission - FIXED VERSION (No AJAX, normal form submission)
+    // Form submission
     $("#marketForm").submit(function (e) {
       // Don't prevent default - let form submit normally
       $("#refreshStatus").removeClass("d-none");
@@ -640,9 +681,6 @@
       // Show loading state
       const submitBtn = $(this).find('button[type="submit"]');
       submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
-      
-      // Form will submit naturally and page will reload with new data
-      // No e.preventDefault() - this was the issue!
     });
 
     // Highlight current market
