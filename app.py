@@ -134,10 +134,10 @@ NEWS_SOURCE_MAPPING = {
         }
     },
     'www.computerweekly.com': {
-        'actual_source': 'techradar.com',
+        'actual_source': 'thenextweb.com',
         'name': 'Associated Press',
         'link_replace': {
-            'from': 'techradar.com',
+            'from': 'thenextweb.com',
             'to': 'www.computerweekly.com'
         }
     }, 'www.semiconductors.org': {
@@ -146,6 +146,30 @@ NEWS_SOURCE_MAPPING = {
         'link_replace': {
             'from': 'Macrumors.com',
             'to': 'www.semiconductors.org'
+        }
+    },
+    'www.semiconductor-today.com': {
+        'actual_source': 'cworld.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'cworld.com',
+            'to': 'www.semiconductor-today.com'
+        }
+    },
+    'www.electronicsweekly.com': { 
+        'actual_source': 'techpout.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'techpout.com',
+            'to': 'www.electronicsweekly.com'
+        }
+    },
+    'www.marketwatch.com': { 
+        'actual_source': 'techmonitor.ai',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'techmonitor.ai',
+            'to': 'www.marketwatch.com'
         }
     }
 }
