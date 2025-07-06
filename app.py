@@ -172,7 +172,7 @@ NEWS_SOURCE_MAPPING = {
             'to': 'www.marketwatch.com'
         }
     },
-     'www.bbc.co.uk/news/technology/': { 
+     'www.bbc.co.uk': { 
         'actual_source': 'venturebeat.com',
         'name': 'Associated Press',
         'link_replace': {
