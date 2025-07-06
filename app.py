@@ -61,10 +61,10 @@ USER_AGENTS = [
 
 NEWS_SOURCE_MAPPING = {
      'www.ft.com': {
-        'actual_source': 'pressgazette.co.uk',
+        'actual_source': 'howtogeek.com',
         'name': 'ft',
         'link_replace': {
-            'from': 'pressgazette.co.uk',
+            'from': 'howtogeek.com',
             'to': 'www.ft.com'
         }
     },
@@ -149,10 +149,10 @@ NEWS_SOURCE_MAPPING = {
         }
     },
     'www.semiconductor-today.com': {
-        'actual_source': 'cworld.com',
+        'actual_source': 'pcworld.com',
         'name': 'Associated Press',
         'link_replace': {
-            'from': 'cworld.com',
+            'from': 'pcworld.com',
             'to': 'www.semiconductor-today.com'
         }
     },
@@ -170,6 +170,14 @@ NEWS_SOURCE_MAPPING = {
         'link_replace': {
             'from': 'techmonitor.ai',
             'to': 'www.marketwatch.com'
+        }
+    },
+     'www.bbc.co.uk/news/technology/': { 
+        'actual_source': 'venturebeat.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'venturebeat.com',
+            'to': 'www.bbc.co.uk/news/technology/'
         }
     }
 }
