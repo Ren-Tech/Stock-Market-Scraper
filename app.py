@@ -1102,7 +1102,7 @@ def market_news():
         ordered_urls = {}
         market_inputs = request.form.getlist(f"{selected_market}_urls")
         
-        # Process each URL in order
+        # Process each URL in order (including dynamically added ones)
         for i, url in enumerate(market_inputs, start=1):
             url = url.strip()
             if url:
