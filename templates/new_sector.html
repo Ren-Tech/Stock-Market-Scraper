@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+{% block title %}Market News{% endblock %}
+{% block content %}
+
+<style>
+  /* Base Styles */
+  body {
+    background-color: #f8f9fa;
+  }
+  
+  /* Timer and Form Styles */
+  .timer-container {
+    background-color: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .timer-display-wrapper {
+    min-width: 60px;
+    text-align: center;
+    background-color: white;
+  }
+
+  .timer-display {
+    font-family: monospace;
+    font-weight: bold;
+  }
+
+  .timer-btn {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.3s;
+  }
+
+  /* Market Navigation Bar */
+  .market-navbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 15px 0;
+    justify-content: center;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .market-nav-btn {
+    padding: 10px 18px;
+    border-radius: 25px;
+    background-color: #f1f3f5;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #343a40;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .market-nav-btn:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+    color: #343a40;
+  }
+
+  .market-nav-btn.active {
+    background-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+    border-color: #0d6efd;
+  }
+
+  /* Accordion Styles */
+  .accordion-button {
+    font-weight: 500;
+  }
+
+  .accordion-button:not(.collapsed) {
+    background-color: rgba(13, 110, 253, 0.05);
+    color: #0d6efd;
+  }
+
+  .accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(13, 110, 253, 0.25);
+  }
+
+  /* News Card Styles */
+  .news-card {
+    height: 100%;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  .news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .news-image {
+    height: 180px;
+    object-fit: cover;
+    width: 100%;
+    transition: transform 0.5s ease;
+  }
+
+  .news-card:hover .news-image {
+    transform: scale(1.05);
+  }
+
+  .market-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(13, 110, 253, 0.9);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    text-transform: capitalize;
+  }
+
+  .source-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+  }
+
+  .source-order-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(220, 53, 69, 0.8);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+  }
+
+  .news-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .source-url {
+    font-size: 0.7rem;
+    word-break: break-all;
+    color: #6c757d;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+
+  .source-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+
+  .source-field:hover {
+    transform: translateX(3px);
+  }
+
+  .input-group-text {
+    background-color: #f8f9fa;
+    font-weight: 500;
+  }
+
+  .current-market {
+    border-left: 4px solid #0d6efd;
+  }
+
+  .error-alert {
+    margin-bottom: 15px;
+  }
+
+  .refresh-status {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+
+  /* New styles for grouped news by source */
+  .source-group {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 15px;
+  }
+  
+  .source-header {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .source-number {
+    background-color: #0d6efd;
+    color: white;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+  
+  .source-url-display {
+    font-family: monospace;
+    word-break: break-all;
+    flex-grow: 1;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .market-nav-btn {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+    }
+
+    .news-image {
+      height: 150px;
+    }
+  }
+</style>
+
+<div class="container mt-4">
+  <!-- Header with Timer and Search Toggle -->
+  <div class="d-flex align-items-center mt-3">
+    <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-arrow-right-circle"></i> Hide Search
+    </button>
+
+    <!-- Timer Container -->
+    <div class="timer-container ms-3 d-flex align-items-center">
+      <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
+        <i class="bi bi-play-fill"></i>
+      </button>
+      <div class="timer-display-wrapper border rounded px-2 mx-1">
+        <span id="countdownDisplay" class="timer-display">--:--</span>
+      </div>
+      <button
+        id="timerReset"
+        class="btn btn-sm btn-outline-secondary timer-btn"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Top Navbar for Markets -->
+  <div class="market-navbar mt-4">
+    {% for market_id, market_name in markets.items() %}
+    <a href="{{ url_for('new_sector', market=market_id) }}"
+       class="market-nav-btn {% if market_id == selected_market %}active{% endif %}"
+       data-market="{{ market_id }}">
+      {{ market_name }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Error Messages -->
+  {% if error_messages %}
+  <div class="alert alert-warning error-alert">
+    <h6><i class="bi bi-exclamation-triangle me-2"></i>Processing Warnings:</h6>
+    <ul class="mb-0">
+      {% for error in error_messages %}
+      <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Refresh Status (Hidden by default) -->
+  <div id="refreshStatus" class="refresh-status d-none">
+    <div class="d-flex align-items-center">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      <span>Refreshing market news...</span>
+    </div>
+    <div class="progress mt-2" style="height: 4px;">
+      <div id="refreshProgress" class="progress-bar" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <!-- Left Column: Form -->
+    <div class="col-md-4" id="leftColumn">
+      <form method="POST" id="marketForm">
+        <input type="hidden" name="market" value="{{ selected_market }}" id="selectedMarket">
+        
+        <div class="card shadow-sm p-3" style="border-radius: 10px">
+          <h6 class="text-center text-primary mb-3">
+            <i class="bi bi-globe"></i> Market Regions
+          </h6>
+
+          <div class="accordion" id="marketAccordion">
+            {% for market_id, market_name in markets.items() %}
+            <div
+              class="accordion-item {% if market_id == selected_market %}current-market{% endif %}"
+              data-market-target="{{ market_id }}"
+            >
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button {% if market_id != selected_market %}collapsed{% endif %}"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse{{ market_id }}"
+                >
+                  <i class="bi bi-geo-alt-fill me-2"></i>
+                  {{ market_name }}
+                </button>
+              </h2>
+              <div
+                id="collapse{{ market_id }}"
+                class="accordion-collapse collapse {% if market_id == selected_market %}show{% endif %}"
+                data-bs-parent="#marketAccordion"
+              >
+                <div class="accordion-body">
+                  <div id="{{ market_id }}Container" class="source-container">
+                    {% set market_url_list = market_urls.get(market_id, []) %}
+                    {% for i in range(1, 6) %}
+                    <div class="input-group mb-2 source-field">
+                      <span class="input-group-text">#{{ i }}</span>
+                      <input
+                        type="text"
+                        name="{{ market_id }}_urls"
+                        class="form-control"
+                        placeholder="Enter URL"
+                        value="{{ market_url_list[i-1] if i <= market_url_list|length else '' }}"
+                      />
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Show additional URL fields if there are more than 5 URLs -->
+                    {% if market_url_list|length > 5 %}
+                      {% for i in range(6, market_url_list|length + 1) %}
+                      <div class="input-group mb-2 source-field">
+                        <span class="input-group-text">#{{ i }}</span>
+                        <input
+                          type="text"
+                          name="{{ market_id }}_urls"
+                          class="form-control"
+                          placeholder="Enter URL"
+                          value="{{ market_url_list[i-1] }}"
+                        />
+                      </div>
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
+                    data-market="{{ market_id }}"
+                  >
+                    <i class="bi bi-plus-circle"></i> Add Source
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Frequency Dropdown -->
+          <div class="d-flex align-items-center justify-content-between mt-3">
+            <label class="small mb-0">
+              <i class="bi bi-clock-history me-1"></i> Update Frequency
+            </label>
+            <select
+              id="frequencyDropdown"
+              class="form-select form-select-sm"
+              style="width: 70%"
+            >
+              <option value="120">2 Min</option>
+              <option value="300">5 Min</option>
+              <option value="600">10 Min</option>
+              <option value="1200">20 Min</option>
+            </select>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-4 text-center">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-save2"></i> Fetch Market News
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: News Display -->
+    <div class="col-md-8" id="rightColumn">
+      <div
+        class="card"
+        style="
+          border-radius: 10px;
+          border: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        "
+      >
+        <div
+          class="card-header bg-info text-white"
+          style="border-radius: 10px 10px 0 0 !important"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+              <i class="bi bi-newspaper me-2"></i>
+              Latest {{ markets[selected_market] }} Market News
+            </h3>
+            {% if news_data %}
+            <span class="badge bg-light text-dark">
+              {{ news_data|length }} Articles
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          {% if news_data %}
+            <!-- Group news by source URL -->
+            {% set grouped_news = {} %}
+            {% for news in news_data %}
+              {% if news.source_url not in grouped_news %}
+                {% set _ = grouped_news.update({news.source_url: []}) %}
+              {% endif %}
+              {% set _ = grouped_news[news.source_url].append(news) %}
+            {% endfor %}
+            
+            <!-- Display news grouped by source URL in order -->
+            {% for url, articles in grouped_news.items() %}
+              <div class="source-group">
+                <div class="source-header">
+                  <div class="source-number">{{ articles[0].source_order }}</div>
+                  <div class="source-url-display">{{ url }}</div>
+                </div>
+                
+                <div class="row">
+                  {% for news in articles %}
+                  <div class="col-md-6">
+                    <div class="card news-card position-relative">
+                      {% if news.image %}
+                      <img
+                        src="{{ news.image }}"
+                        class="news-image"
+                        alt="News Image"
+                        onerror="this.style.display='none'"
+                      />
+                      {% endif %}
+                      <div class="card-body">
+                        <h5 class="card-title">{{ news.title }}</h5>
+                        <p class="card-text news-content">{{ news.content or news.description or '' }}</p>
+                        
+                        <!-- Show date if available -->
+                        {% if news.date %}
+                        <small class="text-muted">
+                          <i class="bi bi-calendar3"></i> {{ news.date }}
+                        </small>
+                        {% endif %}
+                        
+                        <div class="mt-2">
+                          <a
+                            href="{{ news.link }}"
+                            target="_blank"
+                            class="btn btn-sm btn-primary"
+                          >
+                            Read More <i class="bi bi-arrow-up-right"></i>
+                          </a>
+                        </div>
+                      </div>
+                      
+                      <!-- Badges -->
+                      <div class="market-badge">{{ news.market }}</div>
+                      {% if news.source %}
+                      <div class="source-badge">{{ news.source }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            {% if market_urls.get(selected_market) %}
+              No recent news found for {{ markets[selected_market] }} markets. Try refreshing or adding different news sources.
+            {% else %}
+              Please add URLs for {{ markets[selected_market] }} markets to display news. Enter news website URLs in the form on the left.
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function () {
+    // Timer functionality
+    let timerInterval;
+    let timerSeconds = 120;
+    let isTimerRunning = false;
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timerSeconds / 60);
+      const seconds = timerSeconds % 60;
+      $("#countdownDisplay").text(
+        `${minutes.toString().padStart(2, "0")}:${seconds
+          .toString()
+          .padStart(2, "0")}`
+      );
+    }
+
+    function startTimer() {
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        $("#timerToggle")
+          .html('<i class="bi bi-pause-fill"></i>')
+          .removeClass("btn-success")
+          .addClass("btn-warning");
+        $("#refreshStatus").removeClass("d-none");
+
+        const totalSeconds = timerSeconds;
+
+        timerInterval = setInterval(function () {
+          timerSeconds--;
+          updateTimerDisplay();
+
+          const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
+          $("#refreshProgress").css("width", progress + "%");
+
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            $("#marketForm").submit();
+          }
+        }, 1000);
+      }
+    }
+
+    function pauseTimer() {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        $("#timerToggle")
+          .html('<i class="bi bi-play-fill"></i>')
+          .removeClass("btn-warning")
+          .addClass("btn-success");
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerSeconds = parseInt($("#frequencyDropdown").val());
+      updateTimerDisplay();
+      $("#timerToggle")
+        .html('<i class="bi bi-play-fill"></i>')
+        .removeClass("btn-warning")
+        .addClass("btn-success");
+      $("#refreshProgress").css("width", "0%");
+      $("#refreshStatus").addClass("d-none");
+    }
+
+    // Timer controls
+    $("#timerToggle").click(function () {
+      if (isTimerRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    $("#timerReset").click(resetTimer);
+
+    // Set initial timer value
+    $("#frequencyDropdown").change(function () {
+      timerSeconds = parseInt($(this).val());
+      resetTimer();
+    });
+
+    // Initialize timer
+    timerSeconds = parseInt($("#frequencyDropdown").val());
+    updateTimerDisplay();
+
+    // Start timer if news exists
+    if ($(".news-card").length > 0) {
+      startTimer();
+    }
+
+    // Search toggle functionality
+    let isSearchVisible = true;
+    $("#toggleSearch").click(function () {
+      if (isSearchVisible) {
+        $("#leftColumn").hide();
+        $("#rightColumn").removeClass("col-md-8").addClass("col-md-12");
+        $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
+        $(this).removeClass("btn-outline-primary").addClass("btn-primary");
+      } else {
+        $("#leftColumn").show();
+        $("#rightColumn").removeClass("col-md-12").addClass("col-md-8");
+        $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
+        $(this).removeClass("btn-primary").addClass("btn-outline-primary");
+      }
+      isSearchVisible = !isSearchVisible;
+    });
+
+    // Market navigation functionality
+    $(".market-nav-btn").click(function (e) {
+      const market = $(this).data("market");
+      
+      // Update selected market in form
+      $("#selectedMarket").val(market);
+    });
+
+    // Add source field functionality
+    $(".add-source-btn").click(function () {
+      const market = $(this).data("market");
+      const container = $(`#${market}Container`);
+      const nextOrder = container.find(".source-field").length + 1;
+
+      const newField = `
+        <div class="input-group mb-2 source-field">
+          <span class="input-group-text">#${nextOrder}</span>
+          <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL">
+        </div>
+      `;
+
+      container.append(newField);
+
+      // Scroll to the new field
+      container.animate(
+        {
+          scrollTop: container[0].scrollHeight,
+        },
+        500
+      );
+    });
+
+    // Form submission
+    $("#marketForm").submit(function (e) {
+      // Don't prevent default - let form submit normally
+      $("#refreshStatus").removeClass("d-none");
+      
+      // Show loading state
+      const submitBtn = $(this).find('button[type="submit"]');
+      submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
+    });
+
+    // Highlight current market
+    $(".accordion-item").removeClass("current-market");
+    $(`.accordion-item[data-market-target="{{ selected_market }}"]`).addClass("current-market");
+
+    // Show only selected market accordion on mobile
+    if ($(window).width() < 768) {
+      $(".accordion-item").not(`[data-market-target="{{ selected_market }}"]`).hide();
+    }
+
+    // Auto-refresh functionality based on timer
+    // Start timer automatically if we have news data
+    if ($(".news-card").length > 0) {
+      setTimeout(startTimer, 1000);
+    }
+  });
+</script>
+{% endblock %}

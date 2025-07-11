@@ -710,6 +710,8 @@ def scrape_news_portal(url, sector):
     
     return articles
 
+
+
 @app.route("/current_affairs", methods=["GET", "POST"])
 def current_affairs():
     logger.info(f"Current Affairs page accessed by {request.remote_addr}")
@@ -832,6 +834,7 @@ def current_affairs():
 
 
 
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -867,6 +870,203 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
     return decorated_function@app.route("/current_affairs", methods=["GET", "POST"])
+
+
+@app.route("/new_current", methods=["GET", "POST"])
+@login_required
+def new_current():
+    logger.info(f"New Current page accessed by {request.remote_addr}")
+    
+    # Initialize market regions
+    markets = {
+        
+        'us': "North America",
+        'uk': "South America",
+        'ge': "Europe",
+        'fr': "Asia",
+        'china': "Africa",
+        'europe': "Australia",
+        'south_america': "MENA"
+    }
+    
+    # Get or initialize market URLs from session
+    market_urls = session.get('market_urls', {market: [] for market in markets})
+    selected_market = request.args.get("market", "us")
+    
+    news_data = []
+    error_messages = []
+    urls_provided = False
+
+    if request.method == "POST":
+        logger.info("New Current form submitted")
+        selected_market = request.form.get("market", selected_market)
+        
+        # Store URLs with their order numbers
+        ordered_urls = {}
+        market_inputs = request.form.getlist(f"{selected_market}_urls")
+        
+        # Process each URL in order
+        for i, url in enumerate(market_inputs, start=1):
+            url = url.strip()
+            if url:
+                ordered_urls[i] = url
+        
+        if ordered_urls:
+            urls_provided = True
+            logger.debug(f"URLs provided for {selected_market}: {ordered_urls}")
+
+        if urls_provided:
+            logger.info(f"Processing {len(ordered_urls)} URLs for market {selected_market}")
+            
+            # Clear existing URLs for this market before processing
+            market_urls[selected_market] = []
+            
+            # Process URLs in their specified order
+            for order_num, url in sorted(ordered_urls.items()):
+                try:
+                    if not url.startswith(('http://', 'https://')):
+                        url = 'https://' + url
+                    
+                    logger.info(f"Fetching market news from {url} for market {selected_market}")
+                    
+                    # Fetch news from this URL
+                    source_news = fetch_top_news(url, max_articles=20, region=selected_market)
+                    
+                    if source_news:
+                        logger.info(f"Found {len(source_news)} articles at {url}")
+                        # Add market-specific metadata
+                        for article in source_news:
+                            article['market'] = markets[selected_market]
+                            article['source_order'] = order_num  # Track the order number
+                            article['source_url'] = url  # Track the source URL
+                        news_data.extend(source_news)
+                        
+                        # Add URL to session after successful processing
+                        market_urls[selected_market].append(url)
+                    else:
+                        msg = f"Could not extract news from {url} (Market: {selected_market})"
+                        error_messages.append(msg)
+                        logger.warning(msg)
+                        
+                except Exception as e:
+                    msg = f"Error processing {url} (Market: {selected_market}): {str(e)}"
+                    error_messages.append(msg)
+                    logger.error(msg, exc_info=True)
+            
+            # Update session with the latest URLs
+            session['market_urls'] = market_urls
+
+    # Sort news by source order (as specified in the form)
+    # Then sort by date within each source (newest first)
+    news_data.sort(key=lambda x: (x.get('source_order', 0), 
+                                -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
+
+    return render_template("new_current.html", 
+                         news_data=news_data,
+                         market_urls=market_urls,
+                         markets=markets,
+                         selected_market=selected_market,
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
+
+@app.route("/new_sector", methods=["GET", "POST"])
+@login_required
+def new_sector():
+    logger.info(f"New Sector page accessed by {request.remote_addr}")
+    
+    # Initialize market regions with the new sectors
+    markets = {
+        'us': "Technology",
+        'uk': "Health Care", 
+        'ge': "Financials",
+        'fr': "Retail",
+        'china': "Energy",
+        'europe': "Mining",
+        'south_america': "Utilities",
+        'asia': "Automotive"
+           
+
+    }
+    
+    # Get or initialize market URLs from session
+    market_urls = session.get('market_urls', {market: [] for market in markets})
+    selected_market = request.args.get("market", "us")
+    
+    news_data = []
+    error_messages = []
+    urls_provided = False
+
+    if request.method == "POST":
+        logger.info("New Sector form submitted")
+        selected_market = request.form.get("market", selected_market)
+        
+        # Store URLs with their order numbers
+        ordered_urls = {}
+        market_inputs = request.form.getlist(f"{selected_market}_urls")
+        
+        # Process each URL in order
+        for i, url in enumerate(market_inputs, start=1):
+            url = url.strip()
+            if url:
+                ordered_urls[i] = url
+        
+        if ordered_urls:
+            urls_provided = True
+            logger.debug(f"URLs provided for {selected_market}: {ordered_urls}")
+
+        if urls_provided:
+            logger.info(f"Processing {len(ordered_urls)} URLs for market {selected_market}")
+            
+            # Clear existing URLs for this market before processing
+            market_urls[selected_market] = []
+            
+            # Process URLs in their specified order
+            for order_num, url in sorted(ordered_urls.items()):
+                try:
+                    if not url.startswith(('http://', 'https://')):
+                        url = 'https://' + url
+                    
+                    logger.info(f"Fetching market news from {url} for market {selected_market}")
+                    
+                    # Fetch news from this URL
+                    source_news = fetch_top_news(url, max_articles=20, region=selected_market)
+                    
+                    if source_news:
+                        logger.info(f"Found {len(source_news)} articles at {url}")
+                        # Add market-specific metadata
+                        for article in source_news:
+                            article['market'] = markets[selected_market]
+                            article['source_order'] = order_num  # Track the order number
+                            article['source_url'] = url  # Track the source URL
+                        news_data.extend(source_news)
+                        
+                        # Add URL to session after successful processing
+                        market_urls[selected_market].append(url)
+                    else:
+                        msg = f"Could not extract news from {url} (Market: {selected_market})"
+                        error_messages.append(msg)
+                        logger.warning(msg)
+                        
+                except Exception as e:
+                    msg = f"Error processing {url} (Market: {selected_market}): {str(e)}"
+                    error_messages.append(msg)
+                    logger.error(msg, exc_info=True)
+            
+            # Update session with the latest URLs
+            session['market_urls'] = market_urls
+
+    # Sort news by source order (as specified in the form)
+    # Then sort by date within each source (newest first)
+    news_data.sort(key=lambda x: (x.get('source_order', 0), 
+                                -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
+
+    return render_template("new_sector.html", 
+                         news_data=news_data,
+                         market_urls=market_urls,
+                         markets=markets,
+                         selected_market=selected_market,
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
 
 
 @app.route("/market_news", methods=["GET", "POST"])
@@ -1946,6 +2146,9 @@ def analytics():
 def register():
     return render_template("register.html")
 
+
+    
+
 @app.route("/latest_news", methods=["GET"])
 def latest_news():
     """Display latest news from major news sources with improved scraping"""
@@ -2107,6 +2310,8 @@ def extract_apnews_articles(soup, source_name):
         except Exception as e:
             logger.warning(f"Error processing AP News article: {str(e)}")
     return articles
+
+  
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))  # Default to 10000 if PORT is not set
