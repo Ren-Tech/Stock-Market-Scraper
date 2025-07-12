@@ -725,9 +725,11 @@ def current_affairs():
     if request.method == "POST":
         urls_provided = True
         
-        # Determine which region was submitted
+        # Determine which region was submitted by finding the first region with URLs
+        active_region = 'all'  # Default if no URLs found
         for region in regions:
-            if f"{region}_urls" in request.form:
+            urls = request.form.getlist(f"{region}_urls")
+            if urls and any(url.strip() for url in urls):
                 active_region = region
                 break
         
@@ -756,23 +758,18 @@ def current_affairs():
                             error_messages.append(msg)
                             logger.warning(msg)
                             
-                    except requests.exceptions.Timeout:
-                        msg = f"Timeout when trying to access {url}"
-                        error_messages.append(msg)
-                        logger.error(msg)
                     except Exception as e:
                         msg = f"Error processing {url} (Region: {region}): {str(e)}"
                         error_messages.append(msg)
                         logger.error(msg, exc_info=True)
 
-    # Sort news data
+    # Sort and categorize news data
     if news_data:
         news_data.sort(key=lambda x: (
             x.get('source_order', 0), 
             -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')
         ))
         
-        # Categorize news
         categorized_news = {region: [] for region in regions}
         categorized_news['all'] = news_data
         
@@ -791,6 +788,7 @@ def current_affairs():
                         urls_provided=urls_provided,
                         active_region=active_region)
 
+                    
 
 
 

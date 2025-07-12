@@ -317,462 +317,362 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // ====== CONSTANTS AND ELEMENTS ======
-            const regions = [
-                "world",
-                "north_america",
-                "south_america",
-                "europe",
-                "asia",
-                "africa",
-                "australia",
-                "mena",
-            ];
-            const urlForm = document.getElementById("urlForm");
-            const leftColumn = document.getElementById("leftColumn");
-            const newsColumn = document.getElementById("newsColumn");
-            const toggleButton = document.getElementById("toggleSearch");
-            const clearAllButton = document.getElementById("clearAllUrls");
-            const frequencyDropdown = document.getElementById("frequencyDropdown");
-            const refreshStatus = document.getElementById("refreshStatus");
-            const refreshProgress = document.getElementById("refreshProgress");
-            const minutesDisplay = document.getElementById("minutesDisplay");
-            const timerToggle = document.getElementById("timerToggle");
-            const timerReset = document.getElementById("timerReset");
-            const countdownDisplay = document.getElementById("countdownDisplay");
+    // ====== CONSTANTS AND ELEMENTS ======
+    const regions = [
+        "world",
+        "north_america",
+        "south_america",
+        "europe",
+        "asia",
+        "africa",
+        "australia",
+        "mena",
+    ];
+    const urlForm = document.getElementById("urlForm");
+    const leftColumn = document.getElementById("leftColumn");
+    const newsColumn = document.getElementById("newsColumn");
+    const toggleButton = document.getElementById("toggleSearch");
+    const clearAllButton = document.getElementById("clearAllUrls");
+    const frequencyDropdown = document.getElementById("frequencyDropdown");
+    const refreshStatus = document.getElementById("refreshStatus");
+    const refreshProgress = document.getElementById("refreshProgress");
+    const minutesDisplay = document.getElementById("minutesDisplay");
+    const timerToggle = document.getElementById("timerToggle");
+    const timerReset = document.getElementById("timerReset");
+    const countdownDisplay = document.getElementById("countdownDisplay");
 
-            // ====== STATE VARIABLES ======
-            let refreshInterval = null;
-            let progressInterval = null;
-            let countdownInterval = null;
-            let timerIsActive = false;
-            let secondsRemaining = 0;
-            let announcementMade = false;
-            let currentActiveCategory = "all";
+    // ====== STATE VARIABLES ======
+    let refreshInterval = null;
+    let progressInterval = null;
+    let countdownInterval = null;
+    let timerIsActive = false;
+    let secondsRemaining = 0;
+    let announcementMade = false;
+    let currentActiveCategory = "all";
 
-            // ====== URL MANAGEMENT SYSTEM ======
-
-            // Save all URLs to localStorage
-            function saveUrlsToStorage() {
-                const urlData = {};
-
-                regions.forEach((region) => {
-                    const inputs = document.querySelectorAll(
-                        `input[name="${region}_urls"]`
-                    );
-                    urlData[region] = Array.from(inputs)
-                        .map((input) => input.value.trim())
-                        .filter((url) => url);
-                });
-
-                localStorage.setItem("currentAffairsUrls", JSON.stringify(urlData));
+    // ====== TAB MANAGEMENT ======
+    function activateTab(category) {
+        // Update active tab visually
+        document.querySelectorAll("#newsTabs .nav-link").forEach(tab => {
+            tab.classList.remove("active");
+            if (tab.getAttribute("data-tab") === category) {
+                tab.classList.add("active");
             }
+        });
 
-            // Load URLs from localStorage
-            function loadUrlsFromStorage() {
-                const savedData = JSON.parse(
-                    localStorage.getItem("currentAffairsUrls") || "{}"
-                );
+        // Update URL hash without page navigation
+        history.replaceState(null, null, `#${category}`);
 
-                regions.forEach((region) => {
-                    const container = document.getElementById(`${region}Container`);
+        // Filter news
+        currentActiveCategory = category;
+        filterNewsByCategory(category);
+    }
 
-                    // Clear all existing fields first
-                    const existingFields = container.querySelectorAll(".source-field");
-                    existingFields.forEach((field) => field.remove());
+    function filterNewsByCategory(category) {
+        document.querySelectorAll(".news-grid-item").forEach((item) => {
+            const itemCategory = item.getAttribute("data-category");
+            if (category === "all") {
+                item.style.display = "";
+            } else if (itemCategory === category || (itemCategory === "world" && category === "all")) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
 
-                    // Check if we have saved URLs for this region
-                    if (savedData[region] && savedData[region].length > 0) {
-                        savedData[region].forEach((url, index) => {
-                            if (index < 4) {
-                                // Create basic field (first 4 fields)
-                                const fieldHTML = `
-                                    <div class="input-group mb-2 source-field">
-                                        <span class="input-group-text">#${index + 1}</span>
-                                        <input type="text" name="${region}_urls" class="form-control url-input" 
-                                               placeholder="Enter URL" value="${url}" data-source-order="${
-                                    index + 1
-                                }" />
-                                        ${
-                                            index >= 3
-                                                ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
-                                                : ""
-                                        }
-                                    </div>
-                                `;
-                                container.insertAdjacentHTML("beforeend", fieldHTML);
-                            } else {
-                                // Create additional fields
-                                addSourceField(region, url);
-                            }
-                        });
+    // ====== URL MANAGEMENT ======
+    function validateUrl(url) {
+        if (!url) return url;
+        if (!url.match(/^https?:\/\//)) {
+            return `https://${url}`;
+        }
+        return url;
+    }
+
+    function saveUrlsToStorage() {
+        const urlData = {};
+        regions.forEach((region) => {
+            const inputs = document.querySelectorAll(`input[name="${region}_urls"]`);
+            urlData[region] = Array.from(inputs)
+                .map((input) => input.value.trim())
+                .filter((url) => url);
+        });
+        localStorage.setItem("currentAffairsUrls", JSON.stringify(urlData));
+    }
+
+    function loadUrlsFromStorage() {
+        const savedData = JSON.parse(localStorage.getItem("currentAffairsUrls") || "{}");
+        regions.forEach((region) => {
+            const container = document.getElementById(`${region}Container`);
+            container.querySelectorAll(".source-field").forEach((field) => field.remove());
+
+            if (savedData[region]?.length > 0) {
+                savedData[region].forEach((url, index) => {
+                    if (index < 4) {
+                        addSourceField(region, url, index + 1);
                     } else {
-                        // Create 4 empty fields if no saved data
-                        for (let i = 1; i <= 4; i++) {
-                            const fieldHTML = `
-                                <div class="input-group mb-2 source-field">
-                                    <span class="input-group-text">#${i}</span>
-                                    <input type="text" name="${region}_urls" class="form-control url-input" 
-                                           placeholder="Enter URL" data-source-order="${i}" />
-                                    ${
-                                        i > 3
-                                            ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
-                                            : ""
-                                    }
-                                </div>
-                            `;
-                            container.insertAdjacentHTML("beforeend", fieldHTML);
-                        }
+                        addSourceField(region, url);
                     }
                 });
-
-                // Attach events to all inputs
-                document.querySelectorAll(".url-input").forEach((input) => {
-                    input.addEventListener("input", saveUrlsToStorage);
-                });
-
-                // Attach events to all remove buttons
-                document.querySelectorAll(".remove-field").forEach((button) => {
-                    button.addEventListener("click", function () {
-                        this.closest(".source-field").remove();
-                        renumberFields(this.closest(".source-container"));
-                        saveUrlsToStorage();
-                    });
-                });
-            }
-
-            // Add new source field
-            function addSourceField(region, url = "") {
-                const container = document.getElementById(`${region}Container`);
-                const fieldCount = container.querySelectorAll(".source-field").length;
-                const nextOrder = fieldCount + 1;
-
-                const fieldHTML = `
-                    <div class="input-group mb-2 source-field">
-                        <span class="input-group-text">#${nextOrder}</span>
-                        <input type="text" name="${region}_urls" class="form-control url-input" 
-                               placeholder="Enter URL" value="${url}" data-source-order="${nextOrder}" />
-                        <button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>
-                    </div>
-                `;
-
-                container.insertAdjacentHTML("beforeend", fieldHTML);
-
-                // Attach events to the new field
-                const newField = container.lastElementChild;
-                newField
-                    .querySelector(".url-input")
-                    .addEventListener("input", saveUrlsToStorage);
-                newField
-                    .querySelector(".remove-field")
-                    .addEventListener("click", function () {
-                        newField.remove();
-                        renumberFields(container);
-                        saveUrlsToStorage();
-                    });
-            }
-
-            // Renumber fields after deletion
-            function renumberFields(container) {
-                container.querySelectorAll(".source-field").forEach((field, index) => {
-                    field.querySelector(".input-group-text").textContent = `#${index + 1}`;
-                    field
-                        .querySelector("input")
-                        .setAttribute("data-source-order", index + 1);
-                });
-            }
-
-            // Clear all URLs
-            function clearAllUrls() {
-                if (
-                    confirm(
-                        "Are you sure you want to clear all URLs? This cannot be undone."
-                    )
-                ) {
-                    regions.forEach((region) => {
-                        const container = document.getElementById(`${region}Container`);
-                        container.querySelectorAll(".source-field").forEach((field) => {
-                            field.querySelector("input").value = "";
-                        });
-                    });
-                    localStorage.removeItem("currentAffairsUrls");
+            } else {
+                for (let i = 1; i <= 4; i++) {
+                    addSourceField(region, "", i);
                 }
             }
+        });
+    }
 
-            // ====== TAB FUNCTIONALITY ======
+    function addSourceField(region, url = "", order = null) {
+        const container = document.getElementById(`${region}Container`);
+        const fieldCount = container.querySelectorAll(".source-field").length;
+        const fieldOrder = order || fieldCount + 1;
+        const isRemovable = fieldOrder > 3 || (order && order > 3);
+        
+        const fieldHTML = `
+            <div class="input-group mb-2 source-field">
+                <span class="input-group-text">#${fieldOrder}</span>
+                <input type="text" name="${region}_urls" class="form-control url-input" 
+                       placeholder="Enter URL" value="${url}" data-source-order="${fieldOrder}" />
+                ${isRemovable ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>' : ''}
+            </div>
+        `;
+        container.insertAdjacentHTML("beforeend", fieldHTML);
 
-            // Filter news by category
-            function filterNewsByCategory(category) {
-                const allNewsItems = document.querySelectorAll(".news-grid-item");
+        const newField = container.lastElementChild;
+        newField.querySelector(".url-input").addEventListener("input", saveUrlsToStorage);
+        const removeBtn = newField.querySelector(".remove-field");
+        if (removeBtn) {
+            removeBtn.addEventListener("click", function() {
+                newField.remove();
+                renumberFields(container);
+                saveUrlsToStorage();
+            });
+        }
+    }
 
-                allNewsItems.forEach((item) => {
-                    const itemCategory = item.getAttribute("data-category");
+    function renumberFields(container) {
+        container.querySelectorAll(".source-field").forEach((field, index) => {
+            field.querySelector(".input-group-text").textContent = `#${index + 1}`;
+            field.querySelector("input").setAttribute("data-source-order", index + 1);
+        });
+    }
 
-                    if (category === "all") {
-                        item.style.display = "";
-                    } else if (itemCategory === category) {
-                        item.style.display = "";
-                    } else if (itemCategory === "world" && category !== "all") {
-                        item.style.display = "none";
-                    } else {
-                        item.style.display = "none";
-                    }
+    function clearAllUrls() {
+        if (confirm("Are you sure you want to clear all URLs? This cannot be undone.")) {
+            regions.forEach((region) => {
+                const container = document.getElementById(`${region}Container`);
+                container.querySelectorAll(".source-field").forEach((field) => {
+                    field.querySelector("input").value = "";
                 });
-            }
+            });
+            localStorage.removeItem("currentAffairsUrls");
+        }
+    }
 
-            // Activate tab from hash
-            function activateTabFromHash() {
-                const hash = window.location.hash.substring(1);
-                if (hash) {
-                    const tabToActivate = document.querySelector(
-                        `#newsTabs .nav-link[href="#${hash}"]`
-                    );
-                    if (tabToActivate) {
-                        document.querySelectorAll("#newsTabs .nav-link").forEach(tab => {
-                            tab.classList.remove("active");
-                        });
-                        tabToActivate.classList.add("active");
-                        currentActiveCategory = tabToActivate.getAttribute("data-tab");
+    // ====== AUTO-REFRESH ======
+    function startAutoRefresh() {
+        stopAutoRefresh();
+        const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
+        const milliseconds = minutes * 60 * 1000;
+
+        minutesDisplay.textContent = minutes;
+        refreshStatus.classList.remove("d-none");
+        secondsRemaining = minutes * 60;
+        countdownDisplay.textContent = formatTime(secondsRemaining);
+        announcementMade = false;
+
+        countdownInterval = setInterval(() => {
+            secondsRemaining--;
+            if (secondsRemaining <= 0) {
+                if (!announcementMade) {
+                    announceRefresh();
+                    announcementMade = true;
+                }
+                secondsRemaining = minutes * 60;
+            }
+            countdownDisplay.textContent = formatTime(secondsRemaining);
+        }, 1000);
+
+        refreshInterval = setInterval(() => {
+            fetch(window.location.href, {
+                method: "POST",
+                body: new FormData(urlForm),
+            })
+                .then((response) => response.text())
+                .then((html) => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+                    const newNewsItems = doc.querySelector("#newsItems");
+
+                    if (newNewsItems) {
+                        document.querySelector("#newsItems").innerHTML = newNewsItems.innerHTML;
                         filterNewsByCategory(currentActiveCategory);
                     }
-                }
-            }
 
-            // Activate initial tab based on backend data
-            function activateInitialTab() {
-                const activeRegion = "{{ active_region }}" || "all";
-                const tabToActivate = document.querySelector(
-                    `#newsTabs .nav-link[data-tab="${activeRegion}"]`
-                );
-                
-                if (tabToActivate) {
-                    document.querySelectorAll("#newsTabs .nav-link").forEach(tab => {
-                        tab.classList.remove("active");
-                    });
-                    tabToActivate.classList.add("active");
-                    currentActiveCategory = activeRegion;
-                    filterNewsByCategory(activeRegion);
-                    
-                    if (!window.location.hash) {
-                        window.location.hash = `#${activeRegion}`;
-                    }
-                }
-            }
-
-            // Tab click handlers
-            document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
-                tab.addEventListener("click", function (e) {
-                    e.preventDefault();
-
-                    // Update active tab
-                    document
-                        .querySelectorAll("#newsTabs .nav-link")
-                        .forEach((t) => t.classList.remove("active"));
-                    this.classList.add("active");
-
-                    // Update URL hash
-                    window.location.hash = this.getAttribute("href");
-
-                    // Filter news
-                    currentActiveCategory = this.getAttribute("data-tab");
-                    filterNewsByCategory(currentActiveCategory);
-                });
-            });
-
-            // ====== TIMER FUNCTIONALITY ======
-
-            // Start auto-refresh
-            function startAutoRefresh() {
-                stopAutoRefresh(); // Clear any existing intervals
-
-                const selectedValue = frequencyDropdown.value;
-                const minutes = parseInt(selectedValue.replace("min", ""));
-                const milliseconds = minutes * 60 * 1000;
-
-                minutesDisplay.textContent = minutes;
-                refreshStatus.classList.remove("d-none");
-
-                // Initialize countdown
-                secondsRemaining = minutes * 60;
-                countdownDisplay.textContent = formatTime(secondsRemaining);
-                announcementMade = false;
-
-                // Countdown timer
-                countdownInterval = setInterval(() => {
-                    secondsRemaining--;
-
-                    if (secondsRemaining <= 0) {
-                        if (!announcementMade) {
-                            announceRefresh();
-                            announcementMade = true;
-                        }
-                        secondsRemaining = minutes * 60;
-                    }
-
-                    countdownDisplay.textContent = formatTime(secondsRemaining);
-                }, 1000);
-
-                // Auto-refresh
-                refreshInterval = setInterval(() => {
-                    fetch(window.location.href, {
-                        method: "POST",
-                        body: new FormData(urlForm),
-                    })
-                        .then((response) => response.text())
-                        .then((html) => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, "text/html");
-                            const newNewsItems = doc.querySelector("#newsItems");
-
-                            if (newNewsItems) {
-                                document.querySelector("#newsItems").innerHTML =
-                                    newNewsItems.innerHTML;
-                                filterNewsByCategory(currentActiveCategory);
-                            }
-
-                            refreshProgress.style.width = "0%";
-                            secondsRemaining = minutes * 60;
-                            countdownDisplay.textContent = formatTime(secondsRemaining);
-                            announcementMade = false;
-                        });
-                }, milliseconds);
-
-                // Progress bar
-                const updateProgress = () => {
-                    const step = 100 / (minutes * 60);
-                    let currentProgress = 0;
-
-                    progressInterval = setInterval(() => {
-                        currentProgress += step;
-                        if (currentProgress > 100) currentProgress = 0;
-                        refreshProgress.style.width = currentProgress + "%";
-                    }, 1000);
-                };
-
-                updateProgress();
-            }
-
-            // Stop auto-refresh
-            function stopAutoRefresh() {
-                if (refreshInterval) clearInterval(refreshInterval);
-                if (progressInterval) clearInterval(progressInterval);
-                if (countdownInterval) clearInterval(countdownInterval);
-
-                refreshStatus.classList.add("d-none");
-                refreshProgress.style.width = "0%";
-            }
-
-            // Format time as MM:SS
-            function formatTime(seconds) {
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                return `${mins
-                    .toString()
-                    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-            }
-
-            // Announce refresh
-            function announceRefresh() {
-                if ("speechSynthesis" in window) {
-                    const announcement = new SpeechSynthesisUtterance(
-                        "Page will now refresh"
-                    );
-                    window.speechSynthesis.speak(announcement);
-                }
-            }
-
-            // ====== EVENT LISTENERS ======
-
-            // Toggle search panel
-            toggleButton.addEventListener("click", function () {
-                const isVisible = leftColumn.style.display !== "none";
-
-                if (isVisible) {
-                    leftColumn.style.display = "none";
-                    newsColumn.className = "col-md-12";
-                    this.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Show Search';
-                } else {
-                    leftColumn.style.display = "block";
-                    newsColumn.className = "col-md-8";
-                    this.innerHTML = '<i class="bi bi-arrow-left-circle"></i> Hide Search';
-                }
-            });
-
-            // Add source buttons
-            document.querySelectorAll(".add-source-btn").forEach((button) => {
-                button.addEventListener("click", function () {
-                    addSourceField(this.getAttribute("data-region"));
-                });
-            });
-
-            // Clear all URLs
-            clearAllButton.addEventListener("click", clearAllUrls);
-
-            // Timer controls
-            timerToggle.addEventListener("click", function () {
-                if (timerIsActive) {
-                    stopAutoRefresh();
-                    timerIsActive = false;
-                    this.classList.remove("btn-danger");
-                    this.classList.add("btn-success");
-                    this.innerHTML = '<i class="bi bi-play-fill"></i>';
-                } else {
-                    startAutoRefresh();
-                    timerIsActive = true;
-                    this.classList.remove("btn-success");
-                    this.classList.add("btn-danger");
-                    this.innerHTML = '<i class="bi bi-pause-fill"></i>';
-                }
-            });
-
-            timerReset.addEventListener("click", function () {
-                if (timerIsActive) {
-                    stopAutoRefresh();
-                    startAutoRefresh();
-                } else {
-                    const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
+                    refreshProgress.style.width = "0%";
                     secondsRemaining = minutes * 60;
                     countdownDisplay.textContent = formatTime(secondsRemaining);
-                }
-            });
-
-            // Form submission
-            urlForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                // Disable empty inputs before submission
-                document.querySelectorAll(".url-input").forEach((input) => {
-                    input.disabled = !input.value.trim();
+                    announcementMade = false;
                 });
+        }, milliseconds);
 
-                // Add submitted parameter to the form action
-                const formAction = this.action;
-                this.action = formAction.includes('?') ? 
-                    `${formAction}&submitted=true` : 
-                    `${formAction}?submitted=true`;
-                    
-                this.submit();
-            });
+        const updateProgress = () => {
+            const step = 100 / (minutes * 60);
+            let currentProgress = 0;
+            progressInterval = setInterval(() => {
+                currentProgress += step;
+                if (currentProgress > 100) currentProgress = 0;
+                refreshProgress.style.width = currentProgress + "%";
+            }, 1000);
+        };
+        updateProgress();
+    }
 
-            // ====== INITIALIZATION ======
-            function initialize() {
-                loadUrlsFromStorage();
-                activateInitialTab();
-                window.addEventListener("hashchange", activateTabFromHash);
+    function stopAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        if (progressInterval) clearInterval(progressInterval);
+        if (countdownInterval) clearInterval(countdownInterval);
+        refreshStatus.classList.add("d-none");
+        refreshProgress.style.width = "0%";
+    }
 
-                // Initialize timer display
-                const defaultMinutes = parseInt(frequencyDropdown.value.replace("min", ""));
-                secondsRemaining = defaultMinutes * 60;
-                countdownDisplay.textContent = formatTime(secondsRemaining);
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
 
-                // Auto-start timer if we have news data (meaning form was submitted)
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('submitted')) {
-                    timerToggle.click();
-                }
-            }
+    function announceRefresh() {
+        if ("speechSynthesis" in window) {
+            const announcement = new SpeechSynthesisUtterance("Page will now refresh");
+            window.speechSynthesis.speak(announcement);
+        }
+    }
 
-            initialize();
+    // ====== EVENT LISTENERS ======
+    toggleButton.addEventListener("click", function () {
+        const isVisible = leftColumn.style.display !== "none";
+        if (isVisible) {
+            leftColumn.style.display = "none";
+            newsColumn.className = "col-md-12";
+            this.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Show Search';
+        } else {
+            leftColumn.style.display = "block";
+            newsColumn.className = "col-md-8";
+            this.innerHTML = '<i class="bi bi-arrow-left-circle"></i> Hide Search';
+        }
+    });
+
+    document.querySelectorAll(".add-source-btn").forEach((button) => {
+        button.addEventListener("click", function () {
+            addSourceField(this.getAttribute("data-region"));
+            saveUrlsToStorage();
         });
+    });
+
+    clearAllButton.addEventListener("click", clearAllUrls);
+
+    timerToggle.addEventListener("click", function () {
+        if (timerIsActive) {
+            stopAutoRefresh();
+            timerIsActive = false;
+            this.classList.remove("btn-danger");
+            this.classList.add("btn-success");
+            this.innerHTML = '<i class="bi bi-play-fill"></i>';
+        } else {
+            startAutoRefresh();
+            timerIsActive = true;
+            this.classList.remove("btn-success");
+            this.classList.add("btn-danger");
+            this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        }
+    });
+
+    timerReset.addEventListener("click", function () {
+        if (timerIsActive) {
+            stopAutoRefresh();
+            startAutoRefresh();
+        } else {
+            const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
+            secondsRemaining = minutes * 60;
+            countdownDisplay.textContent = formatTime(secondsRemaining);
+        }
+    });
+
+    document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
+        tab.addEventListener("click", function (e) {
+            e.preventDefault();
+            activateTab(this.getAttribute("data-tab"));
+        });
+    });
+
+    urlForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        
+        // Validate and fix all URLs before submission
+        document.querySelectorAll(".url-input").forEach((input) => {
+            if (input.value.trim()) {
+                input.value = validateUrl(input.value.trim());
+                input.disabled = false;
+            } else {
+                input.disabled = true;
+            }
+        });
+
+        // Determine which region is being submitted (most recent with URLs)
+        let submittedRegion = "all";
+        for (const region of regions) {
+            const inputs = document.querySelectorAll(`input[name="${region}_urls"]`);
+            if (Array.from(inputs).some(input => input.value.trim())) {
+                submittedRegion = region;
+            }
+        }
+
+        // Activate the tab immediately (like Stack Overflow)
+        activateTab(submittedRegion);
+
+        // Submit the form normally (will cause page reload)
+        this.submit();
+    });
+
+    // ====== INITIALIZATION ======
+    function initialize() {
+        // Load and validate saved URLs
+        const savedData = JSON.parse(localStorage.getItem("currentAffairsUrls") || "{}");
+        for (const region in savedData) {
+            savedData[region] = savedData[region].map(url => validateUrl(url));
+        }
+        localStorage.setItem("currentAffairsUrls", JSON.stringify(savedData));
+
+        loadUrlsFromStorage();
+        
+        // Initialize tab from URL hash or default to 'all'
+        const hash = window.location.hash.substring(1);
+        const initialTab = regions.includes(hash) ? hash : "all";
+        activateTab(initialTab);
+        
+        // Set up hash-based navigation
+        window.addEventListener("hashchange", function() {
+            const newHash = window.location.hash.substring(1);
+            if (newHash && newHash !== currentActiveCategory) {
+                activateTab(newHash);
+            }
+        });
+
+        // Initialize timer
+        const defaultMinutes = parseInt(frequencyDropdown.value.replace("min", ""));
+        secondsRemaining = defaultMinutes * 60;
+        countdownDisplay.textContent = formatTime(secondsRemaining);
+
+        // Auto-start timer if form was submitted
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('submitted')) {
+            timerToggle.click();
+        }
+    }
+
+    initialize();
+});
     </script>
 {% endblock %}
