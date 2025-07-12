@@ -91,654 +91,688 @@
   }
 </style>
 
-<div class="container mt-4">
-  <!-- Navigation Tabs -->
-  <ul class="nav nav-pills nav-fill bg-light rounded p-2 shadow-sm" id="newsTabs">
-    <li class="nav-item">
-      <a class="nav-link active" data-tab="all" href="#all">World</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="north_america" href="#north_america">North America</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="south_america" href="#south_america">South America</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="europe" href="#europe">Europe</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="asia" href="#asia">Asia</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="africa" href="#africa">Africa</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="australia" href="#australia">Australia</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-tab="mena" href="#mena">MENA</a>
-    </li>
-  </ul>
+  <div class="container mt-4">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills nav-fill bg-light rounded p-2 shadow-sm" id="newsTabs">
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'all' %}active{% endif %}" 
+                   data-tab="all" href="#all">World</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'north_america' %}active{% endif %}" 
+                   data-tab="north_america" href="#north_america">North America</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'south_america' %}active{% endif %}" 
+                   data-tab="south_america" href="#south_america">South America</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'europe' %}active{% endif %}" 
+                   data-tab="europe" href="#europe">Europe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'asia' %}active{% endif %}" 
+                   data-tab="asia" href="#asia">Asia</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'africa' %}active{% endif %}" 
+                   data-tab="africa" href="#africa">Africa</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'australia' %}active{% endif %}" 
+                   data-tab="australia" href="#australia">Australia</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_region == 'mena' %}active{% endif %}" 
+                   data-tab="mena" href="#mena">MENA</a>
+            </li>
+        </ul>
 
-  <!-- Controls -->
-  <div class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}">
-    <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-arrow-right-circle"></i> Show Search
-    </button>
-    <div class="timer-container ms-3 d-flex align-items-center">
-      <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
-        <i class="bi bi-play-fill"></i>
-      </button>
-      <div class="timer-display-wrapper border rounded px-2 mx-1">
-        <span id="countdownDisplay" class="timer-display">--:--</span>
-      </div>
-      <button id="timerReset" class="btn btn-sm btn-outline-secondary timer-btn">
-        <i class="bi bi-arrow-counterclockwise"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- Two-Column Layout -->
-  <div class="row mt-4">
-    <!-- Left Column: Input Fields -->
-    <div class="col-md-4" id="leftColumn" {% if news_data %} style="display: none" {% endif %}>
-      <div class="card shadow-sm p-3" id="urlFormCard">
-        <h6 class="text-center text-primary">Web URLs by Region</h6>
-        <form method="POST" id="urlForm">
-          <div class="accordion" id="regionAccordion">
-            {% for region in regions %}
-            <div class="accordion-item region-tab" data-region="{{ region }}">
-              <h2 class="accordion-header">
-                <button class="accordion-button {% if region != 'world' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ region|title|replace('_', '') }}">
-                  {{ region|replace('_', ' ')|title }}
+        <!-- Controls -->
+        <div class="d-flex align-items-center mt-3 {% if news_data %} visible {% else %} d-none {% endif %}">
+            <button id="toggleSearch" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-arrow-right-circle"></i> Show Search
+            </button>
+            <div class="timer-container ms-3 d-flex align-items-center">
+                <button id="timerToggle" class="btn btn-sm btn-success timer-btn">
+                    <i class="bi bi-play-fill"></i>
                 </button>
-              </h2>
-              <div id="collapse{{ region|title|replace('_', '') }}" class="accordion-collapse collapse {% if region == 'world' %}show{% endif %}" data-bs-parent="#regionAccordion">
-                <div class="accordion-body">
-                  <div id="{{ region }}Container" class="source-container">
-                    <!-- Initial 4 empty fields -->
-                    {% for i in range(1, 5) %}
-                    <div class="input-group mb-2 source-field">
-                      <span class="input-group-text">#{{ i }}</span>
-                      <input type="text" name="{{ region }}_urls" class="form-control url-input" placeholder="Enter URL" data-source-order="{{ i }}" />
-                      {% if i > 3 %}<button type="button" class="btn btn-outline-danger remove-field">
-                        <i class="bi bi-x"></i></button>{% endif %}
+                <div class="timer-display-wrapper border rounded px-2 mx-1">
+                    <span id="countdownDisplay" class="timer-display">--:--</span>
+                </div>
+                <button id="timerReset" class="btn btn-sm btn-outline-secondary timer-btn">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Two-Column Layout -->
+        <div class="row mt-4">
+            <!-- Left Column: Input Fields -->
+            <div class="col-md-4" id="leftColumn" {% if news_data %} style="display: none" {% endif %}>
+                <div class="card shadow-sm p-3" id="urlFormCard">
+                    <h6 class="text-center text-primary">Web URLs by Region</h6>
+                    <form method="POST" id="urlForm">
+                        <div class="accordion" id="regionAccordion">
+                            {% for region in regions %}
+                            <div class="accordion-item region-tab" data-region="{{ region }}">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button {% if region != 'world' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ region|title|replace('_', '') }}">
+                                        {{ region|replace('_', ' ')|title }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ region|title|replace('_', '') }}" class="accordion-collapse collapse {% if region == 'world' %}show{% endif %}" data-bs-parent="#regionAccordion">
+                                    <div class="accordion-body">
+                                        <div id="{{ region }}Container" class="source-container">
+                                            <!-- Initial 4 empty fields -->
+                                            {% for i in range(1, 5) %}
+                                            <div class="input-group mb-2 source-field">
+                                                <span class="input-group-text">#{{ i }}</span>
+                                                <input type="text" name="{{ region }}_urls" class="form-control url-input" placeholder="Enter URL" data-source-order="{{ i }}" />
+                                                {% if i > 3 %}<button type="button" class="btn btn-outline-danger remove-field">
+                                                    <i class="bi bi-x"></i></button>{% endif %}
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-region="{{ region }}">
+                                            <i class="bi bi-plus-circle"></i> Add Source
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="d-flex align-items-center justify-content-between mb-2 mt-3">
+                            <label class="small mb-0">Update Frequency</label>
+                            <select id="frequencyDropdown" class="form-select form-select-sm" style="width: 70%">
+                                <option value="2min">2 Min</option>
+                                <option value="5min">5 Min</option>
+                                <option value="10min">10 Min</option>
+                                <option value="20min">20 Min</option>
+                                <option value="30min">30 Min</option>
+                            </select>
+                        </div>
+
+                        <button id="submitSources" type="submit" class="btn btn-primary btn-sm w-100 mt-2">
+                            <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
+                        </button>
+
+                        <button type="button" id="clearAllUrls" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                            <i class="bi bi-trash"></i> Clear All URLs
+                        </button>
+
+                        <div id="refreshStatus" class="small text-center mt-2 d-none">
+                            <span class="badge bg-success">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Auto-refreshing every <span id="minutesDisplay">2</span> minutes
+                            </span>
+                            <div class="progress mt-1" style="height: 4px">
+                                <div id="refreshProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: News -->
+            <div class="col-md-{% if news_data %}12{% else %}8{% endif %}" id="newsColumn">
+                <div class="card shadow-sm p-3" id="newsCard">
+                    <h6 class="text-center text-primary">News Feed</h6>
+
+                    {% if news_data %}
+                    <!-- Trending/Top News Section -->
+                    <div class="trending-news-section" id="trendingNews">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                <span class="trending-label">Trending</span> Top Stories
+                            </h5>
+                        </div>
+
+                        <!-- Featured News Items -->
+                        <div class="row">
+                            {% for news in news_data.all %}
+                            <div class="col-md-6 col-xl-4 mb-3 news-grid-item" data-category="{{ news.category }}" data-source-order="{{ news.source_order }}">
+                                <div class="card news-card">
+                                    <img src="{{ news.image }}" class="card-img-top" alt="News Image" onerror="this.src='/static/images/default_news.jpg';" />
+                                    <div class="card-body">
+                                        <h5 class="card-title {% if 'cnn.com' in news.link %}cnn-title{% elif not news.title or news.title|trim|lower in ['no title', 'none', ''] %}url-title{% endif %}">
+                                            {% if news.title and news.title|trim|lower not in ['no title', 'none', ''] %}
+                                                {{ news.title }}
+                                            {% else %}
+                                                {% set domain = news.link.split('/')[2] if news.link.startswith('http') else news.link.split('/')[0] %}
+                                                {% set domain_clean = domain.replace('www.', '').replace('.com', '').replace('.org', '').title() %}
+                                                {% set last_part = news.link.split('/')[-1] if news.link.split('/')[-1] else news.link.split('/')[-2] %}
+                                                {{ domain_clean }}: {{ last_part|replace('-', ' ')|replace('_', ' ')|title }}
+                                            {% endif %}
+                                        </h5>
+                                        <small class="text-muted">Source #{{ news.source_order }}</small>
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a href="{{ news.link }}" target="_blank" class="btn btn-sm btn-outline-primary">Read</a>
+                                            <span class="badge bg-secondary news-badge">
+                                                {{ news.category|replace('_', ' ')|title }}
+                                            </span>
+                                        </div>
+                                        <small class="text-muted news-link mt-1">
+                                            {{ news.source_url|truncate(30, True) }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                    {% endfor %}
-                  </div>
-                  <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn" data-region="{{ region }}">
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
 
-          <!-- Controls -->
-          <div class="d-flex align-items-center justify-content-between mb-2 mt-3">
-            <label class="small mb-0">Update Frequency</label>
-            <select id="frequencyDropdown" class="form-select form-select-sm" style="width: 70%">
-              <option value="2min">2 Min</option>
-              <option value="5min">5 Min</option>
-              <option value="10min">10 Min</option>
-              <option value="20min">20 Min</option>
-              <option value="30min">30 Min</option>
-            </select>
-          </div>
-
-          <button id="submitSources" type="submit" class="btn btn-primary btn-sm w-100 mt-2">
-            <i class="bi bi-check-lg"></i> Submit and Start Auto-refresh
-          </button>
-
-          <button type="button" id="clearAllUrls" class="btn btn-outline-danger btn-sm w-100 mt-2">
-            <i class="bi bi-trash"></i> Clear All URLs
-          </button>
-
-          <div id="refreshStatus" class="small text-center mt-2 d-none">
-            <span class="badge bg-success">
-              <i class="bi bi-arrow-repeat"></i>
-              Auto-refreshing every <span id="minutesDisplay">2</span> minutes
-            </span>
-            <div class="progress mt-1" style="height: 4px">
-              <div id="refreshProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Right Column: News -->
-    <div class="col-md-{% if news_data %}12{% else %}8{% endif %}" id="newsColumn">
-      <div class="card shadow-sm p-3" id="newsCard">
-        <h6 class="text-center text-primary">News Feed</h6>
-
-        {% if news_data %}
-        <!-- Trending/Top News Section -->
-        <div class="trending-news-section" id="trendingNews">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">
-              <span class="trending-label">Trending</span> Top Stories
-            </h5>
-          </div>
-
-          <!-- Featured News Items -->
-          <div class="row">
-            {% for news in news_data.all %}
-            <div class="col-md-6 col-xl-4 mb-3 news-grid-item" data-category="{{ news.category }}" data-source-order="{{ news.source_order }}">
-              <div class="card news-card">
-                <img src="{{ news.image }}" class="card-img-top" alt="News Image" onerror="this.src='/static/images/default_news.jpg';" />
-                <div class="card-body">
-                  <h5 class="card-title {% if 'cnn.com' in news.link %}cnn-title{% elif not news.title or news.title|trim|lower in ['no title', 'none', ''] %}url-title{% endif %}">
-                    {% if news.title and news.title|trim|lower not in ['no title', 'none', ''] %}
-                      {{ news.title }}
+                    <!-- Regular News Grid -->
+                    <div class="row" id="newsItems">
+                        {% for news in news_data.all[6:] %}
+                        <div class="col-md-6 col-xl-4 mb-3 news-grid-item" data-category="{{ news.category }}">
+                            <div class="card news-card">
+                                <img src="{{ news.image }}" class="card-img-top" alt="News Image" onerror="this.src='/static/images/default_news.jpg';" />
+                                <div class="card-body">
+                                    <h5 class="card-title {% if 'cnn.com' in news.link %}cnn-title{% elif not news.title or news.title|trim|lower in ['no title', 'none', ''] %}url-title{% endif %}">
+                                        {% if news.title and news.title|trim|lower not in ['no title', 'none', ''] %}
+                                            {{ news.title }}
+                                        {% else %}
+                                            {% set domain = news.link.split('/')[2] if news.link.startswith('http') else news.link.split('/')[0] %}
+                                            {% set domain_clean = domain.replace('www.', '').replace('.com', '').replace('.org', '').title() %}
+                                            {% set last_part = news.link.split('/')[-1] if news.link.split('/')[-1] else news.link.split('/')[-2] %}
+                                            {{ domain_clean }}: {{ last_part|replace('-', ' ')|replace('_', ' ')|title }}
+                                        {% endif %}
+                                    </h5>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="{{ news.link }}" target="_blank" class="btn btn-sm btn-outline-primary">Read</a>
+                                        <span class="badge bg-secondary news-badge">
+                                            {{ news.category|replace('_', ' ')|title }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted news-link mt-1">
+                                        {{ news.link|truncate(30, True) }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                      {% set domain = news.link.split('/')[2] if news.link.startswith('http') else news.link.split('/')[0] %}
-                      {% set domain_clean = domain.replace('www.', '').replace('.com', '').replace('.org', '').title() %}
-                      {% set last_part = news.link.split('/')[-1] if news.link.split('/')[-1] else news.link.split('/')[-2] %}
-                      {{ domain_clean }}: {{ last_part|replace('-', ' ')|replace('_', ' ')|title }}
+                    <div class="col-12 text-center py-5">
+                        <p>No news data available. Submit the form to fetch news.</p>
+                        {% if request.method == "POST" and not news_data %}
+                        <div class="alert alert-warning">
+                            No news could be fetched from the provided URLs. Please check the URLs or try again later.
+                        </div>
+                        {% endif %}
+                    </div>
                     {% endif %}
-                  </h5>
-                  <small class="text-muted">Source #{{ news.source_order }}</small>
                 </div>
-                <div class="card-footer">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ news.link }}" target="_blank" class="btn btn-sm btn-outline-primary">Read</a>
-                    <span class="badge bg-secondary news-badge">
-                      {{ news.category|replace('_', ' ')|title }}
-                    </span>
-                  </div>
-                  <small class="text-muted news-link mt-1">
-                    {{ news.source_url|truncate(30, True) }}
-                  </small>
-                </div>
-              </div>
             </div>
-            {% endfor %}
-          </div>
         </div>
-
-        <!-- Regular News Grid -->
-        <div class="row" id="newsItems">
-          {% for news in news_data.all[6:] %}
-          <div class="col-md-6 col-xl-4 mb-3 news-grid-item" data-category="{{ news.category }}">
-            <div class="card news-card">
-              <img src="{{ news.image }}" class="card-img-top" alt="News Image" onerror="this.src='/static/images/default_news.jpg';" />
-              <div class="card-body">
-                <h5 class="card-title {% if 'cnn.com' in news.link %}cnn-title{% elif not news.title or news.title|trim|lower in ['no title', 'none', ''] %}url-title{% endif %}">
-                  {% if news.title and news.title|trim|lower not in ['no title', 'none', ''] %}
-                    {{ news.title }}
-                  {% else %}
-                    {% set domain = news.link.split('/')[2] if news.link.startswith('http') else news.link.split('/')[0] %}
-                    {% set domain_clean = domain.replace('www.', '').replace('.com', '').replace('.org', '').title() %}
-                    {% set last_part = news.link.split('/')[-1] if news.link.split('/')[-1] else news.link.split('/')[-2] %}
-                    {{ domain_clean }}: {{ last_part|replace('-', ' ')|replace('_', ' ')|title }}
-                  {% endif %}
-                </h5>
-              </div>
-              <div class="card-footer">
-                <div class="d-flex justify-content-between align-items-center">
-                  <a href="{{ news.link }}" target="_blank" class="btn btn-sm btn-outline-primary">Read</a>
-                  <span class="badge bg-secondary news-badge">
-                    {{ news.category|replace('_', ' ')|title }}
-                  </span>
-                </div>
-                <small class="text-muted news-link mt-1">
-                  {{ news.link|truncate(30, True) }}
-                </small>
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="col-12 text-center py-5">
-          <p>No news data available. Submit the form to fetch news.</p>
-          {% if request.method == "POST" and not news_data %}
-          <div class="alert alert-warning">
-            No news could be fetched from the provided URLs. Please check the URLs or try again later.
-          </div>
-          {% endif %}
-        </div>
-        {% endif %}
-      </div>
     </div>
-  </div>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // ====== CONSTANTS AND ELEMENTS ======
-    const regions = [
-      "world",
-      "north_america",
-      "south_america",
-      "europe",
-      "asia",
-      "africa",
-      "australia",
-      "mena",
-    ];
-    const urlForm = document.getElementById("urlForm");
-    const leftColumn = document.getElementById("leftColumn");
-    const newsColumn = document.getElementById("newsColumn");
-    const toggleButton = document.getElementById("toggleSearch");
-    const clearAllButton = document.getElementById("clearAllUrls");
-    const frequencyDropdown = document.getElementById("frequencyDropdown");
-    const refreshStatus = document.getElementById("refreshStatus");
-    const refreshProgress = document.getElementById("refreshProgress");
-    const minutesDisplay = document.getElementById("minutesDisplay");
-    const timerToggle = document.getElementById("timerToggle");
-    const timerReset = document.getElementById("timerReset");
-    const countdownDisplay = document.getElementById("countdownDisplay");
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // ====== CONSTANTS AND ELEMENTS ======
+            const regions = [
+                "world",
+                "north_america",
+                "south_america",
+                "europe",
+                "asia",
+                "africa",
+                "australia",
+                "mena",
+            ];
+            const urlForm = document.getElementById("urlForm");
+            const leftColumn = document.getElementById("leftColumn");
+            const newsColumn = document.getElementById("newsColumn");
+            const toggleButton = document.getElementById("toggleSearch");
+            const clearAllButton = document.getElementById("clearAllUrls");
+            const frequencyDropdown = document.getElementById("frequencyDropdown");
+            const refreshStatus = document.getElementById("refreshStatus");
+            const refreshProgress = document.getElementById("refreshProgress");
+            const minutesDisplay = document.getElementById("minutesDisplay");
+            const timerToggle = document.getElementById("timerToggle");
+            const timerReset = document.getElementById("timerReset");
+            const countdownDisplay = document.getElementById("countdownDisplay");
 
-    // ====== STATE VARIABLES ======
-    let refreshInterval = null;
-    let progressInterval = null;
-    let countdownInterval = null;
-    let timerIsActive = false;
-    let secondsRemaining = 0;
-    let announcementMade = false;
-    let currentActiveCategory = "all";
+            // ====== STATE VARIABLES ======
+            let refreshInterval = null;
+            let progressInterval = null;
+            let countdownInterval = null;
+            let timerIsActive = false;
+            let secondsRemaining = 0;
+            let announcementMade = false;
+            let currentActiveCategory = "all";
 
-    // ====== URL MANAGEMENT SYSTEM ======
+            // ====== URL MANAGEMENT SYSTEM ======
 
-    // Save all URLs to localStorage
-    function saveUrlsToStorage() {
-      const urlData = {};
+            // Save all URLs to localStorage
+            function saveUrlsToStorage() {
+                const urlData = {};
 
-      regions.forEach((region) => {
-        const inputs = document.querySelectorAll(
-          `input[name="${region}_urls"]`
-        );
-        urlData[region] = Array.from(inputs)
-          .map((input) => input.value.trim())
-          .filter((url) => url);
-      });
+                regions.forEach((region) => {
+                    const inputs = document.querySelectorAll(
+                        `input[name="${region}_urls"]`
+                    );
+                    urlData[region] = Array.from(inputs)
+                        .map((input) => input.value.trim())
+                        .filter((url) => url);
+                });
 
-      localStorage.setItem("currentAffairsUrls", JSON.stringify(urlData));
-    }
-
-    // Load URLs from localStorage
-    function loadUrlsFromStorage() {
-      const savedData = JSON.parse(
-        localStorage.getItem("currentAffairsUrls") || "{}"
-      );
-
-      regions.forEach((region) => {
-        const container = document.getElementById(`${region}Container`);
-
-        // Clear all existing fields first
-        const existingFields = container.querySelectorAll(".source-field");
-        existingFields.forEach((field) => field.remove());
-
-        // Check if we have saved URLs for this region
-        if (savedData[region] && savedData[region].length > 0) {
-          savedData[region].forEach((url, index) => {
-            if (index < 4) {
-              // Create basic field (first 4 fields)
-              const fieldHTML = `
-                <div class="input-group mb-2 source-field">
-                  <span class="input-group-text">#${index + 1}</span>
-                  <input type="text" name="${region}_urls" class="form-control url-input" 
-                         placeholder="Enter URL" value="${url}" data-source-order="${
-                index + 1
-              }" />
-                  ${
-                    index >= 3
-                      ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
-                      : ""
-                  }
-                </div>
-              `;
-              container.insertAdjacentHTML("beforeend", fieldHTML);
-            } else {
-              // Create additional fields
-              addSourceField(region, url);
+                localStorage.setItem("currentAffairsUrls", JSON.stringify(urlData));
             }
-          });
-        } else {
-          // Create 4 empty fields if no saved data
-          for (let i = 1; i <= 4; i++) {
-            const fieldHTML = `
-              <div class="input-group mb-2 source-field">
-                <span class="input-group-text">#${i}</span>
-                <input type="text" name="${region}_urls" class="form-control url-input" 
-                       placeholder="Enter URL" data-source-order="${i}" />
-                ${
-                  i > 3
-                    ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
-                    : ""
+
+            // Load URLs from localStorage
+            function loadUrlsFromStorage() {
+                const savedData = JSON.parse(
+                    localStorage.getItem("currentAffairsUrls") || "{}"
+                );
+
+                regions.forEach((region) => {
+                    const container = document.getElementById(`${region}Container`);
+
+                    // Clear all existing fields first
+                    const existingFields = container.querySelectorAll(".source-field");
+                    existingFields.forEach((field) => field.remove());
+
+                    // Check if we have saved URLs for this region
+                    if (savedData[region] && savedData[region].length > 0) {
+                        savedData[region].forEach((url, index) => {
+                            if (index < 4) {
+                                // Create basic field (first 4 fields)
+                                const fieldHTML = `
+                                    <div class="input-group mb-2 source-field">
+                                        <span class="input-group-text">#${index + 1}</span>
+                                        <input type="text" name="${region}_urls" class="form-control url-input" 
+                                               placeholder="Enter URL" value="${url}" data-source-order="${
+                                    index + 1
+                                }" />
+                                        ${
+                                            index >= 3
+                                                ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
+                                                : ""
+                                        }
+                                    </div>
+                                `;
+                                container.insertAdjacentHTML("beforeend", fieldHTML);
+                            } else {
+                                // Create additional fields
+                                addSourceField(region, url);
+                            }
+                        });
+                    } else {
+                        // Create 4 empty fields if no saved data
+                        for (let i = 1; i <= 4; i++) {
+                            const fieldHTML = `
+                                <div class="input-group mb-2 source-field">
+                                    <span class="input-group-text">#${i}</span>
+                                    <input type="text" name="${region}_urls" class="form-control url-input" 
+                                           placeholder="Enter URL" data-source-order="${i}" />
+                                    ${
+                                        i > 3
+                                            ? '<button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>'
+                                            : ""
+                                    }
+                                </div>
+                            `;
+                            container.insertAdjacentHTML("beforeend", fieldHTML);
+                        }
+                    }
+                });
+
+                // Attach events to all inputs
+                document.querySelectorAll(".url-input").forEach((input) => {
+                    input.addEventListener("input", saveUrlsToStorage);
+                });
+
+                // Attach events to all remove buttons
+                document.querySelectorAll(".remove-field").forEach((button) => {
+                    button.addEventListener("click", function () {
+                        this.closest(".source-field").remove();
+                        renumberFields(this.closest(".source-container"));
+                        saveUrlsToStorage();
+                    });
+                });
+            }
+
+            // Add new source field
+            function addSourceField(region, url = "") {
+                const container = document.getElementById(`${region}Container`);
+                const fieldCount = container.querySelectorAll(".source-field").length;
+                const nextOrder = fieldCount + 1;
+
+                const fieldHTML = `
+                    <div class="input-group mb-2 source-field">
+                        <span class="input-group-text">#${nextOrder}</span>
+                        <input type="text" name="${region}_urls" class="form-control url-input" 
+                               placeholder="Enter URL" value="${url}" data-source-order="${nextOrder}" />
+                        <button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML("beforeend", fieldHTML);
+
+                // Attach events to the new field
+                const newField = container.lastElementChild;
+                newField
+                    .querySelector(".url-input")
+                    .addEventListener("input", saveUrlsToStorage);
+                newField
+                    .querySelector(".remove-field")
+                    .addEventListener("click", function () {
+                        newField.remove();
+                        renumberFields(container);
+                        saveUrlsToStorage();
+                    });
+            }
+
+            // Renumber fields after deletion
+            function renumberFields(container) {
+                container.querySelectorAll(".source-field").forEach((field, index) => {
+                    field.querySelector(".input-group-text").textContent = `#${index + 1}`;
+                    field
+                        .querySelector("input")
+                        .setAttribute("data-source-order", index + 1);
+                });
+            }
+
+            // Clear all URLs
+            function clearAllUrls() {
+                if (
+                    confirm(
+                        "Are you sure you want to clear all URLs? This cannot be undone."
+                    )
+                ) {
+                    regions.forEach((region) => {
+                        const container = document.getElementById(`${region}Container`);
+                        container.querySelectorAll(".source-field").forEach((field) => {
+                            field.querySelector("input").value = "";
+                        });
+                    });
+                    localStorage.removeItem("currentAffairsUrls");
                 }
-              </div>
-            `;
-            container.insertAdjacentHTML("beforeend", fieldHTML);
-          }
-        }
-      });
-
-      // Attach events to all inputs
-      document.querySelectorAll(".url-input").forEach((input) => {
-        input.addEventListener("input", saveUrlsToStorage);
-      });
-
-      // Attach events to all remove buttons
-      document.querySelectorAll(".remove-field").forEach((button) => {
-        button.addEventListener("click", function () {
-          this.closest(".source-field").remove();
-          renumberFields(this.closest(".source-container"));
-          saveUrlsToStorage();
-        });
-      });
-    }
-
-    // Add new source field
-    function addSourceField(region, url = "") {
-      const container = document.getElementById(`${region}Container`);
-      const fieldCount = container.querySelectorAll(".source-field").length;
-      const nextOrder = fieldCount + 1;
-
-      const fieldHTML = `
-        <div class="input-group mb-2 source-field">
-          <span class="input-group-text">#${nextOrder}</span>
-          <input type="text" name="${region}_urls" class="form-control url-input" 
-                 placeholder="Enter URL" value="${url}" data-source-order="${nextOrder}" />
-          <button type="button" class="btn btn-outline-danger remove-field"><i class="bi bi-x"></i></button>
-        </div>
-      `;
-
-      container.insertAdjacentHTML("beforeend", fieldHTML);
-
-      // Attach events to the new field
-      const newField = container.lastElementChild;
-      newField
-        .querySelector(".url-input")
-        .addEventListener("input", saveUrlsToStorage);
-      newField
-        .querySelector(".remove-field")
-        .addEventListener("click", function () {
-          newField.remove();
-          renumberFields(container);
-          saveUrlsToStorage();
-        });
-    }
-
-    // Renumber fields after deletion
-    function renumberFields(container) {
-      container.querySelectorAll(".source-field").forEach((field, index) => {
-        field.querySelector(".input-group-text").textContent = `#${index + 1}`;
-        field
-          .querySelector("input")
-          .setAttribute("data-source-order", index + 1);
-      });
-    }
-
-    // Clear all URLs
-    function clearAllUrls() {
-      if (
-        confirm(
-          "Are you sure you want to clear all URLs? This cannot be undone."
-        )
-      ) {
-        regions.forEach((region) => {
-          const container = document.getElementById(`${region}Container`);
-          container.querySelectorAll(".source-field").forEach((field) => {
-            field.querySelector("input").value = "";
-          });
-        });
-        localStorage.removeItem("currentAffairsUrls");
-      }
-    }
-
-    // ====== TAB FUNCTIONALITY ======
-
-    // Modified filterNewsByCategory function
-function filterNewsByCategory(category) {
-  const allNewsItems = document.querySelectorAll(".news-grid-item");
-
-  allNewsItems.forEach((item) => {
-    const itemCategory = item.getAttribute("data-category");
-
-    if (category === "all") {
-      // Show all items in World tab
-      item.style.display = "";
-    } else if (itemCategory === category) {
-      // Show items from the selected region
-      item.style.display = "";
-    } else if (itemCategory === "world" && category !== "all") {
-      // Hide world items when viewing specific regions
-      item.style.display = "none";
-    } else {
-      // Hide items from other regions
-      item.style.display = "none";
-    }
-  });
-}
-    // Tab click handlers
-    document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
-      tab.addEventListener("click", function (e) {
-        e.preventDefault();
-
-        // Update active tab
-        document
-          .querySelectorAll("#newsTabs .nav-link")
-          .forEach((t) => t.classList.remove("active"));
-        this.classList.add("active");
-
-        // Update URL hash
-        window.location.hash = this.getAttribute("href");
-
-        // Filter news
-        currentActiveCategory = this.getAttribute("data-tab");
-        filterNewsByCategory(currentActiveCategory);
-      });
-    });
-
-    // Handle initial load with hash
-    function activateTabFromHash() {
-      const hash = window.location.hash.substring(1);
-      if (hash) {
-        const tabToActivate = document.querySelector(
-          `#newsTabs .nav-link[href="#${hash}"]`
-        );
-        if (tabToActivate) tabToActivate.click();
-      }
-    }
-
-    // ====== TIMER FUNCTIONALITY ======
-
-    // Start auto-refresh
-    function startAutoRefresh() {
-      stopAutoRefresh(); // Clear any existing intervals
-
-      const selectedValue = frequencyDropdown.value;
-      const minutes = parseInt(selectedValue.replace("min", ""));
-      const milliseconds = minutes * 60 * 1000;
-
-      minutesDisplay.textContent = minutes;
-      refreshStatus.classList.remove("d-none");
-
-      // Initialize countdown
-      secondsRemaining = minutes * 60;
-      countdownDisplay.textContent = formatTime(secondsRemaining);
-      announcementMade = false;
-
-      // Countdown timer
-      countdownInterval = setInterval(() => {
-        secondsRemaining--;
-
-        if (secondsRemaining <= 0) {
-          if (!announcementMade) {
-            announceRefresh();
-            announcementMade = true;
-          }
-          secondsRemaining = minutes * 60;
-        }
-
-        countdownDisplay.textContent = formatTime(secondsRemaining);
-      }, 1000);
-
-      // Auto-refresh
-      refreshInterval = setInterval(() => {
-        fetch(window.location.href, {
-          method: "POST",
-          body: new FormData(urlForm),
-        })
-          .then((response) => response.text())
-          .then((html) => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            const newNewsItems = doc.querySelector("#newsItems");
-
-            if (newNewsItems) {
-              document.querySelector("#newsItems").innerHTML =
-                newNewsItems.innerHTML;
-              filterNewsByCategory(currentActiveCategory);
             }
 
-            refreshProgress.style.width = "0%";
-            secondsRemaining = minutes * 60;
-            countdownDisplay.textContent = formatTime(secondsRemaining);
-            announcementMade = false;
-          });
-      }, milliseconds);
+            // ====== TAB FUNCTIONALITY ======
 
-      // Progress bar
-      const updateProgress = () => {
-        const step = 100 / (minutes * 60);
-        let currentProgress = 0;
+            // Filter news by category
+            function filterNewsByCategory(category) {
+                const allNewsItems = document.querySelectorAll(".news-grid-item");
 
-        progressInterval = setInterval(() => {
-          currentProgress += step;
-          if (currentProgress > 100) currentProgress = 0;
-          refreshProgress.style.width = currentProgress + "%";
-        }, 1000);
-      };
+                allNewsItems.forEach((item) => {
+                    const itemCategory = item.getAttribute("data-category");
 
-      updateProgress();
-    }
+                    if (category === "all") {
+                        item.style.display = "";
+                    } else if (itemCategory === category) {
+                        item.style.display = "";
+                    } else if (itemCategory === "world" && category !== "all") {
+                        item.style.display = "none";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            }
 
-    // Stop auto-refresh
-    function stopAutoRefresh() {
-      if (refreshInterval) clearInterval(refreshInterval);
-      if (progressInterval) clearInterval(progressInterval);
-      if (countdownInterval) clearInterval(countdownInterval);
+            // Activate tab from hash
+            function activateTabFromHash() {
+                const hash = window.location.hash.substring(1);
+                if (hash) {
+                    const tabToActivate = document.querySelector(
+                        `#newsTabs .nav-link[href="#${hash}"]`
+                    );
+                    if (tabToActivate) {
+                        document.querySelectorAll("#newsTabs .nav-link").forEach(tab => {
+                            tab.classList.remove("active");
+                        });
+                        tabToActivate.classList.add("active");
+                        currentActiveCategory = tabToActivate.getAttribute("data-tab");
+                        filterNewsByCategory(currentActiveCategory);
+                    }
+                }
+            }
 
-      refreshStatus.classList.add("d-none");
-      refreshProgress.style.width = "0%";
-    }
+            // Activate initial tab based on backend data
+            function activateInitialTab() {
+                const activeRegion = "{{ active_region }}" || "all";
+                const tabToActivate = document.querySelector(
+                    `#newsTabs .nav-link[data-tab="${activeRegion}"]`
+                );
+                
+                if (tabToActivate) {
+                    document.querySelectorAll("#newsTabs .nav-link").forEach(tab => {
+                        tab.classList.remove("active");
+                    });
+                    tabToActivate.classList.add("active");
+                    currentActiveCategory = activeRegion;
+                    filterNewsByCategory(activeRegion);
+                    
+                    if (!window.location.hash) {
+                        window.location.hash = `#${activeRegion}`;
+                    }
+                }
+            }
 
-    // Format time as MM:SS
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins
-        .toString()
-        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
+            // Tab click handlers
+            document.querySelectorAll("#newsTabs .nav-link").forEach((tab) => {
+                tab.addEventListener("click", function (e) {
+                    e.preventDefault();
 
-    // Announce refresh
-    function announceRefresh() {
-      if ("speechSynthesis" in window) {
-        const announcement = new SpeechSynthesisUtterance(
-          "Page will now refresh"
-        );
-        window.speechSynthesis.speak(announcement);
-      }
-    }
+                    // Update active tab
+                    document
+                        .querySelectorAll("#newsTabs .nav-link")
+                        .forEach((t) => t.classList.remove("active"));
+                    this.classList.add("active");
 
-    // ====== EVENT LISTENERS ======
+                    // Update URL hash
+                    window.location.hash = this.getAttribute("href");
 
-    // Toggle search panel
-    toggleButton.addEventListener("click", function () {
-      const isVisible = leftColumn.style.display !== "none";
+                    // Filter news
+                    currentActiveCategory = this.getAttribute("data-tab");
+                    filterNewsByCategory(currentActiveCategory);
+                });
+            });
 
-      if (isVisible) {
-        leftColumn.style.display = "none";
-        newsColumn.className = "col-md-12";
-        this.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Show Search';
-      } else {
-        leftColumn.style.display = "block";
-        newsColumn.className = "col-md-8";
-        this.innerHTML = '<i class="bi bi-arrow-left-circle"></i> Hide Search';
-      }
-    });
+            // ====== TIMER FUNCTIONALITY ======
 
-    // Add source buttons
-    document.querySelectorAll(".add-source-btn").forEach((button) => {
-      button.addEventListener("click", function () {
-        addSourceField(this.getAttribute("data-region"));
-      });
-    });
+            // Start auto-refresh
+            function startAutoRefresh() {
+                stopAutoRefresh(); // Clear any existing intervals
 
-    // Clear all URLs
-    clearAllButton.addEventListener("click", clearAllUrls);
+                const selectedValue = frequencyDropdown.value;
+                const minutes = parseInt(selectedValue.replace("min", ""));
+                const milliseconds = minutes * 60 * 1000;
 
-    // Timer controls
-    timerToggle.addEventListener("click", function () {
-      if (timerIsActive) {
-        stopAutoRefresh();
-        timerIsActive = false;
-        this.classList.remove("btn-danger");
-        this.classList.add("btn-success");
-        this.innerHTML = '<i class="bi bi-play-fill"></i>';
-      } else {
-        startAutoRefresh();
-        timerIsActive = true;
-        this.classList.remove("btn-success");
-        this.classList.add("btn-danger");
-        this.innerHTML = '<i class="bi bi-pause-fill"></i>';
-      }
-    });
+                minutesDisplay.textContent = minutes;
+                refreshStatus.classList.remove("d-none");
 
-    timerReset.addEventListener("click", function () {
-      if (timerIsActive) {
-        stopAutoRefresh();
-        startAutoRefresh();
-      } else {
-        const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
-        secondsRemaining = minutes * 60;
-        countdownDisplay.textContent = formatTime(secondsRemaining);
-      }
-    });
+                // Initialize countdown
+                secondsRemaining = minutes * 60;
+                countdownDisplay.textContent = formatTime(secondsRemaining);
+                announcementMade = false;
 
-    // Form submission
-    urlForm.addEventListener("submit", function (e) {
-      e.preventDefault();
+                // Countdown timer
+                countdownInterval = setInterval(() => {
+                    secondsRemaining--;
 
-      // Disable empty inputs before submission
-      document.querySelectorAll(".url-input").forEach((input) => {
-        input.disabled = !input.value.trim();
-      });
+                    if (secondsRemaining <= 0) {
+                        if (!announcementMade) {
+                            announceRefresh();
+                            announcementMade = true;
+                        }
+                        secondsRemaining = minutes * 60;
+                    }
 
-      // Add submitted parameter to the form action
-      const formAction = this.action;
-      this.action = formAction.includes('?') ? 
-          `${formAction}&submitted=true` : 
-          `${formAction}?submitted=true`;
-          
-      this.submit();
-    });
+                    countdownDisplay.textContent = formatTime(secondsRemaining);
+                }, 1000);
 
-    // ====== INITIALIZATION ======
+                // Auto-refresh
+                refreshInterval = setInterval(() => {
+                    fetch(window.location.href, {
+                        method: "POST",
+                        body: new FormData(urlForm),
+                    })
+                        .then((response) => response.text())
+                        .then((html) => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, "text/html");
+                            const newNewsItems = doc.querySelector("#newsItems");
 
-    // Load saved URLs
-    loadUrlsFromStorage();
+                            if (newNewsItems) {
+                                document.querySelector("#newsItems").innerHTML =
+                                    newNewsItems.innerHTML;
+                                filterNewsByCategory(currentActiveCategory);
+                            }
 
-    // Activate tab from URL hash
-    activateTabFromHash();
-    window.addEventListener("hashchange", activateTabFromHash);
+                            refreshProgress.style.width = "0%";
+                            secondsRemaining = minutes * 60;
+                            countdownDisplay.textContent = formatTime(secondsRemaining);
+                            announcementMade = false;
+                        });
+                }, milliseconds);
 
-    // Initialize timer display
-    const defaultMinutes = parseInt(frequencyDropdown.value.replace("min", ""));
-    secondsRemaining = defaultMinutes * 60;
-    countdownDisplay.textContent = formatTime(secondsRemaining);
+                // Progress bar
+                const updateProgress = () => {
+                    const step = 100 / (minutes * 60);
+                    let currentProgress = 0;
 
-    // Auto-start timer if we have news data (meaning form was submitted)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('submitted')) {
-      timerToggle.click();
-    }
-  });
-</script>
+                    progressInterval = setInterval(() => {
+                        currentProgress += step;
+                        if (currentProgress > 100) currentProgress = 0;
+                        refreshProgress.style.width = currentProgress + "%";
+                    }, 1000);
+                };
+
+                updateProgress();
+            }
+
+            // Stop auto-refresh
+            function stopAutoRefresh() {
+                if (refreshInterval) clearInterval(refreshInterval);
+                if (progressInterval) clearInterval(progressInterval);
+                if (countdownInterval) clearInterval(countdownInterval);
+
+                refreshStatus.classList.add("d-none");
+                refreshProgress.style.width = "0%";
+            }
+
+            // Format time as MM:SS
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins
+                    .toString()
+                    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+            }
+
+            // Announce refresh
+            function announceRefresh() {
+                if ("speechSynthesis" in window) {
+                    const announcement = new SpeechSynthesisUtterance(
+                        "Page will now refresh"
+                    );
+                    window.speechSynthesis.speak(announcement);
+                }
+            }
+
+            // ====== EVENT LISTENERS ======
+
+            // Toggle search panel
+            toggleButton.addEventListener("click", function () {
+                const isVisible = leftColumn.style.display !== "none";
+
+                if (isVisible) {
+                    leftColumn.style.display = "none";
+                    newsColumn.className = "col-md-12";
+                    this.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Show Search';
+                } else {
+                    leftColumn.style.display = "block";
+                    newsColumn.className = "col-md-8";
+                    this.innerHTML = '<i class="bi bi-arrow-left-circle"></i> Hide Search';
+                }
+            });
+
+            // Add source buttons
+            document.querySelectorAll(".add-source-btn").forEach((button) => {
+                button.addEventListener("click", function () {
+                    addSourceField(this.getAttribute("data-region"));
+                });
+            });
+
+            // Clear all URLs
+            clearAllButton.addEventListener("click", clearAllUrls);
+
+            // Timer controls
+            timerToggle.addEventListener("click", function () {
+                if (timerIsActive) {
+                    stopAutoRefresh();
+                    timerIsActive = false;
+                    this.classList.remove("btn-danger");
+                    this.classList.add("btn-success");
+                    this.innerHTML = '<i class="bi bi-play-fill"></i>';
+                } else {
+                    startAutoRefresh();
+                    timerIsActive = true;
+                    this.classList.remove("btn-success");
+                    this.classList.add("btn-danger");
+                    this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                }
+            });
+
+            timerReset.addEventListener("click", function () {
+                if (timerIsActive) {
+                    stopAutoRefresh();
+                    startAutoRefresh();
+                } else {
+                    const minutes = parseInt(frequencyDropdown.value.replace("min", ""));
+                    secondsRemaining = minutes * 60;
+                    countdownDisplay.textContent = formatTime(secondsRemaining);
+                }
+            });
+
+            // Form submission
+            urlForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                // Disable empty inputs before submission
+                document.querySelectorAll(".url-input").forEach((input) => {
+                    input.disabled = !input.value.trim();
+                });
+
+                // Add submitted parameter to the form action
+                const formAction = this.action;
+                this.action = formAction.includes('?') ? 
+                    `${formAction}&submitted=true` : 
+                    `${formAction}?submitted=true`;
+                    
+                this.submit();
+            });
+
+            // ====== INITIALIZATION ======
+            function initialize() {
+                loadUrlsFromStorage();
+                activateInitialTab();
+                window.addEventListener("hashchange", activateTabFromHash);
+
+                // Initialize timer display
+                const defaultMinutes = parseInt(frequencyDropdown.value.replace("min", ""));
+                secondsRemaining = defaultMinutes * 60;
+                countdownDisplay.textContent = formatTime(secondsRemaining);
+
+                // Auto-start timer if we have news data (meaning form was submitted)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('submitted')) {
+                    timerToggle.click();
+                }
+            }
+
+            initialize();
+        });
+    </script>
 {% endblock %}

@@ -711,71 +711,45 @@ def scrape_news_portal(url, sector):
     return articles
 
 
-
 @app.route("/current_affairs", methods=["GET", "POST"])
 def current_affairs():
-    logger.info(f"Current Affairs page accessed by {request.remote_addr}")
-    
-    regions = {
-        'world': [],
-        'north_america': [],
-        'south_america': [],
-        'europe': [],
-        'asia': [],
-        'africa': [],
-        'australia': [],
-        'mena': []
-    }
-    
+    regions = [
+        'world', 'north_america', 'south_america', 'europe', 
+        'asia', 'africa', 'australia', 'mena'
+    ]
     news_data = []
     error_messages = []
     urls_provided = False
-
+    active_region = 'all'  # Default to 'all' tab
+    
     if request.method == "POST":
-        logger.info("Current Affairs form submitted")
+        urls_provided = True
         
-        # Dictionary to store URLs with their order
-        ordered_urls = {region: {} for region in regions.keys()}
+        # Determine which region was submitted
+        for region in regions:
+            if f"{region}_urls" in request.form:
+                active_region = region
+                break
         
-        for region in regions.keys():
-            # Get URLs with their order numbers
-            region_inputs = request.form.getlist(f"{region}_urls")
-            for i, url in enumerate(region_inputs, start=1):
-                url = url.strip()
-                if url:
-                    ordered_urls[region][i] = url
-                    regions[region].append(url)
-            
-            if ordered_urls[region]:
-                urls_provided = True
-                logger.debug(f"URLs provided for {region}: {ordered_urls[region]}")
-
-        if urls_provided:
-            logger.info(f"Processing {sum(len(regions[r]) for r in regions)} URLs across all regions")
-            
-            for region, url_dict in ordered_urls.items():
-                if not url_dict:
-                    continue
+        # Process each region's URLs
+        for region in regions:
+            urls = request.form.getlist(f"{region}_urls")
+            if urls:
+                for order_num, url in enumerate(urls, 1):
+                    url = url.strip()
+                    if not url:
+                        continue
                     
-                logger.info(f"Processing {len(url_dict)} URLs for {region}")
-                
-                # Process URLs in their specified order
-                for order_num, url in sorted(url_dict.items()):
                     try:
-                        if not url.startswith(('http://', 'https://')):
-                            url = 'https://' + url
-                            logger.debug(f"Added protocol to URL: {url}")
-                        
                         logger.info(f"Fetching news from {url} for region {region}")
                         source_news = fetch_top_news(url, max_articles=20)
                         
                         if source_news:
                             logger.info(f"Found {len(source_news)} articles at {url}")
-                            # Add source order, URL, and category to each article
                             for article in source_news:
                                 article['source_order'] = order_num
                                 article['source_url'] = url
-                                article['category'] = region  # Set category to the region it was submitted under
+                                article['category'] = region
                             news_data.extend(source_news)
                         else:
                             msg = f"Could not extract news from {url} (Region: {region})"
@@ -790,46 +764,32 @@ def current_affairs():
                         msg = f"Error processing {url} (Region: {region}): {str(e)}"
                         error_messages.append(msg)
                         logger.error(msg, exc_info=True)
-        else:
-            msg = "No URLs provided to fetch news"
-            error_messages.append(msg)
-            logger.warning(msg)
 
+    # Sort news data
     if news_data:
-        logger.info(f"Total articles collected: {len(news_data)}")
+        news_data.sort(key=lambda x: (
+            x.get('source_order', 0), 
+            -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')
+        ))
         
-        # First sort by source order (as specified in the form)
-        # Then sort by date within each source (newest first)
-        news_data.sort(key=lambda x: (x.get('source_order', 0), 
-                                    -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
-        
-        # Categorize news for template display while preserving order
+        # Categorize news
         categorized_news = {region: [] for region in regions}
-        
-        # Add all news to the 'all' category
         categorized_news['all'] = news_data
         
-        # Categorize news by their region
         for item in news_data:
             category = item.get('category', 'world')
             if category in categorized_news:
                 categorized_news[category].append(item)
-        
-        for region, items in categorized_news.items():
-            logger.debug(f"Category {region} has {len(items)} articles")
     else:
-        logger.info("No news articles collected in this request")
         categorized_news = {region: [] for region in regions}
         categorized_news['all'] = []
-
-    if error_messages:
-        logger.warning(f"Encountered {len(error_messages)} errors during processing")
 
     return render_template("current_affairs.html", 
                         news_data=categorized_news,
                         regions=regions,
                         error_messages=error_messages,
-                        urls_provided=urls_provided)
+                        urls_provided=urls_provided,
+                        active_region=active_region)
 
 
 
