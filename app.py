@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 # Add login credentials
 VALID_USERS = {
-    'developertest@gmail.com': 'solutions2025',
-    'admin1@gmail.com': 'admin/2002',
+    'dev@gmail.com': 'dev2025',
+    'admin1@gmail.com': 'admin1',
     'admin2@gmail.com': 'admin2',
 }
 
