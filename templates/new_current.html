@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Market News{% endblock %}
+{% block title %}NEW CURRENT News{% endblock %}
 {% block content %}
 
 <style>
@@ -481,8 +481,22 @@
                       />
                       {% endif %}
                       <div class="card-body">
-                        <h5 class="card-title">{{ news.title }}</h5>
-                        <p class="card-text news-content">{{ news.content or news.description or '' }}</p>
+                        <h5 class="card-title">
+                          {% if news.title %}
+                            {{ news.title }}
+                          {% elif news.description %}
+                            {{ news.description|truncate(80) }}
+                          {% else %}
+                            Untitled Article
+                          {% endif %}
+                        </h5>
+                        <p class="card-text news-content">
+                          {% if news.content %}
+                            {{ news.content }}
+                          {% elif news.description and not news.title %}
+                            {{ news.description|truncate(150) }}
+                          {% endif %}
+                        </p>
                         
                         <!-- Show date if available -->
                         {% if news.date %}
@@ -647,6 +661,10 @@
       
       // Update selected market in form
       $("#selectedMarket").val(market);
+      
+      // Save current inputs before switching markets
+      const currentMarket = $("#selectedMarket").val();
+      saveInputsToLocalStorage(currentMarket);
     });
 
     // Add source field functionality
@@ -663,6 +681,9 @@
       `;
 
       container.append(newField);
+      
+      // Save the current state of inputs to localStorage
+      saveInputsToLocalStorage(market);
 
       // Scroll to the new field
       container.animate(
@@ -673,6 +694,59 @@
       );
     });
 
+    // Save inputs to localStorage
+    function saveInputsToLocalStorage(market) {
+      const inputs = [];
+      $(`#${market}Container .source-field input`).each(function() {
+        inputs.push($(this).val());
+      });
+      localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
+    }
+
+    // Load inputs from localStorage
+    function loadInputsFromLocalStorage() {
+      $(".accordion-item").each(function() {
+        const market = $(this).data("market-target");
+        const savedInputs = localStorage.getItem(`market_${market}_urls`);
+        
+        if (savedInputs) {
+          const inputs = JSON.parse(savedInputs);
+          const container = $(`#${market}Container`);
+          
+          // Clear existing inputs beyond the first 5
+          container.find(".source-field:gt(4)").remove();
+          
+          // Update values for first 5 inputs
+          container.find(".source-field input").each(function(index) {
+            if (index < inputs.length) {
+              $(this).val(inputs[index]);
+            }
+          });
+          
+          // Add additional inputs if needed
+          for (let i = 5; i < inputs.length; i++) {
+            const newField = `
+              <div class="input-group mb-2 source-field">
+                <span class="input-group-text">#${i+1}</span>
+                <input type="text" name="${market}_urls" class="form-control" 
+                       placeholder="Enter URL" value="${inputs[i]}">
+              </div>
+            `;
+            container.append(newField);
+          }
+        }
+      });
+    }
+
+    // Save inputs when they change
+    $(document).on('input', '.source-field input', function() {
+      const market = $(this).closest('.source-container').attr('id').replace('Container', '');
+      saveInputsToLocalStorage(market);
+    });
+
+    // Load saved inputs on page load
+    loadInputsFromLocalStorage();
+
     // Form submission
     $("#marketForm").submit(function (e) {
       // Don't prevent default - let form submit normally
@@ -681,6 +755,10 @@
       // Show loading state
       const submitBtn = $(this).find('button[type="submit"]');
       submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
+      
+      // Save inputs before submitting
+      const market = $("#selectedMarket").val();
+      saveInputsToLocalStorage(market);
     });
 
     // Highlight current market
