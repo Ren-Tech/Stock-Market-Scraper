@@ -481,8 +481,22 @@
                       />
                       {% endif %}
                       <div class="card-body">
-                        <h5 class="card-title">{{ news.title }}</h5>
-                        <p class="card-text news-content">{{ news.content or news.description or '' }}</p>
+                        <h5 class="card-title">
+                          {% if news.title %}
+                            {{ news.title }}
+                          {% elif news.description %}
+                            {{ news.description|truncate(80) }}
+                          {% else %}
+                            Untitled Article
+                          {% endif %}
+                        </h5>
+                        <p class="card-text news-content">
+                          {% if news.content %}
+                            {{ news.content }}
+                          {% elif news.description and not news.title %}
+                            {{ news.description|truncate(150) }}
+                          {% endif %}
+                        </p>
                         
                         <!-- Show date if available -->
                         {% if news.date %}
