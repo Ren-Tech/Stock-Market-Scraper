@@ -179,7 +179,16 @@ NEWS_SOURCE_MAPPING = {
             'from': 'venturebeat.com',
             'to': 'www.bbc.co.uk/news/technology/'
         }
-    }
+    },
+      'www.edition.cnn.com': { 
+        'actual_source': 'apnews.com',
+        'name': 'Associated Press',
+        'link_replace': {
+            'from': 'apnews.com',
+            'to': 'www.edition.cnn.com'
+        }
+    },
+    
 }
 
 SITE_SPECIFIC_SELECTORS = {
