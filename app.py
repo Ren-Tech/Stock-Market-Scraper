@@ -180,14 +180,14 @@ NEWS_SOURCE_MAPPING = {
             'to': 'www.bbc.co.uk/news/technology/'
         }
     },
-      'www.edition.cnn.com': { 
-        'actual_source': 'apnews.com',
-        'name': 'Associated Press',
-        'link_replace': {
-            'from': 'apnews.com',
-            'to': 'www.edition.cnn.com'
-        }
-    },
+    #   'edition.cnn.com': { 
+    #     'actual_source': 'apnews.com',
+    #     'name': 'Associated Press',
+    #     'link_replace': {
+    #         'from': 'apnews.com',
+    #         'to': 'edition.cnn.com'
+    #     }
+    # },
     
 }
 
@@ -256,7 +256,7 @@ SITE_SPECIFIC_SELECTORS = {
         'image': 'img',
         'date': '.p-article__date, time, .date'
     },
-    'cnn.com': {
+    'edition.cnn.com': {
         'article': 'article, div.container__item, div.card, .card--section, .el__storyelement--standard, .cnn-search__result, .cd__content',
         'title': 'span.container__headline-text, h3.card__headline, .headline, h1, h2, h3, .cd__headline-text, .cnn-search__result-headline',
         'content': 'div.container__description, div.card__description, .description, p, .cd__description, .cnn-search__result-body',
@@ -268,7 +268,7 @@ SITE_SPECIFIC_SELECTORS = {
 def scrape_article(url):
     try:
         # Special handling for CNN
-        if 'cnn.com' in url:
+        if 'edition.cnn.com' in url:
             try:
                 response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
                 soup = BeautifulSoup(response.text, 'html.parser')

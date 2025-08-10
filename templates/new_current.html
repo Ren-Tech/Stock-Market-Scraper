@@ -483,20 +483,22 @@
                       />
                       {% endif %}
                       <div class="card-body">
-                      <h5 class="card-title">
-  {% if news.title %}
-    {{ news.title }}
-  {% elif news.description %}
-    {{ news.description|truncate(80) }}
-  {% else %}
-    Untitled Article (Source: {{ news.source_url|url_domain }})
-  {% endif %}
+    
+<!-- Replace the existing title display section in your template -->
+<h5 class="card-title">
+  {% set display_title = news.title if news.title and news.title|length > 5 else 
+                        (news.description|truncate(80) if news.description and news.description|length > 10 else 
+                        ('News from ' + (news.source_url|replace('https://', '')|replace('http://', '')|replace('www.', '') if news.source_url else 'Unknown Source'))) %}
+  {{ display_title }}
 </h5>
+
 <p class="card-text news-content">
-  {% if news.content %}
+  {% if news.content and news.content != display_title %}
     {{ news.content }}
-  {% elif news.description and news.title %}  {# Only show description if title exists #}
+  {% elif news.description and news.description != display_title and news.description|length > 20 %}
     {{ news.description|truncate(150) }}
+  {% else %}
+    Click to read the full article from {{ (news.source_url|replace('https://', '')|replace('http://', '')|replace('www.', '') if news.source_url else 'this source') }}.
   {% endif %}
 </p>
                         
