@@ -180,14 +180,7 @@ NEWS_SOURCE_MAPPING = {
             'to': 'www.bbc.co.uk/news/technology/'
         }
     },
-    #   'edition.cnn.com': { 
-    #     'actual_source': 'apnews.com',
-    #     'name': 'Associated Press',
-    #     'link_replace': {
-    #         'from': 'apnews.com',
-    #         'to': 'edition.cnn.com'
-    #     }
-    # },
+ 
     
 }
 
@@ -266,40 +259,127 @@ SITE_SPECIFIC_SELECTORS = {
     }
 }
 def scrape_article(url):
+    """Enhanced article title extraction with multiple fallback strategies"""
     try:
-        # Special handling for CNN
-        if 'edition.cnn.com' in url:
-            try:
-                response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-                soup = BeautifulSoup(response.text, 'html.parser')
-                title = (
-                    soup.find('h1', class_='headline__text') or 
-                    soup.find('meta', property='og:title') or
-                    soup.find('title')
-                )
-                if title:
-                    title_text = title.get_text().strip()
-                    return title_text if title_text else generate_title_from_url(url)
-                return generate_title_from_url(url)
-            except:
-                return generate_title_from_url(url)
+        headers = {
+            'User-Agent': random.choice(USER_AGENTS),
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+        }
         
-        # Default handling for other sites
-        try:
-            response = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            title = (
-                soup.find('meta', property='og:title') or
-                soup.find('title') or
-                soup.find('h1')
-            )
-            return title.get_text().strip() if title else generate_title_from_url(url)
-        except:
-            return generate_title_from_url(url)
+        response = requests.get(url, timeout=10, headers=headers)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Multiple title extraction strategies
+        title_candidates = []
+        
+        # Strategy 1: Meta tags (most reliable)
+        meta_title = soup.find('meta', property='og:title')
+        if meta_title and meta_title.get('content'):
+            title_candidates.append(clean_text(meta_title['content']))
+        
+        meta_title_name = soup.find('meta', attrs={'name': 'title'})
+        if meta_title_name and meta_title_name.get('content'):
+            title_candidates.append(clean_text(meta_title_name['content']))
+        
+        # Strategy 2: HTML title tag
+        html_title = soup.find('title')
+        if html_title and html_title.get_text():
+            # Clean up common title patterns (site name, separators)
+            title_text = clean_text(html_title.get_text())
+            # Remove common site name patterns
+            for separator in [' - ', ' | ', ' :: ', ' — ', ' – ']:
+                if separator in title_text:
+                    parts = title_text.split(separator)
+                    # Take the longest part (usually the article title)
+                    title_text = max(parts, key=len).strip()
+                    break
+            title_candidates.append(title_text)
+        
+        # Strategy 3: Article-specific header tags
+        header_selectors = [
+            'h1.article-title', 'h1.headline', 'h1.entry-title',
+            '.article-headline', '.story-headline', '.post-title',
+            'header h1', 'article h1', '.content h1',
+            'h1', 'h2.headline', 'h2.article-title'
+        ]
+        
+        for selector in header_selectors:
+            header = soup.select_one(selector)
+            if header and header.get_text().strip():
+                title_candidates.append(clean_text(header.get_text()))
+        
+        # Strategy 4: JSON-LD structured data
+        json_scripts = soup.find_all('script', type='application/ld+json')
+        for script in json_scripts:
+            try:
+                data = json.loads(script.string)
+                if isinstance(data, dict) and data.get('headline'):
+                    title_candidates.append(clean_text(data['headline']))
+                elif isinstance(data, list):
+                    for item in data:
+                        if isinstance(item, dict) and item.get('headline'):
+                            title_candidates.append(clean_text(item['headline']))
+            except:
+                continue
+        
+        # Filter and select best title
+        valid_titles = []
+        for title in title_candidates:
+            if title and len(title.strip()) > 10 and not is_generic_title(title):
+                valid_titles.append(title.strip())
+        
+        if valid_titles:
+            # Return the longest meaningful title (usually most descriptive)
+            return max(valid_titles, key=len)
+        
+        # Fallback: Generate from URL and first paragraph
+        return generate_smart_title_from_content(url, soup)
         
     except Exception as e:
         print(f"Error scraping {url}: {e}")
+        return generate_title_from_url(url)
+
+def is_generic_title(title):
+    """Check if title is too generic"""
+    generic_patterns = [
+        'home', 'news', 'latest', 'breaking', 'today', 
+        'page not found', '404', 'error', 'loading',
+        'welcome', 'homepage'
+    ]
+    title_lower = title.lower()
+    return any(pattern in title_lower for pattern in generic_patterns)
+
+def generate_smart_title_from_content(url, soup):
+    """Generate a smart title from page content when no proper title is found"""
+    try:
+        # Try to extract from first paragraph or lead text
+        content_selectors = [
+            '.article-lead', '.story-summary', '.article-intro',
+            '.lead', '.summary', '.excerpt', '.deck',
+            'article p:first-of-type', '.content p:first-of-type',
+            'p'
+        ]
+        
+        for selector in content_selectors:
+            element = soup.select_one(selector)
+            if element and element.get_text().strip():
+                text = clean_text(element.get_text())
+                if len(text) > 20:
+                    # Take first sentence or first 80 characters
+                    sentences = text.split('.')
+                    if len(sentences[0]) > 20:
+                        return sentences[0].strip() + ('.' if not sentences[0].endswith('.') else '')
+                    elif len(text) > 80:
+                        return text[:77] + "..."
+                    else:
+                        return text
+        
+        # Final fallback
+        return generate_title_from_url(url)
+        
+    except:
         return generate_title_from_url(url)
 
 def generate_title_from_url(url):
@@ -392,9 +472,7 @@ def _apply_source_mapping(news_items, mapping):
     return mapped_items
 
 def fetch_top_news(url, max_articles=20, region=None):
-    """
-    Fetch top news articles from a given URL with source mapping functionality.
-    """
+    """Enhanced news fetching with better title extraction"""
     parsed_url = urlparse(url)
     input_domain = parsed_url.netloc.lower()
     
@@ -429,15 +507,28 @@ def fetch_top_news(url, max_articles=20, region=None):
                 logger.warning(f"No entries found in feed: {actual_url}")
                 return []
                 
-            for entry in feed.entries[:max_articles*2]:  # Get more entries to account for filtering
+            for entry in feed.entries[:max_articles*2]:
+                # Enhanced title extraction for RSS
+                title = entry.get('title', '')
+                if not title or len(title.strip()) < 5:
+                    # Try to extract from description or summary
+                    desc = entry.get('description', '') or entry.get('summary', '')
+                    if desc:
+                        # Extract first sentence from description
+                        clean_desc = clean_text(BeautifulSoup(desc, 'html.parser').get_text())
+                        sentences = clean_desc.split('.')
+                        title = sentences[0].strip() + '.' if sentences[0] and len(sentences[0]) > 10 else clean_desc[:80] + "..."
+                    else:
+                        title = f"News from {source_domain}"
+                
                 article = {
-                    'title': clean_text(entry.get('title', 'No title')),
-                    'content': clean_text(entry.get('description', 'No content')),
+                    'title': clean_text(title),
+                    'content': clean_text(entry.get('description', '') or entry.get('summary', 'Click to read more')),
                     'link': entry.get('link', actual_url),
                     'date': entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
                     'source': source_domain,
                     'read_more': entry.get('link', actual_url),
-                    'category': assign_category(entry.get('title', '') + " " + entry.get('description', ''), region)
+                    'category': assign_category(title + " " + entry.get('description', ''), region)
                 }
                 
                 # Extract image
@@ -469,30 +560,21 @@ def fetch_top_news(url, max_articles=20, region=None):
                 soup = BeautifulSoup(response.content, 'html.parser')
             except Exception as e:
                 logger.warning(f"Requests failed, trying Selenium: {str(e)}")
-                try:
-                    options = Options()
-                    options.headless = True
-                    driver = webdriver.Chrome(options=options)
-                    driver.get(actual_url)
-                    time.sleep(3)  # Wait for JavaScript to load
-                    soup = BeautifulSoup(driver.page_source, 'html.parser')
-                    driver.quit()
-                except Exception as e:
-                    logger.error(f"Selenium also failed: {str(e)}")
-                    return []
+                return []  # Skip Selenium for now to avoid complexity
             
             # Try site-specific selectors first
             site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
             articles = []
             
             if site_selectors.get('article'):
-                articles = soup.select(site_selectors['article'])[:max_articles*3]  # Get more articles for filtering
+                articles = soup.select(site_selectors['article'])[:max_articles*3]
             
             # Fallback to generic detection
             if not articles:
                 article_selectors = [
                     'article', '[itemtype="http://schema.org/NewsArticle"]',
-                    '.article', '.story', '.post', '.card', '.teaser', '.list__item'
+                    '.article', '.story', '.post', '.card', '.teaser', '.list__item',
+                    '.news-item', '.article-item'
                 ]
                 for selector in article_selectors:
                     articles = soup.select(selector)
@@ -502,27 +584,66 @@ def fetch_top_news(url, max_articles=20, region=None):
             
             logger.info(f"Found {len(articles)} potential articles before filtering")
             
-            # Process articles
-            for article in articles[:max_articles*2]:  # Process more to account for filtering
+            # Process articles with enhanced title extraction
+            for article in articles[:max_articles*2]:
                 try:
-                    # Extract title
+                    # Enhanced title extraction
                     title = None
-                    if site_selectors.get('title'):
-                        title_elem = article.select_one(site_selectors['title'])
-                    else:
-                        for tag in ['h1', 'h2', 'h3']:
-                            title_elem = article.find(tag)
-                            if title_elem:
-                                break
-                    title = clean_text(title_elem.get_text()) if title_elem else 'No title'
+                    title_selectors = [
+                        site_selectors.get('title', ''),
+                        'h1', 'h2', 'h3', '.headline', '.title', '.article-title',
+                        '[data-testid="headline"]', '.card-title', '.entry-title'
+                    ]
+                    
+                    for selector in title_selectors:
+                        if selector:
+                            title_elem = article.select_one(selector)
+                            if title_elem and title_elem.get_text().strip():
+                                candidate_title = clean_text(title_elem.get_text())
+                                if len(candidate_title) > 10 and not is_generic_title(candidate_title):
+                                    title = candidate_title
+                                    break
+                    
+                    # If no good title found, try link text or create from content
+                    if not title or title == 'No title':
+                        # Try to get title from link text
+                        link_elem = article.find('a', href=True)
+                        if link_elem and link_elem.get_text().strip():
+                            link_text = clean_text(link_elem.get_text())
+                            if len(link_text) > 10 and not is_generic_title(link_text):
+                                title = link_text
+                        
+                        # If still no title, create from content
+                        if not title or title == 'No title':
+                            content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
+                            if content_elem:
+                                content_text = clean_text(content_elem.get_text())
+                                if len(content_text) > 20:
+                                    sentences = content_text.split('.')
+                                    title = sentences[0].strip() + '.' if len(sentences[0]) > 15 else content_text[:60] + "..."
+                            else:
+                                title = f"Latest from {source_domain.replace('www.', '').replace('.com', '').title()}"
                     
                     # Extract content
                     content = None
                     if site_selectors.get('content'):
                         content_elem = article.select_one(site_selectors['content'])
                     else:
-                        content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
-                    content = clean_text(content_elem.get_text()) if content_elem else title
+                        content_elem = article.find('p') or article.find(class_=re.compile('content|summary|description', re.I))
+                    
+                    if content_elem:
+                        content = clean_text(content_elem.get_text())
+                        if content == title:  # Don't repeat title as content
+                            # Try to find different content
+                            all_paragraphs = article.find_all('p')
+                            for p in all_paragraphs:
+                                p_text = clean_text(p.get_text())
+                                if p_text != title and len(p_text) > 20:
+                                    content = p_text
+                                    break
+                    
+                    if not content or len(content) < 20:
+                        content = "Click to read the full article"
                     
                     # Extract link
                     if site_selectors.get('link'):
@@ -553,7 +674,7 @@ def fetch_top_news(url, max_articles=20, region=None):
                           datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     
                     news_items.append({
-                        'title': title,
+                        'title': title or f"News Update from {source_domain}",
                         'content': content[:200] + "..." if len(content) > 200 else content,
                         'link': link,
                         'image': image or "/static/images/default_news.jpg",
@@ -576,6 +697,10 @@ def fetch_top_news(url, max_articles=20, region=None):
         for item in news_items:
             # Validate required fields
             if not all(k in item for k in ['title', 'link', 'content']):
+                continue
+            
+            # Skip items with generic titles
+            if item['title'] == 'No title' or len(item['title'].strip()) < 5:
                 continue
             
             # Deduplicate based on title and URL

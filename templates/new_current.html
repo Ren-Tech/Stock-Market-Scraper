@@ -484,21 +484,41 @@
                       {% endif %}
                       <div class="card-body">
     
-<!-- Replace the existing title display section in your template -->
 <h5 class="card-title">
-  {% set display_title = news.title if news.title and news.title|length > 5 else 
-                        (news.description|truncate(80) if news.description and news.description|length > 10 else 
-                        ('News from ' + (news.source_url|replace('https://', '')|replace('http://', '')|replace('www.', '') if news.source_url else 'Unknown Source'))) %}
-  {{ display_title }}
+  {% set clean_title = news.title|trim if news.title else '' %}
+  {% if clean_title and clean_title|length > 10 and clean_title != 'No title' %}
+    {{ clean_title }}
+  {% else %}
+    {% set fallback_title = '' %}
+    <!-- Try to use content as title if it's meaningful -->
+    {% if news.content and news.content|length > 20 and news.content != clean_title %}
+      {% set sentences = news.content.split('.') %}
+      {% if sentences[0]|length > 15 %}
+        {% set fallback_title = sentences[0]|trim + '.' %}
+      {% else %}
+        {% set fallback_title = news.content[:60]|trim + '...' %}
+      {% endif %}
+    {% endif %}
+    
+    <!-- If still no good title, create one from source -->
+    {% if not fallback_title or fallback_title|length < 15 %}
+      {% set clean_source = news.source_url|replace('https://', '')|replace('http://', '')|replace('www.', '') if news.source_url else news.source|replace('www.', '') %}
+      {% set fallback_title = 'Latest News from ' + clean_source|title %}
+    {% endif %}
+    
+    {{ fallback_title }}
+  {% endif %}
 </h5>
 
 <p class="card-text news-content">
-  {% if news.content and news.content != display_title %}
-    {{ news.content }}
-  {% elif news.description and news.description != display_title and news.description|length > 20 %}
+  {% set display_title = news.title|trim if news.title else '' %}
+  {% if news.content and news.content != display_title and news.content|length > 30 %}
+    {{ news.content|truncate(200) }}
+  {% elif news.description and news.description != display_title and news.description|length > 30 %}
     {{ news.description|truncate(150) }}
   {% else %}
-    Click to read the full article from {{ (news.source_url|replace('https://', '')|replace('http://', '')|replace('www.', '') if news.source_url else 'this source') }}.
+    {% set clean_source = news.source_url|replace('https://', '')|replace('http://', '')|replace('www.', '') if news.source_url else 'this source' %}
+    Click to read the full article from {{ clean_source }}.
   {% endif %}
 </p>
                         
