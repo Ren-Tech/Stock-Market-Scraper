@@ -21,6 +21,7 @@ import logging
 from flask import session, flash
 from functools import wraps
 from newspaper import Article
+import json
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
@@ -185,6 +186,87 @@ NEWS_SOURCE_MAPPING = {
 }
 
 SITE_SPECIFIC_SELECTORS = {
+    'morningstar.com': {
+        'article': '.mds-card, .article-item, .news-item, .card-story, .story-card, [data-testid="article"], .content-card, .featured-story',
+        'title': '.mds-card__headline, .card-title, .story-headline, .article-title, h2, h3, .headline, a[data-testid="headline"]',
+        'content': '.mds-card__summary, .card-description, .story-summary, .article-summary, .excerpt, .description',
+        'link': 'a',
+        'image': 'img, [data-testid="image"]',
+        'date': '.date, .timestamp, time, .published-date'
+    },
+    'cnbc.com': {
+        'article': '.Card-titleContainer, .InlineVideo-container, .LatestNews-item, .Card-standardBreakerCard, article, .story-card, .PromoTile, .CardBasic, .InlineViewable',
+        'title': '.Card-title, .InlineVideo-headline, .headline, .title, h1, h2, h3, .story-headline, a[data-module="ArticleTitle"]',
+        'content': '.Card-description, .desc, .summary, p, .card-text, .InlineVideo-container p',
+        'link': 'a',
+        'image': 'img, .Card-media img',
+        'date': 'time, .time, .Card-time, .timestamp, .PublishDate'
+    },
+    'batimes.com': {
+        'article': 'article, .article, .news-article, .card, .post, .story-item, .news-item, .content-item, .article-card',
+        'title': 'h1, h2, h3, .article-title, .headline, .post-title, .story-title, .entry-title',
+        'content': '.article-summary, .lead, p, .article-text, .excerpt, .story-summary, .post-excerpt',
+        'link': 'a',
+        'image': 'img, .featured-image img, .article-image img',
+        'date': '.article-date, time, .published-date, .date, .post-date'
+    },
+    'buenosairesherald.com': {
+        'article': '.article, .post, .news-item, .story, .card, .content-item, .entry, article',
+        'title': '.article-title, .entry-title, .post-title, h1, h2, h3, .headline, .story-title',
+        'content': '.article-excerpt, .entry-summary, .excerpt, .lead, p, .description',
+        'link': 'a',
+        'image': 'img, .featured-image img, .post-thumbnail img',
+        'date': '.date, time, .published-date, .entry-date, .post-date'
+    },
+    'folha.uol.com.br': {
+        'article': '.c-headline, .c-list-links, article, .c-news-item, .news-card, .story-item, .content-item',
+        'title': '.c-headline__title, h1, h2, h3, .title, .headline, .story-title',
+        'content': '.c-headline__summary, p, .summary, .content, .excerpt, .lead',
+        'link': 'a',
+        'image': 'img, .c-headline__image img',
+        'date': '.c-headline__dateline, time, .date, .timestamp'
+    },
+    'france24.com': {
+        'article': '.o-layout-list__item, article, .news-card, .m-item-list-article, .article-item, .story-card, .teaser',
+        'title': '.article__title, h1, h2, h3, .title, .headline, .story-title, .teaser__title',
+        'content': '.article__desc, .article__summary, p, .desc, .summary, .teaser__text',
+        'link': 'a',
+        'image': 'img, .article__image img, .teaser__image img',
+        'date': '.article__date, time, .date, .timestamp, .published'
+    },
+    'dw.com': {
+        'article': '.col1, .teaser, .news-teaser, article, .story-item, .content-item, .card',
+        'title': '.teaser__title, h1, h2, h3, .headline, .story-title, .title',
+        'content': '.teaser__text, .intro, p, .summary, .description',
+        'link': 'a',
+        'image': 'img, .teaser__image img',
+        'date': '.date, time, .timestamp, .published-date'
+    },
+    'asia.nikkei.com': {
+        'article': '.ezil__article, article, .article-card, .news-item, .story-card, .content-card, .teaser',
+        'title': '.ezil__title, h1, h2, h3, .headline, .story-title, .article-title',
+        'content': '.ezil__subtitle, .ezil__summary, p, .summary, .excerpt, .description',
+        'link': 'a',
+        'image': 'img, .ezil__image img',
+        'date': '.ezil__date, time, .date, .timestamp'
+    },
+    'nhk.or.jp': {
+        'article': '.p-article, article, .m-news-item, .news-card, .story-item, .content-card, .article-item',
+        'title': '.p-article__title, h1, h2, h3, .title, .headline, .story-title',
+        'content': '.p-article__text, p, .summary, .content, .description',
+        'link': 'a',
+        'image': 'img, .p-article__image img',
+        'date': '.p-article__date, time, .date, .timestamp'
+    },
+    'channelnewsasia.com': {
+        'article': '.teaser, .card, article, .story-card, .news-item, .content-card, .article-teaser',
+        'title': '.teaser__title, .card__title, h1, h2, h3, .headline, .story-title',
+        'content': '.teaser__summary, .card__description, p, .summary, .excerpt',
+        'link': 'a',
+        'image': 'img, .teaser__image img, .card__image img',
+        'date': '.date, time, .timestamp, .published-date, .teaser__date'
+    },
+    # Keep existing selectors
     'msnbc.com': {
         'article': '.gs-c-promo, article, .article-body, .info-card, .content-card',
         'title': '.gs-c-promo-heading__title, h1, h2, h3, .headline, .card-headline',
@@ -193,71 +275,231 @@ SITE_SPECIFIC_SELECTORS = {
         'image': 'img',
         'date': 'time, .date, .timestamp, .published-date'
     },
-    'cnbc.com': {
-        'article': '.Card-titleContainer, .summary, .LatestNews-item, .Card-standardBreakerCard, article',
-        'title': '.Card-title, .headline, .title, h1, h2, h3',
-        'content': '.Card-description, .desc, .summary, p, .card-text',
-        'link': 'a',
-        'image': 'img',
-        'date': 'time, .time, .Card-time, .timestamp'
-    },
-    'batimes.com': {
-        'article': 'article, .article, .news-article, .card',
-        'title': 'h1, h2, h3, .article-title, .headline',
-        'content': '.article-summary, .lead, p, .article-text',
-        'link': 'a',
-        'image': 'img',
-        'date': '.article-date, time, .published-date'
-    },
-    'apnews.com': {
-        'article': '.FeedCard, .CardHeadline, article, .Article, .hub-card',
-        'title': '.CardHeadline-headlineText, h1, h2, h3, .headline',
-        'content': '.CardHeadline-description, .content-text, p, .dek',
-        'link': 'a',
-        'image': 'img',
-        'date': 'time, .timestamp, .published'
-    },
-    'folha.uol.com.br': {
-        'article': '.c-headline, .c-list-links, article, .c-news-item',
-        'title': '.c-headline__title, h1, h2, h3, .title',
-        'content': '.c-headline__summary, p, .summary, .content',
-        'link': 'a',
-        'image': 'img',
-        'date': '.c-headline__dateline, time, .date'
-    },
-    'france24.com': {
-        'article': '.o-layout-list__item, article, .news-card, .m-item-list-article',
-        'title': '.article__title, h1, h2, h3, .title',
-        'content': '.article__desc, .article__summary, p, .desc',
-        'link': 'a',
-        'image': 'img',
-        'date': '.article__date, time, .date'
-    },
-    'asia.nikkei.com': {
-        'article': '.ezil__article, article, .article-card, .news-item',
-        'title': '.ezil__title, h1, h2, h3, .headline',
-        'content': '.ezil__subtitle, .ezil__summary, p, .summary',
-        'link': 'a',
-        'image': 'img',
-        'date': '.ezil__date, time, .date'
-    },
-    'nhk.or.jp': {
-        'article': '.p-article, article, .m-news-item, .news-card',
-        'title': '.p-article__title, h1, h2, h3, .title',
-        'content': '.p-article__text, p, .summary, .content',
-        'link': 'a',
-        'image': 'img',
-        'date': '.p-article__date, time, .date'
-    },
-    'edition.cnn.com': {
-        'article': 'article, div.container__item, div.card, .card--section, .el__storyelement--standard, .cnn-search__result, .cd__content',
-        'title': 'span.container__headline-text, h3.card__headline, .headline, h1, h2, h3, .cd__headline-text, .cnn-search__result-headline',
-        'content': 'div.container__description, div.card__description, .description, p, .cd__description, .cnn-search__result-body',
-        'link': 'a',
-        'image': 'img',
-        'date': '.timestamp, time, .date, .cd__timestamp, .cnn-search__result-publish-date'
-    }
+   
 }
+
+
+def enhanced_generic_selectors():
+    """Return comprehensive generic selectors for news extraction"""
+    return {
+        'article_selectors': [
+            # Semantic HTML
+            'article', 'main article', '[role="article"]',
+            # Schema.org structured data
+            '[itemtype="http://schema.org/NewsArticle"]', '[itemtype="http://schema.org/Article"]',
+            # Common CSS classes
+            '.article', '.post', '.story', '.news', '.card', '.teaser', '.item',
+            '.article-item', '.news-item', '.story-item', '.post-item', '.content-item',
+            '.article-card', '.news-card', '.story-card', '.post-card', '.content-card',
+            '.article-teaser', '.news-teaser', '.story-teaser',
+            # Layout specific
+            '.content', '.main-content', '.entry', '.story-wrapper',
+            # Grid/list items
+            '.grid-item', '.list-item', '.feed-item', '.tile',
+            # Component-based
+            '.component', '.module', '.widget', '.block'
+        ],
+        'title_selectors': [
+            # Headers in order of preference
+            'h1', 'h2', 'h3',
+            # Semantic title classes
+            '.title', '.headline', '.heading',
+            '.article-title', '.post-title', '.story-title', '.news-title',
+            '.article-headline', '.post-headline', '.story-headline', '.news-headline',
+            '.entry-title', '.content-title',
+            # Card/component titles
+            '.card-title', '.teaser-title', '.item-title',
+            # Link-based titles
+            'a[data-title]', 'a[title]'
+        ],
+        'content_selectors': [
+            # Semantic content
+            '.content', '.summary', '.excerpt', '.description', '.lead', '.intro',
+            '.article-content', '.post-content', '.story-content',
+            '.article-summary', '.post-summary', '.story-summary',
+            '.article-excerpt', '.post-excerpt', '.story-excerpt',
+            '.article-description', '.post-description', '.story-description',
+            # Card/component content
+            '.card-text', '.card-description', '.card-content',
+            '.teaser-text', '.teaser-content',
+            # Generic text
+            'p', '.text', '.body'
+        ],
+        'link_selectors': [
+            'a[href]', '.link', '.read-more'
+        ],
+        'image_selectors': [
+            'img', '.image', '.photo', '.picture',
+            '.featured-image img', '.article-image img', '.story-image img'
+        ],
+        'date_selectors': [
+            'time', '.date', '.timestamp', '.published', '.published-date',
+            '.article-date', '.post-date', '.story-date',
+            '.datetime', '.time-stamp'
+        ]
+    }
+
+def extract_articles_with_enhanced_logic(soup, source_domain, actual_url, max_articles=20):
+    """Enhanced article extraction with multiple strategies"""
+    articles = []
+    generic_selectors = enhanced_generic_selectors()
+    site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
+    
+    # Strategy 1: Site-specific selectors
+    if site_selectors.get('article'):
+        logger.info(f"Using site-specific selectors for {source_domain}")
+        article_elements = []
+        for selector in site_selectors['article'].split(', '):
+            elements = soup.select(selector.strip())
+            article_elements.extend(elements)
+        articles = list(dict.fromkeys(article_elements))  # Remove duplicates while preserving order
+    
+    # Strategy 2: Generic selectors if site-specific didn't work well
+    if len(articles) < 3:
+        logger.info(f"Site-specific selectors found {len(articles)} articles, trying generic selectors")
+        for selector in generic_selectors['article_selectors']:
+            elements = soup.select(selector)
+            if elements and len(elements) >= 3:
+                articles = elements
+                logger.info(f"Generic selector '{selector}' found {len(articles)} articles")
+                break
+    
+    # Strategy 3: Aggressive generic search
+    if len(articles) < 3:
+        logger.info("Trying aggressive generic search")
+        # Look for any element containing links with meaningful text
+        potential_articles = []
+        
+        # Find divs/sections with multiple links
+        containers = soup.find_all(['div', 'section', 'ul', 'ol'], class_=True)
+        for container in containers:
+            links = container.find_all('a', href=True)
+            if len(links) >= 2:  # Container with multiple links likely has articles
+                for link in links:
+                    if link.get_text().strip() and len(link.get_text().strip()) > 20:
+                        # Create pseudo-article element
+                        pseudo_article = container if container not in potential_articles else link.parent
+                        potential_articles.append(pseudo_article)
+        
+        if potential_articles:
+            articles = potential_articles[:max_articles * 2]
+            logger.info(f"Aggressive search found {len(articles)} potential articles")
+    
+    # Strategy 4: Last resort - find any links with substantial text
+    if len(articles) < 2:
+        logger.info("Last resort: finding substantial links")
+        all_links = soup.find_all('a', href=True)
+        substantial_links = []
+        for link in all_links:
+            text = link.get_text().strip()
+            if len(text) > 30 and not is_generic_title(text):
+                substantial_links.append(link.parent or link)
+        articles = substantial_links[:max_articles]
+        logger.info(f"Found {len(articles)} substantial links")
+    
+    logger.info(f"Final article count for processing: {len(articles[:max_articles * 2])}")
+    return articles[:max_articles * 2]
+
+def extract_title_with_enhanced_logic(article, site_selectors, generic_selectors, source_domain):
+    """Enhanced title extraction with multiple fallback strategies"""
+    title_candidates = []
+    
+    # Strategy 1: Site-specific selectors
+    if site_selectors.get('title'):
+        for selector in site_selectors['title'].split(', '):
+            title_elem = article.select_one(selector.strip())
+            if title_elem and title_elem.get_text().strip():
+                candidate = clean_text(title_elem.get_text())
+                if len(candidate) > 10 and not is_generic_title(candidate):
+                    title_candidates.append(candidate)
+    
+    # Strategy 2: Generic title selectors
+    for selector in generic_selectors['title_selectors']:
+        title_elem = article.select_one(selector)
+        if title_elem and title_elem.get_text().strip():
+            candidate = clean_text(title_elem.get_text())
+            if len(candidate) > 10 and not is_generic_title(candidate):
+                title_candidates.append(candidate)
+                break  # Take first good generic match
+    
+    # Strategy 3: Link text as title
+    link_elem = article.find('a', href=True)
+    if link_elem and link_elem.get_text().strip():
+        candidate = clean_text(link_elem.get_text())
+        if len(candidate) > 15 and not is_generic_title(candidate):
+            title_candidates.append(candidate)
+    
+    # Strategy 4: Meta data from parent elements
+    for attr in ['title', 'data-title', 'aria-label']:
+        if article.has_attr(attr) and article[attr].strip():
+            candidate = clean_text(article[attr])
+            if len(candidate) > 10 and not is_generic_title(candidate):
+                title_candidates.append(candidate)
+    
+    # Strategy 5: First substantial text content
+    text_elements = article.find_all(text=True)
+    for text in text_elements:
+        text = text.strip()
+        if len(text) > 20 and not is_generic_title(text):
+            sentences = text.split('.')
+            if sentences and len(sentences[0]) > 15:
+                title_candidates.append(sentences[0].strip() + '.')
+                break
+    
+    # Select best title
+    if title_candidates:
+        # Prefer titles that are not too long and not too short
+        good_titles = [t for t in title_candidates if 20 <= len(t) <= 150]
+        if good_titles:
+            return good_titles[0]  # Return first good title
+        else:
+            return title_candidates[0]  # Return any title if no "good" ones
+    
+    return f"Latest from {source_domain.replace('www.', '').replace('.com', '').title()}"
+
+def extract_content_with_enhanced_logic(article, title, site_selectors, generic_selectors):
+    """Enhanced content extraction"""
+    content_candidates = []
+    
+    # Strategy 1: Site-specific content selectors
+    if site_selectors.get('content'):
+        for selector in site_selectors['content'].split(', '):
+            content_elem = article.select_one(selector.strip())
+            if content_elem and content_elem.get_text().strip():
+                candidate = clean_text(content_elem.get_text())
+                if candidate != title and len(candidate) > 20:
+                    content_candidates.append(candidate)
+    
+    # Strategy 2: Generic content selectors
+    for selector in generic_selectors['content_selectors']:
+        content_elem = article.select_one(selector)
+        if content_elem and content_elem.get_text().strip():
+            candidate = clean_text(content_elem.get_text())
+            if candidate != title and len(candidate) > 20:
+                content_candidates.append(candidate)
+                break
+    
+    # Strategy 3: All paragraph text
+    paragraphs = article.find_all('p')
+    for p in paragraphs:
+        text = clean_text(p.get_text())
+        if text != title and len(text) > 30:
+            content_candidates.append(text)
+            break
+    
+    # Strategy 4: Any substantial text
+    all_text = clean_text(article.get_text())
+    if all_text != title and len(all_text) > 50:
+        # Take first few sentences
+        sentences = all_text.split('.')
+        meaningful_sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
+        if meaningful_sentences:
+            content_candidates.append('. '.join(meaningful_sentences[:2]) + '.')
+    
+    if content_candidates:
+        return content_candidates[0][:300] + "..." if len(content_candidates[0]) > 300 else content_candidates[0]
+    
+    return "Click to read the full article"
 def scrape_article(url):
     """Enhanced article title extraction with multiple fallback strategies"""
     try:
@@ -471,8 +713,9 @@ def _apply_source_mapping(news_items, mapping):
     
     return mapped_items
 
+
 def fetch_top_news(url, max_articles=20, region=None):
-    """Enhanced news fetching with better title extraction"""
+    """Enhanced news fetching with improved extraction logic"""
     parsed_url = urlparse(url)
     input_domain = parsed_url.netloc.lower()
     
@@ -495,239 +738,214 @@ def fetch_top_news(url, max_articles=20, region=None):
         actual_url = url
     
     news_items = []
-    source_domain = urlparse(actual_url).netloc.lower()
+    source_domain = urlparse(actual_url).netloc.lower().replace('www.', '').replace('www1.', '').replace('www3.', '')
     
     try:
-        # Handle RSS feeds
+        # Handle RSS feeds first
         if any(ext in actual_url.lower() for ext in ['rss', 'feed', 'xml']):
-            logger.info(f"Processing as RSS feed: {actual_url}")
-            feed = feedparser.parse(actual_url)
-            
-            if not feed.entries:
-                logger.warning(f"No entries found in feed: {actual_url}")
-                return []
-                
-            for entry in feed.entries[:max_articles*2]:
-                # Enhanced title extraction for RSS
-                title = entry.get('title', '')
-                if not title or len(title.strip()) < 5:
-                    # Try to extract from description or summary
-                    desc = entry.get('description', '') or entry.get('summary', '')
-                    if desc:
-                        # Extract first sentence from description
-                        clean_desc = clean_text(BeautifulSoup(desc, 'html.parser').get_text())
-                        sentences = clean_desc.split('.')
-                        title = sentences[0].strip() + '.' if sentences[0] and len(sentences[0]) > 10 else clean_desc[:80] + "..."
-                    else:
-                        title = f"News from {source_domain}"
-                
-                article = {
-                    'title': clean_text(title),
-                    'content': clean_text(entry.get('description', '') or entry.get('summary', 'Click to read more')),
-                    'link': entry.get('link', actual_url),
-                    'date': entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                    'source': source_domain,
-                    'read_more': entry.get('link', actual_url),
-                    'category': assign_category(title + " " + entry.get('description', ''), region)
-                }
-                
-                # Extract image
-                if 'media_content' in entry and entry.media_content:
-                    for media in entry.media_content:
-                        if media.get('type', '').startswith('image'):
-                            article['image'] = media['url']
-                            break
-                elif 'enclosures' in entry and entry.enclosures:
-                    for enc in entry.enclosures:
-                        if enc.get('type', '').startswith('image'):
-                            article['image'] = enc.href
-                            break
-                
-                news_items.append(article)
+            return handle_rss_feed(actual_url, max_articles, region, source_domain, mapped_config)
         
         # Handle HTML pages
-        else:
-            headers = {
-                'User-Agent': random.choice(USER_AGENTS),
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-            }
+        headers = {
+            'User-Agent': random.choice(USER_AGENTS),
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        
+        try:
+            response = requests.get(actual_url, headers=headers, timeout=20, allow_redirects=True)
+            response.raise_for_status()
             
-            # Try with requests first
+            # Handle different encodings
+            if response.encoding.lower() in ['iso-8859-1', 'windows-1252'] and 'charset' in response.headers.get('content-type', '').lower():
+                response.encoding = response.apparent_encoding
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Remove script and style elements
+            for script in soup(["script", "style", "nav", "header", "footer"]):
+                script.decompose()
+                
+        except Exception as e:
+            logger.error(f"Failed to fetch {actual_url}: {str(e)}")
+            return []
+        
+        # Enhanced article extraction
+        articles = extract_articles_with_enhanced_logic(soup, source_domain, actual_url, max_articles)
+        logger.info(f"Extracted {len(articles)} articles for processing")
+        
+        if not articles:
+            logger.warning(f"No articles found on {actual_url}")
+            return []
+        
+        # Process articles with enhanced logic
+        generic_selectors = enhanced_generic_selectors()
+        site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
+        
+        for article in articles[:max_articles]:
             try:
-                response = requests.get(actual_url, headers=headers, timeout=15)
-                response.raise_for_status()
-                soup = BeautifulSoup(response.content, 'html.parser')
+                # Enhanced title extraction
+                title = extract_title_with_enhanced_logic(article, site_selectors, generic_selectors, source_domain)
+                
+                # Enhanced content extraction
+                content = extract_content_with_enhanced_logic(article, title, site_selectors, generic_selectors)
+                
+                # Extract link
+                link = actual_url
+                if site_selectors.get('link'):
+                    link_elem = article.select_one(site_selectors['link'])
+                else:
+                    link_elem = article.find('a', href=True)
+                
+                if link_elem and 'href' in link_elem.attrs:
+                    href = link_elem['href']
+                    if href.startswith('/'):
+                        link = urljoin(actual_url, href)
+                    elif href.startswith('http'):
+                        link = href
+                
+                # Extract image
+                image = None
+                if site_selectors.get('image'):
+                    img_elem = article.select_one(site_selectors['image'])
+                else:
+                    img_elem = article.find('img')
+                
+                if img_elem:
+                    for attr in ['src', 'data-src', 'data-original', 'data-lazy']:
+                        if img_elem.has_attr(attr) and img_elem[attr]:
+                            img_url = img_elem[attr]
+                            if img_url.startswith('//'):
+                                img_url = 'https:' + img_url
+                            elif img_url.startswith('/'):
+                                img_url = urljoin(actual_url, img_url)
+                            image = img_url
+                            break
+                
+                # Extract date
+                date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                if site_selectors.get('date'):
+                    date_elem = article.select_one(site_selectors['date'])
+                else:
+                    date_elem = article.find('time') or article.find(class_=re.compile('date|time', re.I))
+                
+                if date_elem:
+                    if date_elem.has_attr('datetime'):
+                        date = clean_text(date_elem['datetime'])
+                    elif date_elem.get_text().strip():
+                        date = clean_text(date_elem.get_text())
+                
+                news_items.append({
+                    'title': title,
+                    'content': content,
+                    'link': link,
+                    'image': image or "/static/images/default_news.jpg",
+                    'date': date,
+                    'source': source_domain,
+                    'read_more': link,
+                    'category': assign_category(title + " " + content, region)
+                })
+                
             except Exception as e:
-                logger.warning(f"Requests failed, trying Selenium: {str(e)}")
-                return []  # Skip Selenium for now to avoid complexity
-            
-            # Try site-specific selectors first
-            site_selectors = SITE_SPECIFIC_SELECTORS.get(source_domain, {})
-            articles = []
-            
-            if site_selectors.get('article'):
-                articles = soup.select(site_selectors['article'])[:max_articles*3]
-            
-            # Fallback to generic detection
-            if not articles:
-                article_selectors = [
-                    'article', '[itemtype="http://schema.org/NewsArticle"]',
-                    '.article', '.story', '.post', '.card', '.teaser', '.list__item',
-                    '.news-item', '.article-item'
-                ]
-                for selector in article_selectors:
-                    articles = soup.select(selector)
-                    if articles:
-                        articles = articles[:max_articles*3]
-                        break
-            
-            logger.info(f"Found {len(articles)} potential articles before filtering")
-            
-            # Process articles with enhanced title extraction
-            for article in articles[:max_articles*2]:
-                try:
-                    # Enhanced title extraction
-                    title = None
-                    title_selectors = [
-                        site_selectors.get('title', ''),
-                        'h1', 'h2', 'h3', '.headline', '.title', '.article-title',
-                        '[data-testid="headline"]', '.card-title', '.entry-title'
-                    ]
-                    
-                    for selector in title_selectors:
-                        if selector:
-                            title_elem = article.select_one(selector)
-                            if title_elem and title_elem.get_text().strip():
-                                candidate_title = clean_text(title_elem.get_text())
-                                if len(candidate_title) > 10 and not is_generic_title(candidate_title):
-                                    title = candidate_title
-                                    break
-                    
-                    # If no good title found, try link text or create from content
-                    if not title or title == 'No title':
-                        # Try to get title from link text
-                        link_elem = article.find('a', href=True)
-                        if link_elem and link_elem.get_text().strip():
-                            link_text = clean_text(link_elem.get_text())
-                            if len(link_text) > 10 and not is_generic_title(link_text):
-                                title = link_text
-                        
-                        # If still no title, create from content
-                        if not title or title == 'No title':
-                            content_elem = article.find('p') or article.find(class_=re.compile('content|summary', re.I))
-                            if content_elem:
-                                content_text = clean_text(content_elem.get_text())
-                                if len(content_text) > 20:
-                                    sentences = content_text.split('.')
-                                    title = sentences[0].strip() + '.' if len(sentences[0]) > 15 else content_text[:60] + "..."
-                            else:
-                                title = f"Latest from {source_domain.replace('www.', '').replace('.com', '').title()}"
-                    
-                    # Extract content
-                    content = None
-                    if site_selectors.get('content'):
-                        content_elem = article.select_one(site_selectors['content'])
-                    else:
-                        content_elem = article.find('p') or article.find(class_=re.compile('content|summary|description', re.I))
-                    
-                    if content_elem:
-                        content = clean_text(content_elem.get_text())
-                        if content == title:  # Don't repeat title as content
-                            # Try to find different content
-                            all_paragraphs = article.find_all('p')
-                            for p in all_paragraphs:
-                                p_text = clean_text(p.get_text())
-                                if p_text != title and len(p_text) > 20:
-                                    content = p_text
-                                    break
-                    
-                    if not content or len(content) < 20:
-                        content = "Click to read the full article"
-                    
-                    # Extract link
-                    if site_selectors.get('link'):
-                        link_elem = article.select_one(site_selectors['link'])
-                    else:
-                        link_elem = article.find('a', href=True)
-                    link = urljoin(actual_url, link_elem['href']) if link_elem and 'href' in link_elem.attrs else actual_url
-                    
-                    # Extract image
-                    if site_selectors.get('image'):
-                        img_elem = article.select_one(site_selectors['image'])
-                    else:
-                        img_elem = article.find('img')
-                    image = None
-                    if img_elem:
-                        for attr in ['src', 'data-src', 'data-original']:
-                            if img_elem.has_attr(attr):
-                                image = urljoin(actual_url, img_elem[attr])
-                                break
-                    
-                    # Extract date
-                    if site_selectors.get('date'):
-                        date_elem = article.select_one(site_selectors['date'])
-                    else:
-                        date_elem = article.find('time') or article.find(class_=re.compile('date|time', re.I))
-                    date = clean_text(date_elem['datetime']) if date_elem and date_elem.has_attr('datetime') else \
-                          clean_text(date_elem.get_text()) if date_elem else \
-                          datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    
-                    news_items.append({
-                        'title': title or f"News Update from {source_domain}",
-                        'content': content[:200] + "..." if len(content) > 200 else content,
-                        'link': link,
-                        'image': image or "/static/images/default_news.jpg",
-                        'date': date,
-                        'source': source_domain,
-                        'read_more': link,
-                        'category': assign_category(title + " " + content, region)
-                    })
-                except Exception as e:
-                    logger.warning(f"Error processing article: {str(e)}")
+                logger.warning(f"Error processing article: {str(e)}")
+                continue
         
         # Apply domain mapping if needed
         if mapped_config:
             news_items = _apply_source_mapping(news_items, mapped_config)
         
-        # Remove duplicates and ensure proper fields
-        seen = set()
+        # Final filtering and deduplication
         final_items = []
+        seen_titles = set()
         
         for item in news_items:
-            # Validate required fields
-            if not all(k in item for k in ['title', 'link', 'content']):
+            # Skip items with insufficient content
+            if not item.get('title') or len(item['title']) < 10:
                 continue
             
-            # Skip items with generic titles
-            if item['title'] == 'No title' or len(item['title'].strip()) < 5:
+            # Skip duplicates
+            title_key = item['title'].lower().strip()
+            if title_key in seen_titles:
                 continue
+            seen_titles.add(title_key)
             
-            # Deduplicate based on title and URL
-            key = (item['title'].lower().strip(), item['link'].lower().strip())
-            if key in seen:
-                continue
-            seen.add(key)
-            
-            # Ensure defaults
+            # Ensure all required fields
             item.setdefault('image', "/static/images/default_news.jpg")
             item.setdefault('date', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            item.setdefault('source', input_domain)
+            item.setdefault('source', source_domain)
             item.setdefault('read_more', item['link'])
-            
-            # Ensure category is set
-            if 'category' not in item:
-                item['category'] = assign_category(item.get('title', '') + " " + item.get('content', ''), region)
+            item.setdefault('category', assign_category(item.get('title', '') + " " + item.get('content', ''), region))
             
             final_items.append(item)
         
-        logger.info(f"After processing, returning {len(final_items[:max_articles])} articles")
+        logger.info(f"Returning {len(final_items)} processed articles from {actual_url}")
         return final_items[:max_articles]
     
     except Exception as e:
         logger.error(f"Error fetching news from {url}: {str(e)}", exc_info=True)
         return []
-    
+
+def handle_rss_feed(feed_url, max_articles, region, source_domain, mapped_config):
+    """Handle RSS feed processing"""
+    try:
+        feed = feedparser.parse(feed_url)
+        if not feed.entries:
+            logger.warning(f"No entries found in RSS feed: {feed_url}")
+            return []
+        
+        news_items = []
+        for entry in feed.entries[:max_articles * 2]:
+            title = clean_text(entry.get('title', ''))
+            if not title or len(title) < 10:
+                # Generate title from description
+                desc = entry.get('description', '') or entry.get('summary', '')
+                if desc:
+                    clean_desc = clean_text(BeautifulSoup(desc, 'html.parser').get_text())
+                    sentences = clean_desc.split('.')
+                    title = sentences[0].strip() + '.' if sentences and len(sentences[0]) > 15 else clean_desc[:80] + "..."
+                else:
+                    title = f"News from {source_domain}"
+            
+            content = clean_text(entry.get('description', '') or entry.get('summary', ''))
+            if not content or len(content) < 20:
+                content = "Click to read the full article"
+            
+            article = {
+                'title': title,
+                'content': content[:300] + "..." if len(content) > 300 else content,
+                'link': entry.get('link', feed_url),
+                'date': entry.get('published', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                'source': source_domain,
+                'read_more': entry.get('link', feed_url),
+                'category': assign_category(title + " " + content, region)
+            }
+            
+            # Extract image from RSS
+            if hasattr(entry, 'media_content') and entry.media_content:
+                for media in entry.media_content:
+                    if media.get('type', '').startswith('image'):
+                        article['image'] = media['url']
+                        break
+            elif hasattr(entry, 'enclosures') and entry.enclosures:
+                for enc in entry.enclosures:
+                    if enc.get('type', '').startswith('image'):
+                        article['image'] = enc.href
+                        break
+            
+            if 'image' not in article:
+                article['image'] = "/static/images/default_news.jpg"
+            
+            news_items.append(article)
+        
+        return news_items[:max_articles]
+        
+    except Exception as e:
+        logger.error(f"Error processing RSS feed {feed_url}: {str(e)}")
+        return []
 def get_news_from_url(url, sector):
     """
     Extract news articles from a given URL and categorize them by sector.
