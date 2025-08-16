@@ -86,14 +86,7 @@ NEWS_SOURCE_MAPPING = {
         }
     },
   
-    'www.msnbc.com': {
-        'actual_source': 'pressgazette.co.uk',
-        'name': 'MSNBC',
-        'link_replace': {
-            'from': 'pressgazette.co.uk',
-            'to': 'www.msnbc.com'
-        }
-    },
+
    
     'www.batimes.com': {
         'actual_source': 'newsweek.com',
@@ -715,7 +708,7 @@ def _apply_source_mapping(news_items, mapping):
 
 
 def fetch_top_news(url, max_articles=20, region=None):
-    """Enhanced news fetching with improved extraction logic"""
+    """Enhanced news fetching with improved extraction logic - NO FILTERING"""
     parsed_url = urlparse(url)
     input_domain = parsed_url.netloc.lower()
     
@@ -839,50 +832,54 @@ def fetch_top_news(url, max_articles=20, region=None):
                     elif date_elem.get_text().strip():
                         date = clean_text(date_elem.get_text())
                 
-                news_items.append({
-                    'title': title,
-                    'content': content,
+                # Create news item with default values (NO FILTERING)
+                news_item = {
+                    'title': title or "No Title Available",  # Provide default instead of filtering
+                    'content': content or "No Content Available",  # Provide default instead of filtering
                     'link': link,
                     'image': image or "/static/images/default_news.jpg",
                     'date': date,
                     'source': source_domain,
                     'read_more': link,
-                    'category': assign_category(title + " " + content, region)
-                })
+                    'category': assign_category((title or "") + " " + (content or ""), region)
+                }
+                
+                # Add all items without filtering
+                news_items.append(news_item)
                 
             except Exception as e:
                 logger.warning(f"Error processing article: {str(e)}")
+                # Even on error, add a placeholder item to maintain count
+                news_items.append({
+                    'title': f"Error Processing Article #{len(news_items) + 1}",
+                    'content': f"Failed to process article: {str(e)}",
+                    'link': actual_url,
+                    'image': "/static/images/default_news.jpg",
+                    'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'source': source_domain,
+                    'read_more': actual_url,
+                    'category': assign_category("", region)
+                })
                 continue
         
         # Apply domain mapping if needed
         if mapped_config:
             news_items = _apply_source_mapping(news_items, mapped_config)
         
-        # Final filtering and deduplication
+        # Keep duplicate detection but remove other filtering
         final_items = []
         seen_titles = set()
         
         for item in news_items:
-            # Skip items with insufficient content
-            if not item.get('title') or len(item['title']) < 10:
-                continue
-            
-            # Skip duplicates
+            # Skip duplicates only
             title_key = item['title'].lower().strip()
             if title_key in seen_titles:
                 continue
             seen_titles.add(title_key)
             
-            # Ensure all required fields
-            item.setdefault('image', "/static/images/default_news.jpg")
-            item.setdefault('date', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            item.setdefault('source', source_domain)
-            item.setdefault('read_more', item['link'])
-            item.setdefault('category', assign_category(item.get('title', '') + " " + item.get('content', ''), region))
-            
             final_items.append(item)
         
-        logger.info(f"Returning {len(final_items)} processed articles from {actual_url}")
+        logger.info(f"Returning {len(final_items)} processed articles from {actual_url} (duplicates removed, other filtering disabled)")
         return final_items[:max_articles]
     
     except Exception as e:
