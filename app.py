@@ -1156,7 +1156,7 @@ def login():
             return jsonify({'success': False, 'message': 'Invalid username or password'})
     
     if session.get('logged_in'):
-        return redirect(url_for('current_affairs'))
+        return redirect(url_for('new_current'))
     
     return render_template("login.html")
 

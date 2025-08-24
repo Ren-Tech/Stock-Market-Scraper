@@ -571,243 +571,383 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function () {
-    // Timer functionality
-    let timerInterval;
-    let timerSeconds = 120;
-    let isTimerRunning = false;
+  // Timer functionality
+  let timerInterval;
+  let timerStartTime = null;
+  let timerDuration = 120; // in seconds
+  let isTimerRunning = false;
+  let isPaused = false;
+  let pausedTimeRemaining = 0;
 
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timerSeconds / 60);
-      const seconds = timerSeconds % 60;
-      $("#countdownDisplay").text(
-        `${minutes.toString().padStart(2, "0")}:${seconds
-          .toString()
-          .padStart(2, "0")}`
-      );
-    }
+  function saveTimerState() {
+    const timerState = {
+      frequency: timerDuration,
+      startTime: timerStartTime,
+      isRunning: isTimerRunning,
+      isPaused: isPaused,
+      pausedTimeRemaining: pausedTimeRemaining
+    };
+    localStorage.setItem('timer_state', JSON.stringify(timerState));
+  }
 
-    function startTimer() {
-      if (!isTimerRunning) {
-        isTimerRunning = true;
-        $("#timerToggle")
-          .html('<i class="bi bi-pause-fill"></i>')
-          .removeClass("btn-success")
-          .addClass("btn-warning");
-        $("#refreshStatus").removeClass("d-none");
-
-        const totalSeconds = timerSeconds;
-
-        timerInterval = setInterval(function () {
-          timerSeconds--;
-          updateTimerDisplay();
-
-          const progress = ((totalSeconds - timerSeconds) / totalSeconds) * 100;
-          $("#refreshProgress").css("width", progress + "%");
-
-          if (timerSeconds <= 0) {
-            clearInterval(timerInterval);
-            $("#marketForm").submit();
-          }
-        }, 1000);
-      }
-    }
-
-    function pauseTimer() {
-      if (isTimerRunning) {
-        clearInterval(timerInterval);
+  function loadTimerState() {
+    const savedState = localStorage.getItem('timer_state');
+    if (savedState) {
+      const timerState = JSON.parse(savedState);
+      
+      // Restore frequency dropdown
+      $("#frequencyDropdown").val(timerState.frequency);
+      timerDuration = timerState.frequency;
+      
+      if (timerState.isPaused && timerState.pausedTimeRemaining > 0) {
+        // Timer was paused - restore paused state
+        isPaused = true;
         isTimerRunning = false;
+        pausedTimeRemaining = timerState.pausedTimeRemaining;
+        updateTimerDisplay(pausedTimeRemaining);
         $("#timerToggle")
           .html('<i class="bi bi-play-fill"></i>')
           .removeClass("btn-warning")
           .addClass("btn-success");
+      } else if (timerState.isRunning && timerState.startTime) {
+        // Timer was running - calculate current position
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - timerState.startTime) / 1000);
+        const remainingSeconds = timerDuration - elapsedSeconds;
+        
+        if (remainingSeconds > 0) {
+          // Timer still has time left - continue running
+          timerStartTime = timerState.startTime;
+          isTimerRunning = true;
+          isPaused = false;
+          startTimerDisplay();
+        } else {
+          // Timer has expired while away - trigger form submission
+          isTimerRunning = false;
+          isPaused = false;
+          updateTimerDisplay(0);
+          $("#marketForm").submit();
+        }
+      } else {
+        // Timer was stopped or not set
+        updateTimerDisplay(timerDuration);
       }
+    } else {
+      // No saved state - use default
+      updateTimerDisplay(timerDuration);
     }
+  }
 
-    function resetTimer() {
+  function updateTimerDisplay(seconds = null) {
+    let displaySeconds;
+    
+    if (seconds !== null) {
+      displaySeconds = seconds;
+    } else if (isTimerRunning && timerStartTime) {
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - timerStartTime) / 1000);
+      displaySeconds = Math.max(0, timerDuration - elapsedSeconds);
+    } else if (isPaused) {
+      displaySeconds = pausedTimeRemaining;
+    } else {
+      displaySeconds = timerDuration;
+    }
+    
+    const minutes = Math.floor(displaySeconds / 60);
+    const secs = displaySeconds % 60;
+    $("#countdownDisplay").text(
+      `${minutes.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`
+    );
+    
+    // Update progress bar if timer is running
+    if (isTimerRunning && timerStartTime) {
+      const progress = ((timerDuration - displaySeconds) / timerDuration) * 100;
+      $("#refreshProgress").css("width", Math.min(100, Math.max(0, progress)) + "%");
+    }
+    
+    return displaySeconds;
+  }
+
+  function startTimerDisplay() {
+    $("#timerToggle")
+      .html('<i class="bi bi-pause-fill"></i>')
+      .removeClass("btn-success")
+      .addClass("btn-warning");
+    $("#refreshStatus").removeClass("d-none");
+    
+    // Clear any existing interval
+    if (timerInterval) {
       clearInterval(timerInterval);
+    }
+    
+    // Start display update interval
+    timerInterval = setInterval(function () {
+      const remainingSeconds = updateTimerDisplay();
+      
+      if (remainingSeconds <= 0) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        isPaused = false;
+        timerStartTime = null;
+        saveTimerState();
+        $("#marketForm").submit();
+      }
+    }, 1000);
+  }
+
+  function startTimer() {
+    if (!isTimerRunning) {
+      if (isPaused && pausedTimeRemaining > 0) {
+        // Resume from paused state
+        timerDuration = pausedTimeRemaining;
+        isPaused = false;
+        pausedTimeRemaining = 0;
+      }
+      
+      timerStartTime = Date.now();
+      isTimerRunning = true;
+      
+      startTimerDisplay();
+      saveTimerState();
+    }
+  }
+
+  function pauseTimer() {
+    if (isTimerRunning) {
+      clearInterval(timerInterval);
+      
+      // Calculate remaining time
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - timerStartTime) / 1000);
+      pausedTimeRemaining = Math.max(0, timerDuration - elapsedSeconds);
+      
       isTimerRunning = false;
-      timerSeconds = parseInt($("#frequencyDropdown").val());
-      updateTimerDisplay();
+      isPaused = true;
+      timerStartTime = null;
+      
       $("#timerToggle")
         .html('<i class="bi bi-play-fill"></i>')
         .removeClass("btn-warning")
         .addClass("btn-success");
-      $("#refreshProgress").css("width", "0%");
-      $("#refreshStatus").addClass("d-none");
+      
+      updateTimerDisplay(pausedTimeRemaining);
+      saveTimerState();
     }
+  }
 
-    // Timer controls
-    $("#timerToggle").click(function () {
-      if (isTimerRunning) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-    });
+  function resetTimer() {
+    clearInterval(timerInterval);
+    isTimerRunning = false;
+    isPaused = false;
+    pausedTimeRemaining = 0;
+    timerStartTime = null;
+    timerDuration = parseInt($("#frequencyDropdown").val());
+    
+    updateTimerDisplay(timerDuration);
+    $("#timerToggle")
+      .html('<i class="bi bi-play-fill"></i>')
+      .removeClass("btn-warning")
+      .addClass("btn-success");
+    $("#refreshProgress").css("width", "0%");
+    $("#refreshStatus").addClass("d-none");
+    
+    saveTimerState();
+  }
 
-    $("#timerReset").click(resetTimer);
-
-    // Set initial timer value
-    $("#frequencyDropdown").change(function () {
-      timerSeconds = parseInt($(this).val());
-      resetTimer();
-    });
-
-    // Initialize timer
-    timerSeconds = parseInt($("#frequencyDropdown").val());
-    updateTimerDisplay();
-
-    // Start timer if news exists
-    if ($(".news-card").length > 0) {
+  // Timer controls
+  $("#timerToggle").click(function () {
+    if (isTimerRunning) {
+      pauseTimer();
+    } else {
       startTimer();
     }
+  });
 
-    // Search toggle functionality
-    let isSearchVisible = true;
-    $("#toggleSearch").click(function () {
-      if (isSearchVisible) {
-        $("#leftColumn").hide();
-        $("#rightColumn").removeClass("col-md-8").addClass("col-md-12");
-        $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
-        $(this).removeClass("btn-outline-primary").addClass("btn-primary");
-      } else {
-        $("#leftColumn").show();
-        $("#rightColumn").removeClass("col-md-12").addClass("col-md-8");
-        $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
-        $(this).removeClass("btn-primary").addClass("btn-outline-primary");
-      }
-      isSearchVisible = !isSearchVisible;
-    });
+  $("#timerReset").click(resetTimer);
 
-    // Market navigation functionality
-    $(".market-nav-btn").click(function (e) {
-      const market = $(this).data("market");
-      
-      // Update selected market in form
-      $("#selectedMarket").val(market);
-      
-      // Save current inputs before switching markets
-      const currentMarket = $("#selectedMarket").val();
-      saveInputsToLocalStorage(currentMarket);
-    });
-
-    // Add source field functionality
-    $(".add-source-btn").click(function () {
-      const market = $(this).data("market");
-      const container = $(`#${market}Container`);
-      const nextOrder = container.find(".source-field").length + 1;
-
-      const newField = `
-        <div class="input-group mb-2 source-field">
-          <span class="input-group-text">#${nextOrder}</span>
-          <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL">
-        </div>
-      `;
-
-      container.append(newField);
-      
-      // Save the current state of inputs to localStorage
-      saveInputsToLocalStorage(market);
-
-      // Scroll to the new field
-      container.animate(
-        {
-          scrollTop: container[0].scrollHeight,
-        },
-        500
-      );
-    });
-
-    // Delete all URLs functionality
-    $("#deleteAllUrls").click(function() {
-      if (confirm("Are you sure you want to delete all URLs for this market?")) {
-        const market = $("#selectedMarket").val();
-        $(`#${market}Container .source-field input`).val('');
-        saveInputsToLocalStorage(market);
-      }
-    });
-
-    // Save inputs to localStorage
-    function saveInputsToLocalStorage(market) {
-      const inputs = [];
-      $(`#${market}Container .source-field input`).each(function() {
-        inputs.push($(this).val());
-      });
-      localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
+  // Set initial timer value
+  $("#frequencyDropdown").change(function () {
+    timerDuration = parseInt($(this).val());
+    if (!isTimerRunning && !isPaused) {
+      updateTimerDisplay(timerDuration);
     }
+    saveTimerState();
+  });
 
-    // Load inputs from localStorage
-    function loadInputsFromLocalStorage() {
-      $(".accordion-item").each(function() {
-        const market = $(this).data("market-target");
-        const savedInputs = localStorage.getItem(`market_${market}_urls`);
-        
-        if (savedInputs) {
-          const inputs = JSON.parse(savedInputs);
-          const container = $(`#${market}Container`);
-          
-          // Clear existing inputs beyond the first 5
-          container.find(".source-field:gt(4)").remove();
-          
-          // Update values for first 5 inputs
-          container.find(".source-field input").each(function(index) {
-            if (index < inputs.length) {
-              $(this).val(inputs[index]);
-            }
-          });
-          
-          // Add additional inputs if needed
-          for (let i = 5; i < inputs.length; i++) {
-            const newField = `
-              <div class="input-group mb-2 source-field">
-                <span class="input-group-text">#${i+1}</span>
-                <input type="text" name="${market}_urls" class="form-control" 
-                       placeholder="Enter URL" value="${inputs[i]}">
-              </div>
-            `;
-            container.append(newField);
-          }
-        }
-      });
+  // Load timer state on page load
+  loadTimerState();
+
+  // Start timer if news exists and timer is not already running
+  if ($(".news-card").length > 0 && !isTimerRunning && !isPaused) {
+    startTimer();
+  }
+
+  // Save timer state when page is about to unload
+  $(window).on('beforeunload', function() {
+    saveTimerState();
+  });
+
+  // Save timer state when navigating to different market pages
+  $(".market-nav-btn").click(function (e) {
+    saveTimerState();
+    
+    const market = $(this).data("market");
+    $("#selectedMarket").val(market);
+    
+    const currentMarket = $("#selectedMarket").val();
+    saveInputsToLocalStorage(currentMarket);
+  });
+
+  // Rest of your existing code for search toggle, form handling, etc.
+  // ... (keep all your existing functionality below this)
+
+  // Search toggle functionality
+  let isSearchVisible = true;
+  $("#toggleSearch").click(function () {
+    if (isSearchVisible) {
+      $("#leftColumn").hide();
+      $("#rightColumn").removeClass("col-md-8").addClass("col-md-12");
+      $(this).html('<i class="bi bi-arrow-left-circle"></i> Show Search');
+      $(this).removeClass("btn-outline-primary").addClass("btn-primary");
+    } else {
+      $("#leftColumn").show();
+      $("#rightColumn").removeClass("col-md-12").addClass("col-md-8");
+      $(this).html('<i class="bi bi-arrow-right-circle"></i> Hide Search');
+      $(this).removeClass("btn-primary").addClass("btn-outline-primary");
     }
+    isSearchVisible = !isSearchVisible;
+  });
 
-    // Save inputs when they change
-    $(document).on('input', '.source-field input', function() {
-      const market = $(this).closest('.source-container').attr('id').replace('Container', '');
-      saveInputsToLocalStorage(market);
-    });
+  // Market navigation functionality
+  $(".market-nav-btn").click(function (e) {
+    const market = $(this).data("market");
+    
+    // Update selected market in form
+    $("#selectedMarket").val(market);
+    
+    // Save current inputs before switching markets
+    const currentMarket = $("#selectedMarket").val();
+    saveInputsToLocalStorage(currentMarket);
+  });
 
-    // Load saved inputs on page load
-    loadInputsFromLocalStorage();
+  // Add source field functionality
+  $(".add-source-btn").click(function () {
+    const market = $(this).data("market");
+    const container = $(`#${market}Container`);
+    const nextOrder = container.find(".source-field").length + 1;
 
-    // Form submission
-    $("#marketForm").submit(function (e) {
-      // Don't prevent default - let form submit normally
-      $("#refreshStatus").removeClass("d-none");
-      
-      // Show loading state
-      const submitBtn = $(this).find('button[type="submit"]');
-      submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
-      
-      // Save inputs before submitting
+    const newField = `
+      <div class="input-group mb-2 source-field">
+        <span class="input-group-text">#${nextOrder}</span>
+        <input type="text" name="${market}_urls" class="form-control" placeholder="Enter URL">
+      </div>
+    `;
+
+    container.append(newField);
+    
+    // Save the current state of inputs to localStorage
+    saveInputsToLocalStorage(market);
+
+    // Scroll to the new field
+    container.animate(
+      {
+        scrollTop: container[0].scrollHeight,
+      },
+      500
+    );
+  });
+
+  // Delete all URLs functionality
+  $("#deleteAllUrls").click(function() {
+    if (confirm("Are you sure you want to delete all URLs for this market?")) {
       const market = $("#selectedMarket").val();
+      $(`#${market}Container .source-field input`).val('');
       saveInputsToLocalStorage(market);
-    });
-
-    // Highlight current market
-    $(".accordion-item").removeClass("current-market");
-    $(`.accordion-item[data-market-target="{{ selected_market }}"]`).addClass("current-market");
-
-    // Show only selected market accordion on mobile
-    if ($(window).width() < 768) {
-      $(".accordion-item").not(`[data-market-target="{{ selected_market }}"]`).hide();
-    }
-
-    // Auto-refresh functionality based on timer
-    // Start timer automatically if we have news data
-    if ($(".news-card").length > 0) {
-      setTimeout(startTimer, 1000);
     }
   });
+
+  // Save inputs to localStorage
+  function saveInputsToLocalStorage(market) {
+    const inputs = [];
+    $(`#${market}Container .source-field input`).each(function() {
+      inputs.push($(this).val());
+    });
+    localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
+  }
+
+  // Load inputs from localStorage
+  function loadInputsFromLocalStorage() {
+    $(".accordion-item").each(function() {
+      const market = $(this).data("market-target");
+      const savedInputs = localStorage.getItem(`market_${market}_urls`);
+      
+      if (savedInputs) {
+        const inputs = JSON.parse(savedInputs);
+        const container = $(`#${market}Container`);
+        
+        // Clear existing inputs beyond the first 5
+        container.find(".source-field:gt(4)").remove();
+        
+        // Update values for first 5 inputs
+        container.find(".source-field input").each(function(index) {
+          if (index < inputs.length) {
+            $(this).val(inputs[index]);
+          }
+        });
+        
+        // Add additional inputs if needed
+        for (let i = 5; i < inputs.length; i++) {
+          const newField = `
+            <div class="input-group mb-2 source-field">
+              <span class="input-group-text">#${i+1}</span>
+              <input type="text" name="${market}_urls" class="form-control" 
+                     placeholder="Enter URL" value="${inputs[i]}">
+            </div>
+          `;
+          container.append(newField);
+        }
+      }
+    });
+  }
+
+  // Save inputs when they change
+  $(document).on('input', '.source-field input', function() {
+    const market = $(this).closest('.source-container').attr('id').replace('Container', '');
+    saveInputsToLocalStorage(market);
+  });
+
+  // Load saved inputs on page load
+  loadInputsFromLocalStorage();
+
+  // Form submission
+  $("#marketForm").submit(function (e) {
+    // Don't prevent default - let form submit normally
+    $("#refreshStatus").removeClass("d-none");
+    
+    // Show loading state
+    const submitBtn = $(this).find('button[type="submit"]');
+    submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
+    
+    // Save inputs before submitting
+    const market = $("#selectedMarket").val();
+    saveInputsToLocalStorage(market);
+  });
+
+  // Highlight current market
+  $(".accordion-item").removeClass("current-market");
+  $(`.accordion-item[data-market-target="{{ selected_market }}"]`).addClass("current-market");
+
+  // Show only selected market accordion on mobile
+  if ($(window).width() < 768) {
+    $(".accordion-item").not(`[data-market-target="{{ selected_market }}"]`).hide();
+  }
+      if ($(".news-card").length > 0) {
+      setTimeout(startTimer, 1000);
+    }
+});
+
+
 </script>
 {% endblock %}
