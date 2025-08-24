@@ -790,16 +790,16 @@
   });
 
   // Save timer state when navigating to different market pages
-  $(".market-nav-btn").click(function (e) {
-    saveTimerState();
-    
-    const market = $(this).data("market");
-    $("#selectedMarket").val(market);
-    
-    const currentMarket = $("#selectedMarket").val();
-    saveInputsToLocalStorage(currentMarket);
-  });
-
+$(".market-nav-btn").click(function (e) {
+  const newMarket = $(this).data("market");
+  
+  // Save current inputs BEFORE switching markets
+  const oldMarket = $("#selectedMarket").val();
+  saveInputsToLocalStorage(oldMarket);
+  
+  // Now update to new market
+  $("#selectedMarket").val(newMarket);
+});
   // Rest of your existing code for search toggle, form handling, etc.
   // ... (keep all your existing functionality below this)
 

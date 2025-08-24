@@ -1151,7 +1151,7 @@ def login():
         if username in VALID_USERS and VALID_USERS[username] == password:
             session['logged_in'] = True
             session['username'] = username
-            return jsonify({'success': True, 'redirect': url_for('current_affairs')})
+            return jsonify({'success': True, 'redirect': url_for('new_current')})
         else:
             return jsonify({'success': False, 'message': 'Invalid username or password'})
     
@@ -1176,7 +1176,7 @@ def login_required(f):
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
-    return decorated_function@app.route("/current_affairs", methods=["GET", "POST"])
+
 
 
 @app.route("/new_current", methods=["GET", "POST"])
@@ -1186,7 +1186,6 @@ def new_current():
     
     # Initialize market regions
     markets = {
-        
         'us': "North America",
         'uk': "South America",
         'ge': "Europe",
@@ -1196,8 +1195,8 @@ def new_current():
         'south_america': "MENA"
     }
     
-    # Get or initialize market URLs from session
-    market_urls = session.get('market_urls', {market: [] for market in markets})
+    # FIXED: Use separate session key for current affairs
+    market_urls = session.get('current_market_urls', {market: [] for market in markets})
     selected_market = request.args.get("market", "us")
     
     news_data = []
@@ -1260,8 +1259,8 @@ def new_current():
                     error_messages.append(msg)
                     logger.error(msg, exc_info=True)
             
-            # Update session with the latest URLs
-            session['market_urls'] = market_urls
+            # FIXED: Update session with separate key for current affairs
+            session['current_market_urls'] = market_urls
 
     # Sort news by source order (as specified in the form)
     # Then sort by date within each source (newest first)
@@ -1291,12 +1290,10 @@ def new_sector():
         'europe': "Mining",
         'south_america': "Utilities",
         'asia': "Automotive"
-           
-
     }
     
-    # Get or initialize market URLs from session
-    market_urls = session.get('market_urls', {market: [] for market in markets})
+    # FIXED: Use separate session key for sector news
+    market_urls = session.get('sector_market_urls', {market: [] for market in markets})
     selected_market = request.args.get("market", "us")
     
     news_data = []
@@ -1359,8 +1356,8 @@ def new_sector():
                     error_messages.append(msg)
                     logger.error(msg, exc_info=True)
             
-            # Update session with the latest URLs
-            session['market_urls'] = market_urls
+            # FIXED: Update session with separate key for sector news
+            session['sector_market_urls'] = market_urls
 
     # Sort news by source order (as specified in the form)
     # Then sort by date within each source (newest first)
@@ -1394,7 +1391,15 @@ def market_news():
     }
     
     # Get or initialize market URLs from session
-    market_urls = session.get('market_urls', {market: [] for market in markets})
+    # In new_current route:
+    market_urls = session.get('current_market_urls', {market: [] for market in markets})
+# And when updating:
+    session['current_market_urls'] = market_urls
+
+# In new_sector route:
+    market_urls = session.get('sector_market_urls', {market: [] for market in markets})
+# And when updating:
+    session['sector_market_urls'] = market_urls
     selected_market = request.args.get("market", "us")
     
     news_data = []

@@ -658,17 +658,16 @@
     });
 
     // Market navigation functionality
-    $(".market-nav-btn").click(function (e) {
-      const market = $(this).data("market");
-      
-      // Update selected market in form
-      $("#selectedMarket").val(market);
-      
-      // Save current inputs before switching markets
-      const currentMarket = $("#selectedMarket").val();
-      saveInputsToLocalStorage(currentMarket);
-    });
-
+ $(".market-nav-btn").click(function (e) {
+  const newMarket = $(this).data("market");
+  
+  // Save current inputs BEFORE switching markets
+  const oldMarket = $("#selectedMarket").val();
+  saveInputsToLocalStorage(oldMarket);
+  
+  // Now update to new market
+  $("#selectedMarket").val(newMarket);
+});
     // Add source field functionality
     $(".add-source-btn").click(function () {
       const market = $(this).data("market");
