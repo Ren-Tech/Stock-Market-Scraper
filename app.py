@@ -106,7 +106,7 @@ NEWS_SOURCE_MAPPING = {
     },
     'www.foxnews.com': {
         'actual_source': 'businessinsider.com',
-        'name': 'Associated Press',
+        'name': 'foxnews.com',
         'link_replace': {
             'from': 'businessinsider.com',
             'to': 'www.foxnews.com'
@@ -114,14 +114,14 @@ NEWS_SOURCE_MAPPING = {
     },
     'www.wired.com': {
         'actual_source': 'businessinsider.com',
-        'name': 'Associated Press',
+        'name': 'wired.com',
         'link_replace': {
             'from': 'businessinsider.com',
             'to': 'www.wired.com'
         }
     },'www.theregister.com': {
         'actual_source': 'gizmodo.com',
-        'name': 'Associated Press',
+        'name': 'theregister.com',
         'link_replace': {
             'from': 'gizmodo.com',
             'to': 'www.theregister.com'
@@ -129,14 +129,14 @@ NEWS_SOURCE_MAPPING = {
     },
     'www.computerweekly.com': {
         'actual_source': 'thenextweb.com',
-        'name': 'Associated Press',
+        'name': 'computerweekly.com',
         'link_replace': {
             'from': 'thenextweb.com',
             'to': 'www.computerweekly.com'
         }
     }, 'www.semiconductors.org': {
         'actual_source': 'Macrumors.com',
-        'name': 'Associated Press',
+        'name': 'semiconductors.org',
         'link_replace': {
             'from': 'Macrumors.com',
             'to': 'www.semiconductors.org'
@@ -144,7 +144,7 @@ NEWS_SOURCE_MAPPING = {
     },
     'www.semiconductor-today.com': {
         'actual_source': 'pcworld.com',
-        'name': 'Associated Press',
+        'name': 'semiconductor-today.com',
         'link_replace': {
             'from': 'pcworld.com',
             'to': 'www.semiconductor-today.com'
@@ -152,7 +152,7 @@ NEWS_SOURCE_MAPPING = {
     },
     'www.electronicsweekly.com': { 
         'actual_source': 'techpout.com',
-        'name': 'Associated Press',
+        'name': 'electronicsweekly.com',
         'link_replace': {
             'from': 'techpout.com',
             'to': 'www.electronicsweekly.com'
@@ -168,7 +168,7 @@ NEWS_SOURCE_MAPPING = {
     },
      'www.bbc.co.uk': { 
         'actual_source': 'venturebeat.com',
-        'name': 'Associated Press',
+        'name': 'bbc.co.uk',
         'link_replace': {
             'from': 'venturebeat.com',
             'to': 'www.bbc.co.uk/news/technology/'
