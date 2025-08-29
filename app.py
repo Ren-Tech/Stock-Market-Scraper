@@ -1373,21 +1373,21 @@ def new_sector():
                          urls_provided=urls_provided)
 
 
-@app.route("/market_news", methods=["GET", "POST"])
+@app.route("/new_market", methods=["GET", "POST"])
 @login_required
 def market_news():
     logger.info(f"Market News page accessed by {request.remote_addr}")
     
     # Initialize market regions
     markets = {
-        'us': "United States",
-        'uk': "United Kingdom",
-        'ge': "Germany",
-        'fr': "France",
-        'china': "China",
-        'europe': "Europe",
-        'asia': "Asia",
-        'south_america': "South America"
+        'us': "Market 1",
+        'uk': "Market 2",
+        'ge': "Market 3",
+        'fr': "Market 4",
+        'china': "Market 5",
+        'europe': "Market 6",
+        'asia': "Market 7",
+        'south_america': "Market 8"
     }
     
     # Get or initialize market URLs from session
@@ -1470,7 +1470,7 @@ def market_news():
     news_data.sort(key=lambda x: (x.get('source_order', 0), 
                                 -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
 
-    return render_template("market_news.html", 
+    return render_template("new_market.html", 
                          news_data=news_data,
                          market_urls=market_urls,
                          markets=markets,
