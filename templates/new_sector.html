@@ -285,14 +285,14 @@
 
   <!-- Top Navbar for Markets -->
   <div class="market-navbar mt-4">
-    {% for market_id, market_name in markets.items() %}
-    <a href="{{ url_for('market_news', market=market_id) }}"
-       class="market-nav-btn {% if market_id == selected_market %}active{% endif %}"
-       data-market="{{ market_id }}">
-      {{ market_name }}
-    </a>
-    {% endfor %}
-  </div>
+  {% for market_id, market_name in markets.items() %}
+  <a href="{{ url_for('new_sector', market=market_id) }}"
+     class="market-nav-btn {% if market_id == selected_market %}active{% endif %}"
+     data-market="{{ market_id }}">
+    {{ market_name }}
+  </a>
+  {% endfor %}
+</div>
 
   <!-- Error Messages -->
   {% if error_messages %}
@@ -658,15 +658,19 @@
     });
 
     // Market navigation functionality
- $(".market-nav-btn").click(function (e) {
+// Market navigation functionality - FIXED: allow default navigation
+$(".market-nav-btn").click(function (e) {
   const newMarket = $(this).data("market");
   
   // Save current inputs BEFORE switching markets
   const oldMarket = $("#selectedMarket").val();
   saveInputsToLocalStorage(oldMarket);
   
-  // Now update to new market
+  // Update the hidden field for form submission
   $("#selectedMarket").val(newMarket);
+  
+  // Allow the default navigation to happen (don't prevent default)
+  // The href already points to the correct new_sector route
 });
     // Add source field functionality
     $(".add-source-btn").click(function () {
