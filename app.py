@@ -1478,6 +1478,103 @@ def market_news():
                          error_messages=error_messages,
                          urls_provided=urls_provided)
 
+@app.route("/company_filter", methods=["GET", "POST"])
+@login_required
+def company_filter():
+    logger.info(f"Company Filter page accessed by {request.remote_addr}")
+    
+    # Initialize company categories instead of markets
+    categories = {
+        'tech': "Technology Companies",
+        'healthcare': "Healthcare Companies", 
+        'finance': "Financial Companies",
+        'retail': "Retail Companies",
+        'energy': "Energy Companies",
+        'mining': "Mining Companies",
+        'utilities': "Utilities Companies",
+        'auto': "Automotive Companies"
+    }
+    
+    # Use separate session key for company filter
+    category_urls = session.get('company_filter_urls', {category: [] for category in categories})
+    selected_category = request.args.get("category", "tech")
+    
+    news_data = []
+    error_messages = []
+    urls_provided = False
+
+    if request.method == "POST":
+        logger.info("Company Filter form submitted")
+        selected_category = request.form.get("category", selected_category)
+        
+        # Store URLs with their order numbers
+        ordered_urls = {}
+        category_inputs = request.form.getlist(f"{selected_category}_urls")
+        
+        # Process each URL in order
+        for i, url in enumerate(category_inputs, start=1):
+            url = url.strip()
+            if url:
+                ordered_urls[i] = url
+        
+        if ordered_urls:
+            urls_provided = True
+            logger.debug(f"URLs provided for {selected_category}: {ordered_urls}")
+
+        if urls_provided:
+            logger.info(f"Processing {len(ordered_urls)} URLs for category {selected_category}")
+            
+            # Clear existing URLs for this category before processing
+            category_urls[selected_category] = []
+            
+            # Process URLs in their specified order
+            for order_num, url in sorted(ordered_urls.items()):
+                try:
+                    if not url.startswith(('http://', 'https://')):
+                        url = 'https://' + url
+                    
+                    logger.info(f"Fetching company news from {url} for category {selected_category}")
+                    
+                    # Fetch news from this URL (remove region parameter for company-specific news)
+                    source_news = fetch_top_news(url, max_articles=20, region=None)
+                    
+                    if source_news:
+                        logger.info(f"Found {len(source_news)} articles at {url}")
+                        # Add category-specific metadata
+                        for article in source_news:
+                            article['category'] = categories[selected_category]
+                            article['source_order'] = order_num  # Track the order number
+                            article['source_url'] = url  # Track the source URL
+                        news_data.extend(source_news)
+                        
+                        # Add URL to session after successful processing
+                        category_urls[selected_category].append(url)
+                    else:
+                        msg = f"Could not extract news from {url} (Category: {selected_category})"
+                        error_messages.append(msg)
+                        logger.warning(msg)
+                        
+                except Exception as e:
+                    msg = f"Error processing {url} (Category: {selected_category}): {str(e)}"
+                    error_messages.append(msg)
+                    logger.error(msg, exc_info=True)
+            
+            # Update session with separate key for company filter
+            session['company_filter_urls'] = category_urls
+
+    # Sort news by source order (as specified in the form)
+    # Then sort by date within each source (newest first)
+    news_data.sort(key=lambda x: (x.get('source_order', 0), 
+                                -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
+
+    return render_template("company_filter.html", 
+                         news_data=news_data,
+                         category_urls=category_urls,
+                         categories=categories,
+                         selected_category=selected_category,
+                         error_messages=error_messages,
+                         urls_provided=urls_provided)
+
 def scrape_news_from_url(url):
     """Enhanced news scraping function with better error handling"""
     try:
