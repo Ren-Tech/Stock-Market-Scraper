@@ -708,49 +708,49 @@ $(".market-nav-btn").click(function (e) {
       }
     });
 
-    // Save inputs to localStorage
-    function saveInputsToLocalStorage(market) {
-      const inputs = [];
-      $(`#${market}Container .source-field input`).each(function() {
-        inputs.push($(this).val());
-      });
-      localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
-    }
+// Save inputs to localStorage - SECTOR SPECIFIC
+function saveInputsToLocalStorage(market) {
+  const inputs = [];
+  $(`#${market}Container .source-field input`).each(function() {
+    inputs.push($(this).val());
+  });
+  localStorage.setItem(`sector_${market}_urls`, JSON.stringify(inputs)); // Added 'sector_' prefix
+}
 
-    // Load inputs from localStorage
-    function loadInputsFromLocalStorage() {
-      $(".accordion-item").each(function() {
-        const market = $(this).data("market-target");
-        const savedInputs = localStorage.getItem(`market_${market}_urls`);
-        
-        if (savedInputs) {
-          const inputs = JSON.parse(savedInputs);
-          const container = $(`#${market}Container`);
-          
-          // Clear existing inputs beyond the first 5
-          container.find(".source-field:gt(4)").remove();
-          
-          // Update values for first 5 inputs
-          container.find(".source-field input").each(function(index) {
-            if (index < inputs.length) {
-              $(this).val(inputs[index]);
-            }
-          });
-          
-          // Add additional inputs if needed
-          for (let i = 5; i < inputs.length; i++) {
-            const newField = `
-              <div class="input-group mb-2 source-field">
-                <span class="input-group-text">#${i+1}</span>
-                <input type="text" name="${market}_urls" class="form-control" 
-                       placeholder="Enter URL" value="${inputs[i]}">
-              </div>
-            `;
-            container.append(newField);
-          }
+// Load inputs from localStorage - SECTOR SPECIFIC  
+function loadInputsFromLocalStorage() {
+  $(".accordion-item").each(function() {
+    const market = $(this).data("market-target");
+    const savedInputs = localStorage.getItem(`sector_${market}_urls`); // Added 'sector_' prefix
+    
+    if (savedInputs) {
+      const inputs = JSON.parse(savedInputs);
+      const container = $(`#${market}Container`);
+      
+      // Clear existing inputs beyond the first 5
+      container.find(".source-field:gt(4)").remove();
+      
+      // Update values for first 5 inputs
+      container.find(".source-field input").each(function(index) {
+        if (index < inputs.length) {
+          $(this).val(inputs[index]);
         }
       });
+      
+      // Add additional inputs if needed
+      for (let i = 5; i < inputs.length; i++) {
+        const newField = `
+          <div class="input-group mb-2 source-field">
+            <span class="input-group-text">#${i+1}</span>
+            <input type="text" name="${market}_urls" class="form-control" 
+                   placeholder="Enter URL" value="${inputs[i]}">
+          </div>
+        `;
+        container.append(newField);
+      }
     }
+  });
+}
 
     // Save inputs when they change
     $(document).on('input', '.source-field input', function() {

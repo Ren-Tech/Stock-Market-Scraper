@@ -1064,40 +1064,49 @@ $(".market-nav-btn").click(function (e) {
     localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
   }
 
-  // Load inputs from localStorage
-  function loadInputsFromLocalStorage() {
-    $(".accordion-item").each(function() {
-      const market = $(this).data("market-target");
-      const savedInputs = localStorage.getItem(`market_${market}_urls`);
+// Save inputs to localStorage - CURRENT AFFAIRS PAGE
+function saveInputsToLocalStorage(market) {
+  const inputs = [];
+  $(`#${market}Container .source-field input`).each(function() {
+    inputs.push($(this).val());
+  });
+  localStorage.setItem(`current_${market}_urls`, JSON.stringify(inputs)); // Changed to current_
+}
+
+// Load inputs from localStorage - CURRENT AFFAIRS PAGE  
+function loadInputsFromLocalStorage() {
+  $(".accordion-item").each(function() {
+    const market = $(this).data("market-target");
+    const savedInputs = localStorage.getItem(`current_${market}_urls`); // Changed to current_
+    
+    if (savedInputs) {
+      const inputs = JSON.parse(savedInputs);
+      const container = $(`#${market}Container`);
       
-      if (savedInputs) {
-        const inputs = JSON.parse(savedInputs);
-        const container = $(`#${market}Container`);
-        
-        // Clear existing inputs beyond the first 5
-        container.find(".source-field:gt(4)").remove();
-        
-        // Update values for first 5 inputs
-        container.find(".source-field input").each(function(index) {
-          if (index < inputs.length) {
-            $(this).val(inputs[index]);
-          }
-        });
-        
-        // Add additional inputs if needed
-        for (let i = 5; i < inputs.length; i++) {
-          const newField = `
-            <div class="input-group mb-2 source-field">
-              <span class="input-group-text">#${i+1}</span>
-              <input type="text" name="${market}_urls" class="form-control" 
-                     placeholder="Enter URL" value="${inputs[i]}">
-            </div>
-          `;
-          container.append(newField);
+      // Clear existing inputs beyond the first 5
+      container.find(".source-field:gt(4)").remove();
+      
+      // Update values for first 5 inputs
+      container.find(".source-field input").each(function(index) {
+        if (index < inputs.length) {
+          $(this).val(inputs[index]);
         }
+      });
+      
+      // Add additional inputs if needed
+      for (let i = 5; i < inputs.length; i++) {
+        const newField = `
+          <div class="input-group mb-2 source-field">
+            <span class="input-group-text">#${i+1}</span>
+            <input type="text" name="${market}_urls" class="form-control" 
+                   placeholder="Enter URL" value="${inputs[i]}">
+          </div>
+        `;
+        container.append(newField);
       }
-    });
-  }
+    }
+  });
+}
 
   // Save inputs when they change
   $(document).on('input', '.source-field input', function() {

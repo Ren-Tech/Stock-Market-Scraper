@@ -663,22 +663,24 @@
     });
 
     // Save inputs to localStorage
-    function saveInputsToLocalStorage() {
-      const inputs = [];
-      $(".source-field input").each(function() {
-        inputs.push($(this).val());
-      });
-      localStorage.setItem(`category_urls`, JSON.stringify(inputs));
-      
-      // Save company name too
-      const companyName = $("#companyNameInput").val();
-      localStorage.setItem(`company_name`, companyName);
-    }
+// Save inputs to localStorage - COMPANY PAGE
+function saveInputsToLocalStorage() {
+  const inputs = [];
+  $(".source-field input").each(function() {
+    inputs.push($(this).val());
+  });
+  localStorage.setItem(`company_urls`, JSON.stringify(inputs)); // Changed to company_urls
+  
+  // Save company name too
+  const companyName = $("#companyNameInput").val();
+  localStorage.setItem(`company_name`, companyName);
+}
+
 
     // Load inputs from localStorage
-    function loadInputsFromLocalStorage() {
-      const savedInputs = localStorage.getItem(`category_urls`);
-      const savedCompany = localStorage.getItem(`company_name`);
+function loadInputsFromLocalStorage() {
+  const savedInputs = localStorage.getItem(`company_urls`); // Changed to company_urls
+  const savedCompany = localStorage.getItem(`company_name`);
       
       if (savedInputs) {
         const inputs = JSON.parse(savedInputs);

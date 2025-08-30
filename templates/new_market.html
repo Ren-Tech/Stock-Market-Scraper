@@ -707,19 +707,19 @@
     });
 
     // Save inputs to localStorage
-    function saveInputsToLocalStorage(market) {
-      const inputs = [];
-      $(`#${market}Container .source-field input`).each(function() {
-        inputs.push($(this).val());
-      });
-      localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
-    }
+function saveInputsToLocalStorage(market) {
+  const inputs = [];
+  $(`#${market}Container .source-field input`).each(function() {
+    inputs.push($(this).val());
+  });
+  localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
+}
 
     // Load inputs from localStorage
-    function loadInputsFromLocalStorage() {
-      $(".accordion-item").each(function() {
-        const market = $(this).data("market-target");
-        const savedInputs = localStorage.getItem(`market_${market}_urls`);
+function loadInputsFromLocalStorage() {
+  $(".accordion-item").each(function() {
+    const market = $(this).data("market-target");
+    const savedInputs = localStorage.getItem(`market_${market}_urls`);
         
         if (savedInputs) {
           const inputs = JSON.parse(savedInputs);
