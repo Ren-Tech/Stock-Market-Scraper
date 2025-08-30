@@ -219,6 +219,7 @@
     }
   }
 </style>
+
 <div class="container mt-4">
   <!-- Header with Timer and Search Toggle -->
   <div class="d-flex align-items-center mt-3">
@@ -259,22 +260,25 @@
   <div id="refreshStatus" class="refresh-status d-none">
     <div class="d-flex align-items-center">
       <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-      <span>Refreshing company news...</span>
+      <span id="refreshStatusText">Refreshing company news...</span>
     </div>
     <div class="progress mt-2" style="height: 4px;">
       <div id="refreshProgress" class="progress-bar" style="width: 0%"></div>
     </div>
   </div>
 
+
+
   <div class="row mt-3">
     <!-- Left Column: Form -->
     <div class="col-md-4" id="leftColumn">
       <form method="POST" id="categoryForm">
         <input type="hidden" name="category" value="{{ selected_category }}" id="selectedCategory">
+        <input type="hidden" name="company_name" id="companyNameHidden">
         
         <div class="card shadow-sm p-3" style="border-radius: 10px">
           <h6 class="text-center text-primary mb-3">
-            <i class="bi bi-building"></i> Company News Sources
+            <i class="bi bi-building"></i> Company News Filter
           </h6>
 
           <!-- Company Search Box -->
@@ -284,10 +288,18 @@
               class="company-input" 
               placeholder="Enter company name"
               id="companyNameInput"
+              value="{{ company_name }}"
             >
-            <button class="intel-btn" id="intelButton">
-              <i class="bi bi-search"></i> Intel
+            <button type="button" class="intel-btn" id="intelButton">
+              <i class="bi bi-funnel"></i> Filter News
             </button>
+          </div>
+
+          <div class="form-text mb-3">
+            <small class="text-muted">
+              <i class="bi bi-info-circle"></i> Enter a company name to filter news from all sources below. 
+              Leave empty to show all news.
+            </small>
           </div>
 
           <!-- URL Inputs with Add Source feature -->
@@ -313,7 +325,7 @@
             class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
             id="addSourceBtn"
           >
-            <i class="bi bi-plus-circle"></i> Add Source
+            <i class="bi bi-plus-circle"></i> Add Another Source
           </button>
 
           <!-- Frequency Dropdown -->
@@ -336,10 +348,10 @@
           <!-- Submit Button and Delete All URLs Button -->
           <div class="mt-4 text-center">
             <button type="submit" class="btn btn-primary w-100 mb-2">
-              <i class="bi bi-save2"></i> Fetch Company News
+              <i class="bi bi-download"></i> Fetch & Filter News
             </button>
             <button type="button" id="deleteAllUrls" class="btn btn-outline-danger w-100">
-              <i class="bi bi-trash"></i> Delete all URLs
+              <i class="bi bi-trash"></i> Clear All URLs
             </button>
           </div>
         </div>
@@ -361,13 +373,25 @@
           style="border-radius: 10px 10px 0 0 !important"
         >
           <div class="d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">
-              <i class="bi bi-newspaper me-2"></i>
-              Latest Company News
-            </h3>
+            <div>
+              <h3 class="mb-0">
+                <i class="bi bi-newspaper me-2"></i>
+                {% if company_name %}
+                  News about <span class="text-warning">{{ company_name|title }}</span>
+                {% else %}
+                  Latest Company News
+                {% endif %}
+              </h3>
+              {% if company_name %}
+              <small class="opacity-75">Filtered from all sources</small>
+              {% endif %}
+            </div>
             {% if news_data %}
             <span class="badge bg-light text-dark">
               {{ news_data|length }} Articles
+              {% if company_name %}
+                about {{ company_name|title }}
+              {% endif %}
             </span>
             {% endif %}
           </div>
@@ -453,7 +477,11 @@
           <div class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>
             {% if category_urls.get(selected_category) %}
-              No recent news found. Try refreshing or adding different news sources.
+              {% if company_name %}
+                No recent news found about <strong>{{ company_name|title }}</strong>. Try different sources or check spelling.
+              {% else %}
+                No recent news found. Try refreshing or adding different news sources.
+              {% endif %}
             {% else %}
               Please add URLs to display news. Enter news website URLs in the form on the left.
             {% endif %}
@@ -472,13 +500,24 @@
     // Intel button functionality
     $("#intelButton").click(function() {
       const companyName = $("#companyNameInput").val().trim();
+      
+      // Set the hidden input value
+      $("#companyNameHidden").val(companyName);
+      
+      // Show loading state
+      $("#refreshStatus").removeClass("d-none");
+      const intelBtn = $(this);
+      intelBtn.html('<i class="bi bi-hourglass-split"></i> Filtering...').prop('disabled', true);
+      
+      // Show what we're filtering for
       if (companyName) {
-        alert(`Searching for Intel on: ${companyName}`);
-        // Here you would typically make an API call or perform search
-        // For now, just show an alert
+        $("#refreshStatusText").text(`Filtering news about ${companyName}...`);
       } else {
-        alert("Please enter a company name first");
+        $("#refreshStatusText").text("Fetching all news...");
       }
+      
+      // Submit the form to filter news
+      $("#categoryForm").submit();
     });
 
     // Add source field functionality
@@ -489,7 +528,7 @@
       const newField = `
         <div class="input-group mb-2 source-field">
           <span class="input-group-text">#${nextOrder}</span>
-          <input type="text" name="{{ selected_category }}_urls" class="form-control" placeholder="Enter URL">
+          <input type="text" name="{{ selected_category }}_urls" class="form-control" placeholder="Enter news source URL (e.g., https://cnn.com)">
         </div>
       `;
 
@@ -630,11 +669,16 @@
         inputs.push($(this).val());
       });
       localStorage.setItem(`category_urls`, JSON.stringify(inputs));
+      
+      // Save company name too
+      const companyName = $("#companyNameInput").val();
+      localStorage.setItem(`company_name`, companyName);
     }
 
     // Load inputs from localStorage
     function loadInputsFromLocalStorage() {
       const savedInputs = localStorage.getItem(`category_urls`);
+      const savedCompany = localStorage.getItem(`company_name`);
       
       if (savedInputs) {
         const inputs = JSON.parse(savedInputs);
@@ -644,10 +688,19 @@
           }
         });
       }
+      
+      if (savedCompany) {
+        $("#companyNameInput").val(savedCompany);
+        $("#companyNameHidden").val(savedCompany);
+      }
     }
 
     // Save inputs when they change
     $(document).on('input', '.source-field input', function() {
+      saveInputsToLocalStorage();
+    });
+
+    $(document).on('input', '#companyNameInput', function() {
       saveInputsToLocalStorage();
     });
 
@@ -656,15 +709,40 @@
 
     // Form submission
     $("#categoryForm").submit(function (e) {
+      // Set the company name from the visible input to the hidden input
+      const companyName = $("#companyNameInput").val().trim();
+      $("#companyNameHidden").val(companyName);
+      
       // Don't prevent default - let form submit normally
       $("#refreshStatus").removeClass("d-none");
       
+      // Show appropriate loading message
+      if (companyName) {
+        $("#refreshStatusText").text(`Filtering news about ${companyName}...`);
+      } else {
+        $("#refreshStatusText").text("Fetching all news...");
+      }
+      
       // Show loading state
       const submitBtn = $(this).find('button[type="submit"]');
-      submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Fetching...').prop('disabled', true);
+      submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Processing...').prop('disabled', true);
       
       // Save inputs before submitting
       saveInputsToLocalStorage();
+    });
+
+    // Also update the regular form submission to include company name
+    $(document).on('click', 'button[type="submit"]', function() {
+      const companyName = $("#companyNameInput").val().trim();
+      $("#companyNameHidden").val(companyName);
+    });
+
+    // Add Enter key support for company search
+    $("#companyNameInput").keypress(function(e) {
+      if (e.which === 13) {  // Enter key
+        e.preventDefault();
+        $("#intelButton").click();
+      }
     });
 
     // Auto-refresh functionality based on timer

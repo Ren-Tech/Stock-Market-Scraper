@@ -98,7 +98,7 @@ NEWS_SOURCE_MAPPING = {
     },
     'www.apnews.com': {
         'actual_source': 'businessinsider.com',
-        'name': 'Associated Press',
+        'name': 'apnews.com',
         'link_replace': {
             'from': 'businessinsider.com',
             'to': 'www.apnews.com'
@@ -1477,13 +1477,12 @@ def market_news():
                          selected_market=selected_market,
                          error_messages=error_messages,
                          urls_provided=urls_provided)
-
 @app.route("/company_filter", methods=["GET", "POST"])
 @login_required
 def company_filter():
     logger.info(f"Company Filter page accessed by {request.remote_addr}")
     
-    # Initialize company categories instead of markets
+    # Initialize company categories
     categories = {
         'tech': "Technology Companies",
         'healthcare': "Healthcare Companies", 
@@ -1502,10 +1501,12 @@ def company_filter():
     news_data = []
     error_messages = []
     urls_provided = False
+    company_name = ""
 
     if request.method == "POST":
         logger.info("Company Filter form submitted")
         selected_category = request.form.get("category", selected_category)
+        company_name = request.form.get("company_name", "").strip().lower()
         
         # Store URLs with their order numbers
         ordered_urls = {}
@@ -1533,29 +1534,54 @@ def company_filter():
                     if not url.startswith(('http://', 'https://')):
                         url = 'https://' + url
                     
-                    logger.info(f"Fetching company news from {url} for category {selected_category}")
+                    logger.info(f"Fetching news from {url} for company: {company_name or 'All companies'}")
                     
-                    # Fetch news from this URL (remove region parameter for company-specific news)
-                    source_news = fetch_top_news(url, max_articles=20, region=None)
+                    # Fetch news from this URL
+                    source_news = fetch_top_news(url, max_articles=50, region=None)  # Increased max articles for better filtering
                     
                     if source_news:
                         logger.info(f"Found {len(source_news)} articles at {url}")
-                        # Add category-specific metadata
+                        
+                        # Filter articles by company name if provided
+                        filtered_news = []
                         for article in source_news:
-                            article['category'] = categories[selected_category]
-                            article['source_order'] = order_num  # Track the order number
-                            article['source_url'] = url  # Track the source URL
-                        news_data.extend(source_news)
+                            # Combine all text fields for searching
+                            article_text = f"{article.get('title', '')} {article.get('content', '')} {article.get('description', '')}".lower()
+                            
+                            if company_name:
+                                # Check if company name appears in the article text
+                                if company_name in article_text:
+                                    article['category'] = categories[selected_category]
+                                    article['source_order'] = order_num
+                                    article['source_url'] = url
+                                    article['company_match'] = company_name  # Track which company was matched
+                                    filtered_news.append(article)
+                            else:
+                                # If no company name specified, include all articles
+                                article['category'] = categories[selected_category]
+                                article['source_order'] = order_num
+                                article['source_url'] = url
+                                filtered_news.append(article)
+                        
+                        if filtered_news:
+                            if company_name:
+                                logger.info(f"Filtered to {len(filtered_news)} articles about '{company_name}' from {url}")
+                            else:
+                                logger.info(f"Included {len(filtered_news)} articles from {url} (no filter)")
+                            news_data.extend(filtered_news)
+                        else:
+                            if company_name:
+                                logger.info(f"No articles about '{company_name}' found at {url}")
                         
                         # Add URL to session after successful processing
                         category_urls[selected_category].append(url)
                     else:
-                        msg = f"Could not extract news from {url} (Category: {selected_category})"
+                        msg = f"Could not extract news from {url}"
                         error_messages.append(msg)
                         logger.warning(msg)
                         
                 except Exception as e:
-                    msg = f"Error processing {url} (Category: {selected_category}): {str(e)}"
+                    msg = f"Error processing {url}: {str(e)}"
                     error_messages.append(msg)
                     logger.error(msg, exc_info=True)
             
@@ -1573,8 +1599,8 @@ def company_filter():
                          categories=categories,
                          selected_category=selected_category,
                          error_messages=error_messages,
-                         urls_provided=urls_provided)
-
+                         urls_provided=urls_provided,
+                         company_name=company_name)
 def scrape_news_from_url(url):
     """Enhanced news scraping function with better error handling"""
     try:
@@ -2746,7 +2772,7 @@ def latest_news():
         {"url": "https://www.msnbc.com/latest", "name": "MSNBC", "type": "html"},
         {"url": "https://www.cnbc.com/world/?region=world", "name": "CNBC", "type": "html"},
         {"url": "https://www.batimes.com.ar/feed/", "name": "Buenos Aires Times", "type": "rss"},
-        {"url": "https://apnews.com/hub/apf-topnews", "name": "Associated Press", "type": "html"}
+        {"url": "https://apnews.com/hub/apf-topnews", "name": "/apnews.com", "type": "html"}
     ]
     
     news_data = []
