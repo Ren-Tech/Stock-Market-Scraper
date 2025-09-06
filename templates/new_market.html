@@ -259,7 +259,6 @@
     }
   }
 </style>
-
 <div class="container mt-4">
   <!-- Header with Timer and Search Toggle -->
   <div class="d-flex align-items-center mt-3">
@@ -286,14 +285,14 @@
 
   <!-- Top Navbar for Markets -->
   <div class="market-navbar mt-4">
-    {% for market_id, market_name in markets.items() %}
-    <a href="{{ url_for('market_news', market=market_id) }}"
-       class="market-nav-btn {% if market_id == selected_market %}active{% endif %}"
-       data-market="{{ market_id }}">
-      {{ market_name }}
-    </a>
-    {% endfor %}
-  </div>
+  {% for market_id, market_name in markets.items() %}
+  <a href="{{ url_for('new_sector', market=market_id) }}"
+     class="market-nav-btn {% if market_id == selected_market %}active{% endif %}"
+     data-market="{{ market_id }}">
+    {{ market_name }}
+  </a>
+  {% endfor %}
+</div>
 
   <!-- Error Messages -->
   {% if error_messages %}
@@ -383,13 +382,22 @@
                       {% endfor %}
                     {% endif %}
                   </div>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-sm w-100 mb-2 add-source-btn"
-                    data-market="{{ market_id }}"
-                  >
-                    <i class="bi bi-plus-circle"></i> Add Source
-                  </button>
+                  <div class="d-flex gap-2 mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm flex-fill add-source-btn"
+                      data-market="{{ market_id }}"
+                    >
+                      <i class="bi bi-plus-circle"></i> Add Source
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-info btn-sm flex-fill bulk-add-btn"
+                      data-market="{{ market_id }}"
+                    >
+                      <i class="bi bi-clipboard-plus"></i> Bulk Add
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -546,6 +554,51 @@
   </div>
 </div>
 
+<!-- Bulk URL Modal -->
+<div class="modal fade" id="bulkUrlModal" tabindex="-1" aria-labelledby="bulkUrlModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bulkUrlModalLabel">
+          <i class="bi bi-clipboard-plus me-2"></i>Add Multiple URLs
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="bulkUrlTextarea" class="form-label">
+            <strong>Paste URLs (one per line):</strong>
+          </label>
+          <textarea
+            class="form-control"
+            id="bulkUrlTextarea"
+            rows="10"
+            placeholder="https://example1.com/news
+https://example2.com/feed
+https://example3.com/latest
+..."
+            style="font-family: monospace; font-size: 14px;"
+          ></textarea>
+          <div class="form-text">
+            <i class="bi bi-info-circle me-1"></i>
+            Enter each URL on a separate line. Invalid URLs will be automatically filtered out.
+          </div>
+        </div>
+        <div class="alert alert-info d-none" id="bulkUrlPreview">
+          <strong>Preview:</strong>
+          <div id="bulkUrlList"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="addBulkUrls">
+          <i class="bi bi-plus-circle me-1"></i>Add URLs
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -660,14 +713,17 @@
 
     // Market navigation functionality
     $(".market-nav-btn").click(function (e) {
-      const market = $(this).data("market");
+      const newMarket = $(this).data("market");
       
-      // Update selected market in form
-      $("#selectedMarket").val(market);
+      // Save current inputs BEFORE switching markets
+      const oldMarket = $("#selectedMarket").val();
+      saveInputsToLocalStorage(oldMarket);
       
-      // Save current inputs before switching markets
-      const currentMarket = $("#selectedMarket").val();
-      saveInputsToLocalStorage(currentMarket);
+      // Update the hidden field for form submission
+      $("#selectedMarket").val(newMarket);
+      
+      // Allow the default navigation to happen (don't prevent default)
+      // The href already points to the correct new_sector route
     });
 
     // Add source field functionality
@@ -697,6 +753,139 @@
       );
     });
 
+    // Bulk URL functionality
+    let currentBulkMarket = null;
+
+    $(".bulk-add-btn").click(function () {
+      currentBulkMarket = $(this).data("market");
+      $("#bulkUrlModal").modal("show");
+      $("#bulkUrlTextarea").val('').focus();
+      $("#bulkUrlPreview").addClass('d-none');
+    });
+
+    // URL validation function
+    function isValidUrl(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    // Preview URLs as user types
+    $("#bulkUrlTextarea").on('input', function() {
+      const text = $(this).val().trim();
+      if (text) {
+        const urls = text.split('\n').map(url => url.trim()).filter(url => url);
+        const validUrls = urls.filter(isValidUrl);
+        const invalidUrls = urls.filter(url => !isValidUrl(url));
+        
+        let previewHtml = '';
+        if (validUrls.length > 0) {
+          previewHtml += `<div class="text-success mb-2"><strong>Valid URLs (${validUrls.length}):</strong></div>`;
+          validUrls.forEach(url => {
+            previewHtml += `<div class="text-success small"><i class="bi bi-check-circle me-1"></i>${url}</div>`;
+          });
+        }
+        
+        if (invalidUrls.length > 0) {
+          previewHtml += `<div class="text-danger mt-2 mb-2"><strong>Invalid URLs (${invalidUrls.length}) - will be skipped:</strong></div>`;
+          invalidUrls.forEach(url => {
+            previewHtml += `<div class="text-danger small"><i class="bi bi-x-circle me-1"></i>${url}</div>`;
+          });
+        }
+        
+        $("#bulkUrlList").html(previewHtml);
+        $("#bulkUrlPreview").removeClass('d-none');
+      } else {
+        $("#bulkUrlPreview").addClass('d-none');
+      }
+    });
+
+    // Add bulk URLs
+    $("#addBulkUrls").click(function() {
+      const text = $("#bulkUrlTextarea").val().trim();
+      if (!text || !currentBulkMarket) return;
+      
+      const urls = text.split('\n').map(url => url.trim()).filter(url => url && isValidUrl(url));
+      
+      if (urls.length === 0) {
+        alert('No valid URLs found. Please check your input.');
+        return;
+      }
+      
+      const container = $(`#${currentBulkMarket}Container`);
+      
+      // Add URLs to existing empty fields first
+      const existingInputs = container.find('.source-field input');
+      let urlIndex = 0;
+      
+      existingInputs.each(function() {
+        if (urlIndex < urls.length && !$(this).val().trim()) {
+          $(this).val(urls[urlIndex]);
+          urlIndex++;
+        }
+      });
+      
+      // Add new fields for remaining URLs
+      while (urlIndex < urls.length) {
+        const nextOrder = container.find(".source-field").length + 1;
+        const newField = `
+          <div class="input-group mb-2 source-field">
+            <span class="input-group-text">#${nextOrder}</span>
+            <input type="text" name="${currentBulkMarket}_urls" class="form-control" 
+                   placeholder="Enter URL" value="${urls[urlIndex]}">
+          </div>
+        `;
+        container.append(newField);
+        urlIndex++;
+      }
+      
+      // Update field numbers
+      container.find('.source-field').each(function(index) {
+        $(this).find('.input-group-text').text(`#${index + 1}`);
+      });
+      
+      // Save to localStorage
+      saveInputsToLocalStorage(currentBulkMarket);
+      
+      // Close modal and show success message
+      $("#bulkUrlModal").modal("hide");
+      
+      // Scroll to the market section if it's not currently expanded
+      const accordionItem = $(`.accordion-item[data-market-target="${currentBulkMarket}"]`);
+      if (!accordionItem.find('.accordion-collapse').hasClass('show')) {
+        accordionItem.find('.accordion-button').click();
+      }
+      
+      // Scroll to container
+      setTimeout(() => {
+        container.get(0).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+      
+      // Show temporary success message
+      const successAlert = $(`
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+          <i class="bi bi-check-circle me-2"></i>
+          Successfully added ${urls.length} URL(s) to ${currentBulkMarket.toUpperCase()} market!
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `);
+      
+      accordionItem.find('.accordion-body').prepend(successAlert);
+      setTimeout(() => {
+        successAlert.fadeOut(() => successAlert.remove());
+      }, 3000);
+    });
+
+    // Reset modal when closed
+    $('#bulkUrlModal').on('hidden.bs.modal', function () {
+      currentBulkMarket = null;
+      $("#bulkUrlTextarea").val('');
+      $("#bulkUrlPreview").addClass('d-none');
+    });
+
     // Delete all URLs functionality
     $("#deleteAllUrls").click(function() {
       if (confirm("Are you sure you want to delete all URLs for this market?")) {
@@ -706,20 +895,20 @@
       }
     });
 
-    // Save inputs to localStorage
-function saveInputsToLocalStorage(market) {
-  const inputs = [];
-  $(`#${market}Container .source-field input`).each(function() {
-    inputs.push($(this).val());
-  });
-  localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs));
-}
+    // Save inputs to localStorage - MARKET SPECIFIC
+    function saveInputsToLocalStorage(market) {
+      const inputs = [];
+      $(`#${market}Container .source-field input`).each(function() {
+        inputs.push($(this).val());
+      });
+      localStorage.setItem(`market_${market}_urls`, JSON.stringify(inputs)); // Added 'market_' prefix
+    }
 
-    // Load inputs from localStorage
-function loadInputsFromLocalStorage() {
-  $(".accordion-item").each(function() {
-    const market = $(this).data("market-target");
-    const savedInputs = localStorage.getItem(`market_${market}_urls`);
+    // Load inputs from localStorage - MARKET SPECIFIC  
+    function loadInputsFromLocalStorage() {
+      $(".accordion-item").each(function() {
+        const market = $(this).data("market-target");
+        const savedInputs = localStorage.getItem(`market_${market}_urls`); // Added 'market_' prefix
         
         if (savedInputs) {
           const inputs = JSON.parse(savedInputs);

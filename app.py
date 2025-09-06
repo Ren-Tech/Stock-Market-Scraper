@@ -1477,6 +1477,8 @@ def market_news():
                          selected_market=selected_market,
                          error_messages=error_messages,
                          urls_provided=urls_provided)
+
+                         
 @app.route("/company_filter", methods=["GET", "POST"])
 @login_required
 def company_filter():
