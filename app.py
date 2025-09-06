@@ -1504,11 +1504,17 @@ def company_filter():
     error_messages = []
     urls_provided = False
     company_name = ""
+    company_variations = []
 
     if request.method == "POST":
         logger.info("Company Filter form submitted")
         selected_category = request.form.get("category", selected_category)
-        company_name = request.form.get("company_name", "").strip().lower()
+        company_name = request.form.get("company_name", "").strip()
+        
+        # Generate company name variations for better matching
+        if company_name:
+            company_variations = generate_company_variations(company_name)
+            logger.info(f"Company variations: {company_variations}")
         
         # Store URLs with their order numbers
         ordered_urls = {}
@@ -1538,8 +1544,8 @@ def company_filter():
                     
                     logger.info(f"Fetching news from {url} for company: {company_name or 'All companies'}")
                     
-                    # Fetch news from this URL
-                    source_news = fetch_top_news(url, max_articles=50, region=None)  # Increased max articles for better filtering
+                    # Enhanced news fetching with better error handling and retries
+                    source_news = fetch_news_with_retry(url, max_articles=100, company_name=company_name)
                     
                     if source_news:
                         logger.info(f"Found {len(source_news)} articles at {url}")
@@ -1547,29 +1553,19 @@ def company_filter():
                         # Filter articles by company name if provided
                         filtered_news = []
                         for article in source_news:
-                            # Combine all text fields for searching
-                            article_text = f"{article.get('title', '')} {article.get('content', '')} {article.get('description', '')}".lower()
+                            # Enhanced article matching
+                            if company_name and not is_article_about_company(article, company_variations):
+                                continue
                             
+                            article['category'] = categories[selected_category]
+                            article['source_order'] = order_num
+                            article['source_url'] = url
                             if company_name:
-                                # Check if company name appears in the article text
-                                if company_name in article_text:
-                                    article['category'] = categories[selected_category]
-                                    article['source_order'] = order_num
-                                    article['source_url'] = url
-                                    article['company_match'] = company_name  # Track which company was matched
-                                    filtered_news.append(article)
-                            else:
-                                # If no company name specified, include all articles
-                                article['category'] = categories[selected_category]
-                                article['source_order'] = order_num
-                                article['source_url'] = url
-                                filtered_news.append(article)
+                                article['company_match'] = company_name
+                            filtered_news.append(article)
                         
                         if filtered_news:
-                            if company_name:
-                                logger.info(f"Filtered to {len(filtered_news)} articles about '{company_name}' from {url}")
-                            else:
-                                logger.info(f"Included {len(filtered_news)} articles from {url} (no filter)")
+                            logger.info(f"Filtered to {len(filtered_news)} articles from {url}")
                             news_data.extend(filtered_news)
                         else:
                             if company_name:
@@ -1590,8 +1586,7 @@ def company_filter():
             # Update session with separate key for company filter
             session['company_filter_urls'] = category_urls
 
-    # Sort news by source order (as specified in the form)
-    # Then sort by date within each source (newest first)
+    # Sort news by source order and date
     news_data.sort(key=lambda x: (x.get('source_order', 0), 
                                 -x.get('timestamp', 0) if x.get('timestamp') else x.get('date', '')))
 
@@ -1603,6 +1598,138 @@ def company_filter():
                          error_messages=error_messages,
                          urls_provided=urls_provided,
                          company_name=company_name)
+
+
+def generate_company_variations(company_name):
+    """Generate variations of company name for better matching"""
+    variations = set()
+    company_lower = company_name.lower()
+    
+    # Add original name
+    variations.add(company_lower)
+    
+    # Common variations
+    variations.add(company_lower.replace('inc.', '').replace('llc', '').replace('corp', '').strip())
+    variations.add(company_lower.replace('.', ''))
+    variations.add(company_lower.replace('&', 'and'))
+    
+    # Split into words and add acronym
+    words = company_lower.split()
+    if len(words) > 1:
+        acronym = ''.join([word[0] for word in words if word])
+        variations.add(acronym)
+    
+    # Add common stock ticker patterns (if known)
+    # You could extend this with a database of company tickers
+    
+    return list(variations)
+
+
+def is_article_about_company(article, company_variations):
+    """Check if article is about the specified company using multiple criteria"""
+    if not company_variations:
+        return True
+    
+    # Combine all text fields for searching
+    text_to_search = f"{article.get('title', '')} {article.get('content', '')} {article.get('description', '')}".lower()
+    
+    # Check for exact matches in variations
+    for variation in company_variations:
+        if variation and len(variation) > 2:  # Avoid short variations
+            if variation in text_to_search:
+                return True
+    
+    # Check for company mentions in specific contexts
+    if contains_company_context(text_to_search, company_variations[0]):
+        return True
+    
+    return False
+
+
+def contains_company_context(text, company_name):
+    """Check for company mentions in specific contexts"""
+    contexts = [
+        f"{company_name} reported",
+        f"{company_name} announced",
+        f"{company_name} shares",
+        f"{company_name} stock",
+        f"{company_name} earnings",
+        f"{company_name} revenue",
+        f"ceo of {company_name}",
+    ]
+    
+    return any(context in text for context in contexts)
+
+
+def fetch_news_with_retry(url, max_articles=100, company_name=None, max_retries=3):
+    """Enhanced news fetching with retry mechanism and better error handling"""
+    for attempt in range(max_retries):
+        try:
+            news = fetch_top_news(url, max_articles=max_articles, region=None)
+            
+            # If no news found, try alternative scraping methods
+            if not news or len(news) < 5:
+                news = alternative_scraping_methods(url, max_articles)
+            
+            return news
+            
+        except Exception as e:
+            logger.warning(f"Attempt {attempt + 1} failed for {url}: {str(e)}")
+            if attempt == max_retries - 1:
+                logger.error(f"All scraping attempts failed for {url}")
+                return []
+            time.sleep(2 ** attempt)  # Exponential backoff
+
+
+def alternative_scraping_methods(url, max_articles):
+    """Try alternative scraping methods if primary method fails"""
+    news = []
+    
+    try:
+        # Method 1: Try with different user agents
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        # You would implement this based on your scraping library
+        
+        # Method 2: Try RSS feed if available
+        if '/rss' not in url and '/feed' not in url:
+            rss_url = find_rss_feed(url)
+            if rss_url:
+                news = scrape_rss_feed(rss_url, max_articles)
+        
+        # Method 3: Try sitemap scraping
+        if not news:
+            sitemap_url = find_sitemap(url)
+            if sitemap_url:
+                news = scrape_sitemap(sitemap_url, max_articles)
+                
+    except Exception as e:
+        logger.error(f"Alternative scraping failed: {str(e)}")
+    
+    return news
+
+
+# You would need to implement these helper functions based on your scraping setup:
+def find_rss_feed(url):
+    """Try to discover RSS feed for a website"""
+    # Implementation depends on your scraping setup
+    return None
+
+def scrape_rss_feed(rss_url, max_articles):
+    """Scrape news from RSS feed"""
+    # Implementation depends on your scraping setup
+    return []
+
+def find_sitemap(url):
+    """Try to find sitemap for a website"""
+    # Implementation depends on your scraping setup
+    return None
+
+def scrape_sitemap(sitemap_url, max_articles):
+    """Scrape news from sitemap"""
+    # Implementation depends on your scraping setup
+    return []
 def scrape_news_from_url(url):
     """Enhanced news scraping function with better error handling"""
     try:
@@ -1727,6 +1854,237 @@ def groupby(items, attribute):
             groups[key] = []
         groups[key].append(item)
     return groups.items()
+
+
+
+
+
+
+
+
+
+
+
+def scrape_google_news(company_name, max_results=10):
+    """Scrape Google News for a company"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    # Format search query
+    search_query = f"{company_name} company news"
+    search_url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}&tbm=nws"
+    
+    try:
+        response = requests.get(search_url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        news_results = []
+        results = soup.find_all('div', class_='SoaBEf')
+        
+        for result in results[:max_results]:
+            try:
+                # Extract title
+                title_elem = result.find('div', role='heading')
+                title = title_elem.get_text() if title_elem else "No title"
+                
+                # Extract link
+                link_elem = result.find('a')
+                link = link_elem['href'] if link_elem else "#"
+                
+                # Extract source and date
+                source_elem = result.find('div', class_='MgUUmf')
+                source_text = source_elem.get_text() if source_elem else ""
+                
+                # Parse source and date
+                source_parts = source_text.split('·')
+                source = source_parts[0].strip() if len(source_parts) > 0 else "Unknown"
+                date_str = source_parts[1].strip() if len(source_parts) > 1 else ""
+                
+                # Extract snippet
+                snippet_elem = result.find('div', class_='GI74Re')
+                snippet = snippet_elem.get_text() if snippet_elem else ""
+                
+                news_results.append({
+                    'title': title,
+                    'link': link,
+                    'source': source,
+                    'date': date_str,
+                    'snippet': snippet,
+                    'company': company_name
+                })
+            except Exception as e:
+                print(f"Error parsing result: {e}")
+                continue
+                
+        return news_results
+    except Exception as e:
+        print(f"Error scraping Google News: {e}")
+        return []
+
+def scrape_bing_news(company_name, max_results=10):
+    """Scrape Bing News for a company"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    search_query = f"{company_name} company news"
+    search_url = f"https://www.bing.com/news/search?q={search_query.replace(' ', '+')}"
+    
+    try:
+        response = requests.get(search_url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        news_results = []
+        results = soup.find_all('div', class_='news-card')
+        
+        for result in results[:max_results]:
+            try:
+                # Extract title
+                title_elem = result.find('a', class_='title')
+                title = title_elem.get_text() if title_elem else "No title"
+                
+                # Extract link
+                link = title_elem['href'] if title_elem else "#"
+                
+                # Extract source
+                source_elem = result.find('a', class_='source')
+                source = source_elem.get_text() if source_elem else "Unknown"
+                
+                # Extract date
+                date_elem = result.find('span', class_='time')
+                date_str = date_elem.get_text() if date_elem else ""
+                
+                # Extract snippet
+                snippet_elem = result.find('div', class_='snippet')
+                snippet = snippet_elem.get_text() if snippet_elem else ""
+                
+                news_results.append({
+                    'title': title,
+                    'link': link,
+                    'source': source,
+                    'date': date_str,
+                    'snippet': snippet,
+                    'company': company_name
+                })
+            except Exception as e:
+                print(f"Error parsing Bing result: {e}")
+                continue
+                
+        return news_results
+    except Exception as e:
+        print(f"Error scraping Bing News: {e}")
+        return []
+
+def scrape_yahoo_news(company_name, max_results=10):
+    """Scrape Yahoo News for a company"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    search_query = f"{company_name} company news"
+    search_url = f"https://news.search.yahoo.com/search?p={search_query.replace(' ', '+')}"
+    
+    try:
+        response = requests.get(search_url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        news_results = []
+        results = soup.find_all('div', class_='NewsArticle')
+        
+        for result in results[:max_results]:
+            try:
+                # Extract title
+                title_elem = result.find('h4')
+                title = title_elem.get_text() if title_elem else "No title"
+                
+                # Extract link
+                link_elem = result.find('a')
+                link = link_elem['href'] if link_elem else "#"
+                
+                # Extract source and date
+                source_elem = result.find('span', class_='s-source')
+                source_text = source_elem.get_text() if source_elem else ""
+                
+                # Parse source and date
+                source_parts = source_text.split('·')
+                source = source_parts[0].strip() if len(source_parts) > 0 else "Unknown"
+                date_str = source_parts[1].strip() if len(source_parts) > 1 else ""
+                
+                # Extract snippet
+                snippet_elem = result.find('p', class_='s-desc')
+                snippet = snippet_elem.get_text() if snippet_elem else ""
+                
+                news_results.append({
+                    'title': title,
+                    'link': link,
+                    'source': source,
+                    'date': date_str,
+                    'snippet': snippet,
+                    'company': company_name
+                })
+            except Exception as e:
+                print(f"Error parsing Yahoo result: {e}")
+                continue
+                
+        return news_results
+    except Exception as e:
+        print(f"Error scraping Yahoo News: {e}")
+        return []
+
+@app.route('/filter')
+def filter_page():
+    """Render the filter page"""
+    return render_template('filter.html')
+
+@app.route('/scrape_news', methods=['POST'])
+def scrape_news():
+    """API endpoint to scrape news for companies"""
+    data = request.get_json()
+    companies = data.get('companies', [])
+    max_results = data.get('max_results', 10)
+    
+    if not companies:
+        return jsonify({'error': 'No companies provided'}), 400
+    
+    all_news = []
+    
+    for company in companies:
+        # Scrape from multiple sources
+        google_news = scrape_google_news(company, max_results)
+        bing_news = scrape_bing_news(company, max_results)
+        yahoo_news = scrape_yahoo_news(company, max_results)
+        
+        # Combine results
+        company_news = google_news + bing_news + yahoo_news
+        
+        # Remove duplicates by title
+        seen_titles = set()
+        unique_news = []
+        for news in company_news:
+            if news['title'] not in seen_titles:
+                seen_titles.add(news['title'])
+                unique_news.append(news)
+        
+        all_news.extend(unique_news)
+        
+        # Add a small delay to avoid being blocked
+        time.sleep(0.5)
+    
+    # Sort by date (newest first)
+    all_news.sort(key=lambda x: x['date'], reverse=True)
+    
+    return jsonify({'news': all_news})
+
+
+
+
+
+
+
+
+
+
 @app.route("/calendar", methods=["GET", "POST"])
 def calendar():
     # Extended dummy data - in production this would come from a database

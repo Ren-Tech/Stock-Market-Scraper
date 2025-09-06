@@ -219,6 +219,7 @@
     }
   }
 </style>
+
 <div class="container mt-4">
   <!-- Header with Timer and Search Toggle -->
   <div class="d-flex align-items-center mt-3">
@@ -272,6 +273,7 @@
       <form method="POST" id="categoryForm">
         <input type="hidden" name="category" value="{{ selected_category }}" id="selectedCategory">
         <input type="hidden" name="company_name" id="companyNameHidden">
+        <input type="hidden" name="company_list" id="companyListHidden">
         
         <div class="card shadow-sm p-3" style="border-radius: 10px">
           <h6 class="text-center text-primary mb-3">
@@ -283,18 +285,40 @@
             <input 
               type="text" 
               class="company-input" 
-              placeholder="Enter company name"
+              placeholder="Enter company names (comma separated)"
               id="companyNameInput"
-              value="{{ company_name }}"
+              value="{{ company_name }}{% if company_list %}, {{ company_list }}{% endif %}"
             >
             <button type="button" class="intel-btn" id="intelButton">
               <i class="bi bi-funnel"></i> Filter News
             </button>
           </div>
 
+          <!-- Company Tags Display -->
+          <div id="companyTagsContainer" class="mt-2 d-flex flex-wrap gap-2">
+            {% if company_name or company_list %}
+              {% if company_name %}
+                <span class="badge bg-primary company-tag">
+                  {{ company_name }}
+                  <button type="button" class="btn-close btn-close-white ms-1" data-company="{{ company_name }}"></button>
+                </span>
+              {% endif %}
+              {% if company_list %}
+                {% for company in company_list.split(',') %}
+                  {% if company.strip() %}
+                    <span class="badge bg-primary company-tag">
+                      {{ company.strip() }}
+                      <button type="button" class="btn-close btn-close-white ms-1" data-company="{{ company.strip() }}"></button>
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            {% endif %}
+          </div>
+
           <div class="form-text mb-3">
             <small class="text-muted">
-              <i class="bi bi-info-circle"></i> Enter a company name to filter news from all sources below. 
+              <i class="bi bi-info-circle"></i> Enter company names (comma separated) to filter news from all sources below. 
               Leave empty to show all news. (Case-insensitive search)
             </small>
           </div>
@@ -395,26 +419,57 @@
             <div>
               <h3 class="mb-0">
                 <i class="bi bi-newspaper me-2"></i>
-                {% if company_name %}
-                  News about <span class="text-warning">{{ company_name|title }}</span>
+                {% if company_name or company_list %}
+                  News for Companies
                 {% else %}
                   Latest Company News
                 {% endif %}
               </h3>
-              {% if company_name %}
+              {% if company_name or company_list %}
               <small class="opacity-75">Filtered from all sources</small>
               {% endif %}
             </div>
             {% if news_data %}
             <span class="badge bg-light text-dark">
               {{ news_data|length }} Articles
-              {% if company_name %}
-                about {{ company_name|title }}
+              {% if company_name or company_list %}
+                {% set company_count = (company_name and 1 or 0) + (company_list and company_list.split(',')|length or 0) %}
+                across {{ company_count }} companies
               {% endif %}
             </span>
             {% endif %}
           </div>
         </div>
+        
+        <!-- Company Article Count Summary -->
+        {% if (company_name or company_list) and news_data %}
+        <div class="card-body border-bottom">
+          <h6 class="text-muted mb-2">
+            <i class="bi bi-bar-chart"></i> Articles by Company:
+          </h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% if company_name %}
+              {% set company_articles = news_data|selectattr('company_matches', 'defined')|selectattr('company_matches', 'contains', company_name.lower())|list %}
+              <span class="badge {% if company_articles|length > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ company_name }}: {{ company_articles|length }}
+              </span>
+            {% endif %}
+            {% if company_list %}
+              {% set companies = company_list.split(',') %}
+              {% for company in companies %}
+                {% set company_trimmed = company.strip() %}
+                {% if company_trimmed %}
+                  {% set company_articles = news_data|selectattr('company_matches', 'defined')|selectattr('company_matches', 'contains', company_trimmed.lower())|list %}
+                  <span class="badge {% if company_articles|length > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ company_trimmed }}: {{ company_articles|length }}
+                  </span>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        
         <div class="card-body">
           {% if news_data %}
             <!-- Group news by source URL -->
@@ -456,6 +511,20 @@
                             Untitled Article
                           {% endif %}
                         </h5>
+                        
+                        <!-- Show matched companies if companies are being tracked -->
+                        {% if (company_name or company_list) and news.company_matches %}
+                        <div class="mb-2">
+                          <small class="text-success">
+                            <i class="bi bi-check-circle"></i> 
+                            Matches: 
+                            {% for match in news.company_matches %}
+                              <span class="badge bg-success">{{ match }}</span>
+                            {% endfor %}
+                          </small>
+                        </div>
+                        {% endif %}
+                        
                         <p class="card-text news-content">
                           {% if news.content %}
                             {{ news.content }}
@@ -496,8 +565,8 @@
           <div class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>
             {% if category_urls.get(selected_category) %}
-              {% if company_name %}
-                No recent news found about <strong>{{ company_name|title }}</strong>. Try different sources or check spelling.
+              {% if company_name or company_list %}
+                No recent news found for the specified companies. Try different sources or check spelling.
               {% else %}
                 No recent news found. Try refreshing or adding different news sources.
               {% endif %}
@@ -561,12 +630,67 @@ https://example3.com/latest
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function () {
+    // Initialize company tags
+    function initCompanyTags() {
+      const companies = getCompaniesFromInput();
+      renderCompanyTags(companies);
+    }
+    
+    // Get companies from input field
+    function getCompaniesFromInput() {
+      const inputVal = $("#companyNameInput").val().trim();
+      if (!inputVal) return [];
+      
+      return inputVal.split(',')
+        .map(c => c.trim())
+        .filter(c => c);
+    }
+    
+    // Render company tags
+    function renderCompanyTags(companies) {
+      const container = $("#companyTagsContainer");
+      container.empty();
+      
+      companies.forEach(company => {
+        if (company) {
+          const tag = $(`
+            <span class="badge bg-primary company-tag">
+              ${company}
+              <button type="button" class="btn-close btn-close-white ms-1" data-company="${company}"></button>
+            </span>
+          `);
+          container.append(tag);
+        }
+      });
+      
+      // Update hidden inputs
+      if (companies.length > 0) {
+        $("#companyNameHidden").val(companies[0]); // First company for backward compatibility
+        $("#companyListHidden").val(companies.join(','));
+      } else {
+        $("#companyNameHidden").val('');
+        $("#companyListHidden").val('');
+      }
+      
+      // Save to localStorage
+      saveInputsToLocalStorage();
+    }
+    
+    // Remove company tag
+    $(document).on('click', '.company-tag .btn-close', function() {
+      const companyToRemove = $(this).data('company');
+      const currentCompanies = getCompaniesFromInput();
+      const updatedCompanies = currentCompanies.filter(c => c !== companyToRemove);
+      
+      // Update input field
+      $("#companyNameInput").val(updatedCompanies.join(', '));
+      
+      renderCompanyTags(updatedCompanies);
+    });
+
     // Intel button functionality (case-insensitive)
     $("#intelButton").click(function() {
-      const companyName = $("#companyNameInput").val().trim();
-      
-      // Set the hidden input value (normalize case for consistent storage)
-      $("#companyNameHidden").val(companyName);
+      const companies = getCompaniesFromInput();
       
       // Show loading state
       $("#refreshStatus").removeClass("d-none");
@@ -574,8 +698,8 @@ https://example3.com/latest
       intelBtn.html('<i class="bi bi-hourglass-split"></i> Filtering...').prop('disabled', true);
       
       // Show what we're filtering for
-      if (companyName) {
-        $("#refreshStatusText").text(`Filtering news about ${companyName}...`);
+      if (companies.length > 0) {
+        $("#refreshStatusText").text(`Filtering news for ${companies.length} companies...`);
       } else {
         $("#refreshStatusText").text("Fetching all news...");
       }
@@ -768,9 +892,7 @@ https://example3.com/latest
 
           if (timerSeconds <= 0) {
             clearInterval(timerInterval);
-            // Ensure company name is set before auto-submit
-            const companyName = $("#companyNameInput").val().trim();
-            $("#companyNameHidden").val(companyName);
+            // Submit the form to refresh news
             $("#categoryForm").submit();
           }
         }, 1000);
@@ -852,7 +974,7 @@ https://example3.com/latest
       }
     });
 
-    // Save inputs to localStorage - COMPANY PAGE (case-insensitive)
+    // Save inputs to localStorage
     function saveInputsToLocalStorage() {
       const inputs = [];
       $(".source-field input").each(function() {
@@ -860,15 +982,15 @@ https://example3.com/latest
       });
       localStorage.setItem(`company_urls`, JSON.stringify(inputs));
       
-      // Save company name (preserve original case for display)
-      const companyName = $("#companyNameInput").val().trim();
-      localStorage.setItem(`company_name`, companyName);
+      // Save company names
+      const companies = getCompaniesFromInput();
+      localStorage.setItem(`company_names`, companies.join(','));
     }
 
     // Load inputs from localStorage
     function loadInputsFromLocalStorage() {
       const savedInputs = localStorage.getItem(`company_urls`);
-      const savedCompany = localStorage.getItem(`company_name`);
+      const savedCompanies = localStorage.getItem(`company_names`);
       
       if (savedInputs) {
         const inputs = JSON.parse(savedInputs);
@@ -897,9 +1019,9 @@ https://example3.com/latest
         }
       }
       
-      if (savedCompany) {
-        $("#companyNameInput").val(savedCompany);
-        $("#companyNameHidden").val(savedCompany);
+      if (savedCompanies) {
+        $("#companyNameInput").val(savedCompanies);
+        initCompanyTags();
       }
     }
 
@@ -909,7 +1031,9 @@ https://example3.com/latest
     });
 
     $(document).on('input', '#companyNameInput', function() {
-      saveInputsToLocalStorage();
+      // Update tags when input changes
+      const companies = getCompaniesFromInput();
+      renderCompanyTags(companies);
     });
 
     // Load saved inputs on page load
@@ -917,32 +1041,24 @@ https://example3.com/latest
 
     // Form submission
     $("#categoryForm").submit(function (e) {
-      // Set the company name from the visible input to the hidden input (preserve case)
-      const companyName = $("#companyNameInput").val().trim();
-      $("#companyNameHidden").val(companyName);
-      
-      // Don't prevent default - let form submit normally
+      // Show loading state
       $("#refreshStatus").removeClass("d-none");
       
+      const companies = getCompaniesFromInput();
+      
       // Show appropriate loading message
-      if (companyName) {
-        $("#refreshStatusText").text(`Filtering news about ${companyName}...`);
+      if (companies.length > 0) {
+        $("#refreshStatusText").text(`Filtering news for ${companies.length} companies...`);
       } else {
         $("#refreshStatusText").text("Fetching all news...");
       }
       
       // Show loading state
-      const submitBtn = $(this).find('button[type="submit"]');
-      submitBtn.html('<i class="bi bi-arrow-clockwise"></i> Processing...').prop('disabled', true);
+      const intelBtn = $("#intelButton");
+      intelBtn.html('<i class="bi bi-hourglass-split"></i> Filtering...').prop('disabled', true);
       
       // Save inputs before submitting
       saveInputsToLocalStorage();
-    });
-
-    // Also update the regular form submission to include company name
-    $(document).on('click', 'button[type="submit"]', function() {
-      const companyName = $("#companyNameInput").val().trim();
-      $("#companyNameHidden").val(companyName);
     });
 
     // Add Enter key support for company search
@@ -958,6 +1074,9 @@ https://example3.com/latest
     if ($(".news-card").length > 0) {
       setTimeout(startTimer, 1000);
     }
+    
+    // Initialize company tags on page load
+    initCompanyTags();
   });
 </script>
 {% endblock %}
