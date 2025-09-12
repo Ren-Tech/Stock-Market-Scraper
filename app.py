@@ -1863,15 +1863,115 @@ def groupby(items, attribute):
 
 
 
+def extract_image_from_article(link, headers):
+    """Extract main image from article page"""
+    try:
+        response = requests.get(link, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Try multiple methods to find article image
+        image_selectors = [
+            'meta[property="og:image"]',
+            'meta[name="twitter:image"]',
+            'img[class*="article"]',
+            'img[class*="story"]',
+            'img[class*="main"]',
+            'img[class*="hero"]',
+            'img[class*="featured"]',
+            '.article img',
+            '.story img',
+            '.content img'
+        ]
+        
+        for selector in image_selectors:
+            img_elem = soup.select_one(selector)
+            if img_elem:
+                if selector.startswith('meta'):
+                    img_url = img_elem.get('content', '')
+                else:
+                    img_url = img_elem.get('src', '') or img_elem.get('data-src', '')
+                
+                if img_url:
+                    # Make URL absolute
+                    if img_url.startswith('//'):
+                        img_url = 'https:' + img_url
+                    elif img_url.startswith('/'):
+                        img_url = urljoin(link, img_url)
+                    elif not img_url.startswith('http'):
+                        img_url = urljoin(link, img_url)
+                    
+                    # Validate image URL
+                    if img_url.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
+                        return img_url
+        
+        return None
+    except Exception as e:
+        print(f"Error extracting image from {link}: {e}")
+        return None
 
+def parse_date_string(date_str):
+    """Parse various date formats and return standardized format"""
+    if not date_str:
+        return datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    # Common patterns
+    patterns = [
+        (r'(\d+)\s*(hour|hr)s?\s*ago', 'hours'),
+        (r'(\d+)\s*(minute|min)s?\s*ago', 'minutes'),
+        (r'(\d+)\s*(day)s?\s*ago', 'days'),
+        (r'(\d+)\s*(week)s?\s*ago', 'weeks'),
+        (r'(\d+)\s*(month)s?\s*ago', 'months'),
+    ]
+    
+    date_str_lower = date_str.lower()
+    
+    # Check for relative time patterns
+    for pattern, unit in patterns:
+        match = re.search(pattern, date_str_lower)
+        if match:
+            value = int(match.group(1))
+            if unit == 'hours':
+                target_date = datetime.now() - timedelta(hours=value)
+            elif unit == 'minutes':
+                target_date = datetime.now() - timedelta(minutes=value)
+            elif unit == 'days':
+                target_date = datetime.now() - timedelta(days=value)
+            elif unit == 'weeks':
+                target_date = datetime.now() - timedelta(weeks=value)
+            elif unit == 'months':
+                target_date = datetime.now() - timedelta(days=value*30)
+            
+            return target_date.strftime("%Y-%m-%d %H:%M")
+    
+    # Try to parse absolute dates
+    date_formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+        "%Y-%m-%d",
+        "%b %d, %Y",
+        "%B %d, %Y",
+        "%d %b %Y",
+        "%d %B %Y",
+        "%m/%d/%Y",
+        "%d/%m/%Y"
+    ]
+    
+    for fmt in date_formats:
+        try:
+            parsed_date = datetime.strptime(date_str.strip(), fmt)
+            return parsed_date.strftime("%Y-%m-%d %H:%M")
+        except ValueError:
+            continue
+    
+    # Return original if can't parse
+    return date_str
 
 def scrape_google_news(company_name, max_results=10):
-    """Scrape Google News for a company"""
+    """Scrape Google News for a company with enhanced data"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     
-    # Format search query
     search_query = f"{company_name} company news"
     search_url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}&tbm=nws"
     
@@ -1892,6 +1992,20 @@ def scrape_google_news(company_name, max_results=10):
                 link_elem = result.find('a')
                 link = link_elem['href'] if link_elem else "#"
                 
+                # Extract image from article thumbnail or fetch from article
+                image_url = None
+                img_elem = result.find('img')
+                if img_elem:
+                    image_url = img_elem.get('src') or img_elem.get('data-src')
+                
+                # If no thumbnail, try to extract from article page
+                if not image_url and link != "#":
+                    image_url = extract_image_from_article(link, headers)
+                
+                # Fallback to a placeholder image
+                if not image_url:
+                    image_url = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image"
+                
                 # Extract source and date
                 source_elem = result.find('div', class_='MgUUmf')
                 source_text = source_elem.get_text() if source_elem else ""
@@ -1901,6 +2015,9 @@ def scrape_google_news(company_name, max_results=10):
                 source = source_parts[0].strip() if len(source_parts) > 0 else "Unknown"
                 date_str = source_parts[1].strip() if len(source_parts) > 1 else ""
                 
+                # Parse and format date
+                formatted_date = parse_date_string(date_str)
+                
                 # Extract snippet
                 snippet_elem = result.find('div', class_='GI74Re')
                 snippet = snippet_elem.get_text() if snippet_elem else ""
@@ -1909,12 +2026,15 @@ def scrape_google_news(company_name, max_results=10):
                     'title': title,
                     'link': link,
                     'source': source,
-                    'date': date_str,
+                    'date': formatted_date,
+                    'raw_date': date_str,
                     'snippet': snippet,
-                    'company': company_name
+                    'company': company_name,
+                    'image': image_url,
+                    'scrape_source': 'Google News'
                 })
             except Exception as e:
-                print(f"Error parsing result: {e}")
+                print(f"Error parsing Google result: {e}")
                 continue
                 
         return news_results
@@ -1923,7 +2043,7 @@ def scrape_google_news(company_name, max_results=10):
         return []
 
 def scrape_bing_news(company_name, max_results=10):
-    """Scrape Bing News for a company"""
+    """Scrape Bing News for a company with enhanced data"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -1947,6 +2067,19 @@ def scrape_bing_news(company_name, max_results=10):
                 # Extract link
                 link = title_elem['href'] if title_elem else "#"
                 
+                # Extract image
+                image_url = None
+                img_elem = result.find('img')
+                if img_elem:
+                    image_url = img_elem.get('src') or img_elem.get('data-src')
+                
+                # If no image found, try to extract from article page
+                if not image_url and link != "#":
+                    image_url = extract_image_from_article(link, headers)
+                
+                if not image_url:
+                    image_url = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image"
+                
                 # Extract source
                 source_elem = result.find('a', class_='source')
                 source = source_elem.get_text() if source_elem else "Unknown"
@@ -1954,6 +2087,7 @@ def scrape_bing_news(company_name, max_results=10):
                 # Extract date
                 date_elem = result.find('span', class_='time')
                 date_str = date_elem.get_text() if date_elem else ""
+                formatted_date = parse_date_string(date_str)
                 
                 # Extract snippet
                 snippet_elem = result.find('div', class_='snippet')
@@ -1963,9 +2097,12 @@ def scrape_bing_news(company_name, max_results=10):
                     'title': title,
                     'link': link,
                     'source': source,
-                    'date': date_str,
+                    'date': formatted_date,
+                    'raw_date': date_str,
                     'snippet': snippet,
-                    'company': company_name
+                    'company': company_name,
+                    'image': image_url,
+                    'scrape_source': 'Bing News'
                 })
             except Exception as e:
                 print(f"Error parsing Bing result: {e}")
@@ -1977,7 +2114,7 @@ def scrape_bing_news(company_name, max_results=10):
         return []
 
 def scrape_yahoo_news(company_name, max_results=10):
-    """Scrape Yahoo News for a company"""
+    """Scrape Yahoo News for a company with enhanced data"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -2002,6 +2139,18 @@ def scrape_yahoo_news(company_name, max_results=10):
                 link_elem = result.find('a')
                 link = link_elem['href'] if link_elem else "#"
                 
+                # Extract image
+                image_url = None
+                img_elem = result.find('img')
+                if img_elem:
+                    image_url = img_elem.get('src') or img_elem.get('data-src')
+                
+                if not image_url and link != "#":
+                    image_url = extract_image_from_article(link, headers)
+                
+                if not image_url:
+                    image_url = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image"
+                
                 # Extract source and date
                 source_elem = result.find('span', class_='s-source')
                 source_text = source_elem.get_text() if source_elem else ""
@@ -2010,6 +2159,7 @@ def scrape_yahoo_news(company_name, max_results=10):
                 source_parts = source_text.split('·')
                 source = source_parts[0].strip() if len(source_parts) > 0 else "Unknown"
                 date_str = source_parts[1].strip() if len(source_parts) > 1 else ""
+                formatted_date = parse_date_string(date_str)
                 
                 # Extract snippet
                 snippet_elem = result.find('p', class_='s-desc')
@@ -2019,9 +2169,12 @@ def scrape_yahoo_news(company_name, max_results=10):
                     'title': title,
                     'link': link,
                     'source': source,
-                    'date': date_str,
+                    'date': formatted_date,
+                    'raw_date': date_str,
                     'snippet': snippet,
-                    'company': company_name
+                    'company': company_name,
+                    'image': image_url,
+                    'scrape_source': 'Yahoo News'
                 })
             except Exception as e:
                 print(f"Error parsing Yahoo result: {e}")
@@ -2039,7 +2192,7 @@ def filter_page():
 
 @app.route('/scrape_news', methods=['POST'])
 def scrape_news():
-    """API endpoint to scrape news for companies"""
+    """API endpoint to scrape news for companies with enhanced data"""
     data = request.get_json()
     companies = data.get('companies', [])
     max_results = data.get('max_results', 10)
@@ -2062,8 +2215,9 @@ def scrape_news():
         seen_titles = set()
         unique_news = []
         for news in company_news:
-            if news['title'] not in seen_titles:
-                seen_titles.add(news['title'])
+            title_key = news['title'].lower().strip()
+            if title_key not in seen_titles:
+                seen_titles.add(title_key)
                 unique_news.append(news)
         
         all_news.extend(unique_news)
@@ -2071,10 +2225,23 @@ def scrape_news():
         # Add a small delay to avoid being blocked
         time.sleep(0.5)
     
-    # Sort by date (newest first)
-    all_news.sort(key=lambda x: x['date'], reverse=True)
+    # Sort by date (newest first) - handle both datetime strings and raw date strings
+    def sort_key(article):
+        try:
+            if article['date']:
+                # Try to parse the formatted date
+                return datetime.strptime(article['date'], "%Y-%m-%d %H:%M")
+            return datetime.min
+        except:
+            return datetime.min
     
-    return jsonify({'news': all_news})
+    all_news.sort(key=sort_key, reverse=True)
+    
+    return jsonify({
+        'news': all_news,
+        'total_count': len(all_news),
+        'scraped_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
 
 
 

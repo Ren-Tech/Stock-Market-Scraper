@@ -31,14 +31,44 @@
             min-height: 600px;
         }
         .news-card {
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             height: 100%;
             border: none;
             border-left: 4px solid #0d6efd;
+            overflow: hidden;
         }
         .news-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+        .news-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .news-card:hover .news-image {
+            transform: scale(1.05);
+        }
+        .news-image-container {
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+            background: #f8f9fa;
+        }
+        .news-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 15px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        .news-card:hover .news-image-overlay {
+            transform: translateY(0);
         }
         .company-tag {
             font-size: 0.9rem;
@@ -49,11 +79,35 @@
             gap: 5px;
         }
         .source-badge {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 3px 8px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+        }
+        .datetime-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .datetime-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .scrape-source-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
         }
         .progress {
             height: 8px;
@@ -117,12 +171,61 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        .stats-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        .image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            background: #e9ecef;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .time-ago {
+            color: #28a745;
+            font-weight: 500;
+        }
         @media (max-width: 992px) {
             .split-container {
                 flex-direction: column;
             }
             .input-panel {
                 position: relative;
+            }
+            .news-card {
+                margin-bottom: 20px;
+            }
+        }
+        @media (max-width: 768px) {
+            .datetime-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .stats-panel {
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
@@ -137,7 +240,7 @@
                         <i class="bi bi-search me-2"></i>Company News Filter
                     </h1>
                 </div>
-                <p class="text-muted">Find the latest news articles for any company from across the web</p>
+                <p class="text-muted">Find the latest news articles with images and timestamps from across the web</p>
             </div>
         </div>
 
@@ -229,6 +332,22 @@
                         <span id="highlightText">Showing results for: </span>
                     </div>
                 </div>
+
+                <!-- Stats Panel -->
+                <div class="stats-panel d-none" id="statsPanel">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalArticles">0</div>
+                        <div class="stat-label">Total Articles</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="uniqueSources">0</div>
+                        <div class="stat-label">Unique Sources</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="lastUpdated">--</div>
+                        <div class="stat-label">Last Updated</div>
+                    </div>
+                </div>
                 
                 <div id="resultsContainer" class="row g-3">
                     <div class="col-12 text-center py-5">
@@ -258,11 +377,43 @@
             const manualRefreshBtn = document.getElementById('manualRefreshBtn');
             const highlightPanel = document.getElementById('highlightPanel');
             const highlightText = document.getElementById('highlightText');
+            const statsPanel = document.getElementById('statsPanel');
+            const totalArticles = document.getElementById('totalArticles');
+            const uniqueSources = document.getElementById('uniqueSources');
+            const lastUpdated = document.getElementById('lastUpdated');
             
             let companies = [];
             let refreshInterval = null;
             let timerValue = 0;
             const REFRESH_DURATION = 60; // 60 seconds between refreshes
+            
+            // Helper function to format time ago
+            function timeAgo(dateString) {
+                const now = new Date();
+                const date = new Date(dateString);
+                const seconds = Math.floor((now - date) / 1000);
+                
+                if (seconds < 60) return `${seconds}s ago`;
+                if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+                if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+                if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+                return date.toLocaleDateString();
+            }
+            
+            // Helper function to format date and time
+            function formatDateTime(dateString) {
+                if (!dateString) return { date: '--', time: '--' };
+                
+                try {
+                    const date = new Date(dateString);
+                    return {
+                        date: date.toLocaleDateString(),
+                        time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                } catch (e) {
+                    return { date: '--', time: '--' };
+                }
+            }
             
             // Parse companies from input
             function parseCompanies() {
@@ -305,6 +456,23 @@
                 }
             }
             
+            // Update stats panel
+            function updateStats(newsData) {
+                if (newsData && newsData.news) {
+                    const articles = newsData.news;
+                    const sources = new Set(articles.map(article => article.source));
+                    
+                    totalArticles.textContent = articles.length;
+                    uniqueSources.textContent = sources.size;
+                    lastUpdated.textContent = newsData.scraped_at ? 
+                        new Date(newsData.scraped_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--';
+                    
+                    statsPanel.classList.remove('d-none');
+                } else {
+                    statsPanel.classList.add('d-none');
+                }
+            }
+            
             // Start auto refresh timer
             function startAutoRefresh() {
                 if (refreshInterval) {
@@ -339,6 +507,12 @@
             // Update timer display
             function updateTimerDisplay() {
                 refreshTimer.textContent = `${timerValue}s`;
+            }
+            
+            // Handle image loading errors
+            function handleImageError(img) {
+                img.src = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image";
+                img.onerror = null; // Prevent infinite loop
             }
             
             // Search for news
@@ -395,8 +569,9 @@
                     progressText.textContent = 'Search completed!';
                     progressDetail.textContent = `Found ${data.news.length} articles`;
                     
-                    // Display results
+                    // Display results and update stats
                     displayResults(data.news);
+                    updateStats(data);
                     
                     // Hide progress after a delay
                     setTimeout(() => {
@@ -454,22 +629,50 @@
                         );
                     });
                     
+                    // Format date and time
+                    const dateTime = formatDateTime(article.date);
+                    const timeAgoText = timeAgo(article.date);
+                    
                     html += `
-                        <div class="col-12 mb-3">
-                            <div class="card news-card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h6 class="card-title me-3">${title}</h6>
-                                        <span class="source-badge">${article.source}</span>
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="card news-card h-100">
+                                <div class="news-image-container">
+                                    <img src="${article.image}" class="news-image" alt="News image" 
+                                         onerror="handleImageError(this)">
+                                    <div class="source-badge">${article.source}</div>
+                                    <div class="news-image-overlay">
+                                        <small class="scrape-source-badge">${article.scrape_source}</small>
                                     </div>
-                                    <div class="mb-2">
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title mb-3">${title}</h6>
+                                    
+                                    <div class="datetime-info">
+                                        <div class="datetime-item">
+                                            <i class="bi bi-calendar3"></i>
+                                            <span>${dateTime.date}</span>
+                                        </div>
+                                        <div class="datetime-item">
+                                            <i class="bi bi-clock"></i>
+                                            <span>${dateTime.time}</span>
+                                        </div>
+                                        <div class="datetime-item">
+                                            <span class="time-ago">${timeAgoText}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
                                         <span class="badge bg-info">${article.company}</span>
-                                        <span class="text-muted small ms-2">${article.date}</span>
                                     </div>
-                                    <p class="card-text">${snippet}</p>
-                                    <a href="${article.link}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        Read Full Article <i class="bi bi-arrow-up-right"></i>
-                                    </a>
+                                    
+                                    <p class="card-text flex-grow-1">${snippet}</p>
+                                    
+                                    <div class="mt-auto pt-2">
+                                        <a href="${article.link}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-newspaper me-1"></i>Read Full Article 
+                                            <i class="bi bi-arrow-up-right ms-1"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -477,6 +680,9 @@
                 });
                 
                 resultsContainer.innerHTML = html;
+                
+                // Make handleImageError globally accessible
+                window.handleImageError = handleImageError;
             }
             
             // Event listeners
