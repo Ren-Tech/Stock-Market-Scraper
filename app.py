@@ -1873,6 +1873,8 @@ def extract_image_from_article(link, headers):
         image_selectors = [
             'meta[property="og:image"]',
             'meta[name="twitter:image"]',
+            'meta[property="og:image:secure_url"]',
+            'meta[name="twitter:image:src"]',
             'img[class*="article"]',
             'img[class*="story"]',
             'img[class*="main"]',
@@ -1880,7 +1882,9 @@ def extract_image_from_article(link, headers):
             'img[class*="featured"]',
             '.article img',
             '.story img',
-            '.content img'
+            '.content img',
+            'img[data-src]',
+            'img[src*="image"]'
         ]
         
         for selector in image_selectors:
@@ -1889,9 +1893,9 @@ def extract_image_from_article(link, headers):
                 if selector.startswith('meta'):
                     img_url = img_elem.get('content', '')
                 else:
-                    img_url = img_elem.get('src', '') or img_elem.get('data-src', '')
+                    img_url = img_elem.get('src', '') or img_elem.get('data-src', '') or img_elem.get('data-lazy-src', '')
                 
-                if img_url:
+                if img_url and img_url != 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7':
                     # Make URL absolute
                     if img_url.startswith('//'):
                         img_url = 'https:' + img_url
@@ -1900,9 +1904,18 @@ def extract_image_from_article(link, headers):
                     elif not img_url.startswith('http'):
                         img_url = urljoin(link, img_url)
                     
-                    # Validate image URL
-                    if img_url.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
-                        return img_url
+                    # Validate image URL and check if it's accessible
+                    if (img_url.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp')) or 
+                        'image' in img_url.lower() or 'photo' in img_url.lower()):
+                        try:
+                            # Quick check if image is accessible
+                            img_response = requests.head(img_url, headers=headers, timeout=5)
+                            if img_response.status_code == 200:
+                                content_type = img_response.headers.get('content-type', '')
+                                if 'image' in content_type.lower():
+                                    return img_url
+                        except:
+                            continue
         
         return None
     except Exception as e:
@@ -1963,8 +1976,8 @@ def parse_date_string(date_str):
         except ValueError:
             continue
     
-    # Return original if can't parse
-    return date_str
+    # Return current time if can't parse
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 def scrape_google_news(company_name, max_results=10):
     """Scrape Google News for a company with enhanced data"""
@@ -1973,7 +1986,7 @@ def scrape_google_news(company_name, max_results=10):
     }
     
     search_query = f"{company_name} company news"
-    search_url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}&tbm=nws"
+    search_url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}&tbm=nws&tbs=qdr:w"  # Added recent filter
     
     try:
         response = requests.get(search_url, headers=headers)
@@ -1997,14 +2010,16 @@ def scrape_google_news(company_name, max_results=10):
                 img_elem = result.find('img')
                 if img_elem:
                     image_url = img_elem.get('src') or img_elem.get('data-src')
+                    if image_url and image_url.startswith('data:image'):
+                        image_url = None  # Skip base64 images
                 
-                # If no thumbnail, try to extract from article page
+                # If no thumbnail or invalid thumbnail, try to extract from article page
                 if not image_url and link != "#":
                     image_url = extract_image_from_article(link, headers)
                 
                 # Fallback to a placeholder image
                 if not image_url:
-                    image_url = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image"
+                    image_url = f"https://via.placeholder.com/400x250/007bff/ffffff?text={company_name.replace(' ', '+')}"
                 
                 # Extract source and date
                 source_elem = result.find('div', class_='MgUUmf')
@@ -2049,7 +2064,7 @@ def scrape_bing_news(company_name, max_results=10):
     }
     
     search_query = f"{company_name} company news"
-    search_url = f"https://www.bing.com/news/search?q={search_query.replace(' ', '+')}"
+    search_url = f"https://www.bing.com/news/search?q={search_query.replace(' ', '+')}&qft=interval%3d%227%22"  # Recent filter
     
     try:
         response = requests.get(search_url, headers=headers)
@@ -2072,13 +2087,15 @@ def scrape_bing_news(company_name, max_results=10):
                 img_elem = result.find('img')
                 if img_elem:
                     image_url = img_elem.get('src') or img_elem.get('data-src')
+                    if image_url and image_url.startswith('data:image'):
+                        image_url = None
                 
                 # If no image found, try to extract from article page
                 if not image_url and link != "#":
                     image_url = extract_image_from_article(link, headers)
                 
                 if not image_url:
-                    image_url = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image"
+                    image_url = f"https://via.placeholder.com/400x250/28a745/ffffff?text={company_name.replace(' ', '+')}"
                 
                 # Extract source
                 source_elem = result.find('a', class_='source')
@@ -2144,12 +2161,14 @@ def scrape_yahoo_news(company_name, max_results=10):
                 img_elem = result.find('img')
                 if img_elem:
                     image_url = img_elem.get('src') or img_elem.get('data-src')
+                    if image_url and image_url.startswith('data:image'):
+                        image_url = None
                 
                 if not image_url and link != "#":
                     image_url = extract_image_from_article(link, headers)
                 
                 if not image_url:
-                    image_url = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image"
+                    image_url = f"https://via.placeholder.com/400x250/dc3545/ffffff?text={company_name.replace(' ', '+')}"
                 
                 # Extract source and date
                 source_elem = result.find('span', class_='s-source')
@@ -2196,6 +2215,7 @@ def scrape_news():
     data = request.get_json()
     companies = data.get('companies', [])
     max_results = data.get('max_results', 10)
+    refresh_mode = data.get('refresh_mode', False)  # New parameter for refresh
     
     if not companies:
         return jsonify({'error': 'No companies provided'}), 400
@@ -2203,33 +2223,42 @@ def scrape_news():
     all_news = []
     
     for company in companies:
+        # In refresh mode, get fewer results per source but ensure we get the newest
+        results_per_source = 1 if refresh_mode else max_results
+        
         # Scrape from multiple sources
-        google_news = scrape_google_news(company, max_results)
-        bing_news = scrape_bing_news(company, max_results)
-        yahoo_news = scrape_yahoo_news(company, max_results)
+        google_news = scrape_google_news(company, results_per_source)
+        bing_news = scrape_bing_news(company, results_per_source)
+        yahoo_news = scrape_yahoo_news(company, results_per_source)
         
         # Combine results
         company_news = google_news + bing_news + yahoo_news
         
-        # Remove duplicates by title
+        # Remove duplicates by title (case insensitive)
         seen_titles = set()
         unique_news = []
         for news in company_news:
             title_key = news['title'].lower().strip()
-            if title_key not in seen_titles:
+            if title_key not in seen_titles and len(title_key) > 10:  # Filter out very short titles
                 seen_titles.add(title_key)
                 unique_news.append(news)
         
-        all_news.extend(unique_news)
+        # Sort by date and take the most recent ones
+        unique_news.sort(key=lambda x: datetime.strptime(x['date'], "%Y-%m-%d %H:%M"), reverse=True)
+        
+        # In refresh mode, take only the newest article per company
+        if refresh_mode:
+            all_news.extend(unique_news[:1])
+        else:
+            all_news.extend(unique_news)
         
         # Add a small delay to avoid being blocked
         time.sleep(0.5)
     
-    # Sort by date (newest first) - handle both datetime strings and raw date strings
+    # Sort all news by date (newest first)
     def sort_key(article):
         try:
             if article['date']:
-                # Try to parse the formatted date
                 return datetime.strptime(article['date'], "%Y-%m-%d %H:%M")
             return datetime.min
         except:
@@ -2240,10 +2269,25 @@ def scrape_news():
     return jsonify({
         'news': all_news,
         'total_count': len(all_news),
-        'scraped_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        'scraped_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'refresh_mode': refresh_mode
     })
 
-
+@app.route('/refresh_news', methods=['POST'])
+def refresh_news():
+    """API endpoint specifically for refreshing news - gets newest articles"""
+    data = request.get_json()
+    companies = data.get('companies', [])
+    
+    if not companies:
+        return jsonify({'error': 'No companies provided'}), 400
+    
+    # Use refresh mode to get only the newest articles
+    data['refresh_mode'] = True
+    data['max_results'] = 1
+    
+    # Call the main scrape function with refresh parameters
+    return scrape_news()
 
 
 

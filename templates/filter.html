@@ -146,6 +146,10 @@
             align-items: center;
             gap: 5px;
         }
+        .timer-display.countdown {
+            color: #28a745;
+            font-weight: 600;
+        }
         .auto-refresh-toggle {
             display: flex;
             align-items: center;
@@ -205,6 +209,34 @@
         .time-ago {
             color: #28a745;
             font-weight: 500;
+        }
+        .new-article {
+            border-left-color: #28a745 !important;
+            animation: newArticlePulse 2s ease-in-out;
+        }
+        .new-article .card-body::before {
+            content: "NEW";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 3;
+        }
+        .refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #28a745;
+            font-size: 0.9rem;
+        }
+        @keyframes newArticlePulse {
+            0%, 100% { border-left-color: #28a745; }
+            50% { border-left-color: #20c997; }
         }
         @media (max-width: 992px) {
             .split-container {
@@ -294,11 +326,11 @@
                         <input class="form-check-input" type="checkbox" id="autoRefreshToggle">
                         <label class="form-check-label" for="autoRefreshToggle">Auto Refresh</label>
                     </div>
-                    <div class="timer-display ms-auto">
+                    <div class="timer-display ms-auto" id="timerDisplay">
                         <i class="bi bi-clock"></i>
-                        <span id="refreshTimer">0s</span>
+                        <span id="refreshTimer">60s</span>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary" id="manualRefreshBtn">
+                    <button class="btn btn-sm btn-outline-secondary" id="manualRefreshBtn" title="Refresh for newest articles">
                         <i class="bi bi-arrow-clockwise"></i>
                     </button>
                 </div>
@@ -323,7 +355,13 @@
                         <i class="bi bi-newspaper text-primary"></i>
                         <h5 class="mb-0">News Results</h5>
                     </div>
-                    <span class="badge bg-info fs-6" id="resultsCountBadge">0 articles</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div id="refreshIndicator" class="refresh-indicator d-none">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span>Refreshed</span>
+                        </div>
+                        <span class="badge bg-info fs-6" id="resultsCountBadge">0 articles</span>
+                    </div>
                 </div>
                 
                 <div class="highlight-panel d-none" id="highlightPanel">
@@ -374,6 +412,7 @@
             const progressBar = document.getElementById('progressBar');
             const autoRefreshToggle = document.getElementById('autoRefreshToggle');
             const refreshTimer = document.getElementById('refreshTimer');
+            const timerDisplay = document.getElementById('timerDisplay');
             const manualRefreshBtn = document.getElementById('manualRefreshBtn');
             const highlightPanel = document.getElementById('highlightPanel');
             const highlightText = document.getElementById('highlightText');
@@ -381,10 +420,12 @@
             const totalArticles = document.getElementById('totalArticles');
             const uniqueSources = document.getElementById('uniqueSources');
             const lastUpdated = document.getElementById('lastUpdated');
+            const refreshIndicator = document.getElementById('refreshIndicator');
             
             let companies = [];
             let refreshInterval = null;
-            let timerValue = 0;
+            let timerValue = 60; // Start countdown from 60
+            let currentArticles = []; // Store current articles for refresh comparison
             const REFRESH_DURATION = 60; // 60 seconds between refreshes
             
             // Helper function to format time ago
@@ -473,23 +514,23 @@
                 }
             }
             
-            // Start auto refresh timer
+            // Start auto refresh timer with countdown
             function startAutoRefresh() {
                 if (refreshInterval) {
                     clearInterval(refreshInterval);
                 }
                 
                 if (autoRefreshToggle.checked && companies.length > 0) {
-                    timerValue = 0;
+                    timerValue = REFRESH_DURATION; // Start from 60
                     updateTimerDisplay();
                     
                     refreshInterval = setInterval(() => {
-                        timerValue++;
+                        timerValue--;
                         updateTimerDisplay();
                         
-                        if (timerValue >= REFRESH_DURATION) {
-                            searchNews();
-                            timerValue = 0;
+                        if (timerValue <= 0) {
+                            refreshNews(); // Use refresh instead of full search
+                            timerValue = REFRESH_DURATION; // Reset countdown
                         }
                     }, 1000);
                 }
@@ -501,21 +542,122 @@
                     clearInterval(refreshInterval);
                     refreshInterval = null;
                 }
-                refreshTimer.textContent = "0s";
+                timerValue = REFRESH_DURATION;
+                updateTimerDisplay();
             }
             
-            // Update timer display
+            // Update timer display with countdown styling
             function updateTimerDisplay() {
                 refreshTimer.textContent = `${timerValue}s`;
+                if (autoRefreshToggle.checked && timerValue <= 10) {
+                    timerDisplay.classList.add('countdown');
+                } else {
+                    timerDisplay.classList.remove('countdown');
+                }
             }
             
-            // Handle image loading errors
+            // Handle image loading errors with better fallbacks
             function handleImageError(img) {
-                img.src = "https://via.placeholder.com/300x200/e9ecef/6c757d?text=No+Image";
+                if (!img.dataset.fallbackTried) {
+                    img.dataset.fallbackTried = "true";
+                    // Try a different placeholder service
+                    img.src = `https://picsum.photos/400/250?random=${Math.floor(Math.random() * 1000)}`;
+                } else {
+                    // Final fallback - colored placeholder with company name
+                    const company = img.dataset.company || 'News';
+                    img.src = `https://via.placeholder.com/400x250/007bff/ffffff?text=${encodeURIComponent(company)}`;
+                }
                 img.onerror = null; // Prevent infinite loop
             }
             
-            // Search for news
+            // Show refresh indicator
+            function showRefreshIndicator() {
+                refreshIndicator.classList.remove('d-none');
+                setTimeout(() => {
+                    refreshIndicator.classList.add('d-none');
+                }, 3000);
+            }
+            
+            // Refresh news - gets newest articles only
+            async function refreshNews() {
+                if (companies.length === 0) {
+                    alert('Please add companies first to refresh news');
+                    return;
+                }
+                
+                // Show progress
+                progressSection.classList.remove('d-none');
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Refreshing for newest articles...';
+                progressDetail.textContent = `Checking ${companies.length} companies for updates`;
+                
+                try {
+                    // Simulate progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 10;
+                        if (progress <= 90) {
+                            progressBar.style.width = `${progress}%`;
+                        }
+                    }, 150);
+                    
+                    // Make refresh API request
+                    const response = await fetch('/refresh_news', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            companies: companies
+                        })
+                    });
+                    
+                    clearInterval(progressInterval);
+                    
+                    if (!response.ok) {
+                        throw new Error('Server error: ' + response.status);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Complete progress bar
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Refresh completed!';
+                    progressDetail.textContent = `Found ${data.news.length} new articles`;
+                    
+                    // Add new articles to the top of existing ones
+                    if (data.news.length > 0) {
+                        // Mark new articles and add them to the top
+                        const newArticles = data.news.map(article => ({...article, isNew: true}));
+                        currentArticles = [...newArticles, ...currentArticles];
+                        
+                        // Remove duplicates based on title
+                        const seen = new Set();
+                        currentArticles = currentArticles.filter(article => {
+                            const key = article.title.toLowerCase().trim();
+                            if (seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                        });
+                        
+                        displayResults(currentArticles);
+                        updateStats({...data, news: currentArticles});
+                        showRefreshIndicator();
+                    }
+                    
+                    // Hide progress after a delay
+                    setTimeout(() => {
+                        progressSection.classList.add('d-none');
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Error refreshing news:', error);
+                    progressSection.classList.add('d-none');
+                    alert('Error refreshing news: ' + error.message);
+                }
+            }
+            
+            // Search for news (full search)
             async function searchNews() {
                 companies = parseCompanies();
                 if (companies.length === 0) {
@@ -552,7 +694,8 @@
                         },
                         body: JSON.stringify({
                             companies: companies,
-                            max_results: maxResults
+                            max_results: maxResults,
+                            refresh_mode: false
                         })
                     });
                     
@@ -569,6 +712,9 @@
                     progressText.textContent = 'Search completed!';
                     progressDetail.textContent = `Found ${data.news.length} articles`;
                     
+                    // Store current articles for future refresh comparisons
+                    currentArticles = data.news;
+                    
                     // Display results and update stats
                     displayResults(data.news);
                     updateStats(data);
@@ -578,10 +724,9 @@
                         progressSection.classList.add('d-none');
                     }, 2000);
                     
-                    // Reset auto refresh timer if enabled
+                    // Start auto refresh timer if enabled
                     if (autoRefreshToggle.checked) {
-                        timerValue = 0;
-                        updateTimerDisplay();
+                        startAutoRefresh();
                     }
                     
                 } catch (error) {
@@ -633,18 +778,22 @@
                     const dateTime = formatDateTime(article.date);
                     const timeAgoText = timeAgo(article.date);
                     
+                    // Add new article class if it's a new article
+                    const newClass = article.isNew ? ' new-article' : '';
+                    
                     html += `
                         <div class="col-lg-6 col-12 mb-4">
-                            <div class="card news-card h-100">
+                            <div class="card news-card h-100${newClass}">
                                 <div class="news-image-container">
                                     <img src="${article.image}" class="news-image" alt="News image" 
+                                         data-company="${article.company}"
                                          onerror="handleImageError(this)">
                                     <div class="source-badge">${article.source}</div>
                                     <div class="news-image-overlay">
                                         <small class="scrape-source-badge">${article.scrape_source}</small>
                                     </div>
                                 </div>
-                                <div class="card-body d-flex flex-column">
+                                <div class="card-body d-flex flex-column position-relative">
                                     <h6 class="card-title mb-3">${title}</h6>
                                     
                                     <div class="datetime-info">
@@ -687,7 +836,7 @@
             
             // Event listeners
             searchButton.addEventListener('click', searchNews);
-            manualRefreshBtn.addEventListener('click', searchNews);
+            manualRefreshBtn.addEventListener('click', refreshNews);
             
             companyInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
