@@ -1484,7 +1484,7 @@ def market_news():
 def company_filter():
     logger.info(f"Company Filter page accessed by {request.remote_addr}")
     
-    # Initialize company categories
+    # Initialize company categories with source information
     categories = {
         'tech': "Technology Companies",
         'healthcare': "Healthcare Companies", 
@@ -1494,6 +1494,13 @@ def company_filter():
         'mining': "Mining Companies",
         'utilities': "Utilities Companies",
         'auto': "Automotive Companies"
+    }
+    
+    # News source identifiers
+    news_sources = {
+        'google': 'Google News',
+        'bing': 'Bing News', 
+        'yahoo': 'Yahoo News'
     }
     
     # Use separate session key for company filter
@@ -1557,9 +1564,14 @@ def company_filter():
                             if company_name and not is_article_about_company(article, company_variations):
                                 continue
                             
+                            # Add source attribution
                             article['category'] = categories[selected_category]
                             article['source_order'] = order_num
                             article['source_url'] = url
+                            
+                            # Identify and label the news source
+                            article['news_source'] = identify_news_source(url)
+                            
                             if company_name:
                                 article['company_match'] = company_name
                             filtered_news.append(article)
@@ -1597,8 +1609,39 @@ def company_filter():
                          selected_category=selected_category,
                          error_messages=error_messages,
                          urls_provided=urls_provided,
-                         company_name=company_name)
+                         company_name=company_name,
+                         news_sources=news_sources)  # Pass sources to template
 
+
+def identify_news_source(url):
+    """
+    Identify the news source based on URL patterns
+    """
+    url_lower = url.lower()
+    
+    if 'news.google.com' in url_lower:
+        return 'Google News'
+    elif 'bing.com/news' in url_lower or 'www.bing.com/news' in url_lower:
+        return 'Bing News'
+    elif 'news.yahoo.com' in url_lower or 'yahoo.com/news' in url_lower:
+        return 'Yahoo News'
+    elif 'reuters.com' in url_lower:
+        return 'Reuters'
+    elif 'bloomberg.com' in url_lower:
+        return 'Bloomberg'
+    elif 'cnbc.com' in url_lower:
+        return 'CNBC'
+    elif 'wsj.com' in url_lower:
+        return 'Wall Street Journal'
+    elif 'nytimes.com' in url_lower:
+        return 'New York Times'
+    else:
+        # Extract domain name for other sources
+        from urllib.parse import urlparse
+        domain = urlparse(url).netloc
+        if domain.startswith('www.'):
+            domain = domain[4:]
+        return domain
 
 def generate_company_variations(company_name):
     """Generate variations of company name for better matching"""

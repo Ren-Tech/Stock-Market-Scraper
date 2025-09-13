@@ -2,242 +2,516 @@
 {% block title %} Filter{% endblock %}
 {% block content %}
     <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            --transition-speed: 0.3s;
+        }
+        
         body {
-            background-color: #f8f9fa;
+            background-color: var(--light-bg);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
         }
+        
         .split-container {
             display: flex;
-            gap: 20px;
+            gap: 24px;
             min-height: 80vh;
         }
+        
         .input-panel {
             flex: 0 0 35%;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 24px;
             height: fit-content;
             position: sticky;
             top: 20px;
+            transition: all var(--transition-speed) ease;
         }
+        
         .output-panel {
             flex: 1;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 24px;
             min-height: 600px;
+            transition: all var(--transition-speed) ease;
         }
+        
         .news-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             height: 100%;
             border: none;
-            border-left: 4px solid #0d6efd;
+            border-left: 4px solid var(--primary-color);
             overflow: hidden;
+            border-radius: 12px;
         }
+        
         .news-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
+        
         .news-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform 0.5s ease;
         }
+        
         .news-card:hover .news-image {
-            transform: scale(1.05);
+            transform: scale(1.08);
         }
+        
         .news-image-container {
             position: relative;
             overflow: hidden;
             height: 200px;
             background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
         }
+        
         .news-image-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
             color: white;
             padding: 15px;
             transform: translateY(100%);
             transition: transform 0.3s ease;
         }
+        
         .news-card:hover .news-image-overlay {
             transform: translateY(0);
         }
+        
         .company-tag {
             font-size: 0.9rem;
-            padding: 5px 10px;
-            margin: 2px;
+            padding: 6px 12px;
+            margin: 4px;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            border-radius: 20px;
+            transition: all 0.2s ease;
         }
+        
+        .company-tag:hover {
+            transform: scale(1.05);
+        }
+        
         .source-badge {
             background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 5px 10px;
+            border-radius: 20px;
             font-size: 0.75rem;
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             z-index: 2;
+            font-weight: 500;
         }
+        
         .datetime-info {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin: 10px 0;
+            margin: 12px 0;
             font-size: 0.85rem;
-            color: #6c757d;
+            color: var(--secondary-color);
         }
+        
         .datetime-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
         }
+        
         .scrape-source-badge {
             background: #e9ecef;
             color: #495057;
-            padding: 2px 6px;
-            border-radius: 3px;
+            padding: 3px 8px;
+            border-radius: 12px;
             font-size: 0.7rem;
+            font-weight: 500;
         }
+        
         .progress {
-            height: 8px;
+            height: 10px;
+            border-radius: 10px;
         }
+        
         .search-btn {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
+            transition: all 0.2s ease;
         }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
         #resultsContainer {
             min-height: 300px;
         }
+        
         .loading-spinner {
             display: none;
             width: 3rem;
             height: 3rem;
         }
+        
         .company-match {
-            background-color: #ffc107;
-            padding: 2px 5px;
-            border-radius: 3px;
+            background-color: var(--warning-color);
+            padding: 2px 6px;
+            border-radius: 4px;
             font-weight: bold;
         }
+        
         .refresh-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-            padding: 10px;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
             background: #f8f9fa;
-            border-radius: 8px;
+            border-radius: 12px;
         }
+        
         .timer-display {
             font-size: 0.9rem;
-            color: #6c757d;
+            color: var(--secondary-color);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            font-weight: 500;
         }
+        
         .timer-display.countdown {
-            color: #28a745;
+            color: var(--success-color);
             font-weight: 600;
         }
+        
         .auto-refresh-toggle {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            cursor: pointer;
         }
+        
         .section-title {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #e9ecef;
         }
+        
         .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
+        
         .highlight-panel {
-            background: #e7f1ff;
-            padding: 15px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #e7f1ff 0%, #d9e8ff 100%);
+            padding: 16px;
+            border-radius: 12px;
             margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
         }
+        
         .stats-panel {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 16px;
+            border-radius: 12px;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
+        
         .stat-item {
             text-align: center;
+            padding: 0 15px;
+            position: relative;
         }
+        
+        .stat-item:not(:last-child):after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 10%;
+            height: 80%;
+            width: 1px;
+            background: #dee2e6;
+        }
+        
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #0d6efd;
+            color: var(--primary-color);
+            margin-bottom: 4px;
         }
+        
         .stat-label {
             font-size: 0.8rem;
-            color: #6c757d;
+            color: var(--secondary-color);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+        
         .image-placeholder {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 200px;
-            background: #e9ecef;
-            color: #6c757d;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            color: var(--secondary-color);
             font-size: 0.9rem;
+            border-radius: 8px 8px 0 0;
         }
+        
         .time-ago {
-            color: #28a745;
-            font-weight: 500;
+            color: var(--success-color);
+            font-weight: 600;
         }
+        
         .new-article {
-            border-left-color: #28a745 !important;
+            border-left-color: var(--success-color) !important;
             animation: newArticlePulse 2s ease-in-out;
         }
+        
         .new-article .card-body::before {
             content: "NEW";
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: #28a745;
+            top: 12px;
+            left: 12px;
+            background: var(--success-color);
             color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
+            padding: 3px 8px;
+            border-radius: 4px;
             font-size: 0.7rem;
             font-weight: bold;
             z-index: 3;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        
         .refresh-indicator {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            color: #28a745;
+            gap: 6px;
+            color: var(--success-color);
             font-size: 0.9rem;
+            font-weight: 500;
+            animation: fadeOut 3s forwards;
+            opacity: 1;
         }
+        
+        .filter-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+        }
+        
+        .sort-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .sort-btn {
+            background: white;
+            border: 1px solid #dee2e6;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .sort-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .sort-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 8px 0;
+            min-width: 160px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .sort-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .sort-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .sort-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary-color);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .search-suggestions {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: calc(100% - 40px);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .search-suggestions.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .input-highlight {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .view-btn {
+            background: white;
+            border: 1px solid #dee2e6;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .view-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .list-view .news-card {
+            height: auto;
+        }
+        
+        .list-view .col-lg-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .list-view .news-image-container {
+            width: 200px;
+            float: left;
+            margin-right: 16px;
+        }
+        
+        .list-view .news-card .card-body {
+            overflow: hidden;
+        }
+        
         @keyframes newArticlePulse {
-            0%, 100% { border-left-color: #28a745; }
+            0%, 100% { border-left-color: var(--success-color); }
             50% { border-left-color: #20c997; }
         }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes progressBar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
         @media (max-width: 992px) {
             .split-container {
                 flex-direction: column;
@@ -249,6 +523,7 @@
                 margin-bottom: 20px;
             }
         }
+        
         @media (max-width: 768px) {
             .datetime-info {
                 flex-direction: column;
@@ -258,6 +533,18 @@
             .stats-panel {
                 flex-direction: column;
                 gap: 15px;
+            }
+            .stat-item:after {
+                display: none;
+            }
+            .filter-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .view-toggle {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -293,11 +580,13 @@
                             class="form-control" 
                             id="companyInput" 
                             placeholder="e.g., Tesla, Apple, Microsoft, Google"
+                            autocomplete="off"
                         >
                         <button class="btn btn-primary search-btn" type="button" id="searchButton">
                             <i class="bi bi-search me-1"></i> Search
                         </button>
                     </div>
+                    <div class="search-suggestions" id="searchSuggestions"></div>
                     <div class="form-text">
                         Enter company names separated by commas. The system will search across multiple news sources.
                     </div>
@@ -387,10 +676,39 @@
                     </div>
                 </div>
                 
+                <!-- Filter and Sort Controls -->
+                <div class="filter-controls">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary filter-btn active" data-filter="all">All</button>
+                        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="new">New</button>
+                        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="recent">Recent</button>
+                    </div>
+                    
+                    <div class="sort-dropdown">
+                        <button class="sort-btn" id="sortButton">
+                            <i class="bi bi-sort-down"></i> Sort
+                        </button>
+                        <div class="sort-menu" id="sortMenu">
+                            <div class="sort-item" data-sort="newest">Newest First</div>
+                            <div class="sort-item" data-sort="oldest">Oldest First</div>
+                            <div class="sort-item" data-sort="relevance">Relevance</div>
+                        </div>
+                    </div>
+                    
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="grid" title="Grid View">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button class="view-btn" data-view="list" title="List View">
+                            <i class="bi bi-list-task"></i>
+                        </button>
+                    </div>
+                </div>
+                
                 <div id="resultsContainer" class="row g-3">
-                    <div class="col-12 text-center py-5">
-                        <i class="bi bi-search display-1 text-muted"></i>
-                        <p class="text-muted mt-3">Enter company names to search for news articles</p>
+                    <div class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <p class="mt-3">Enter company names to search for news articles</p>
                     </div>
                 </div>
             </div>
@@ -421,12 +739,23 @@
             const uniqueSources = document.getElementById('uniqueSources');
             const lastUpdated = document.getElementById('lastUpdated');
             const refreshIndicator = document.getElementById('refreshIndicator');
+            const searchSuggestions = document.getElementById('searchSuggestions');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const sortButton = document.getElementById('sortButton');
+            const sortMenu = document.getElementById('sortMenu');
+            const sortItems = document.querySelectorAll('.sort-item');
+            const viewButtons = document.querySelectorAll('.view-btn');
             
             let companies = [];
             let refreshInterval = null;
             let timerValue = 60; // Start countdown from 60
             let currentArticles = []; // Store current articles for refresh comparison
+            let filteredArticles = []; // Store filtered articles
+            let currentFilter = 'all'; // Current filter type
+            let currentSort = 'newest'; // Current sort type
+            let currentView = 'grid'; // Current view type
             const REFRESH_DURATION = 60; // 60 seconds between refreshes
+            const popularCompanies = ['Tesla', 'Apple', 'Microsoft', 'Google', 'Amazon', 'Meta', 'Netflix', 'Nvidia', 'Adobe', 'Salesforce'];
             
             // Helper function to format time ago
             function timeAgo(dateString) {
@@ -578,6 +907,64 @@
                 }, 3000);
             }
             
+            // Filter articles based on current filter
+            function filterArticles() {
+                const now = new Date();
+                const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
+                const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+                
+                switch(currentFilter) {
+                    case 'new':
+                        filteredArticles = currentArticles.filter(article => 
+                            new Date(article.date) > oneHourAgo
+                        );
+                        break;
+                    case 'recent':
+                        filteredArticles = currentArticles.filter(article => 
+                            new Date(article.date) > oneDayAgo
+                        );
+                        break;
+                    default:
+                        filteredArticles = [...currentArticles];
+                }
+                
+                // Apply sorting
+                sortArticles();
+            }
+            
+            // Sort articles based on current sort
+            function sortArticles() {
+                switch(currentSort) {
+                    case 'newest':
+                        filteredArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        filteredArticles.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'relevance':
+                        // Simple relevance sort based on title length and date
+                        filteredArticles.sort((a, b) => {
+                            const aTitleLength = a.title.length;
+                            const bTitleLength = b.title.length;
+                            const aDate = new Date(a.date);
+                            const bDate = new Date(b.date);
+                            
+                            // More recent and longer titles are considered more relevant
+                            return (bDate - aDate) + (bTitleLength - aTitleLength);
+                        });
+                        break;
+                }
+            }
+            
+            // Apply view mode (grid or list)
+            function applyViewMode() {
+                if (currentView === 'list') {
+                    resultsContainer.classList.add('list-view');
+                } else {
+                    resultsContainer.classList.remove('list-view');
+                }
+            }
+            
             // Refresh news - gets newest articles only
             async function refreshNews() {
                 if (companies.length === 0) {
@@ -640,7 +1027,8 @@
                             return true;
                         });
                         
-                        displayResults(currentArticles);
+                        filterArticles();
+                        displayResults(filteredArticles);
                         updateStats({...data, news: currentArticles});
                         showRefreshIndicator();
                     }
@@ -714,9 +1102,13 @@
                     
                     // Store current articles for future refresh comparisons
                     currentArticles = data.news;
+                    filteredArticles = [...currentArticles];
+                    
+                    // Apply filters and sorting
+                    filterArticles();
                     
                     // Display results and update stats
-                    displayResults(data.news);
+                    displayResults(filteredArticles);
                     updateStats(data);
                     
                     // Hide progress after a delay
@@ -749,9 +1141,9 @@
                 
                 if (news.length === 0) {
                     resultsContainer.innerHTML = `
-                        <div class="col-12 text-center py-5">
-                            <i class="bi bi-inbox display-1 text-muted"></i>
-                            <p class="text-muted mt-3">No news articles found for the specified companies</p>
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mt-3">No news articles found for the specified companies</p>
                         </div>
                     `;
                     return;
@@ -834,6 +1226,51 @@
                 window.handleImageError = handleImageError;
             }
             
+            // Show search suggestions
+            function showSuggestions() {
+                const input = companyInput.value.trim().toLowerCase();
+                if (input.length < 2) {
+                    searchSuggestions.classList.remove('show');
+                    return;
+                }
+                
+                const filtered = popularCompanies.filter(company => 
+                    company.toLowerCase().includes(input) && !companies.includes(company)
+                );
+                
+                if (filtered.length === 0) {
+                    searchSuggestions.classList.remove('show');
+                    return;
+                }
+                
+                let suggestionsHTML = '';
+                filtered.forEach(company => {
+                    // Highlight the matching part of the text
+                    const regex = new RegExp(input, 'gi');
+                    const highlighted = company.replace(regex, match => 
+                        `<span class="input-highlight">${match}</span>`
+                    );
+                    
+                    suggestionsHTML += `<div class="suggestion-item" data-company="${company}">${highlighted}</div>`;
+                });
+                
+                searchSuggestions.innerHTML = suggestionsHTML;
+                searchSuggestions.classList.add('show');
+                
+                // Add event listeners to suggestion items
+                document.querySelectorAll('.suggestion-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const company = this.getAttribute('data-company');
+                        if (!companies.includes(company)) {
+                            companies.push(company);
+                            companyInput.value = companies.join(', ');
+                            updateCompanyTags();
+                        }
+                        searchSuggestions.classList.remove('show');
+                    });
+                });
+            }
+            
             // Event listeners
             searchButton.addEventListener('click', searchNews);
             manualRefreshBtn.addEventListener('click', refreshNews);
@@ -842,6 +1279,15 @@
                 if (e.key === 'Enter') {
                     searchNews();
                 }
+            });
+            
+            companyInput.addEventListener('input', showSuggestions);
+            
+            companyInput.addEventListener('blur', function() {
+                // Hide suggestions after a short delay to allow clicks
+                setTimeout(() => {
+                    searchSuggestions.classList.remove('show');
+                }, 200);
             });
             
             autoRefreshToggle.addEventListener('change', function() {
@@ -854,6 +1300,57 @@
                     startAutoRefresh();
                 } else {
                     stopAutoRefresh();
+                }
+            });
+            
+            // Filter buttons event listeners
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active state
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Apply filter
+                    currentFilter = this.getAttribute('data-filter');
+                    filterArticles();
+                    displayResults(filteredArticles);
+                });
+            });
+            
+            // Sort dropdown event listeners
+            sortButton.addEventListener('click', function() {
+                sortMenu.classList.toggle('show');
+            });
+            
+            sortItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    currentSort = this.getAttribute('data-sort');
+                    sortButton.innerHTML = `<i class="bi bi-sort-down"></i> ${this.textContent}`;
+                    sortMenu.classList.remove('show');
+                    
+                    sortArticles();
+                    displayResults(filteredArticles);
+                });
+            });
+            
+            // View toggle event listeners
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active state
+                    viewButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Apply view
+                    currentView = this.getAttribute('data-view');
+                    applyViewMode();
+                    displayResults(filteredArticles);
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!sortButton.contains(e.target) && !sortMenu.contains(e.target)) {
+                    sortMenu.classList.remove('show');
                 }
             });
             
