@@ -18,6 +18,90 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
         }
+         .emotion-navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .emotion-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .emotion-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .emotion-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .emotion-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .emotion-count {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .emotion-btn.active .emotion-count {
+            background: #667eea;
+            color: white;
+        }
+         .emotion-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 20px;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .emotion-indicator:hover {
+            transform: scale(1.1);
+        }
+
+        .emotion-indicator.happy { background: linear-gradient(135deg, #ffeb3b, #ffc107); }
+        .emotion-indicator.amused { background: linear-gradient(135deg, #ff9800, #ff5722); }
+        .emotion-indicator.inspired { background: linear-gradient(135deg, #9c27b0, #673ab7); }
+        .emotion-indicator.neutral { background: linear-gradient(135deg, #9e9e9e, #607d8b); }
+        .emotion-indicator.annoyed { background: linear-gradient(135deg, #ff5722, #f44336); }
+        .emotion-indicator.afraid { background: linear-gradient(135deg, #795548, #424242); }
+        .emotion-indicator.sad { background: linear-gradient(135deg, #2196f3, #03a9f4); }
+        .emotion-indicator.angry { background: linear-gradient(135deg, #f44336, #e91e63); }
         
         .split-container {
             display: flex;
@@ -550,7 +634,7 @@
     </style>
 </head>
 <body>
-    <div class="container py-4">
+ <div class="container py-4">
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
@@ -559,7 +643,14 @@
                         <i class="bi bi-search me-2"></i>Company News Filter
                     </h1>
                 </div>
-                <p class="text-muted">Find the latest news articles with images and timestamps from across the web</p>
+                <p class="text-muted">Find the latest news articles with emotions, images and timestamps from across the web</p>
+            </div>
+        </div>
+
+        <!-- Emotion Filter Navbar -->
+        <div class="emotion-navbar" id="emotionNavbar" style="display: none;">
+            <div class="emotion-filters" id="emotionFilters">
+                <!-- Emotion filter buttons will be populated here -->
             </div>
         </div>
 
@@ -574,7 +665,7 @@
                 
                 <div class="mb-3">
                     <label for="companyInput" class="form-label">Company Names (comma separated)</label>
-                    <div class="input-group">
+                    <div class="input-group position-relative">
                         <input 
                             type="text" 
                             class="form-control" 
@@ -585,10 +676,10 @@
                         <button class="btn btn-primary search-btn" type="button" id="searchButton">
                             <i class="bi bi-search me-1"></i> Search
                         </button>
+                        <div class="search-suggestions" id="searchSuggestions"></div>
                     </div>
-                    <div class="search-suggestions" id="searchSuggestions"></div>
                     <div class="form-text">
-                        Enter company names separated by commas. The system will search across multiple news sources.
+                        Enter company names separated by commas. The system will analyze emotions and search across multiple news sources.
                     </div>
                 </div>
 
@@ -674,6 +765,10 @@
                         <div class="stat-value" id="lastUpdated">--</div>
                         <div class="stat-label">Last Updated</div>
                     </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="emotionSpread">--</div>
+                        <div class="stat-label">Emotion Spread</div>
+                    </div>
                 </div>
                 
                 <!-- Filter and Sort Controls -->
@@ -692,6 +787,7 @@
                             <div class="sort-item" data-sort="newest">Newest First</div>
                             <div class="sort-item" data-sort="oldest">Oldest First</div>
                             <div class="sort-item" data-sort="relevance">Relevance</div>
+                            <div class="sort-item" data-sort="emotion">Emotion</div>
                         </div>
                     </div>
                     
@@ -708,7 +804,7 @@
                 <div id="resultsContainer" class="row g-3">
                     <div class="empty-state">
                         <i class="bi bi-search"></i>
-                        <p class="mt-3">Enter company names to search for news articles</p>
+                        <p class="mt-3">Enter company names to search for news articles with emotion analysis</p>
                     </div>
                 </div>
             </div>
@@ -738,6 +834,7 @@
             const totalArticles = document.getElementById('totalArticles');
             const uniqueSources = document.getElementById('uniqueSources');
             const lastUpdated = document.getElementById('lastUpdated');
+            const emotionSpread = document.getElementById('emotionSpread');
             const refreshIndicator = document.getElementById('refreshIndicator');
             const searchSuggestions = document.getElementById('searchSuggestions');
             const filterButtons = document.querySelectorAll('.filter-btn');
@@ -745,17 +842,34 @@
             const sortMenu = document.getElementById('sortMenu');
             const sortItems = document.querySelectorAll('.sort-item');
             const viewButtons = document.querySelectorAll('.view-btn');
+            const emotionNavbar = document.getElementById('emotionNavbar');
+            const emotionFilters = document.getElementById('emotionFilters');
             
             let companies = [];
             let refreshInterval = null;
-            let timerValue = 60; // Start countdown from 60
-            let currentArticles = []; // Store current articles for refresh comparison
-            let filteredArticles = []; // Store filtered articles
-            let currentFilter = 'all'; // Current filter type
-            let currentSort = 'newest'; // Current sort type
-            let currentView = 'grid'; // Current view type
-            const REFRESH_DURATION = 60; // 60 seconds between refreshes
+            let timerValue = 60;
+            let currentArticles = [];
+            let filteredArticles = [];
+            let currentFilter = 'all';
+            let currentSort = 'newest';
+            let currentView = 'grid';
+            let currentEmotion = 'all';
+            let emotionStats = {};
+            const REFRESH_DURATION = 60;
             const popularCompanies = ['Tesla', 'Apple', 'Microsoft', 'Google', 'Amazon', 'Meta', 'Netflix', 'Nvidia', 'Adobe', 'Salesforce'];
+            
+            // Emotion configuration
+            const emotionConfig = {
+                'all': { emoji: '🌐', label: 'All', color: '#667eea' },
+                'happy': { emoji: '😊', label: 'Happy', color: '#28a745' },
+                'amused': { emoji: '😄', label: 'Amused', color: '#fd7e14' },
+                'inspired': { emoji: '🌟', label: 'Inspired', color: '#6f42c1' },
+                'neutral': { emoji: '😐', label: 'Neutral', color: '#6c757d' },
+                'annoyed': { emoji: '😤', label: 'Annoyed', color: '#dc3545' },
+                'afraid': { emoji: '😰', label: 'Afraid', color: '#343a40' },
+                'sad': { emoji: '😢', label: 'Sad', color: '#17a2b8' },
+                'angry': { emoji: '😠', label: 'Angry', color: '#e83e8c' }
+            };
             
             // Helper function to format time ago
             function timeAgo(dateString) {
@@ -816,11 +930,70 @@
                 });
             }
             
+            // Update emotion navbar
+            function updateEmotionNavbar() {
+                if (Object.keys(emotionStats).length === 0) {
+                    emotionNavbar.style.display = 'none';
+                    return;
+                }
+                
+                emotionNavbar.style.display = 'block';
+                emotionFilters.innerHTML = '';
+                
+                // Add "All" filter first
+                const allBtn = createEmotionButton('all', emotionStats);
+                emotionFilters.appendChild(allBtn);
+                
+                // Add other emotion filters
+                Object.entries(emotionStats).forEach(([emotion, count]) => {
+                    if (emotion !== 'all' && count > 0) {
+                        const btn = createEmotionButton(emotion, emotionStats);
+                        emotionFilters.appendChild(btn);
+                    }
+                });
+            }
+            
+            // Create emotion filter button
+            function createEmotionButton(emotion, stats) {
+                const config = emotionConfig[emotion];
+                const count = emotion === 'all' ? 
+                    Object.values(stats).reduce((sum, val) => sum + val, 0) : 
+                    stats[emotion] || 0;
+                
+                const button = document.createElement('button');
+                button.className = `emotion-btn ${currentEmotion === emotion ? 'active' : ''}`;
+                button.setAttribute('data-emotion', emotion);
+                button.innerHTML = `
+                    <span>${config.emoji}</span>
+                    <span>${config.label}</span>
+                    <span class="emotion-count">${count}</span>
+                `;
+                
+                button.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.emotion-btn').forEach(btn => 
+                        btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Apply emotion filter
+                    currentEmotion = emotion;
+                    filterArticles();
+                    displayResults(filteredArticles);
+                });
+                
+                return button;
+            }
+            
             // Update highlight panel
             function updateHighlightPanel() {
                 if (companies.length > 0) {
                     highlightPanel.classList.remove('d-none');
-                    highlightText.textContent = `Showing results for: ${companies.join(', ')}`;
+                    let text = `Showing results for: ${companies.join(', ')}`;
+                    if (currentEmotion !== 'all') {
+                        const config = emotionConfig[currentEmotion];
+                        text += ` | Emotion: ${config.emoji} ${config.label}`;
+                    }
+                    highlightText.textContent = text;
                 } else {
                     highlightPanel.classList.add('d-none');
                 }
@@ -837,9 +1010,18 @@
                     lastUpdated.textContent = newsData.scraped_at ? 
                         new Date(newsData.scraped_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--';
                     
+                    // Calculate emotion spread
+                    const emotions = Object.keys(newsData.emotion_stats || {});
+                    emotionSpread.textContent = emotions.length;
+                    
                     statsPanel.classList.remove('d-none');
+                    
+                    // Update emotion stats for navbar
+                    emotionStats = newsData.emotion_stats || {};
+                    updateEmotionNavbar();
                 } else {
                     statsPanel.classList.add('d-none');
+                    emotionNavbar.style.display = 'none';
                 }
             }
             
@@ -850,7 +1032,7 @@
                 }
                 
                 if (autoRefreshToggle.checked && companies.length > 0) {
-                    timerValue = REFRESH_DURATION; // Start from 60
+                    timerValue = REFRESH_DURATION;
                     updateTimerDisplay();
                     
                     refreshInterval = setInterval(() => {
@@ -858,8 +1040,8 @@
                         updateTimerDisplay();
                         
                         if (timerValue <= 0) {
-                            refreshNews(); // Use refresh instead of full search
-                            timerValue = REFRESH_DURATION; // Reset countdown
+                            refreshNews();
+                            timerValue = REFRESH_DURATION;
                         }
                     }, 1000);
                 }
@@ -889,14 +1071,12 @@
             function handleImageError(img) {
                 if (!img.dataset.fallbackTried) {
                     img.dataset.fallbackTried = "true";
-                    // Try a different placeholder service
                     img.src = `https://picsum.photos/400/250?random=${Math.floor(Math.random() * 1000)}`;
                 } else {
-                    // Final fallback - colored placeholder with company name
                     const company = img.dataset.company || 'News';
                     img.src = `https://via.placeholder.com/400x250/007bff/ffffff?text=${encodeURIComponent(company)}`;
                 }
-                img.onerror = null; // Prevent infinite loop
+                img.onerror = null;
             }
             
             // Show refresh indicator
@@ -907,26 +1087,39 @@
                 }, 3000);
             }
             
-            // Filter articles based on current filter
+            // Filter articles based on current filters
             function filterArticles() {
                 const now = new Date();
                 const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
                 const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
                 
+                let filtered = [...currentArticles];
+                
+                // Apply time filter
                 switch(currentFilter) {
                     case 'new':
-                        filteredArticles = currentArticles.filter(article => 
+                        filtered = filtered.filter(article => 
                             new Date(article.date) > oneHourAgo
                         );
                         break;
                     case 'recent':
-                        filteredArticles = currentArticles.filter(article => 
+                        filtered = filtered.filter(article => 
                             new Date(article.date) > oneDayAgo
                         );
                         break;
                     default:
-                        filteredArticles = [...currentArticles];
+                        // 'all' - no time filtering
+                        break;
                 }
+                
+                // Apply emotion filter
+                if (currentEmotion !== 'all') {
+                    filtered = filtered.filter(article => 
+                        article.emotion === currentEmotion
+                    );
+                }
+                
+                filteredArticles = filtered;
                 
                 // Apply sorting
                 sortArticles();
@@ -940,6 +1133,15 @@
                         break;
                     case 'oldest':
                         filteredArticles.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'emotion':
+                        // Sort by emotion type, then by date
+                        filteredArticles.sort((a, b) => {
+                            if (a.emotion !== b.emotion) {
+                                return a.emotion.localeCompare(b.emotion);
+                            }
+                            return new Date(b.date) - new Date(a.date);
+                        });
                         break;
                     case 'relevance':
                         // Simple relevance sort based on title length and date
@@ -1027,9 +1229,17 @@
                             return true;
                         });
                         
+                        // Update emotion stats
+                        emotionStats = {};
+                        currentArticles.forEach(article => {
+                            const emotion = article.emotion || 'neutral';
+                            emotionStats[emotion] = (emotionStats[emotion] || 0) + 1;
+                        });
+                        
                         filterArticles();
                         displayResults(filteredArticles);
-                        updateStats({...data, news: currentArticles});
+                        updateStats({...data, news: currentArticles, emotion_stats: emotionStats});
+                        updateHighlightPanel();
                         showRefreshIndicator();
                     }
                     
@@ -1060,7 +1270,7 @@
                 progressSection.classList.remove('d-none');
                 progressBar.style.width = '0%';
                 progressText.textContent = 'Searching for news articles...';
-                progressDetail.textContent = `Processing ${companies.length} companies`;
+                progressDetail.textContent = `Processing ${companies.length} companies with emotion analysis`;
                 
                 const maxResults = parseInt(resultsCount.value);
                 
@@ -1098,7 +1308,7 @@
                     // Complete progress bar
                     progressBar.style.width = '100%';
                     progressText.textContent = 'Search completed!';
-                    progressDetail.textContent = `Found ${data.news.length} articles`;
+                    progressDetail.textContent = `Found ${data.news.length} articles with emotions analyzed`;
                     
                     // Store current articles for future refresh comparisons
                     currentArticles = data.news;
@@ -1110,6 +1320,7 @@
                     // Display results and update stats
                     displayResults(filteredArticles);
                     updateStats(data);
+                    updateHighlightPanel();
                     
                     // Hide progress after a delay
                     setTimeout(() => {
@@ -1143,7 +1354,7 @@
                     resultsContainer.innerHTML = `
                         <div class="empty-state">
                             <i class="bi bi-inbox"></i>
-                            <p class="mt-3">No news articles found for the specified companies</p>
+                            <p class="mt-3">No news articles found for the specified criteria</p>
                         </div>
                     `;
                     return;
@@ -1173,6 +1384,10 @@
                     // Add new article class if it's a new article
                     const newClass = article.isNew ? ' new-article' : '';
                     
+                    // Get emotion info
+                    const emotion = article.emotion || 'neutral';
+                    const emotionEmoji = article.emotion_emoji || '😐';
+                    
                     html += `
                         <div class="col-lg-6 col-12 mb-4">
                             <div class="card news-card h-100${newClass}">
@@ -1180,6 +1395,9 @@
                                     <img src="${article.image}" class="news-image" alt="News image" 
                                          data-company="${article.company}"
                                          onerror="handleImageError(this)">
+                                    <div class="emotion-indicator ${emotion}" title="${emotion.charAt(0).toUpperCase() + emotion.slice(1)} emotion">
+                                        ${emotionEmoji}
+                                    </div>
                                     <div class="source-badge">${article.source}</div>
                                     <div class="news-image-overlay">
                                         <small class="scrape-source-badge">${article.scrape_source}</small>
@@ -1204,6 +1422,9 @@
                                     
                                     <div class="mb-3">
                                         <span class="badge bg-info">${article.company}</span>
+                                        <span class="badge bg-secondary ms-2" title="Detected emotion">
+                                            ${emotionEmoji} ${emotion.charAt(0).toUpperCase() + emotion.slice(1)}
+                                        </span>
                                     </div>
                                     
                                     <p class="card-text flex-grow-1">${snippet}</p>
@@ -1314,6 +1535,7 @@
                     currentFilter = this.getAttribute('data-filter');
                     filterArticles();
                     displayResults(filteredArticles);
+                    updateHighlightPanel();
                 });
             });
             

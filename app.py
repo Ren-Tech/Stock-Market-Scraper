@@ -1904,7 +1904,66 @@ def groupby(items, attribute):
 
 
 
-
+def analyze_emotion(title, snippet):
+    """Analyze emotion of article based on title and snippet"""
+    text = f"{title} {snippet}".lower()
+    
+    # Define emotion keywords and patterns
+    emotions = {
+        'happy': {
+            'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 'milestone', 'celebration', 'victory', 'triumph', 'boom', 'record high', 'excellent results', 'positive', 'expansion', 'thriving'],
+            'emoji': '😊'
+        },
+        'amused': {
+            'keywords': ['funny', 'meme', 'viral', 'joke', 'amusing', 'entertaining', 'bizarre', 'weird', 'unusual', 'quirky', 'odd', 'strange move', 'unexpected'],
+            'emoji': '😄'
+        },
+        'inspired': {
+            'keywords': ['innovation', 'revolutionary', 'breakthrough', 'pioneering', 'groundbreaking', 'visionary', 'transformative', 'inspiring', 'amazing', 'incredible', 'future', 'advancement', 'cutting-edge'],
+            'emoji': '🌟'
+        },
+        'neutral': {
+            'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference', 'statement', 'earnings', 'revenue', 'financial', 'business', 'launch', 'release'],
+            'emoji': '😐'
+        },
+        'annoyed': {
+            'keywords': ['delay', 'postpone', 'issue', 'problem', 'glitch', 'bug', 'complaint', 'criticism', 'controversy', 'dispute', 'setback', 'challenge', 'difficulty'],
+            'emoji': '😤'
+        },
+        'afraid': {
+            'keywords': ['warning', 'risk', 'threat', 'danger', 'concern', 'worry', 'fear', 'uncertainty', 'caution', 'alert', 'security', 'vulnerability', 'breach'],
+            'emoji': '😰'
+        },
+        'sad': {
+            'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop', 'fall', 'decrease', 'layoffs', 'fired', 'closed', 'shutdown', 'bankrupt'],
+            'emoji': '😢'
+        },
+        'angry': {
+            'keywords': ['scandal', 'fraud', 'lawsuit', 'sued', 'investigation', 'accused', 'allegation', 'outrage', 'protest', 'boycott', 'angry', 'furious', 'controversy', 'backlash'],
+            'emoji': '😠'
+        }
+    }
+    
+    # Score each emotion
+    emotion_scores = {}
+    for emotion, data in emotions.items():
+        score = 0
+        for keyword in data['keywords']:
+            # Count occurrences of keywords
+            score += text.count(keyword)
+            # Give higher weight to title matches
+            if keyword in title.lower():
+                score += 2
+        emotion_scores[emotion] = score
+    
+    # Find the emotion with highest score
+    max_emotion = max(emotion_scores, key=emotion_scores.get)
+    
+    # If no keywords found or neutral has highest score, default to neutral (don't care)
+    if emotion_scores[max_emotion] == 0 or max_emotion == 'neutral':
+        return 'neutral', emotions['neutral']['emoji']
+    
+    return max_emotion, emotions[max_emotion]['emoji']
 
 def extract_image_from_article(link, headers):
     """Extract main image from article page"""
@@ -2023,7 +2082,7 @@ def parse_date_string(date_str):
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 def scrape_google_news(company_name, max_results=10):
-    """Scrape Google News for a company with enhanced data"""
+    """Scrape Google News for a company with enhanced data and emotion analysis"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -2080,6 +2139,9 @@ def scrape_google_news(company_name, max_results=10):
                 snippet_elem = result.find('div', class_='GI74Re')
                 snippet = snippet_elem.get_text() if snippet_elem else ""
                 
+                # Analyze emotion
+                emotion, emotion_emoji = analyze_emotion(title, snippet)
+                
                 news_results.append({
                     'title': title,
                     'link': link,
@@ -2089,7 +2151,9 @@ def scrape_google_news(company_name, max_results=10):
                     'snippet': snippet,
                     'company': company_name,
                     'image': image_url,
-                    'scrape_source': 'Google News'
+                    'scrape_source': 'Google News',
+                    'emotion': emotion,
+                    'emotion_emoji': emotion_emoji
                 })
             except Exception as e:
                 print(f"Error parsing Google result: {e}")
@@ -2101,7 +2165,7 @@ def scrape_google_news(company_name, max_results=10):
         return []
 
 def scrape_bing_news(company_name, max_results=10):
-    """Scrape Bing News for a company with enhanced data"""
+    """Scrape Bing News for a company with enhanced data and emotion analysis"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -2153,6 +2217,9 @@ def scrape_bing_news(company_name, max_results=10):
                 snippet_elem = result.find('div', class_='snippet')
                 snippet = snippet_elem.get_text() if snippet_elem else ""
                 
+                # Analyze emotion
+                emotion, emotion_emoji = analyze_emotion(title, snippet)
+                
                 news_results.append({
                     'title': title,
                     'link': link,
@@ -2162,7 +2229,9 @@ def scrape_bing_news(company_name, max_results=10):
                     'snippet': snippet,
                     'company': company_name,
                     'image': image_url,
-                    'scrape_source': 'Bing News'
+                    'scrape_source': 'Bing News',
+                    'emotion': emotion,
+                    'emotion_emoji': emotion_emoji
                 })
             except Exception as e:
                 print(f"Error parsing Bing result: {e}")
@@ -2174,7 +2243,7 @@ def scrape_bing_news(company_name, max_results=10):
         return []
 
 def scrape_yahoo_news(company_name, max_results=10):
-    """Scrape Yahoo News for a company with enhanced data"""
+    """Scrape Yahoo News for a company with enhanced data and emotion analysis"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -2227,6 +2296,9 @@ def scrape_yahoo_news(company_name, max_results=10):
                 snippet_elem = result.find('p', class_='s-desc')
                 snippet = snippet_elem.get_text() if snippet_elem else ""
                 
+                # Analyze emotion
+                emotion, emotion_emoji = analyze_emotion(title, snippet)
+                
                 news_results.append({
                     'title': title,
                     'link': link,
@@ -2236,7 +2308,9 @@ def scrape_yahoo_news(company_name, max_results=10):
                     'snippet': snippet,
                     'company': company_name,
                     'image': image_url,
-                    'scrape_source': 'Yahoo News'
+                    'scrape_source': 'Yahoo News',
+                    'emotion': emotion,
+                    'emotion_emoji': emotion_emoji
                 })
             except Exception as e:
                 print(f"Error parsing Yahoo result: {e}")
@@ -2254,7 +2328,7 @@ def filter_page():
 
 @app.route('/scrape_news', methods=['POST'])
 def scrape_news():
-    """API endpoint to scrape news for companies with enhanced data"""
+    """API endpoint to scrape news for companies with enhanced data and emotion analysis"""
     data = request.get_json()
     companies = data.get('companies', [])
     max_results = data.get('max_results', 10)
@@ -2309,11 +2383,18 @@ def scrape_news():
     
     all_news.sort(key=sort_key, reverse=True)
     
+    # Calculate emotion statistics
+    emotion_stats = {}
+    for article in all_news:
+        emotion = article.get('emotion', 'neutral')
+        emotion_stats[emotion] = emotion_stats.get(emotion, 0) + 1
+    
     return jsonify({
         'news': all_news,
         'total_count': len(all_news),
         'scraped_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'refresh_mode': refresh_mode
+        'refresh_mode': refresh_mode,
+        'emotion_stats': emotion_stats
     })
 
 @app.route('/refresh_news', methods=['POST'])
