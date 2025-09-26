@@ -1,0 +1,1231 @@
+{% extends "base.html" %}
+{% block title %}Emotion Analysis Dashboard{% endblock %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #0d6efd;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --light-bg: #f8f9fa;
+        --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+    }
+    
+    body {
+        background-color: var(--light-bg);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    .emotion-distribution {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        color: white;
+    }
+
+    .emotion-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .emotion-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .emotion-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .emotion-percentage {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .emotion-count {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .split-container {
+        display: flex;
+        gap: 24px;
+        min-height: 80vh;
+    }
+    
+    .input-panel {
+        flex: 0 0 35%;
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 24px;
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .output-panel {
+        flex: 1;
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 24px;
+        min-height: 600px;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .language-analysis {
+        background: white;
+        border-radius: 12px;
+        border-left: 4px solid var(--success-color);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .word-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        min-height: 150px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 16px 0;
+    }
+
+    .word-tag {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .word-tag:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .word-tag.high-weight {
+        font-size: 1.2rem;
+        background: var(--danger-color);
+    }
+
+    .word-tag.medium-weight {
+        font-size: 1rem;
+        background: var(--warning-color);
+        color: #000;
+    }
+
+    .word-tag.low-weight {
+        font-size: 0.8rem;
+        background: var(--secondary-color);
+    }
+
+    .progress-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 4px;
+        margin: 8px 0;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 6px;
+        transition: width 0.5s ease;
+    }
+
+    .company-tag {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        margin: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .company-tag:hover {
+        transform: scale(1.05);
+    }
+
+    .analysis-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 4px;
+    }
+
+    .metric-label {
+        font-size: 0.85rem;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+    }
+
+    .sentiment-gauge {
+        position: relative;
+        width: 200px;
+        height: 100px;
+        margin: 20px auto;
+    }
+
+    .gauge-bg {
+        width: 200px;
+        height: 100px;
+        background: linear-gradient(to right, #dc3545, #ffc107, #28a745);
+        border-radius: 100px 100px 0 0;
+        position: relative;
+    }
+
+    .gauge-needle {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform-origin: bottom center;
+        width: 2px;
+        height: 90px;
+        background: #333;
+        transition: transform 0.8s ease;
+        transform: translateX(-50%) rotate(0deg);
+    }
+
+    .gauge-center {
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 10px;
+        height: 10px;
+        background: #333;
+        border-radius: 50%;
+    }
+
+    .search-btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        transition: all 0.2s ease;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress {
+        height: 10px;
+        border-radius: 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--secondary-color);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .article-item {
+        transition: all 0.3s ease;
+    }
+
+    .article-item:hover {
+        transform: translateY(-2px);
+    }
+
+    .confidence-high { border-left-color: var(--success-color) !important; }
+    .confidence-medium { border-left-color: var(--warning-color) !important; }
+    .confidence-low { border-left-color: var(--danger-color) !important; }
+
+    .nav-tabs .nav-link {
+        border: none;
+        color: var(--secondary-color);
+        background: transparent;
+        padding: 8px 16px;
+        margin-right: 8px;
+        border-radius: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+    }
+
+    .nav-tabs .nav-link:hover:not(.active) {
+        background: rgba(13, 110, 253, 0.1);
+        color: var(--primary-color);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-10px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 992px) {
+        .split-container {
+            flex-direction: column;
+        }
+        .input-panel {
+            position: relative;
+        }
+        .analysis-metrics {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .analysis-metrics {
+            grid-template-columns: 1fr;
+        }
+        .emotion-card {
+            margin: 4px;
+            padding: 15px;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-emoji-smile me-2"></i>Emotion Analysis Dashboard
+                </h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" id="exportBtn" disabled>
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                    <button class="btn btn-outline-info" id="compareBtn" disabled>
+                        <i class="bi bi-graph-up"></i> Compare
+                    </button>
+                </div>
+            </div>
+            <p class="text-muted">Analyze emotional content and language patterns from news articles with detailed rubrics and confidence scoring</p>
+        </div>
+    </div>
+
+    <!-- Main Content - Split Layout -->
+    <div class="split-container">
+        <!-- Left Panel - Input -->
+        <div class="input-panel">
+            <div class="section-title">
+                <i class="bi bi-input-cursor-text text-primary"></i>
+                <h5 class="mb-0">Analysis Parameters</h5>
+            </div>
+            
+            <div class="mb-3">
+                <label for="companyInput" class="form-label">Company Names (comma separated)</label>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="companyInput" 
+                        placeholder="e.g., Tesla, Apple, Microsoft, Google"
+                        value="Tesla, Apple, Microsoft"
+                    >
+                    <button class="btn btn-primary search-btn" type="button" id="analyzeButton">
+                        <i class="bi bi-graph-up me-1"></i> Analyze
+                    </button>
+                </div>
+                <div class="form-text">
+                    Enter company names to analyze emotional patterns and language sentiment from their news coverage.
+                </div>
+            </div>
+
+            <!-- Analysis Options -->
+            <div class="mb-3">
+                <label for="analysisDepth" class="form-label">Analysis Depth</label>
+                <select class="form-select" id="analysisDepth">
+                    <option value="basic">Basic Analysis</option>
+                    <option value="detailed" selected>Detailed Analysis</option>
+                    <option value="comprehensive">Comprehensive Analysis</option>
+                </select>
+                <div class="form-text">Detailed includes sentiment analysis. Comprehensive adds confidence scoring.</div>
+            </div>
+
+            <!-- Options -->
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="detectLanguages" checked>
+                    <label class="form-check-label" for="detectLanguages">
+                        Detect Multiple Languages
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="weightedAnalysis" checked>
+                    <label class="form-check-label" for="weightedAnalysis">
+                        Use Weighted Word Analysis
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="showArticles" checked>
+                    <label class="form-check-label" for="showArticles">
+                        Display Individual Articles
+                    </label>
+                </div>
+            </div>
+
+            <!-- Company Tags -->
+            <div class="mb-3">
+                <label class="form-label">Selected Companies</label>
+                <div id="companyTagsContainer" class="d-flex flex-wrap gap-2 p-2 bg-light rounded"></div>
+            </div>
+
+            <!-- Analysis Summary -->
+            <div class="mb-3" id="quickSummary" style="display: none;">
+                <div class="card bg-light">
+                    <div class="card-body p-3">
+                        <h6 class="card-title mb-2">Quick Summary</h6>
+                        <div id="summaryContent" class="small text-muted"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="mt-3 d-none" id="progressSection">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    <span class="small" id="progressText">Analyzing emotional content...</span>
+                </div>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="small text-muted mt-1" id="progressDetail">Processing articles and calculating weights</div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Analysis Results -->
+        <div class="output-panel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="section-title mb-0">
+                    <i class="bi bi-graph-up text-primary"></i>
+                    <h5 class="mb-0">Emotion Analysis Results</h5>
+                </div>
+                <span class="badge bg-info fs-6" id="analysisCountBadge">Ready for analysis</span>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="resultsContainer">
+                <div class="empty-state">
+                    <i class="bi bi-emoji-neutral"></i>
+                    <p class="mt-3">Enter company names to analyze emotional patterns and language sentiment</p>
+                    <div class="mt-4">
+                        <h6>What you'll get:</h6>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Detailed emotion classification with confidence scores</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Individual article analysis with reasoning</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Language detection and sentiment scoring</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Interactive visualizations and word clouds</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Comprehensive rubrics for each emotion category</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Analysis Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Export Format</label>
+                    <select class="form-select" id="exportFormat">
+                        <option value="json">JSON (Complete Data)</option>
+                        <option value="csv">CSV (Article Details)</option>
+                        <option value="summary">Executive Summary</option>
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="includeImages">
+                    <label class="form-check-label" for="includeImages">
+                        Include image URLs in export
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmExport">Export</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const companyInput = document.getElementById('companyInput');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const analysisDepth = document.getElementById('analysisDepth');
+    const detectLanguages = document.getElementById('detectLanguages');
+    const weightedAnalysis = document.getElementById('weightedAnalysis');
+    const showArticles = document.getElementById('showArticles');
+    const companyTagsContainer = document.getElementById('companyTagsContainer');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const analysisCountBadge = document.getElementById('analysisCountBadge');
+    const progressSection = document.getElementById('progressSection');
+    const progressText = document.getElementById('progressText');
+    const progressDetail = document.getElementById('progressDetail');
+    const progressBar = document.getElementById('progressBar');
+    const quickSummary = document.getElementById('quickSummary');
+    const summaryContent = document.getElementById('summaryContent');
+    const exportBtn = document.getElementById('exportBtn');
+    const compareBtn = document.getElementById('compareBtn');
+    
+    let companies = [];
+    let analysisData = null;
+    
+    // Emotion configuration with emojis and colors
+    const emotionConfig = {
+        'happy': { emoji: '😊', color: '#28a745', label: 'Happy' },
+        'amused': { emoji: '😄', color: '#fd7e14', label: 'Amused' },
+        'inspired': { emoji: '🌟', color: '#6f42c1', label: 'Inspired' },
+        'neutral': { emoji: '😐', color: '#6c757d', label: 'Neutral' },
+        'annoyed': { emoji: '😤', color: '#dc3545', label: 'Annoyed' },
+        'afraid': { emoji: '😰', color: '#343a40', label: 'Afraid' },
+        'sad': { emoji: '😢', color: '#17a2b8', label: 'Sad' },
+        'angry': { emoji: '😠', color: '#e83e8c', label: 'Angry' }
+    };
+    
+    // Parse companies from input
+    function parseCompanies() {
+        const input = companyInput.value.trim();
+        if (!input) return [];
+        
+        return input.split(',')
+            .map(company => company.trim())
+            .filter(company => company.length > 0);
+    }
+    
+    // Update company tags display
+    function updateCompanyTags() {
+        companyTagsContainer.innerHTML = '';
+        companies.forEach(company => {
+            const tag = document.createElement('span');
+            tag.className = 'badge bg-primary company-tag';
+            tag.innerHTML = `${company} <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-company="${company}"></button>`;
+            companyTagsContainer.appendChild(tag);
+        });
+        
+        // Add event listeners to remove buttons
+        document.querySelectorAll('.company-tag .btn-close').forEach(button => {
+            button.addEventListener('click', function() {
+                const companyToRemove = this.getAttribute('data-company');
+                companies = companies.filter(c => c !== companyToRemove);
+                companyInput.value = companies.join(', ');
+                updateCompanyTags();
+                updateQuickSummary();
+            });
+        });
+    }
+
+    // Update quick summary
+    function updateQuickSummary() {
+        if (companies.length > 0) {
+            quickSummary.style.display = 'block';
+            summaryContent.textContent = `Ready to analyze ${companies.length} companies with ${analysisDepth.value} analysis depth. ${detectLanguages.checked ? 'Language detection enabled.' : ''} ${weightedAnalysis.checked ? 'Weighted scoring enabled.' : ''}`;
+        } else {
+            quickSummary.style.display = 'none';
+        }
+    }
+
+    // Fetch and analyze emotions from backend
+    async function fetchAndAnalyzeEmotions() {
+        const response = await fetch('/analyze_emotions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                companies: companies,
+                analysis_depth: analysisDepth.value,
+                detect_languages: detectLanguages.checked,
+                weighted_analysis: weightedAnalysis.checked
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error);
+        }
+
+        return data.analysis;
+    }
+
+    // Display analysis results with detailed rubrics and articles
+    function displayAnalysisResults(analysis) {
+        analysisCountBadge.textContent = `${analysis.total_articles} articles analyzed`;
+        exportBtn.disabled = false;
+        compareBtn.disabled = false;
+        
+        let html = `
+            <!-- Overall Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stat-value">${analysis.total_articles}</div>
+                        <div class="stat-label">Articles Analyzed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stat-value">${analysis.total_words.toLocaleString()}</div>
+                        <div class="stat-label">Total Words</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stat-value">${Object.keys(analysis.language_detection).length}</div>
+                        <div class="stat-label">Languages Detected</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stat-value">${analysis.sentiment_score.toFixed(2)}</div>
+                        <div class="stat-label">Sentiment Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emotion Rubrics Section -->
+            <div class="mb-4">
+                <h5><i class="bi bi-book me-2"></i>Emotion Classification Rubrics</h5>
+                <div class="accordion" id="rubricsAccordion">
+        `;
+
+        // Generate rubrics section
+        Object.entries(analysis.emotion_rubrics || {}).forEach(([emotion, rubric], index) => {
+            const config = emotionConfig[emotion];
+            const count = analysis.classification_summary ? analysis.classification_summary[emotion] || 0 : 0;
+            const confidence = analysis.confidence_scores ? analysis.confidence_scores[emotion] : null;
+            
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button ${index !== 0 ? 'collapsed' : ''}" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#rubric-${emotion}">
+                            <span class="me-2" style="font-size: 1.2rem;">${config?.emoji || '😐'}</span>
+                            <strong class="text-capitalize me-2">${emotion}</strong>
+                            <span class="badge bg-secondary me-2">${count} articles</span>
+                            ${confidence ? `<span class="badge bg-info">${confidence.avg_confidence}% avg confidence</span>` : ''}
+                        </button>
+                    </h2>
+                    <div id="rubric-${emotion}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                         data-bs-parent="#rubricsAccordion">
+                        <div class="accordion-body">
+                            <p><strong>Description:</strong> ${rubric.description}</p>
+                            <p><strong>Scoring:</strong> ${rubric.score_range}</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Classification Criteria:</h6>
+                                    <ul class="list-unstyled">
+                                        ${rubric.criteria.map(criteria => `<li><i class="bi bi-check-circle text-success me-2"></i>${criteria}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Example Headlines:</h6>
+                                    <ul class="list-unstyled text-muted">
+                                        ${rubric.examples.map(example => `<li><i class="bi bi-quote me-2"></i>"${example}"</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            ${confidence ? `
+                                <div class="mt-3 p-2 bg-light rounded">
+                                    <small>
+                                        <strong>Confidence Range:</strong> 
+                                        ${confidence.min_confidence}% - ${confidence.max_confidence}% 
+                                        (Average: ${confidence.avg_confidence}%)
+                                    </small>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+
+            <!-- Emotion Distribution -->
+            <div class="emotion-distribution">
+                <h5 class="mb-4 text-white"><i class="bi bi-pie-chart me-2"></i>Emotion Distribution</h5>
+                <div class="row">
+        `;
+
+        Object.entries(analysis.emotion_percentages || {}).forEach(([emotion, percentage]) => {
+            const count = analysis.emotion_counts ? analysis.emotion_counts[emotion] : 0;
+            const emoji = emotionConfig[emotion]?.emoji || '😐';
+            
+            html += `
+                <div class="col-md-3 col-6">
+                    <div class="emotion-card">
+                        <div class="emotion-icon">${emoji}</div>
+                        <div class="emotion-percentage">${percentage}%</div>
+                        <div class="emotion-count">${count} mentions</div>
+                        <div class="progress-bar bg-success" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+
+            <!-- Source Analysis -->
+            <div class="mb-4">
+                <h5><i class="bi bi-newspaper me-2"></i>Source Breakdown</h5>
+                <div class="row">
+        `;
+
+        Object.entries(analysis.source_breakdown || {}).forEach(([source, data]) => {
+            const dominantEmotion = Object.entries(data.emotions || {}).reduce((a, b) => a[1] > b[1] ? a : b, ['neutral', 0])[0];
+            const sentimentClass = data.avg_sentiment > 0.1 ? 'text-success' : 
+                                 data.avg_sentiment < -0.1 ? 'text-danger' : 'text-secondary';
+            
+            html += `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">${source}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">${data.article_count || 0} articles</small><br>
+                                <span class="badge bg-primary text-capitalize">${dominantEmotion}</span>
+                                <span class="${sentimentClass}">${(data.avg_sentiment || 0).toFixed(2)} sentiment</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+
+            <!-- Sentiment Gauge -->
+            <div class="text-center mb-4">
+                <h5><i class="bi bi-speedometer2 me-2"></i>Overall Sentiment</h5>
+                <div class="sentiment-gauge">
+                    <div class="gauge-bg">
+                        <div class="gauge-needle" id="sentimentNeedle"></div>
+                        <div class="gauge-center"></div>
+                    </div>
+                </div>
+                <p class="text-muted">Score: ${analysis.sentiment_score.toFixed(2)} (Range: -1.0 to 1.0)</p>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="text-danger fw-bold">${analysis.sentiment_distribution?.negative || 0}</div>
+                        <small class="text-muted">Negative</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-secondary fw-bold">${analysis.sentiment_distribution?.neutral || 0}</div>
+                        <small class="text-muted">Neutral</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-success fw-bold">${analysis.sentiment_distribution?.positive || 0}</div>
+                        <small class="text-muted">Positive</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Word Cloud -->
+            <div class="mb-4">
+                <h5><i class="bi bi-cloud me-2"></i>Most Frequent Words</h5>
+                <div class="word-cloud">
+        `;
+
+        (analysis.top_words || []).forEach(([word, frequency], index) => {
+            let weightClass = 'low-weight';
+            if (index < 5) weightClass = 'high-weight';
+            else if (index < 10) weightClass = 'medium-weight';
+            
+            html += `<span class="word-tag ${weightClass}" title="${frequency} occurrences">${word}</span>`;
+        });
+
+        html += `
+                </div>
+            </div>
+
+            <!-- Detailed Metrics -->
+            <div class="analysis-metrics">
+                <div class="metric-card">
+                    <div class="metric-value text-success">${analysis.sentiment_distribution?.positive || 0}</div>
+                    <div class="metric-label">Positive Articles</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value text-danger">${analysis.sentiment_distribution?.negative || 0}</div>
+                    <div class="metric-label">Negative Articles</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value text-secondary">${analysis.sentiment_distribution?.neutral || 0}</div>
+                    <div class="metric-label">Neutral Articles</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value text-info">${analysis.complexity_metrics?.avg_readability || 0}</div>
+                    <div class="metric-label">Avg Readability</div>
+                </div>
+            </div>
+        `;
+
+        // Add articles section if enabled
+        if (showArticles.checked && analysis.analyzed_articles && analysis.analyzed_articles.length > 0) {
+            html += `
+                <!-- Analyzed Articles Section -->
+                <div class="mt-5">
+                    <h5><i class="bi bi-list-check me-2"></i>Analyzed Articles <span class="badge bg-info">${analysis.analyzed_articles.length}</span></h5>
+                    <p class="text-muted mb-3">Articles sorted by classification confidence (highest first)</p>
+                    
+                    <!-- Article Filter Tabs -->
+                    <ul class="nav nav-tabs mb-3" id="articleTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-emotion="all">All Articles</button>
+                        </li>
+            `;
+
+            // Create tabs for each emotion that has articles
+            Object.entries(analysis.classification_summary || {}).forEach(([emotion, count]) => {
+                if (count > 0) {
+                    const config = emotionConfig[emotion];
+                    html += `
+                        <li class="nav-item">
+                            <button class="nav-link" data-emotion="${emotion}">
+                                ${config?.emoji || '😐'} ${config?.label || emotion} (${count})
+                            </button>
+                        </li>
+                    `;
+                }
+            });
+
+            html += `
+                    </ul>
+
+                    <div class="row" id="articlesContainer">
+            `;
+
+            // Display analyzed articles
+            analysis.analyzed_articles.forEach((article, index) => {
+                const config = emotionConfig[article.dominant_emotion] || emotionConfig['neutral'];
+                const confidenceClass = article.confidence_score > 70 ? 'success' : 
+                                      article.confidence_score > 40 ? 'warning' : 'danger';
+                const sentimentClass = article.sentiment_polarity > 0.1 ? 'success' : 
+                                     article.sentiment_polarity < -0.1 ? 'danger' : 'secondary';
+                
+                html += `
+                    <div class="col-lg-6 mb-4 article-item" data-emotion="${article.dominant_emotion}">
+                        <div class="card h-100 border-0 shadow-sm confidence-${confidenceClass.split(' ')[0]}">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2" style="font-size: 1.2rem;">${config.emoji}</span>
+                                    <span class="badge bg-${confidenceClass} text-capitalize">${article.dominant_emotion}</span>
+                                    <span class="badge bg-info ms-2">${article.confidence_score}% confidence</span>
+                                </div>
+                                <small class="text-muted">#${index + 1}</small>
+                            </div>
+                            
+                            ${article.image ? `
+                                <div class="position-relative" style="height: 200px; overflow: hidden;">
+                                    <img src="${article.image}" class="card-img-top h-100 w-100" style="object-fit: cover;" alt="Article image" onerror="this.style.display='none'">
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <span class="badge bg-dark bg-opacity-75">${article.source}</span>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="card-body">
+                                <h6 class="card-title">${article.title}</h6>
+                                <p class="card-text text-muted small">${article.snippet}</p>
+                                
+                                <!-- Article Metrics -->
+                                <div class="row text-center mb-3">
+                                    <div class="col-3">
+                                        <div class="small text-muted">Words</div>
+                                        <div class="fw-bold">${article.word_count}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="small text-muted">Sentiment</div>
+                                        <div class="fw-bold text-${sentimentClass}">${article.sentiment_polarity}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="small text-muted">Language</div>
+                                        <div class="fw-bold text-capitalize">${article.detected_language}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="small text-muted">Readability</div>
+                                        <div class="fw-bold">${article.readability_score}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Classification Details -->
+                                <div class="accordion accordion-flush" id="details-${index}">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed py-2" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#collapse-${index}">
+                                                <small>Classification Details</small>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse-${index}" class="accordion-collapse collapse" 
+                                             data-bs-parent="#details-${index}">
+                                            <div class="accordion-body py-2">
+                                                <div class="mb-2">
+                                                    <small class="fw-bold text-muted">Reasons:</small>
+                                                    <ul class="list-unstyled mb-2">
+                                                        ${(article.classification_reasons || []).map(reason => `<li class="small">• ${reason}</li>`).join('')}
+                                                    </ul>
+                                                </div>
+                                                
+                                                <div class="mb-2">
+                                                    <small class="fw-bold text-muted">Emotion Breakdown:</small>
+                                                    <div class="row">
+                `;
+
+                // Show emotion breakdown for this article
+                Object.entries(article.emotion_breakdown || {}).forEach(([emotion, data]) => {
+                    if (data.count > 0) {
+                        html += `
+                            <div class="col-6 mb-1">
+                                <small class="text-capitalize">${emotion}: ${data.count} (${data.weighted_score.toFixed(1)})</small>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += `
+                                                    </div>
+                                                </div>
+                                                
+                                                ${article.emotion_breakdown && article.emotion_breakdown[article.dominant_emotion]?.keywords_found?.length > 0 ? `
+                                                    <div>
+                                                        <small class="fw-bold text-muted">Key Terms Found:</small>
+                                                        <div class="mt-1">
+                                                            ${article.emotion_breakdown[article.dominant_emotion].keywords_found.slice(0, 5).map(keyword => 
+                                                                `<span class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">${keyword}</span>`
+                                                            ).join('')}
+                                                        </div>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-secondary">${article.company}</span>
+                                        <small class="text-muted ms-2">${new Date(article.date).toLocaleDateString()}</small>
+                                    </div>
+                                    <a href="${article.link}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-arrow-up-right"></i> Read Article
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        resultsContainer.innerHTML = html;
+
+        // Add article filtering functionality if articles are shown
+        if (showArticles.checked) {
+            setupArticleFiltering();
+        }
+
+        // Animate sentiment gauge needle
+        setTimeout(() => {
+            const needle = document.getElementById('sentimentNeedle');
+            if (needle) {
+                const angle = Math.max(-90, Math.min(90, analysis.sentiment_score * 90));
+                needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            }
+        }, 500);
+    }
+
+    // Setup article filtering by emotion
+    function setupArticleFiltering() {
+        const articleTabs = document.querySelectorAll('#articleTabs button');
+        const articleItems = document.querySelectorAll('.article-item');
+
+        articleTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                articleTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterEmotion = this.getAttribute('data-emotion');
+
+                // Filter articles
+                articleItems.forEach(item => {
+                    if (filterEmotion === 'all' || item.getAttribute('data-emotion') === filterEmotion) {
+                        item.style.display = 'block';
+                        item.style.animation = 'fadeIn 0.3s ease';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    }
+
+    // Perform emotion analysis
+    async function performAnalysis() {
+        companies = parseCompanies();
+        if (companies.length === 0) {
+            alert('Please enter at least one company name');
+            return;
+        }
+
+        updateCompanyTags();
+        updateQuickSummary();
+
+        // Show progress
+        progressSection.classList.remove('d-none');
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Fetching articles for analysis...';
+        progressDetail.textContent = `Processing ${companies.length} companies`;
+
+        try {
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                if (progress <= 90) {
+                    progressBar.style.width = `${progress}%`;
+                    if (progress === 30) {
+                        progressText.textContent = 'Analyzing emotional content...';
+                        progressDetail.textContent = 'Calculating emotion weights and language patterns';
+                    } else if (progress === 60) {
+                        progressText.textContent = 'Processing language detection...';
+                        progressDetail.textContent = 'Identifying language patterns and word frequencies';
+                    } else if (progress === 90) {
+                        progressText.textContent = 'Generating analysis results...';
+                        progressDetail.textContent = 'Compiling statistics and visualizations';
+                    }
+                }
+            }, 200);
+
+            // Perform analysis
+            analysisData = await fetchAndAnalyzeEmotions();
+
+            clearInterval(progressInterval);
+
+            // Complete progress bar
+            progressBar.style.width = '100%';
+            progressText.textContent = 'Analysis completed!';
+            progressDetail.textContent = `Analyzed ${analysisData.total_articles} articles with ${analysisData.total_words} total words`;
+
+            // Display results
+            displayAnalysisResults(analysisData);
+
+            // Hide progress after delay
+            setTimeout(() => {
+                progressSection.classList.add('d-none');
+            }, 2000);
+
+        } catch (error) {
+            console.error('Analysis error:', error);
+            progressSection.classList.add('d-none');
+            resultsContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error performing analysis: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    // Export functionality
+    function setupExportFunctionality() {
+        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+        
+        exportBtn.addEventListener('click', () => {
+            if (analysisData) {
+                exportModal.show();
+            }
+        });
+
+        document.getElementById('confirmExport').addEventListener('click', async () => {
+            const format = document.getElementById('exportFormat').value;
+            const includeImages = document.getElementById('includeImages').checked;
+
+            try {
+                const response = await fetch('/export_analysis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        analysis_data: analysisData,
+                        format: format,
+                        include_images: includeImages
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (format === 'csv') {
+                        downloadCSV(result.csv_content, result.filename);
+                    } else {
+                        downloadJSON(result, `analysis_${format}_${new Date().toISOString().split('T')[0]}.json`);
+                    }
+                    exportModal.hide();
+                }
+            } catch (error) {
+                alert('Export failed: ' + error.message);
+            }
+        });
+    }
+
+    // Download helpers
+    function downloadCSV(content, filename) {
+        const blob = new Blob([content], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    function downloadJSON(data, filename) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Event listeners
+    analyzeButton.addEventListener('click', performAnalysis);
+
+    companyInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performAnalysis();
+        }
+    });
+
+    companyInput.addEventListener('input', function() {
+        companies = parseCompanies();
+        updateCompanyTags();
+        updateQuickSummary();
+    });
+
+    analysisDepth.addEventListener('change', updateQuickSummary);
+    detectLanguages.addEventListener('change', updateQuickSummary);
+    weightedAnalysis.addEventListener('change', updateQuickSummary);
+
+    // Setup export functionality
+    setupExportFunctionality();
+
+    // Initialize with default companies
+    companies = parseCompanies();
+    updateCompanyTags();
+    updateQuickSummary();
+});
+</script>
+{% endblock %}
