@@ -61,6 +61,16 @@
         opacity: 0.9;
     }
 
+    /* Add emotion label styling */
+    .emotion-label {
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 8px;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
     .split-container {
         display: flex;
         gap: 24px;
@@ -564,14 +574,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Emotion configuration with emojis and colors
     const emotionConfig = {
-        'happy': { emoji: '😊', color: '#28a745', label: 'Happy' },
-        'amused': { emoji: '😄', color: '#fd7e14', label: 'Amused' },
-        'inspired': { emoji: '🌟', color: '#6f42c1', label: 'Inspired' },
-        'neutral': { emoji: '😐', color: '#6c757d', label: 'Neutral' },
-        'annoyed': { emoji: '😤', color: '#dc3545', label: 'Annoyed' },
-        'afraid': { emoji: '😰', color: '#343a40', label: 'Afraid' },
-        'sad': { emoji: '😢', color: '#17a2b8', label: 'Sad' },
-        'angry': { emoji: '😠', color: '#e83e8c', label: 'Angry' }
+        'happy': { emoji: '😊', color: '#28a745', label: 'HAPPY' },
+        'amused': { emoji: '😄', color: '#fd7e14', label: 'AMUSED' },
+        'inspired': { emoji: '🌟', color: '#6f42c1', label: 'INSPIRED' },
+        'neutral': { emoji: '😐', color: '#6c757d', label: 'NEUTRAL' },
+        'annoyed': { emoji: '😤', color: '#dc3545', label: 'ANNOYED' },
+        'afraid': { emoji: '😰', color: '#343a40', label: 'AFRAID' },
+        'sad': { emoji: '😢', color: '#17a2b8', label: 'SAD' },
+        'angry': { emoji: '😠', color: '#e83e8c', label: 'ANGRY' }
     };
     
     // Parse companies from input
@@ -749,15 +759,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         Object.entries(analysis.emotion_percentages || {}).forEach(([emotion, percentage]) => {
             const count = analysis.emotion_counts ? analysis.emotion_counts[emotion] : 0;
-            const emoji = emotionConfig[emotion]?.emoji || '😐';
+            const config = emotionConfig[emotion] || emotionConfig['neutral'];
             
             html += `
                 <div class="col-md-3 col-6">
                     <div class="emotion-card">
-                        <div class="emotion-icon">${emoji}</div>
+                        <div class="emotion-icon">${config.emoji}</div>
                         <div class="emotion-percentage">${percentage}%</div>
                         <div class="emotion-count">${count} mentions</div>
-                        <div class="progress-bar bg-success" style="width: ${percentage}%"></div>
+                        <!-- Add emotion label here -->
+                        <div class="emotion-label">${config.label}</div>
+                        <div class="progress-container">
+                            <div class="progress-bar-custom" style="background-color: ${config.color}; width: ${percentage}%"></div>
+                        </div>
                     </div>
                 </div>
             `;
