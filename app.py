@@ -1982,7 +1982,7 @@ def remove_duplicate_articles(articles):
     return unique_articles
 
 def get_emotion_rubrics():
-    """Return detailed rubrics for emotion classification"""
+    """Return detailed rubrics for emotion classification with 100-point scale"""
     return {
         'happy': {
             'description': 'Content expressing joy, success, achievement, or positive outcomes',
@@ -1994,7 +1994,8 @@ def get_emotion_rubrics():
                 'Celebration of victories or breakthroughs'
             ],
             'examples': ['Tesla reports record quarterly profits', 'Apple celebrates 1 billion iPhone milestone'],
-            'score_range': '0.8 - 1.2 points per mention'
+            'score_range': '80 - 100 points per mention',
+            'base_score': 90
         },
         'amused': {
             'description': 'Content that is entertaining, quirky, or unexpectedly humorous',
@@ -2006,7 +2007,8 @@ def get_emotion_rubrics():
                 'Amusing market reactions or situations'
             ],
             'examples': ['Tesla CEO tweets cryptic memes', 'Apple names new product after food'],
-            'score_range': '0.5 - 0.9 points per mention'
+            'score_range': '50 - 75 points per mention',
+            'base_score': 60
         },
         'inspired': {
             'description': 'Content showcasing innovation, vision, or transformative potential',
@@ -2018,7 +2020,8 @@ def get_emotion_rubrics():
                 'Future-focused strategic initiatives'
             ],
             'examples': ['Microsoft unveils AI breakthrough', 'Tesla advances autonomous driving'],
-            'score_range': '1.0 - 1.5 points per mention'
+            'score_range': '85 - 100 points per mention',
+            'base_score': 95
         },
         'neutral': {
             'description': 'Factual reporting without strong emotional undertones',
@@ -2030,7 +2033,8 @@ def get_emotion_rubrics():
                 'Administrative or procedural news'
             ],
             'examples': ['Apple announces quarterly meeting', 'Microsoft releases software update'],
-            'score_range': '0.3 - 0.7 points per mention'
+            'score_range': '40 - 60 points per mention',
+            'base_score': 50
         },
         'annoyed': {
             'description': 'Content expressing frustration, minor setbacks, or criticism',
@@ -2042,7 +2046,8 @@ def get_emotion_rubrics():
                 'Criticism from analysts or media'
             ],
             'examples': ['Tesla faces production delays', 'Apple customers complain about battery'],
-            'score_range': '-0.5 to -0.9 points per mention'
+            'score_range': '-50 to -75 points per mention',
+            'base_score': -60
         },
         'afraid': {
             'description': 'Content expressing concern, risk, or potential threats',
@@ -2054,7 +2059,8 @@ def get_emotion_rubrics():
                 'Economic or industry concerns'
             ],
             'examples': ['Microsoft warns of security risks', 'Tesla faces regulatory scrutiny'],
-            'score_range': '-0.8 to -1.2 points per mention'
+            'score_range': '-70 to -90 points per mention',
+            'base_score': -80
         },
         'sad': {
             'description': 'Content expressing loss, decline, or unfortunate events',
@@ -2066,7 +2072,8 @@ def get_emotion_rubrics():
                 'Tragic events affecting the company'
             ],
             'examples': ['Apple reports declining sales', 'Microsoft announces layoffs'],
-            'score_range': '-0.6 to -1.0 points per mention'
+            'score_range': '-60 to -85 points per mention',
+            'base_score': -70
         },
         'angry': {
             'description': 'Content expressing outrage, scandal, or severe criticism',
@@ -2078,64 +2085,68 @@ def get_emotion_rubrics():
                 'Major controversies or backlash'
             ],
             'examples': ['Tesla faces fraud investigation', 'Apple boycotted over privacy'],
-            'score_range': '-1.0 to -1.5 points per mention'
+            'score_range': '-80 to -100 points per mention',
+            'base_score': -90
         }
     }
 
 def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_analysis):
-    """Perform comprehensive emotion and language analysis with detailed article tracking"""
+    """Perform comprehensive emotion and language analysis with 100-point scoring scale"""
     
-    # Enhanced emotion weights with more sophisticated scoring
+    # Get emotion rubrics with 100-point scores
+    emotion_rubrics = get_emotion_rubrics()
+    
+    # Enhanced emotion weights with 100-point base scores
     emotion_weights = {
         'happy': {
-            'weight': 1.0,
+            'weight': 90,  # Changed to 100-point scale
             'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 
                         'milestone', 'celebration', 'victory', 'triumph', 'boom', 'record high', 
                         'excellent', 'positive', 'expansion', 'thriving', 'outstanding', 'exceptional'],
             'patterns': [r'\b(up\s+\d+%)', r'\bgains?\b', r'\brise[sd]?\b', r'\bimprove[sd]?\b']
         },
         'amused': {
-            'weight': 0.7,
+            'weight': 60,
             'keywords': ['funny', 'meme', 'viral', 'joke', 'amusing', 'entertaining', 'bizarre', 
                         'weird', 'unusual', 'quirky', 'odd', 'strange', 'unexpected', 'hilarious'],
             'patterns': [r'\blol\b', r'\bhaha\b', r'\bwtf\b']
         },
         'inspired': {
-            'weight': 1.2,
+            'weight': 95,
             'keywords': ['innovation', 'revolutionary', 'breakthrough', 'pioneering', 'groundbreaking',
                         'visionary', 'transformative', 'inspiring', 'amazing', 'incredible', 'future',
                         'advancement', 'cutting-edge', 'disruptive', 'game-changing'],
             'patterns': [r'\bnext-gen\b', r'\bstate-of-the-art\b', r'\bworld-first\b']
         },
         'neutral': {
-            'weight': 0.5,
+            'weight': 50,
             'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference',
                         'statement', 'earnings', 'revenue', 'financial', 'business', 'launch', 'release'],
             'patterns': [r'\baccording to\b', r'\bstated that\b', r'\breported\b']
         },
         'annoyed': {
-            'weight': -0.7,
+            'weight': -60,
             'keywords': ['delay', 'postpone', 'issue', 'problem', 'glitch', 'bug', 'complaint',
                         'criticism', 'controversy', 'dispute', 'setback', 'challenge', 'difficulty',
                         'frustrated', 'disappointed'],
             'patterns': [r'\bproblems?\b', r'\bissues?\b', r'\bfailed to\b']
         },
         'afraid': {
-            'weight': -1.0,
+            'weight': -80,
             'keywords': ['warning', 'risk', 'threat', 'danger', 'concern', 'worry', 'fear',
                         'uncertainty', 'caution', 'alert', 'security', 'vulnerability', 'breach',
                         'panic', 'anxiety'],
             'patterns': [r'\bat risk\b', r'\bunder threat\b', r'\bvulnerable to\b']
         },
         'sad': {
-            'weight': -0.8,
+            'weight': -70,
             'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop',
                         'fall', 'decrease', 'layoffs', 'fired', 'closed', 'shutdown', 'bankrupt',
                         'devastating', 'heartbreaking'],
             'patterns': [r'\bdown\s+\d+%', r'\bdropped?\b', r'\bfell\b', r'\blost\b']
         },
         'angry': {
-            'weight': -1.2,
+            'weight': -90,
             'keywords': ['scandal', 'fraud', 'lawsuit', 'sued', 'investigation', 'accused',
                         'allegation', 'outrage', 'protest', 'boycott', 'angry', 'furious',
                         'controversy', 'backlash', 'condemn', 'slam'],
@@ -2149,7 +2160,9 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         'total_sentences': 0,
         'emotion_counts': {emotion: 0 for emotion in emotion_weights.keys()},
         'emotion_weighted_scores': {emotion: 0.0 for emotion in emotion_weights.keys()},
+        'emotion_scores_100': {emotion: 0.0 for emotion in emotion_weights.keys()},  # New 100-point scores
         'emotion_percentages': {},
+        'overall_emotion_score': 0.0,  # New overall score out of 100
         'language_detection': {},
         'word_frequency': Counter(),
         'sentiment_score': 0.0,
@@ -2178,7 +2191,7 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         analysis['total_words'] += len(words)
         analysis['total_sentences'] += len([s for s in sentences if s.strip()])
         
-        # Language detection
+        # Language detection (existing code)
         if detect_languages and len(text_content.strip()) > 10:
             try:
                 detected_lang = detect_language_advanced(text_content)
@@ -2186,7 +2199,7 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             except:
                 analysis['language_detection']['unknown'] = analysis['language_detection'].get('unknown', 0) + 1
         
-        # Word frequency analysis (excluding common stop words)
+        # Word frequency analysis (existing code)
         stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must', 'shall', 'this', 'that', 'these', 'those'}
         meaningful_words = [word.lower() for word in words if len(word) > 3 and word.lower() not in stop_words]
         analysis['word_frequency'].update(meaningful_words)
@@ -2196,18 +2209,19 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             if company:
                 analysis['companies_mentioned'][company] += 1
         
-        # Advanced emotion analysis
+        # Advanced emotion analysis with 100-point scoring
         article_emotions = analyze_article_emotions(text_lower, emotion_weights, weighted_analysis)
         
         # Update emotion counts and scores
         for emotion, score in article_emotions.items():
             analysis['emotion_counts'][emotion] += score['count']
             analysis['emotion_weighted_scores'][emotion] += score['weighted_score']
+            analysis['emotion_scores_100'][emotion] += score['score_100']
         
-        # Sentiment analysis using TextBlob
+        # Sentiment analysis (existing code)
         try:
             blob = TextBlob(text_content)
-            sentiment_polarity = blob.sentiment.polarity  # -1 to 1
+            sentiment_polarity = blob.sentiment.polarity
             sentiment_scores.append(sentiment_polarity)
             
             if sentiment_polarity > 0.1:
@@ -2216,7 +2230,6 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
                 analysis['sentiment_distribution']['negative'] += 1
             else:
                 analysis['sentiment_distribution']['neutral'] += 1
-                
         except:
             sentiment_scores.append(0)
             analysis['sentiment_distribution']['neutral'] += 1
@@ -2232,17 +2245,25 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         # Overall sentiment score
         analysis['sentiment_score'] = np.mean(sentiment_scores) if sentiment_scores else 0.0
         
+        # Calculate overall emotion score on 100-point scale
+        total_emotion_score = sum(analysis['emotion_scores_100'].values())
+        analysis['overall_emotion_score'] = round(total_emotion_score / len(articles), 1)
+        
+        # Normalize to -100 to +100 scale if needed
+        max_possible = 95 * len(articles)  # Maximum positive score
+        min_possible = -90 * len(articles)  # Maximum negative score
+        
         # Emotion percentages
         total_emotion_mentions = sum(analysis['emotion_counts'].values())
         if total_emotion_mentions > 0:
             for emotion, count in analysis['emotion_counts'].items():
                 analysis['emotion_percentages'][emotion] = round((count / total_emotion_mentions) * 100, 1)
         
-        # Emotional intensity (based on weighted scores)
-        total_weighted = sum(abs(score) for score in analysis['emotion_weighted_scores'].values())
-        analysis['emotional_intensity'] = total_weighted / len(articles) if len(articles) > 0 else 0
+        # Emotional intensity (based on 100-point scores)
+        total_weighted = sum(abs(score) for score in analysis['emotion_scores_100'].values())
+        analysis['emotional_intensity'] = round(total_weighted / len(articles), 1) if len(articles) > 0 else 0
         
-        # Readability score (simple approximation)
+        # Readability score
         avg_words_per_sentence = analysis['total_words'] / max(analysis['total_sentences'], 1)
         analysis['readability_score'] = max(0, min(100, 100 - (avg_words_per_sentence - 15) * 2))
         
@@ -2267,39 +2288,44 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
     return analysis
 
 
-    
-
 def analyze_article_emotions(text, emotion_weights, use_weights=True):
-    """Analyze emotions in a single article with advanced pattern matching"""
+    """Analyze emotions in a single article with 100-point scoring scale"""
     article_emotions = {}
     
     for emotion, config in emotion_weights.items():
         count = 0
         weighted_score = 0.0
+        score_100 = 0.0
         
         # Keyword matching
         for keyword in config['keywords']:
             matches = len(re.findall(rf'\b{re.escape(keyword)}\b', text, re.IGNORECASE))
             count += matches
             
-            # Apply context weighting (title matches count more)
+            # Apply 100-point scale weighting
             if use_weights:
+                score_100 += matches * config['weight']
                 weighted_score += matches * config['weight']
             else:
+                score_100 += matches * 50  # Neutral base score if not weighted
                 weighted_score += matches
         
-        # Pattern matching (if depth is comprehensive)
+        # Pattern matching with enhanced scoring
         for pattern in config.get('patterns', []):
             matches = len(re.findall(pattern, text, re.IGNORECASE))
             count += matches
             if use_weights:
-                weighted_score += matches * config['weight'] * 1.5  # Pattern matches weighted higher
+                # Pattern matches get 1.5x multiplier
+                score_100 += matches * config['weight'] * 1.5
+                weighted_score += matches * config['weight'] * 1.5
             else:
+                score_100 += matches * 50
                 weighted_score += matches
         
         article_emotions[emotion] = {
             'count': count,
-            'weighted_score': weighted_score
+            'weighted_score': weighted_score,
+            'score_100': round(score_100, 1)
         }
     
     return article_emotions
