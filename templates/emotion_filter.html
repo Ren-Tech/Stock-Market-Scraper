@@ -19,6 +19,151 @@
         overflow-x: hidden;
     }
 
+      /* Simplified 3-emotion color scheme */
+        .emotion-happy {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .emotion-neutral {
+            background: linear-gradient(135deg, #6c757d, #adb5bd);
+            color: white;
+        }
+        
+        .emotion-sad {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+        }
+        
+        /* Emotion cards for the 3 emotions */
+        .emotion-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .emotion-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .emotion-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .emotion-percentage {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .emotion-count {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .emotion-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-custom {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        
+        /* Confidence badges for 3 emotions */
+        .confidence-success {
+            border-left: 4px solid #28a745 !important;
+        }
+        
+        .confidence-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+        
+        .confidence-danger {
+            border-left: 4px solid #dc3545 !important;
+        }
+        
+        /* Emotion distribution section */
+        .emotion-distribution {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        /* Guide table simplified for 3 emotions */
+        .guide-table tbody tr:nth-child(1) {
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .guide-table tbody tr:nth-child(2) {
+            background: rgba(108, 117, 125, 0.1);
+        }
+        
+        .guide-table tbody tr:nth-child(3) {
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .emotion-color-sample {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+        
+        /* Stats cards */
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
     .emotion-distribution {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 15px;
@@ -769,17 +914,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let companies = [];
     let analysisData = null;
     
-    // Emotion configuration with emojis and colors
-    const emotionConfig = {
-        'happy': { emoji: '😊', color: '#28a745', label: 'HAPPY' },
-        'amused': { emoji: '😄', color: '#fd7e14', label: 'AMUSED' },
-        'inspired': { emoji: '🌟', color: '#6f42c1', label: 'INSPIRED' },
-        'neutral': { emoji: '😐', color: '#6c757d', label: 'NEUTRAL' },
-        'annoyed': { emoji: '😤', color: '#dc3545', label: 'ANNOYED' },
-        'afraid': { emoji: '😰', color: '#343a40', label: 'AFRAID' },
-        'sad': { emoji: '😢', color: '#17a2b8', label: 'SAD' },
-        'angry': { emoji: '😠', color: '#e83e8c', label: 'ANGRY' }
-    };
+// Simplified emotion configuration with only 3 emotions
+const emotionConfig = {
+    'happy': { emoji: '😊', color: '#28a745', label: 'HAPPY' },
+    'neutral': { emoji: '😐', color: '#6c757d', label: 'NEUTRAL' },
+    'sad': { emoji: '😢', color: '#17a2b8', label: 'SAD' }
+};
     
     // Initialize Guide Modal
     const guideModal = new bootstrap.Modal(document.getElementById('guideModal'));
