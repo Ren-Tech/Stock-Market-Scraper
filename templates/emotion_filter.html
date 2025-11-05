@@ -2024,12 +2024,13 @@
                     </div>
 
                     <!-- NEW: Score selector for keyword (1-5 points) -->
+                      <!-- NEW: Score selector for keyword (1-5 points) -->
                     <div class="mb-3">
                         <label for="editKeywordScore" class="form-label">Keyword Score (1-5)</label>
                         <select class="form-select" id="editKeywordScore">
-                            <option value="1">1 — Lowest</option>
+                            <option value="1" selected>1 — Default</option>
                             <option value="2">2</option>
-                            <option value="3" selected>3 — Default</option>
+                            <option value="3">3</option>
                             <option value="4">4</option>
                             <option value="5">5 — Highest</option>
                         </select>
@@ -2455,22 +2456,22 @@
                     keywordReferenceList.appendChild(keywordItem);
                 });
 
-                function editKeywordReference(emotion, index) {
-                    editingKeywordId = { emotion, index };
-                    currentEditingEmotion = emotion;
+               function editKeywordReference(emotion, index) {
+                        editingKeywordId = { emotion, index };
+                        currentEditingEmotion = emotion;
 
-                    const item = emotions[emotion].keywords[index];
-                    const keywordText = getKeywordText(item);
-                    const score = getKeywordScore(item);
+                        const item = emotions[emotion].keywords[index];
+                        const keywordText = getKeywordText(item);
+                        const score = getKeywordScore(item);
 
-                    document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
-                    document.getElementById('editKeywordInput').value = keywordText;
-                    document.getElementById('editKeywordEmotion').value = emotion;
-                    document.getElementById('editKeywordScore').value = (score !== null ? score : '3');
+                        document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+                        document.getElementById('editKeywordInput').value = keywordText;
+                        document.getElementById('editKeywordEmotion').value = emotion;
+                        document.getElementById('editKeywordScore').value = (score !== null ? score : '1');
 
-                    // Show the modal
-                    keywordEditModalRef.show();
-                }
+                        // Show the modal
+                        keywordEditModalRef.show();
+                    }
 
                 function deleteKeywordReference(emotion, index) {
                     const item = emotions[emotion].keywords[index];
@@ -2563,6 +2564,7 @@ document.querySelectorAll('.delete-keyword-btn').forEach(button => {
             }
 
             // Function to open add keyword modal
+            // Function to open add keyword modal
             function openAddKeywordModal() {
                 editingKeywordId = null;
                 document.getElementById('keywordEditModalTitleRef').textContent = 'Add New Keyword';
@@ -2571,11 +2573,14 @@ document.querySelectorAll('.delete-keyword-btn').forEach(button => {
                 // Set default emotion to currently selected one
                 const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
                 document.getElementById('editKeywordEmotion').value = selectedEmotion;
+
+                // Ensure new keyword score defaults to 1
+                const scoreEl = document.getElementById('editKeywordScore');
+                if (scoreEl) scoreEl.value = '1';
                 
                 // Show the modal
                 keywordEditModalRef.show();
             }
-
             // Function to edit keyword
             function editKeyword(emotion, keyword, index) {
                 editingKeywordId = { emotion, index };
@@ -2614,12 +2619,13 @@ document.querySelectorAll('.delete-keyword-btn').forEach(button => {
             function saveKeywordFromModal() {
                 const keyword = document.getElementById('editKeywordInput').value.trim();
                 const emotion = document.getElementById('editKeywordEmotion').value;
-                const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 3;
+                const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 1;
 
                 if (!keyword) {
                     alert('Please enter a keyword');
                     return;
                 }
+                
 
                 if (!emotions[emotion]) {
                     emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
