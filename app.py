@@ -1942,6 +1942,7 @@ def analyze_emotions():
     analysis_depth = data.get('analysis_depth', 'detailed')
     detect_languages = data.get('detect_languages', True)
     weighted_analysis = data.get('weighted_analysis', True)
+    emotion_keywords_data = data.get('emotion_keywords_data')  # Get keyword scores from frontend
     
     if not companies:
         return jsonify({'error': 'No companies provided'}), 400
@@ -1962,12 +1963,13 @@ def analyze_emotions():
         # Remove duplicates
         unique_articles = remove_duplicate_articles(all_articles)
         
-        # Perform emotion analysis
+        # Perform emotion analysis with keyword scores
         analysis_results = perform_comprehensive_analysis(
             unique_articles, 
             analysis_depth,
             detect_languages,
-            weighted_analysis
+            weighted_analysis,
+            emotion_keywords_data  # Pass keyword scores to analysis
         )
         
         return jsonify({
@@ -1993,8 +1995,9 @@ def remove_duplicate_articles(articles):
             unique_articles.append(article)
     
     return unique_articles
+
 def get_emotion_rubrics():
-    """Return detailed rubrics for 3 emotion classifications with 100-point scale"""
+    """Return detailed rubrics for 3 emotion classifications with dynamic scoring"""
     return {
         'happy': {
             'description': 'Content expressing joy, success, positive outcomes, innovation, or achievements',
@@ -2055,59 +2058,61 @@ def get_emotion_rubrics():
         }
     }
 
+def get_emotion_keywords_with_scores():
+    """Get default emotion keywords with scores"""
+    return {
+        'happy': {
+            'keywords': [
+                {'keyword': 'success', 'score': 1},
+                {'keyword': 'profit', 'score': 1},
+                {'keyword': 'growth', 'score': 1},
+                {'keyword': 'achievement', 'score': 1}
+            ],
+            'emoji': '😊'
+        },
+        'neutral': {
+            'keywords': [
+                {'keyword': 'announced', 'score': 1},
+                {'keyword': 'reported', 'score': 1},
+                {'keyword': 'according', 'score': 1},
+                {'keyword': 'data', 'score': 1}
+            ],
+            'emoji': '😐'
+        },
+        'sad': {
+            'keywords': [
+                {'keyword': 'loss', 'score': 1},
+                {'keyword': 'decline', 'score': 1},
+                {'keyword': 'drop', 'score': 1},
+                {'keyword': 'decrease', 'score': 1}
+            ],
+            'emoji': '😢'
+        }
+    }
 
-def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_analysis):
+def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_analysis, emotion_keywords_data=None):
     """Perform comprehensive emotion and language analysis with 3 emotions"""
     
     emotion_rubrics = get_emotion_rubrics()
     
-    # Simplified emotion weights with 3 emotions
-    emotion_weights = {
-        'happy': {
-            'weight': 85,
-            'keywords': [
-                'success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement',
-                'milestone', 'celebration', 'victory', 'triumph', 'boom', 'record high',
-                'excellent', 'positive', 'expansion', 'thriving', 'outstanding', 'exceptional',
-                'innovation', 'revolutionary', 'pioneering', 'groundbreaking', 'visionary',
-                'transformative', 'inspiring', 'amazing', 'incredible', 'advancement',
-                'cutting-edge', 'disruptive', 'game-changing', 'win', 'gains'
-            ],
-            'patterns': [
-                r'\b(up\s+\d+%)', r'\bgains?\b', r'\brise[sd]?\b', 
-                r'\bimprove[sd]?\b', r'\bnext-gen\b', r'\bstate-of-the-art\b'
-            ]
-        },
-        'neutral': {
-            'weight': 50,
-            'keywords': [
-                'reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference',
-                'statement', 'earnings', 'revenue', 'financial', 'business', 'launch',
-                'release', 'data', 'according', 'said', 'scheduled', 'plans'
-            ],
-            'patterns': [
-                r'\baccording to\b', r'\bstated that\b', r'\breported\b',
-                r'\bannounced\b', r'\breleased\b'
-            ]
-        },
-        'sad': {
-            'weight': -75,
-            'keywords': [
-                'loss', 'decline', 'drop', 'fall', 'decrease', 'layoffs', 'fired',
-                'closed', 'shutdown', 'bankrupt', 'delay', 'postpone', 'issue',
-                'problem', 'glitch', 'bug', 'complaint', 'criticism', 'controversy',
-                'warning', 'risk', 'threat', 'danger', 'concern', 'worry', 'fear',
-                'scandal', 'fraud', 'lawsuit', 'sued', 'investigation', 'accused',
-                'setback', 'challenge', 'difficulty', 'frustrated', 'disappointed',
-                'devastating', 'tragic', 'unfortunate', 'negative', 'failure'
-            ],
-            'patterns': [
-                r'\bdown\s+\d+%', r'\bdropped?\b', r'\bfell\b', r'\blost\b',
-                r'\bat risk\b', r'\bunder threat\b', r'\bunder fire\b',
-                r'\bproblems?\b', r'\bissues?\b', r'\bfailed to\b'
-            ]
+    # Use provided keyword scores or get defaults
+    if emotion_keywords_data:
+        emotion_weights_data = emotion_keywords_data
+    else:
+        emotion_weights_data = get_emotion_keywords_with_scores()
+    
+    # Build emotion weights with dynamic scoring
+    emotion_weights = {}
+    for emotion, config in emotion_weights_data.items():
+        base_weight = emotion_rubrics[emotion]['base_score']
+        
+        emotion_weights[emotion] = {
+            'weight': base_weight,
+            'keywords': [kw['keyword'] if isinstance(kw, dict) else kw for kw in config.get('keywords', [])],
+            'keyword_scores': config.get('keywords', []),
+            'patterns': get_emotion_patterns(emotion),
+            'emoji': config.get('emoji', '😐')
         }
-    }
     
     analysis = {
         'total_articles': len(articles),
@@ -2132,7 +2137,8 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         'classification_summary': {emotion: 0 for emotion in emotion_weights.keys()},
         'confidence_scores': {},
         'analyzed_articles': [],
-        'source_breakdown': {}
+        'source_breakdown': {},
+        'keyword_scores_used': emotion_weights_data  # Include the scores used in analysis
     }
     
     sentiment_scores = []
@@ -2165,8 +2171,8 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         if company:
             analysis['companies_mentioned'][company] += 1
         
-        # Emotion analysis
-        article_emotions = analyze_article_emotions(text_lower, emotion_weights, weighted_analysis)
+        # Emotion analysis - UPDATED to use keyword scores
+        article_emotions = analyze_article_emotions_with_scores(text_lower, emotion_weights, weighted_analysis)
         
         for emotion, score in article_emotions.items():
             analysis['emotion_counts'][emotion] += score['count']
@@ -2212,7 +2218,8 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             'detected_language': detect_language_advanced(text_content) if detect_languages else 'english',
             'readability_score': calculate_readability(text_content),
             'emotion_breakdown': article_emotions,
-            'classification_reasons': generate_classification_reasons(article_emotions, dominant_emotion, emotion_weights)
+            'classification_reasons': generate_classification_reasons(article_emotions, dominant_emotion, emotion_weights),
+            'keywords_found': article_emotions[dominant_emotion].get('keywords_found', [])
         }
         
         analysis['analyzed_articles'].append(article_data)
@@ -2291,6 +2298,82 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
     
     return analysis
 
+def analyze_article_emotions_with_scores(text, emotion_weights, use_weights=True):
+    """Analyze emotions in a single article using keyword scores from frontend"""
+    article_emotions = {}
+    
+    for emotion, config in emotion_weights.items():
+        count = 0
+        weighted_score = 0.0
+        score_100 = 0.0
+        keywords_found = []
+        
+        # Keyword matching with scores
+        for keyword_data in config.get('keyword_scores', []):
+            if isinstance(keyword_data, dict):
+                keyword = keyword_data['keyword']
+                keyword_score = keyword_data.get('score', 1)  # Default score is 1
+            else:
+                keyword = keyword_data
+                keyword_score = 1  # Default score for legacy keywords
+            
+            matches = len(re.findall(rf'\b{re.escape(keyword)}\b', text, re.IGNORECASE))
+            if matches > 0:
+                keywords_found.append(f"{keyword}({matches})")
+            
+            count += matches
+            
+            # Apply scoring with keyword weight multiplier
+            if use_weights:
+                # Base emotion weight multiplied by keyword score
+                emotion_base_weight = config['weight']
+                effective_score = emotion_base_weight * keyword_score
+                
+                score_100 += matches * effective_score
+                weighted_score += matches * effective_score
+            else:
+                score_100 += matches * 50 * keyword_score  # Neutral base with keyword multiplier
+                weighted_score += matches * keyword_score
+        
+        # Pattern matching with enhanced scoring (patterns get base score)
+        for pattern in config.get('patterns', []):
+            matches = len(re.findall(pattern, text, re.IGNORECASE))
+            count += matches
+            if use_weights:
+                # Pattern matches get 1.5x multiplier of base emotion weight
+                score_100 += matches * config['weight'] * 1.5
+                weighted_score += matches * config['weight'] * 1.5
+            else:
+                score_100 += matches * 50
+                weighted_score += matches
+        
+        article_emotions[emotion] = {
+            'count': count,
+            'weighted_score': weighted_score,
+            'score_100': round(score_100, 1),
+            'keywords_found': keywords_found[:5]  # Store top 5 keywords found
+        }
+    
+    return article_emotions
+
+def get_emotion_patterns(emotion):
+    """Get regex patterns for each emotion"""
+    patterns = {
+        'happy': [
+            r'\b(up\s+\d+%)', r'\bgains?\b', r'\brise[sd]?\b', 
+            r'\bimprove[sd]?\b', r'\bnext-gen\b', r'\bstate-of-the-art\b'
+        ],
+        'neutral': [
+            r'\baccording to\b', r'\bstated that\b', r'\breported\b',
+            r'\bannounced\b', r'\breleased\b'
+        ],
+        'sad': [
+            r'\bdown\s+\d+%', r'\bdropped?\b', r'\bfell\b', r'\blost\b',
+            r'\bat risk\b', r'\bunder threat\b', r'\bunder fire\b',
+            r'\bproblems?\b', r'\bissues?\b', r'\bfailed to\b'
+        ]
+    }
+    return patterns.get(emotion, [])
 
 def calculate_confidence_score(article_emotions, dominant_emotion):
     """Calculate confidence score for emotion classification"""
@@ -2331,48 +2414,6 @@ def generate_classification_reasons(article_emotions, dominant_emotion, emotion_
         reasons.append(f"Key terms detected: {', '.join(keywords_found[:3])}")
     
     return reasons if reasons else ["Classification based on overall text analysis"]
-
-def analyze_article_emotions(text, emotion_weights, use_weights=True):
-    """Analyze emotions in a single article with 100-point scoring scale"""
-    article_emotions = {}
-    
-    for emotion, config in emotion_weights.items():
-        count = 0
-        weighted_score = 0.0
-        score_100 = 0.0
-        
-        # Keyword matching
-        for keyword in config['keywords']:
-            matches = len(re.findall(rf'\b{re.escape(keyword)}\b', text, re.IGNORECASE))
-            count += matches
-            
-            # Apply 100-point scale weighting
-            if use_weights:
-                score_100 += matches * config['weight']
-                weighted_score += matches * config['weight']
-            else:
-                score_100 += matches * 50  # Neutral base score if not weighted
-                weighted_score += matches
-        
-        # Pattern matching with enhanced scoring
-        for pattern in config.get('patterns', []):
-            matches = len(re.findall(pattern, text, re.IGNORECASE))
-            count += matches
-            if use_weights:
-                # Pattern matches get 1.5x multiplier
-                score_100 += matches * config['weight'] * 1.5
-                weighted_score += matches * config['weight'] * 1.5
-            else:
-                score_100 += matches * 50
-                weighted_score += matches
-        
-        article_emotions[emotion] = {
-            'count': count,
-            'weighted_score': weighted_score,
-            'score_100': round(score_100, 1)
-        }
-    
-    return article_emotions
 
 def detect_language_advanced(text):
     """Advanced language detection with fallback"""

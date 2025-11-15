@@ -2000,8 +2000,6 @@
     </div>
 
     <!-- Add/Edit Keyword Modal -->
-    // ...existing code...
-    <!-- Add/Edit Keyword Modal -->
     <div class="modal fade" id="keywordEditModalRef" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -2024,7 +2022,6 @@
                     </div>
 
                     <!-- NEW: Score selector for keyword (1-5 points) -->
-                      <!-- NEW: Score selector for keyword (1-5 points) -->
                     <div class="mb-3">
                         <label for="editKeywordScore" class="form-label">Keyword Score (1-5)</label>
                         <select class="form-select" id="editKeywordScore">
@@ -2044,7 +2041,6 @@
             </div>
         </div>
     </div>
-// ...existing code...
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -2082,137 +2078,126 @@
                 'sad': { emoji: '😢', color: '#17a2b8', label: 'SAD' }
             };
 
-            // Emotion keywords data - FIXED STRUCTURE
+            // Emotion keywords data - FIXED STRUCTURE with alphabetical arrangement
             let emotions = {
                 'happy': {
-                    'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 'milestone', 
-                                'celebration', 'victory', 'triumph', 'boom', 'record high', 'excellent results', 'positive', 
-                                'expansion', 'thriving', 'increase', 'increased', 'growing', 'growing revenue', 'upside', 
-                                'high profit margin', 'bullish', 'strong bottom-line', 'increased net income', 
-                                'rising return on equity', 'return on assets', 'healthy cash balance', 'low debt-to-equity', 
-                                'financial stability', 'strong profitability', 'efficient use of assets', 'high market share', 
-                                'increase share value', 'increase stock value', 'market leader', 'earnings growth', 
-                                'strong growth', 'gains', 'confidence', 'successful', 'doing well', 'flourishing', 
-                                'prospering', 'succeeding', 'booming', 'vigorous', 'rallying', 'making headway', 
-                                'making progress', 'profitable', 'increasing', 'developing', 'advancing', 'rising', 
-                                'high reward', 'increase in value', 'positive return', 'projected price increase', 
-                                'high investment motivation', 'high outcomes', 'positive outcomes', 'on the rise', 
-                                'on the increase', 'great', 'high potential', 'growth potential', 'good quarter', 
-                                'positive quarter', 'good report', 'brilliant', 'excellent', 'amazing', 'buoyant', 
-                                'new products', 'leading', 'leading ahead', 'happy', 'joyful', 'courageous', 'confident', 
-                                'abundant', 'absolutely', 'accessible', 'accommodative', 'acclaimed', 'high achievement', 
-                                'admire', 'adore', 'adulation', 'approve', 'awesome', 'attractive', 'assure', 'beaming', 
-                                'radiating', 'impressive', 'beloved', 'best', 'smart', 'clever', 'intelligent', 
-                                'breathtaking', 'centered', 'goal-oriented', 'champion', 'win', 'wins', 'winner', 'winners', 
-                                'ability to attract', 'fascinating', 'charming', 'cheerful', 'vigor', 'constant', 'steadfast', 
-                                'courage', 'definite', 'delectable', 'delightful', 'dependable', 'dignified', 'respectable', 
-                                'divine', 'heavenly', 'dynamite', 'outstanding', 'ecstatic', 'pleasurable', 'electrifying', 
-                                'employable', 'empowered', 'endearing', 'enjoyable', 'enriching', 'enthusiastic', 'keen', 
-                                'eager', 'enticing', 'alluring', 'exceptional', 'especial', 'finest', 'highest quality', 
-                                'exciting', 'stimulating', 'exhilarating', 'exponential', 'exultant', 'rejoicing', 'fabulous', 
-                                'fab', 'pleasing', 'extraordinary', 'extraordinary good', 'favorite', 'favourite', 'fearless', 
-                                'bold', 'fetching', 'gallant', 'heroic', 'honorable', 'genuine', 'authentic', 'gleaming', 
-                                'impressively', 'bright', 'bright future', 'positive future', 'good future', 'greatest', 
-                                'highest', 'gumptious', 'good judgment', 'good perception', 'ideal', 'imaginative', 
-                                'impeccable', 'remarkable', 'incredible', 'good run', 'innovative', 'insightful', 'inspiring', 
-                                'instinctive', 'intellectual', 'irresistible', 'jolly', 'jovial', 'joysome', 'judicious', 
-                                'sound judgment', 'just', 'righteous', 'strikingly impressive', 'knowledgeable', 'lambent', 
-                                'laudable', 'praiseworthy', 'legendary', 'extremely popular', 'rational', 'likable', 'lively', 
-                                'luminous', 'magical', 'enchanting', 'magnetic', 'magnificent', 'majestic', 'marvelous', 
-                                'masterful', 'attentive', 'miraculous', 'mindful', 'motivated', 'arousing', 'moving up', 
-                                'numinous', 'awe-inspiring', 'on-target', 'accurate', 'optimistic', 'systematic', 'orderly', 
-                                'organized', 'out-of-this-world', 'overjoyed', 'prominent', 'paramount', 'supreme', 'powerful', 
-                                'splendid', 'perceptive', 'persistent', 'persuasive', 'polished', 'prized', 'cherished', 
-                                'convincing', 'irreplaceable', 'phenomenal', 'generous', 'generously', 'piquant', 'proactive', 
-                                'advance', 'advanced', 'promising', 'proud', 'positive achievement', 'relishing', 'punctual', 
-                                'prompt', 'radiant', 'emanating', 'rapturous', 'razor-sharp', 'extremely sharp', 'quick-witted', 
-                                'very clever', 'very successful', 'reassuring', 'recherche', 'exquisite', 'highly recommend', 
-                                'highly recommended', 'worthy', 'worthy of praise', 'praise', 'refulgent', 'reliable', 
-                                'trustworthy', 'remarkably', 'resilient', 'resourceful', 'high esteem', 'revolutionary', 
-                                'surprising', 'surprisingly', 'sagacious', 'acutely wise', 'savvy', 'well-informed', 'shrewd', 
-                                'poise', 'sensational', 'sensationally', 'exceptionally good', 'exceptionally positive', 
-                                'sincere', 'energetic', 'spellbinding', 'spunky', 'spirited', 'stellar', 'teeming', 
-                                'productive', 'very profitable', 'trailblazing', 'transcendental', 'tubular', 'upbeat', 
-                                'uplifting', 'happiness', 'upstanding', 'valiant', 'brave', 'vibrant', 'victorious', 
-                                'visionary', 'vivacious', 'wise', 'skilled', 'tenacious', 'beneficial', 'efficient', 'optimistic'],
+                    'keywords': [
+                        'ability to attract', 'absolutely', 'abundant', 'acclaimed', 'accommodative', 'accessible', 
+                        'achievement', 'admire', 'adore', 'adulation', 'advancing', 'amazing', 'approve', 
+                        'assure', 'attractive', 'awesome', 'beaming', 'beloved', 'beneficial', 'best', 
+                        'booming', 'breakthrough', 'bright', 'bright future', 'brilliant', 'buoyant', 'celebration', 
+                        'centered', 'champion', 'charming', 'cheerful', 'clever', 'confidence', 'confident', 
+                        'constant', 'courage', 'courageous', 'definite', 'delectable', 'delightful', 'dependable', 
+                        'developing', 'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'ecstatic', 
+                        'efficient', 'electrifying', 'employable', 'empowered', 'endearing', 'enjoyable', 
+                        'enriching', 'enthusiastic', 'enticing', 'exceptional', 'exciting', 'exhilarating', 
+                        'expansion', 'exponential', 'exultant', 'fabulous', 'fascinating', 'favorite', 
+                        'fearless', 'fetching', 'finest', 'flourishing', 'gallant', 'generous', 'generously', 
+                        'genuine', 'gains', 'gleaming', 'goal-oriented', 'good future', 'good judgment', 
+                        'good perception', 'good quarter', 'good report', 'great', 'greatest', 'growing', 
+                        'growing revenue', 'growth', 'growth potential', 'gumptious', 'happiness', 'happy', 
+                        'healthy cash balance', 'high achievement', 'high investment motivation', 'high market share', 
+                        'high outcomes', 'high potential', 'high profit margin', 'high reward', 'highest', 
+                        'highest quality', 'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
+                        'increased net income', 'increase in value', 'increase share value', 'increase stock value', 
+                        'increasing', 'incredible', 'innovative', 'insightful', 'inspiring', 'instinctive', 
+                        'intellectual', 'irresistible', 'jolly', 'jovial', 'joysome', 'judicious', 'just', 
+                        'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 'leading ahead', 'legendary', 
+                        'likable', 'lively', 'low debt-to-equity', 'luminous', 'magical', 'magnetic', 
+                        'magnificent', 'majestic', 'making headway', 'making progress', 'marvelous', 'masterful', 
+                        'milestone', 'mindful', 'miraculous', 'motivated', 'moving up', 'new products', 
+                        'numinous', 'on the increase', 'on the rise', 'on-target', 'optimistic', 'orderly', 
+                        'organized', 'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
+                        'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 'pleasing', 
+                        'poise', 'polished', 'positive', 'positive achievement', 'positive future', 'positive outcomes', 
+                        'positive quarter', 'positive return', 'powerful', 'praiseworthy', 'pride', 'prized', 
+                        'proactive', 'productive', 'profit', 'profitable', 'projected price increase', 'prominent', 
+                        'promising', 'prospering', 'punctual', 'quick-witted', 'radiant', 'rallying', 
+                        'rational', 'rapturous', 'razor-sharp', 'reassuring', 'recherche', 'record high', 
+                        'refulgent', 'reliable', 'remarkable', 'remarkably', 'resilient', 'resourceful', 
+                        'respectable', 'return on assets', 'revolutionary', 'rising', 'rising return on equity', 
+                        'sagacious', 'savvy', 'sensational', 'sensationally', 'shrewd', 'sincere', 'skilled', 
+                        'smart', 'soar', 'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 
+                        'stimulating', 'strong bottom-line', 'strong growth', 'strong profitability', 
+                        'success', 'successful', 'succeeding', 'surge', 'surprising', 'surprisingly', 
+                        'systematic', 'teeming', 'tenacious', 'thriving', 'trailblazing', 'transcendental', 
+                        'triumph', 'tubular', 'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
+                        'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 'vigor', 
+                        'vigorous', 'visionary', 'vivacious', 'wise', 'win', 'wins', 'winner', 'winners', 
+                        'worthy', 'worthy of praise'
+                    ].sort(), // Alphabetical sorting
                     'emoji': '😊'
                 },
                 'neutral': {
-                    'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference', 'statement', 
-                                'earnings', 'revenue', 'financial', 'business', 'launch', 'release', 'announced', 
-                                'reported', 'according', 'data', 'information', 'update', 'statement', 'press release',
-                                'financial results', 'quarterly report', 'annual report', 'meeting minutes', 'conference call',
-                                'business update', 'market update', 'industry news', 'regulatory filing', 'official statement',
-                                'corporate announcement', 'press conference', 'media release', 'public statement',
-                                'official communication', 'formal announcement', 'company update', 'shareholder meeting',
-                                'board meeting', 'earnings call', 'financial update', 'performance review', 'strategic update',
-                                'operational update', 'management discussion', 'analyst call', 'investor presentation',
-                                'market analysis', 'industry report', 'sector update', 'economic data', 'statistical release',
-                                'government data', 'regulatory update', 'compliance report', 'audit report', 'financial statement',
-                                'balance sheet', 'income statement', 'cash flow', 'annual general meeting', 'extraordinary meeting',
-                                'special meeting', 'shareholder vote', 'proxy statement', 'annual report', 'interim report',
-                                'trading update', 'market announcement', 'regulatory news', 'price sensitive information',
-                                'material information', 'non-material information', 'routine update', 'scheduled announcement',
-                                'planned release', 'expected report', 'anticipated data', 'projected results', 'estimated figures',
-                                'preliminary results', 'final results', 'revised figures', 'updated guidance', 'outlook statement',
-                                'forward looking statement', 'cautionary statement', 'risk factors', 'disclaimer', 'legal notice',
-                                'terms and conditions', 'privacy policy', 'cookie policy', 'website update', 'system maintenance',
-                                'technical update', 'product update', 'service announcement', 'maintenance schedule',
-                                'downtime notification', 'service interruption', 'planned outage', 'unplanned outage',
-                                'emergency maintenance', 'routine maintenance', 'scheduled downtime', 'unscheduled downtime'],
+                    'keywords': [
+                        'according', 'analyst call', 'annual general meeting', 'annual report', 'announced', 
+                        'announcement', 'anticipated data', 'audit report', 'balance sheet', 'board meeting', 
+                        'business', 'business update', 'cautionary statement', 'company update', 'compliance report', 
+                        'conference', 'conference call', 'corporate announcement', 'data', 'disclaimer', 
+                        'earnings', 'earnings call', 'economic data', 'estimated figures', 'extraordinary meeting', 
+                        'final results', 'financial', 'financial results', 'financial statement', 'financial update', 
+                        'forward looking statement', 'government data', 'income statement', 'industry news', 
+                        'industry report', 'information', 'interim report', 'investor presentation', 'launch', 
+                        'legal notice', 'management discussion', 'market analysis', 'market announcement', 
+                        'market update', 'material information', 'meeting', 'meeting minutes', 'media release', 
+                        'non-material information', 'official communication', 'official statement', 'operational update', 
+                        'outlook statement', 'performance review', 'planned release', 'preliminary results', 
+                        'press conference', 'press release', 'price sensitive information', 'projected results', 
+                        'proxy statement', 'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
+                        'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 'revised figures', 
+                        'risk factors', 'routine update', 'scheduled announcement', 'sector update', 'service announcement', 
+                        'shareholder meeting', 'shareholder vote', 'special meeting', 'statement', 'statistical release', 
+                        'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
+                        'trading update', 'update', 'updated guidance', 'updates', 'website update'
+                    ].sort(), // Alphabetical sorting
                     'emoji': '😐'
                 },
                 'sad': {
-                    'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop', 'fall', 'decrease', 
-                                'layoffs', 'fired', 'closed', 'shutdown', 'bankrupt', 'poor', 'awful', 'terrible', 
-                                'inferior', 'harmful', 'unpleasant', 'lousy', 'shoddy', 'cheap', 'wretched', 'horrible', 
-                                'dreadful', 'abysmal', 'serious decline', 'defective', 'faulty', 'wrong', 'immoral', 
-                                'atrocious', 'mischievous', 'detrimental', 'disobedient', 'dangerous', 'miserable', 
-                                'troubled', 'rotten', 'distressing', 'adverse', 'grim', 'regrettable', 'unwelcome', 
-                                'deplorable', 'hopeless', 'worthless', 'laughable', 'lamentable', 'sorry', 'third-rate', 
-                                'sacking', 'diabolical', 'execrable', 'incompetent', 'inept', 'inexpert', 'unskilled', 
-                                'ineffectual', 'crummy', 'pathetic', 'useless', 'woeful', 'appalling', 'pitiful', 
-                                'godawful', 'dire', 'duff', 'chronic', 'rubbish', 'egregious', 'inauspicious', 
-                                'disadvantageous', 'difficult', 'inopportune', 'unpropitious', 'inappropriate', 
-                                'unsuitable', 'unfavourable', 'unfavorable', 'untoward', 'disastrous', 'parlous', 
-                                'severe', 'grave', 'critical', 'shocking', 'life-threatening', 'frightful', 'ghastly', 
-                                'inimical', 'destructive', 'ruinous', 'deleterious', 'unhealthy', 'corrupt', 'redundancies', 
-                                'obliterate', 'obliterated', 'wipe out', 'dejected', 'meagre', 'diminished', 'subdued', 
-                                'reduce', 'lessen', 'diminish', 'lower', 'abate', 'dwindle', 'curtail', 'shrink', 
-                                'shrinking', 'wane', 'ebb', 'fade', 'reduction', 'lessening', 'lowering', 'falling off', 
-                                'contract', 'subside', 'contraction', 'cut', 'cutback', 'curtailment', 'downturn', 
-                                'slackening', 'make less', 'low margin', 'disappointed', 'pessimistic', 'apathy', 
-                                'adverse', 'annoy', 'alarming', 'anxious', 'belligerent', 'boring', 'banal', 'bemoan', 
-                                'broken', 'beneath', 'collapse', 'contrary', 'corrosive', 'contradictory', 'criminal', 
-                                'cutting', 'damage', 'dead', 'deny', 'deprived', 'dirty', 'disheveled', 'dismal', 
-                                'damaging', 'decaying', 'despicable', 'disease', 'dishonest', 'dreary', 'dastardly', 
-                                'deformed', 'depressed', 'disgusting', 'dishonorable', "don't", 'enraged', 'eroding', 
-                                'evil', 'fail', 'fear', 'feeble', 'fight', 'filthy', 'foul', 'frighten', 'frightful', 
-                                'gawky', 'greed', 'grimace', 'gross', 'grotesque', 'gruesome', 'guilty', 'haggard', 
-                                'hate', 'hideous', 'horrendous', 'hostile', 'hurt', 'hurtful', 'ignorant', 'ignore', 
-                                'ill', 'immature', 'imperfect', 'impossible', 'inane', 'inelegant', 'infernal', 'injure', 
-                                'injurious', 'insane', 'insidious', 'insipid', 'jealous', 'junk', 'junky', 'lose', 
-                                'lumpy', 'malicious', 'menacing', 'messy', 'misshapen', 'missing', 'misunderstood', 
-                                'monstrous', 'naïve', 'nasty', 'naughty', 'negate', 'negative', 'never', 'nondescript', 
-                                'nonsense', 'noxious', 'objectionable', 'odious', 'offensive', 'oppressive', 'pain', 
-                                'perturb', 'petty', 'poisonous', 'prejudice', 'questionable', 'quit', 'reject', 'renege', 
-                                'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 'rocky', 'rude', 
-                                'terrifying', 'threatening', 'substandard', 'second-rate', 'second-class', 'unsatisfactory', 
-                                'suffering', 'inadequate', 'unacceptable', 'not up to scratch', 'not to par', 'deficient', 
-                                'deficiency', 'low', 'below', 'below expectation', 'imperfect', 'disagreeable', 'bad', 
-                                'weak management', 'weak leadership', 'unlucky', 'dwindling', 'failing', 'losing', 
-                                'losing money', 'facing difficulties', 'falling', 'scanty', 'neglect', 'inefficient', 
-                                'unproductive', 'insolvency', 'negative financial state', 'high overheads', 'low revenue', 
-                                'low sales', 'low order book', 'low turnover', 'falling market share', 'legal dispute', 
-                                'legal disputes', 'lack of innovation', 'struggling', 'struggles', 'negative cash flow', 
-                                'financial distress', 'going concern warning', 'severe financial trouble', 'high debt', 
-                                'high debt levels', 'poor credit ratings', 'product call back', 'product call backs', 
-                                'poor credit control', 'financial weakness', 'poor report', 'poor reports', 'downside', 
-                                'headwinds', 'insolvent', 'imminent failure', 'liabilities', 'bad assets', 'administration', 
-                                'inability', 'debts', 'outstanding debts', 'accounting discrepancies', 'interest payments', 
-                                'legal issues', 'stagflation', 'slow economic growth', 'negative order book', 'low growth', 
-                                'market value decline', 'significant drop', 'reducing', 'reducing orders', 'financial trouble', 
-                                'unprofitable', 'vulnerable', 'cash-strapped'],
+                    'keywords': [
+                        'abate', 'abysmal', 'accounting discrepancies', 'administration', 'adverse', 'alarming', 
+                        'anxious', 'apathy', 'appalling', 'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 
+                        'battle', 'belligerent', 'bemoan', 'beneath', 'boring', 'broken', 'cash-strapped', 
+                        'cheap', 'chronic', 'closed', 'collapse', 'contrary', 'corrosive', 'criminal', 'crummy', 
+                        'cut', 'cutback', 'cutting', 'damage', 'dangerous', 'dead', 'death', 'debts', 'decrease', 
+                        'decreasing', 'defective', 'deficient', 'deformed', 'dejected', 'deleterious', 'deny', 
+                        'depressed', 'deprived', 'destructive', 'detrimental', 'diabolical', 'difficult', 
+                        'diminished', 'diminish', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
+                        'disastrous', 'dishonest', 'dishonorable', 'disheveled', 'dismal', 'disobedient', 
+                        'dreadful', 'dreary', 'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'emergency maintenance', 
+                        'enraged', 'eroding', 'evil', 'execrable', 'fade', 'fail', 'failing', 'fall', 'falling', 
+                        'falling market share', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
+                        'financial trouble', 'financial weakness', 'fired', 'foul', 'frighten', 'frightful', 
+                        'ghastly', 'going concern warning', 'grave', 'grim', 'grimace', 'gross', 'grotesque', 
+                        'gruesome', 'guilty', 'haggard', 'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 
+                        'high debt levels', 'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
+                        'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
+                        'imperfect', 'impossible', 'inability', 'inadequate', 'inane', 'inauspicious', 
+                        'incompetent', 'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
+                        'inimical', 'injure', 'injurious', 'inappropriate', 'insane', 'insidious', 'insipid', 
+                        'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 'junky', 'lack of innovation', 
+                        'lamentable', 'laughable', 'layoffs', 'legal dispute', 'legal disputes', 'legal issues', 
+                        'lessen', 'lessening', 'liabilities', 'lose', 'losing', 'losing money', 'loss', 'low', 
+                        'low growth', 'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
+                        'lower', 'lowering', 'lousy', 'lumpy', 'malicious', 'market value decline', 'meagre', 
+                        'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 'misunderstood', 
+                        'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 'negative cash flow', 
+                        'negative financial state', 'negative order book', 'negate', 'neglect', 'never', 
+                        'nondescript', 'nonsense', 'noxious', 'objectionable', 'obliterate', 'obliterated', 
+                        'odious', 'offensive', 'oppressive', 'outstanding debts', 'pain', 'parlous', 'pathetic', 
+                        'pessimistic', 'perturb', 'petty', 'pitiful', 'poisonous', 'poor', 'poor credit control', 
+                        'poor credit ratings', 'poor report', 'poor reports', 'prejudice', 'product call back', 
+                        'product call backs', 'questionable', 'quit', 'redundancies', 'reduction', 'regrettable', 
+                        'reject', 'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
+                        'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 'scanty', 'second-class', 
+                        'second-rate', 'severe', 'severe financial trouble', 'shoddy', 'shock', 'shocking', 
+                        'shrink', 'shrinking', 'shutdown', 'significant drop', 'slow economic growth', 'stagflation', 
+                        'subdued', 'subside', 'substandard', 'suffering', 'terrible', 'terrifying', 'third-rate', 
+                        'threatening', 'tragedy', 'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 
+                        'unfortunate', 'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
+                        'unskilled', 'unsuitable', 'untoward', 'unwelcome', 'useless', 'vulnerable', 'wane', 
+                        'weak leadership', 'weak management', 'wretched', 'wipe out', 'woeful', 'worthless', 
+                        'wrong'
+                    ].sort(), // Alphabetical sorting
                     'emoji': '😢'
                 }
             };
@@ -2371,8 +2356,6 @@
             }
             
             // FIXED: renderKeywordReferenceList function with proper data structure handling
-            // ...existing code...
-            // FIXED: renderKeywordReferenceList function with proper data structure handling
             function renderKeywordReferenceList(searchTerm = '') {
                 const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
                 const keywordReferenceList = document.getElementById('keywordReferenceList');
@@ -2456,22 +2439,22 @@
                     keywordReferenceList.appendChild(keywordItem);
                 });
 
-               function editKeywordReference(emotion, index) {
-                        editingKeywordId = { emotion, index };
-                        currentEditingEmotion = emotion;
+                function editKeywordReference(emotion, index) {
+                    editingKeywordId = { emotion, index };
+                    currentEditingEmotion = emotion;
 
-                        const item = emotions[emotion].keywords[index];
-                        const keywordText = getKeywordText(item);
-                        const score = getKeywordScore(item);
+                    const item = emotions[emotion].keywords[index];
+                    const keywordText = getKeywordText(item);
+                    const score = getKeywordScore(item);
 
-                        document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
-                        document.getElementById('editKeywordInput').value = keywordText;
-                        document.getElementById('editKeywordEmotion').value = emotion;
-                        document.getElementById('editKeywordScore').value = (score !== null ? score : '1');
+                    document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+                    document.getElementById('editKeywordInput').value = keywordText;
+                    document.getElementById('editKeywordEmotion').value = emotion;
+                    document.getElementById('editKeywordScore').value = (score !== null ? score : '1');
 
-                        // Show the modal
-                        keywordEditModalRef.show();
-                    }
+                    // Show the modal
+                    keywordEditModalRef.show();
+                }
 
                 function deleteKeywordReference(emotion, index) {
                     const item = emotions[emotion].keywords[index];
@@ -2509,61 +2492,8 @@
                         deleteKeywordReference(emotion, index);
                     });
                 });
-
-            
-// ...existing code...
-
-                function editKeywordReference(emotion, keyword, index) {
-    editingKeywordId = { emotion, index };
-    currentEditingEmotion = emotion;
-
-    document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
-    document.getElementById('editKeywordInput').value = keyword;
-    document.getElementById('editKeywordEmotion').value = emotion;
-
-    // Show the modal
-    keywordEditModalRef.show();
-}
-                function deleteKeywordReference(emotion, keyword, index) {
-    if (confirm(`Are you sure you want to delete the keyword "${keyword}" from ${emotion} category?`)) {
-        // Remove keyword from emotions data
-        if (emotions[emotion] && emotions[emotion].keywords) {
-            emotions[emotion].keywords.splice(index, 1);
-
-            // Save to cookies
-            saveEmotionsToCookies();
-
-            // Update UI
-            renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
-
-            // Show success message
-            showToast('Keyword deleted successfully', 'success');
-        }
-    }
-}
-                
-                // Add event listeners to action buttons
-                document.querySelectorAll('.edit-keyword-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const emotion = this.getAttribute('data-emotion');
-        const keyword = this.getAttribute('data-keyword');
-        const index = this.getAttribute('data-index');
-        editKeywordReference(emotion, keyword, index); // <-- changed
-    });
-});
-
-document.querySelectorAll('.delete-keyword-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const emotion = this.getAttribute('data-emotion');
-        const keyword = this.getAttribute('data-keyword');
-        const index = this.getAttribute('data-index');
-        deleteKeywordReference(emotion, keyword, index); // <-- changed
-    });
-});
-
             }
 
-            // Function to open add keyword modal
             // Function to open add keyword modal
             function openAddKeywordModal() {
                 editingKeywordId = null;
@@ -2581,40 +2511,7 @@ document.querySelectorAll('.delete-keyword-btn').forEach(button => {
                 // Show the modal
                 keywordEditModalRef.show();
             }
-            // Function to edit keyword
-            function editKeyword(emotion, keyword, index) {
-                editingKeywordId = { emotion, index };
-                currentEditingEmotion = emotion;
-                
-                document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
-                document.getElementById('editKeywordInput').value = keyword;
-                document.getElementById('editKeywordEmotion').value = emotion;
-                
-                // Show the modal
-                keywordEditModalRef.show();
-            }
 
-            // Function to delete keyword
-            function deleteKeyword(emotion, keyword, index) {
-                if (confirm(`Are you sure you want to delete the keyword "${keyword}" from ${emotion} category?`)) {
-                    // Remove keyword from emotions data
-                    if (emotions[emotion] && emotions[emotion].keywords) {
-                        emotions[emotion].keywords.splice(index, 1);
-                        
-                        // Save to cookies
-                        saveEmotionsToCookies();
-                        
-                        // Update UI
-                        renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
-                        
-                        // Show success message
-                        showToast('Keyword deleted successfully', 'success');
-                    }
-                }
-            }
-
-            // Function to save keyword (both add and edit)
-            // ...existing code...
             // Function to save keyword (both add and edit)
             function saveKeywordFromModal() {
                 const keyword = document.getElementById('editKeywordInput').value.trim();
@@ -2625,7 +2522,6 @@ document.querySelectorAll('.delete-keyword-btn').forEach(button => {
                     alert('Please enter a keyword');
                     return;
                 }
-                
 
                 if (!emotions[emotion]) {
                     emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
@@ -2680,23 +2576,130 @@ document.querySelectorAll('.delete-keyword-btn').forEach(button => {
 
                 renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
             }
-// ...existing code...
 
             // Function to reset keywords to default
             function resetKeywordsToDefault() {
                 if (confirm('Are you sure you want to reset all keywords to their default values? This action cannot be undone.')) {
-                    // Reset to original emotion keywords
+                    // Reset to original emotion keywords with alphabetical sorting
                     emotions = {
                         'happy': {
-                            'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 'milestone'],
+                            'keywords': [
+                                'ability to attract', 'absolutely', 'abundant', 'acclaimed', 'accommodative', 'accessible', 
+                                'achievement', 'admire', 'adore', 'adulation', 'advancing', 'amazing', 'approve', 
+                                'assure', 'attractive', 'awesome', 'beaming', 'beloved', 'beneficial', 'best', 
+                                'booming', 'breakthrough', 'bright', 'bright future', 'brilliant', 'buoyant', 'celebration', 
+                                'centered', 'champion', 'charming', 'cheerful', 'clever', 'confidence', 'confident', 
+                                'constant', 'courage', 'courageous', 'definite', 'delectable', 'delightful', 'dependable', 
+                                'developing', 'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'ecstatic', 
+                                'efficient', 'electrifying', 'employable', 'empowered', 'endearing', 'enjoyable', 
+                                'enriching', 'enthusiastic', 'enticing', 'exceptional', 'exciting', 'exhilarating', 
+                                'expansion', 'exponential', 'exultant', 'fabulous', 'fascinating', 'favorite', 
+                                'fearless', 'fetching', 'finest', 'flourishing', 'gallant', 'generous', 'generously', 
+                                'genuine', 'gains', 'gleaming', 'goal-oriented', 'good future', 'good judgment', 
+                                'good perception', 'good quarter', 'good report', 'great', 'greatest', 'growing', 
+                                'growing revenue', 'growth', 'growth potential', 'gumptious', 'happiness', 'happy', 
+                                'healthy cash balance', 'high achievement', 'high investment motivation', 'high market share', 
+                                'high outcomes', 'high potential', 'high profit margin', 'high reward', 'highest', 
+                                'highest quality', 'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
+                                'increased net income', 'increase in value', 'increase share value', 'increase stock value', 
+                                'increasing', 'incredible', 'innovative', 'insightful', 'inspiring', 'instinctive', 
+                                'intellectual', 'irresistible', 'jolly', 'jovial', 'joysome', 'judicious', 'just', 
+                                'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 'leading ahead', 'legendary', 
+                                'likable', 'lively', 'low debt-to-equity', 'luminous', 'magical', 'magnetic', 
+                                'magnificent', 'majestic', 'making headway', 'making progress', 'marvelous', 'masterful', 
+                                'milestone', 'mindful', 'miraculous', 'motivated', 'moving up', 'new products', 
+                                'numinous', 'on the increase', 'on the rise', 'on-target', 'optimistic', 'orderly', 
+                                'organized', 'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
+                                'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 'pleasing', 
+                                'poise', 'polished', 'positive', 'positive achievement', 'positive future', 'positive outcomes', 
+                                'positive quarter', 'positive return', 'powerful', 'praiseworthy', 'pride', 'prized', 
+                                'proactive', 'productive', 'profit', 'profitable', 'projected price increase', 'prominent', 
+                                'promising', 'prospering', 'punctual', 'quick-witted', 'radiant', 'rallying', 
+                                'rational', 'rapturous', 'razor-sharp', 'reassuring', 'recherche', 'record high', 
+                                'refulgent', 'reliable', 'remarkable', 'remarkably', 'resilient', 'resourceful', 
+                                'respectable', 'return on assets', 'revolutionary', 'rising', 'rising return on equity', 
+                                'sagacious', 'savvy', 'sensational', 'sensationally', 'shrewd', 'sincere', 'skilled', 
+                                'smart', 'soar', 'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 
+                                'stimulating', 'strong bottom-line', 'strong growth', 'strong profitability', 
+                                'success', 'successful', 'succeeding', 'surge', 'surprising', 'surprisingly', 
+                                'systematic', 'teeming', 'tenacious', 'thriving', 'trailblazing', 'transcendental', 
+                                'triumph', 'tubular', 'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
+                                'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 'vigor', 
+                                'vigorous', 'visionary', 'vivacious', 'wise', 'win', 'wins', 'winner', 'winners', 
+                                'worthy', 'worthy of praise'
+                            ].sort(),
                             'emoji': '😊'
                         },
                         'neutral': {
-                            'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference', 'statement'],
+                            'keywords': [
+                                'according', 'analyst call', 'annual general meeting', 'annual report', 'announced', 
+                                'announcement', 'anticipated data', 'audit report', 'balance sheet', 'board meeting', 
+                                'business', 'business update', 'cautionary statement', 'company update', 'compliance report', 
+                                'conference', 'conference call', 'corporate announcement', 'data', 'disclaimer', 
+                                'earnings', 'earnings call', 'economic data', 'estimated figures', 'extraordinary meeting', 
+                                'final results', 'financial', 'financial results', 'financial statement', 'financial update', 
+                                'forward looking statement', 'government data', 'income statement', 'industry news', 
+                                'industry report', 'information', 'interim report', 'investor presentation', 'launch', 
+                                'legal notice', 'management discussion', 'market analysis', 'market announcement', 
+                                'market update', 'material information', 'meeting', 'meeting minutes', 'media release', 
+                                'non-material information', 'official communication', 'official statement', 'operational update', 
+                                'outlook statement', 'performance review', 'planned release', 'preliminary results', 
+                                'press conference', 'press release', 'price sensitive information', 'projected results', 
+                                'proxy statement', 'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
+                                'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 'revised figures', 
+                                'risk factors', 'routine update', 'scheduled announcement', 'sector update', 'service announcement', 
+                                'shareholder meeting', 'shareholder vote', 'special meeting', 'statement', 'statistical release', 
+                                'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
+                                'trading update', 'update', 'updated guidance', 'updates', 'website update'
+                            ].sort(),
                             'emoji': '😐'
                         },
                         'sad': {
-                            'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop', 'fall'],
+                            'keywords': [
+                                'abate', 'abysmal', 'accounting discrepancies', 'administration', 'adverse', 'alarming', 
+                                'anxious', 'apathy', 'appalling', 'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 
+                                'battle', 'belligerent', 'bemoan', 'beneath', 'boring', 'broken', 'cash-strapped', 
+                                'cheap', 'chronic', 'closed', 'collapse', 'contrary', 'corrosive', 'criminal', 'crummy', 
+                                'cut', 'cutback', 'cutting', 'damage', 'dangerous', 'dead', 'death', 'debts', 'decrease', 
+                                'decreasing', 'defective', 'deficient', 'deformed', 'dejected', 'deleterious', 'deny', 
+                                'depressed', 'deprived', 'destructive', 'detrimental', 'diabolical', 'difficult', 
+                                'diminished', 'diminish', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
+                                'disastrous', 'dishonest', 'dishonorable', 'disheveled', 'dismal', 'disobedient', 
+                                'dreadful', 'dreary', 'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'emergency maintenance', 
+                                'enraged', 'eroding', 'evil', 'execrable', 'fade', 'fail', 'failing', 'fall', 'falling', 
+                                'falling market share', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
+                                'financial trouble', 'financial weakness', 'fired', 'foul', 'frighten', 'frightful', 
+                                'ghastly', 'going concern warning', 'grave', 'grim', 'grimace', 'gross', 'grotesque', 
+                                'gruesome', 'guilty', 'haggard', 'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 
+                                'high debt levels', 'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
+                                'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
+                                'imperfect', 'impossible', 'inability', 'inadequate', 'inane', 'inauspicious', 
+                                'incompetent', 'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
+                                'inimical', 'injure', 'injurious', 'inappropriate', 'insane', 'insidious', 'insipid', 
+                                'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 'junky', 'lack of innovation', 
+                                'lamentable', 'laughable', 'layoffs', 'legal dispute', 'legal disputes', 'legal issues', 
+                                'lessen', 'lessening', 'liabilities', 'lose', 'losing', 'losing money', 'loss', 'low', 
+                                'low growth', 'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
+                                'lower', 'lowering', 'lousy', 'lumpy', 'malicious', 'market value decline', 'meagre', 
+                                'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 'misunderstood', 
+                                'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 'negative cash flow', 
+                                'negative financial state', 'negative order book', 'negate', 'neglect', 'never', 
+                                'nondescript', 'nonsense', 'noxious', 'objectionable', 'obliterate', 'obliterated', 
+                                'odious', 'offensive', 'oppressive', 'outstanding debts', 'pain', 'parlous', 'pathetic', 
+                                'pessimistic', 'perturb', 'petty', 'pitiful', 'poisonous', 'poor', 'poor credit control', 
+                                'poor credit ratings', 'poor report', 'poor reports', 'prejudice', 'product call back', 
+                                'product call backs', 'questionable', 'quit', 'redundancies', 'reduction', 'regrettable', 
+                                'reject', 'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
+                                'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 'scanty', 'second-class', 
+                                'second-rate', 'severe', 'severe financial trouble', 'shoddy', 'shock', 'shocking', 
+                                'shrink', 'shrinking', 'shutdown', 'significant drop', 'slow economic growth', 'stagflation', 
+                                'subdued', 'subside', 'substandard', 'suffering', 'terrible', 'terrifying', 'third-rate', 
+                                'threatening', 'tragedy', 'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 
+                                'unfortunate', 'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
+                                'unskilled', 'unsuitable', 'untoward', 'unwelcome', 'useless', 'vulnerable', 'wane', 
+                                'weak leadership', 'weak management', 'wretched', 'wipe out', 'woeful', 'worthless', 
+                                'wrong'
+                            ].sort(),
                             'emoji': '😢'
                         }
                     };
