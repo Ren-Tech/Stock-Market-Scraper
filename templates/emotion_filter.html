@@ -1856,6 +1856,7 @@
         </div>
     </div>
 
+   // ...existing code...
     <!-- Keyword Edit Modal -->
     <div class="modal fade keyword-edit-modal" id="keywordEditModal" tabindex="-1">
         <div class="modal-dialog">
@@ -1869,9 +1870,22 @@
                         <label for="keywordInput" class="form-label">Keyword</label>
                         <input type="text" class="form-control" id="keywordInput" placeholder="Enter keyword">
                     </div>
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="keywordMentions" class="form-label">Mentions Count</label>
                         <input type="number" class="form-control" id="keywordMentions" placeholder="Enter mentions count" min="0">
+                    </div>
+
+                    <!-- NEW: Score selector for keyword (1-5 points) -->
+                    <div class="mb-3">
+                        <label for="keywordScore" class="form-label">Keyword Score (1-5)</label>
+                        <select class="form-select" id="keywordScore">
+                            <option value="1" selected>1 — Default</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — Highest</option>
+                        </select>
+                        <div class="form-text">Assign how many points this keyword contributes to emotion scoring (1–5).</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1881,6 +1895,7 @@
             </div>
         </div>
     </div>
+// ...existing code...
 
     <!-- Keywords Display Modal -->
     <div class="modal fade" id="keywordsModal" tabindex="-1" aria-labelledby="keywordsModalLabel" aria-hidden="true">
@@ -2000,6 +2015,8 @@
     </div>
 
     <!-- Add/Edit Keyword Modal -->
+    // ...existing code...
+    <!-- Add/Edit Keyword Modal -->
     <div class="modal fade" id="keywordEditModalRef" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -2022,6 +2039,7 @@
                     </div>
 
                     <!-- NEW: Score selector for keyword (1-5 points) -->
+                      <!-- NEW: Score selector for keyword (1-5 points) -->
                     <div class="mb-3">
                         <label for="editKeywordScore" class="form-label">Keyword Score (1-5)</label>
                         <select class="form-select" id="editKeywordScore">
@@ -2041,6 +2059,7 @@
             </div>
         </div>
     </div>
+// ...existing code...
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -2072,136 +2091,188 @@
             let editingKeywordIndex = null;
             
             // Emotion configuration
-            const emotionConfig = {
-                'happy': { emoji: '😊', color: '#28a745', label: 'HAPPY' },
-                'neutral': { emoji: '😐', color: '#6c757d', label: 'NEUTRAL' },
-                'sad': { emoji: '😢', color: '#17a2b8', label: 'SAD' }
-            };
+            // Emotion configuration - Updated with labels
+const emotionConfig = {
+    'happy': { 
+        emoji: '😊', 
+        color: '#28a745', 
+        label: 'HAPPY',
+        description: 'Positive emotions like joy, success, and achievement'
+    },
+    'neutral': { 
+        emoji: '😐', 
+        color: '#6c757d', 
+        label: 'NEUTRAL',
+        description: 'Neutral or factual content without strong emotional bias'
+    },
+    'sad': { 
+        emoji: '😢', 
+        color: '#17a2b8', 
+        label: 'SAD',
+        description: 'Negative emotions like sadness, loss, or disappointment'
+    }
+};
 
-            // Emotion keywords data - FIXED STRUCTURE with alphabetical arrangement
-            let emotions = {
-                'happy': {
-                    'keywords': [
-                        'ability to attract', 'absolutely', 'abundant', 'acclaimed', 'accommodative', 'accessible', 
-                        'achievement', 'admire', 'adore', 'adulation', 'advancing', 'amazing', 'approve', 
-                        'assure', 'attractive', 'awesome', 'beaming', 'beloved', 'beneficial', 'best', 
-                        'booming', 'breakthrough', 'bright', 'bright future', 'brilliant', 'buoyant', 'celebration', 
-                        'centered', 'champion', 'charming', 'cheerful', 'clever', 'confidence', 'confident', 
-                        'constant', 'courage', 'courageous', 'definite', 'delectable', 'delightful', 'dependable', 
-                        'developing', 'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'ecstatic', 
-                        'efficient', 'electrifying', 'employable', 'empowered', 'endearing', 'enjoyable', 
-                        'enriching', 'enthusiastic', 'enticing', 'exceptional', 'exciting', 'exhilarating', 
-                        'expansion', 'exponential', 'exultant', 'fabulous', 'fascinating', 'favorite', 
-                        'fearless', 'fetching', 'finest', 'flourishing', 'gallant', 'generous', 'generously', 
-                        'genuine', 'gains', 'gleaming', 'goal-oriented', 'good future', 'good judgment', 
-                        'good perception', 'good quarter', 'good report', 'great', 'greatest', 'growing', 
-                        'growing revenue', 'growth', 'growth potential', 'gumptious', 'happiness', 'happy', 
-                        'healthy cash balance', 'high achievement', 'high investment motivation', 'high market share', 
-                        'high outcomes', 'high potential', 'high profit margin', 'high reward', 'highest', 
-                        'highest quality', 'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
-                        'increased net income', 'increase in value', 'increase share value', 'increase stock value', 
-                        'increasing', 'incredible', 'innovative', 'insightful', 'inspiring', 'instinctive', 
-                        'intellectual', 'irresistible', 'jolly', 'jovial', 'joysome', 'judicious', 'just', 
-                        'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 'leading ahead', 'legendary', 
-                        'likable', 'lively', 'low debt-to-equity', 'luminous', 'magical', 'magnetic', 
-                        'magnificent', 'majestic', 'making headway', 'making progress', 'marvelous', 'masterful', 
-                        'milestone', 'mindful', 'miraculous', 'motivated', 'moving up', 'new products', 
-                        'numinous', 'on the increase', 'on the rise', 'on-target', 'optimistic', 'orderly', 
-                        'organized', 'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
-                        'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 'pleasing', 
-                        'poise', 'polished', 'positive', 'positive achievement', 'positive future', 'positive outcomes', 
-                        'positive quarter', 'positive return', 'powerful', 'praiseworthy', 'pride', 'prized', 
-                        'proactive', 'productive', 'profit', 'profitable', 'projected price increase', 'prominent', 
-                        'promising', 'prospering', 'punctual', 'quick-witted', 'radiant', 'rallying', 
-                        'rational', 'rapturous', 'razor-sharp', 'reassuring', 'recherche', 'record high', 
-                        'refulgent', 'reliable', 'remarkable', 'remarkably', 'resilient', 'resourceful', 
-                        'respectable', 'return on assets', 'revolutionary', 'rising', 'rising return on equity', 
-                        'sagacious', 'savvy', 'sensational', 'sensationally', 'shrewd', 'sincere', 'skilled', 
-                        'smart', 'soar', 'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 
-                        'stimulating', 'strong bottom-line', 'strong growth', 'strong profitability', 
-                        'success', 'successful', 'succeeding', 'surge', 'surprising', 'surprisingly', 
-                        'systematic', 'teeming', 'tenacious', 'thriving', 'trailblazing', 'transcendental', 
-                        'triumph', 'tubular', 'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
-                        'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 'vigor', 
-                        'vigorous', 'visionary', 'vivacious', 'wise', 'win', 'wins', 'winner', 'winners', 
-                        'worthy', 'worthy of praise'
-                    ].sort(), // Alphabetical sorting
-                    'emoji': '😊'
-                },
-                'neutral': {
-                    'keywords': [
-                        'according', 'analyst call', 'annual general meeting', 'annual report', 'announced', 
-                        'announcement', 'anticipated data', 'audit report', 'balance sheet', 'board meeting', 
-                        'business', 'business update', 'cautionary statement', 'company update', 'compliance report', 
-                        'conference', 'conference call', 'corporate announcement', 'data', 'disclaimer', 
-                        'earnings', 'earnings call', 'economic data', 'estimated figures', 'extraordinary meeting', 
-                        'final results', 'financial', 'financial results', 'financial statement', 'financial update', 
-                        'forward looking statement', 'government data', 'income statement', 'industry news', 
-                        'industry report', 'information', 'interim report', 'investor presentation', 'launch', 
-                        'legal notice', 'management discussion', 'market analysis', 'market announcement', 
-                        'market update', 'material information', 'meeting', 'meeting minutes', 'media release', 
-                        'non-material information', 'official communication', 'official statement', 'operational update', 
-                        'outlook statement', 'performance review', 'planned release', 'preliminary results', 
-                        'press conference', 'press release', 'price sensitive information', 'projected results', 
-                        'proxy statement', 'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
-                        'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 'revised figures', 
-                        'risk factors', 'routine update', 'scheduled announcement', 'sector update', 'service announcement', 
-                        'shareholder meeting', 'shareholder vote', 'special meeting', 'statement', 'statistical release', 
-                        'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
-                        'trading update', 'update', 'updated guidance', 'updates', 'website update'
-                    ].sort(), // Alphabetical sorting
-                    'emoji': '😐'
-                },
-                'sad': {
-                    'keywords': [
-                        'abate', 'abysmal', 'accounting discrepancies', 'administration', 'adverse', 'alarming', 
-                        'anxious', 'apathy', 'appalling', 'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 
-                        'battle', 'belligerent', 'bemoan', 'beneath', 'boring', 'broken', 'cash-strapped', 
-                        'cheap', 'chronic', 'closed', 'collapse', 'contrary', 'corrosive', 'criminal', 'crummy', 
-                        'cut', 'cutback', 'cutting', 'damage', 'dangerous', 'dead', 'death', 'debts', 'decrease', 
-                        'decreasing', 'defective', 'deficient', 'deformed', 'dejected', 'deleterious', 'deny', 
-                        'depressed', 'deprived', 'destructive', 'detrimental', 'diabolical', 'difficult', 
-                        'diminished', 'diminish', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
-                        'disastrous', 'dishonest', 'dishonorable', 'disheveled', 'dismal', 'disobedient', 
-                        'dreadful', 'dreary', 'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'emergency maintenance', 
-                        'enraged', 'eroding', 'evil', 'execrable', 'fade', 'fail', 'failing', 'fall', 'falling', 
-                        'falling market share', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
-                        'financial trouble', 'financial weakness', 'fired', 'foul', 'frighten', 'frightful', 
-                        'ghastly', 'going concern warning', 'grave', 'grim', 'grimace', 'gross', 'grotesque', 
-                        'gruesome', 'guilty', 'haggard', 'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 
-                        'high debt levels', 'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
-                        'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
-                        'imperfect', 'impossible', 'inability', 'inadequate', 'inane', 'inauspicious', 
-                        'incompetent', 'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
-                        'inimical', 'injure', 'injurious', 'inappropriate', 'insane', 'insidious', 'insipid', 
-                        'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 'junky', 'lack of innovation', 
-                        'lamentable', 'laughable', 'layoffs', 'legal dispute', 'legal disputes', 'legal issues', 
-                        'lessen', 'lessening', 'liabilities', 'lose', 'losing', 'losing money', 'loss', 'low', 
-                        'low growth', 'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
-                        'lower', 'lowering', 'lousy', 'lumpy', 'malicious', 'market value decline', 'meagre', 
-                        'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 'misunderstood', 
-                        'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 'negative cash flow', 
-                        'negative financial state', 'negative order book', 'negate', 'neglect', 'never', 
-                        'nondescript', 'nonsense', 'noxious', 'objectionable', 'obliterate', 'obliterated', 
-                        'odious', 'offensive', 'oppressive', 'outstanding debts', 'pain', 'parlous', 'pathetic', 
-                        'pessimistic', 'perturb', 'petty', 'pitiful', 'poisonous', 'poor', 'poor credit control', 
-                        'poor credit ratings', 'poor report', 'poor reports', 'prejudice', 'product call back', 
-                        'product call backs', 'questionable', 'quit', 'redundancies', 'reduction', 'regrettable', 
-                        'reject', 'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
-                        'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 'scanty', 'second-class', 
-                        'second-rate', 'severe', 'severe financial trouble', 'shoddy', 'shock', 'shocking', 
-                        'shrink', 'shrinking', 'shutdown', 'significant drop', 'slow economic growth', 'stagflation', 
-                        'subdued', 'subside', 'substandard', 'suffering', 'terrible', 'terrifying', 'third-rate', 
-                        'threatening', 'tragedy', 'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 
-                        'unfortunate', 'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
-                        'unskilled', 'unsuitable', 'untoward', 'unwelcome', 'useless', 'vulnerable', 'wane', 
-                        'weak leadership', 'weak management', 'wretched', 'wipe out', 'woeful', 'worthless', 
-                        'wrong'
-                    ].sort(), // Alphabetical sorting
-                    'emoji': '😢'
-                }
-            };
-            
+            // Emotion keywords data - FIXED STRUCTURE
+            // Replace the current emotions configuration with this alphabetically sorted version
+const emotions = {
+    'happy': {
+        'keywords': [
+            'ability to attract', 'abundant', 'absolutely', 'accessible', 'acclaimed', 
+            'accommodative', 'achievement', 'admire', 'adore', 'adulation', 'advance', 
+            'advanced', 'advancing', 'amazing', 'approve', 'arousing', 'assure', 
+            'attentive', 'attractive', 'awe-inspiring', 'awesome', 'beaming', 
+            'beloved', 'beneficial', 'best', 'bold', 'booming', 'brainy', 'breakthrough', 
+            'breath-taking', 'bright', 'bright future', 'brilliant', 'buoyant', 
+            'celebration', 'centered', 'champion', 'charming', 'cheerful', 'clever', 
+            'confidence', 'confident', 'constant', 'courage', 'courageous', 
+            'delectable', 'definite', 'delightful', 'dependable', 'developing', 
+            'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'earnings growth', 
+            'ecstatic', 'efficient', 'efficient use of assets', 'electrifying', 
+            'employable', 'empowered', 'endearing', 'enjoyable', 'enriching', 
+            'enthusiastic', 'enticing', 'especial', 'exceptional', 'exciting', 
+            'exhilarating', 'exponential', 'exquisite', 'extraordinary', 
+            'extraordinary good', 'exultant', 'fabulous', 'fascinating', 'favorite', 
+            'fearless', 'fetching', 'financial stability', 'finest', 'flourishing', 
+            'gallant', 'generous', 'generously', 'genuine', 'gleaming', 'goal-oriented', 
+            'godawful', 'good future', 'good judgment', 'good perception', 'good quarter', 
+            'good report', 'great', 'greatest', 'growing', 'growing revenue', 'growth', 
+            'growth potential', 'gumptious', 'happiness', 'happy', 'healthy cash balance', 
+            'high achievement', 'high investment motivation', 'high market share', 
+            'high outcomes', 'high potential', 'high profit margin', 'high reward', 
+            'highest', 'highest quality', 'highly recommend', 'highly recommended', 
+            'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
+            'increased net income', 'increase in value', 'increase share value', 
+            'increase stock value', 'increasing', 'incredible', 'innovative', 
+            'insightful', 'inspiring', 'instinctive', 'intellectual', 'irreplaceable', 
+            'irresistible', 'jolly', 'jovial', 'joyful', 'joysome', 'judicious', 
+            'just', 'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 
+            'leading ahead', 'legendary', 'likable', 'lively', 'low debt-to-equity', 
+            'luminous', 'magical', 'magnetic', 'magnificent', 'majestic', 'making headway', 
+            'making progress', 'marvelous', 'masterful', 'meagre', 'miraculous', 
+            'mindful', 'motivated', 'moving up', 'new products', 'numinous', 'on the increase', 
+            'on the rise', 'on-target', 'optimistic', 'orderly', 'organized', 
+            'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
+            'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 
+            'poise', 'polished', 'positive', 'positive achievement', 'positive future', 
+            'positive outcomes', 'positive quarter', 'positive return', 'powerful', 
+            'praiseworthy', 'praise', 'proactive', 'productive', 'profit', 
+            'profitable', 'projected price increase', 'prominent', 'promising', 
+            'prompt', 'prospering', 'proud', 'punctual', 'quick-witted', 'radiant', 
+            'rallying', 'rapturous', 'rational', 'razor-sharp', 'reassuring', 
+            'recherche', 'record high', 'refulgent', 'rejoicing', 'reliable', 
+            'remarkable', 'remarkably', 'resilient', 'resourceful', 'respectable', 
+            'return on assets', 'revolutionary', 'rewarding', 'righteous', 'rising', 
+            'rising return on equity', 'sagacious', 'savvy', 'sensational', 
+            'sensationally', 'shrewd', 'sincere', 'skilled', 'smart', 'sound judgment', 
+            'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 'stimulating', 
+            'strong bottom-line', 'strong growth', 'strong profitability', 'struggling', 
+            'struggles', 'succeeding', 'success', 'successful', 'supreme', 'surge', 
+            'surprising', 'surprisingly', 'systematic', 'teeming', 'tenacious', 
+            'thriving', 'trailblazing', 'transcendental', 'triumph', 'tubular', 
+            'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
+            'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 
+            'vigor', 'vigorous', 'visionary', 'vivacious', 'well-informed', 'win', 
+            'winner', 'winners', 'wins', 'wise', 'worthy', 'worthy of praise'
+        ].sort(), // Alphabetically sorted
+        'emoji': '😊'
+    },
+    'neutral': {
+        'keywords': [
+            'according', 'analyst call', 'annual general meeting', 'annual report', 
+            'announced', 'announcement', 'anticipated data', 'audit report', 
+            'balance sheet', 'board meeting', 'business', 'business update', 
+            'cautionary statement', 'company update', 'compliance report', 
+            'conference', 'conference call', 'cookie policy', 'corporate announcement', 
+            'data', 'disclaimer', 'downtime notification', 'earnings', 'earnings call', 
+            'economic data', 'emergency maintenance', 'estimated figures', 
+            'expected report', 'extraordinary meeting', 'final results', 
+            'financial', 'financial results', 'financial statement', 'financial update', 
+            'formal announcement', 'forward looking statement', 'government data', 
+            'industry news', 'industry report', 'information', 'interim report', 
+            'investor presentation', 'launch', 'legal notice', 'management discussion', 
+            'market analysis', 'market announcement', 'market update', 'material information', 
+            'media release', 'meeting', 'meeting minutes', 'non-material information', 
+            'official communication', 'official statement', 'operational update', 
+            'outlook statement', 'performance review', 'planned outage', 'planned release', 
+            'preliminary results', 'press conference', 'press release', 'price sensitive information', 
+            'privacy policy', 'product update', 'projected results', 'proxy statement', 
+            'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
+            'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 
+            'revised figures', 'risk factors', 'routine maintenance', 'routine update', 
+            'scheduled announcement', 'scheduled downtime', 'sector update', 
+            'service announcement', 'service interruption', 'shareholder meeting', 
+            'shareholder vote', 'special meeting', 'statement', 'statistical release', 
+            'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
+            'trading update', 'unplanned outage', 'unscheduled downtime', 'update', 
+            'updated guidance', 'updates', 'website update'
+        ].sort(), // Alphabetically sorted
+        'emoji': '😐'
+    },
+    'sad': {
+        'keywords': [
+            'abate', 'abysmal', 'accounting discrepancies', 'administration', 
+            'adverse', 'alarming', 'annoy', 'anxious', 'apathy', 'appalling', 
+            'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 'battle', 
+            'belligerent', 'below', 'below expectation', 'bemoan', 'beneath', 
+            'blame', 'boring', 'broken', 'cash-strapped', 'cheap', 'chronic', 
+            'closed', 'collapse', 'conflict', 'confront', 'contrary', 'contradictory', 
+            'corrosive', 'corrupt', 'criminal', 'crummy', 'curtail', 'curtailment', 
+            'cut', 'cutback', 'cutting', 'damage', 'damaging', 'dangerous', 
+            'dead', 'death', 'deaths', 'debts', 'decaying', 'decrease', 'decreased', 
+            'decreasing', 'defective', 'deficient', 'deficiency', 'deformed', 
+            'dejected', 'deleterious', 'deny', 'depressed', 'deprived', 'destroy', 
+            'destructive', 'detrimental', 'diabolical', 'difficult', 'diminish', 
+            'diminished', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
+            'disastrous', 'disgusting', 'disheveled', 'dishonest', 'dishonorable', 
+            'dismal', 'disobedient', "don't", 'downside', 'dreary', 'dreadful', 
+            'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'enraged', 'eroding', 
+            'evil', 'execrable', 'fail', 'failing', 'fall', 'falling', 'falling market share', 
+            'falling off', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
+            'financial trouble', 'fired', 'flop', 'foul', 'frighten', 'frightful', 
+            'gawky', 'ghastly', 'going concern warning', 'grave', 'greed', 'grim', 
+            'grimace', 'gross', 'grotesque', 'gruesome', 'guilty', 'haggard', 
+            'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 'high debt levels', 
+            'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
+            'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
+            'immoral', 'imperfect', 'impossible', 'inability', 'inadequate', 
+            'inane', 'inappropriate', 'inauspicious', 'incompetent', 'ineffectual', 
+            'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
+            'injure', 'injurious', 'inimical', 'insane', 'insipid', 'insidious', 
+            'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 
+            'junky', 'lack of innovation', 'lamentable', 'laughable', 'layoffs', 
+            'legal dispute', 'legal disputes', 'legal issues', 'legal issues', 
+            'lessen', 'lessening', 'liabilities', 'life-threatening', 'lose', 
+            'losing', 'losing money', 'loss', 'lousy', 'low', 'low growth', 
+            'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
+            'lower', 'lowering', 'lumpy', 'malicious', 'market value decline', 
+            'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 
+            'misunderstood', 'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 
+            'negative cash flow', 'negative financial state', 'negative order book', 
+            'negate', 'neglect', 'never', 'nondescript', 'nonsense', 'not to par', 
+            'not up to scratch', 'noxious', 'objectionable', 'obliterate', 
+            'obliterated', 'odious', 'offensive', 'oppressive', 'outstanding debts', 
+            'pain', 'parlous', 'pathetic', 'pessimistic', 'perturb', 'petty', 
+            'pitiful', 'poisonous', 'poor', 'poor credit control', 'poor credit ratings', 
+            'poor report', 'poor reports', 'prejudice', 'product call back', 
+            'product call backs', 'questionable', 'quit', 'reduce', 'reducing', 
+            'reducing orders', 'reduction', 'redundancies', 'regrettable', 'reject', 
+            'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
+            'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 
+            'scanty', 'second-class', 'second-rate', 'severe', 'severe financial trouble', 
+            'serious decline', 'shoddy', 'shocking', 'shrink', 'shrinking', 'shutdown', 
+            'significant drop', 'slow economic growth', 'stagflation', 'struggling', 
+            'struggles', 'subdued', 'subside', 'substandard', 'suffering', 'substandard', 
+            'terrible', 'terrifying', 'third-rate', 'threatening', 'tragedy', 
+            'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 'unfortunate', 
+            'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
+            'unsuitable', 'unskilled', 'unwelcome', 'unpropitious', 'untoward', 
+            'useless', 'vulnerable', 'wane', 'weak leadership', 'weak management', 
+            'worthless', 'wretched', 'wrong', 'wipe out'
+        ].sort(), // Alphabetically sorted
+        'emoji': '😢'
+    }
+};
             // Default backend keywords
             const defaultKeywords = {
                 'happy': [
@@ -2355,120 +2426,200 @@
                 });
             }
             
-           // FIXED: renderKeywordReferenceList function with proper data structure handling and alphabetical sorting
-function renderKeywordReferenceList(searchTerm = '') {
-    const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
-    const keywordReferenceList = document.getElementById('keywordReferenceList');
-    const emotionData = emotions[selectedEmotion];
+            // FIXED: renderKeywordReferenceList function with proper data structure handling
+            // ...existing code...
+            // FIXED: renderKeywordReferenceList function with proper data structure handling
+            function renderKeywordReferenceList(searchTerm = '') {
+                const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
+                const keywordReferenceList = document.getElementById('keywordReferenceList');
+                const emotionData = emotions[selectedEmotion];
 
-    // helper to normalize keyword item (string or object)
-    function getKeywordText(item) {
-        if (!item && item !== '') return '';
-        return (typeof item === 'string') ? item : (item.keyword || '');
-    }
-    function getKeywordScore(item) {
-        if (!item) return null;
-        return (typeof item === 'object' && item.score !== undefined) ? item.score : null;
-    }
+                // helper to normalize keyword item (string or object)
+                function getKeywordText(item) {
+                    if (!item && item !== '') return '';
+                    return (typeof item === 'string') ? item : (item.keyword || '');
+                }
+                function getKeywordScore(item) {
+                    if (!item) return null;
+                    return (typeof item === 'object' && item.score !== undefined) ? item.score : null;
+                }
 
-    // Check if emotion data exists and has keywords
-    if (!emotionData || !emotionData.keywords || emotionData.keywords.length === 0) {
-        keywordReferenceList.innerHTML = `
-            <div class="empty-keywords-state">
-                <i class="bi bi-inbox"></i>
-                <p>No keywords available for this emotion</p>
-            </div>
-        `;
-        updateKeywordStats(0, 0, 0);
-        return;
-    }
+                // Check if emotion data exists and has keywords
+                if (!emotionData || !emotionData.keywords || emotionData.keywords.length === 0) {
+                    keywordReferenceList.innerHTML = `
+                        <div class="empty-keywords-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No keywords available for this emotion</p>
+                        </div>
+                    `;
+                    updateKeywordStats(0, 0, 0);
+                    return;
+                }
 
-    // Sort keywords alphabetically
-    let sortedKeywords = [...emotionData.keywords].sort((a, b) => {
-        const textA = getKeywordText(a).toLowerCase();
-        const textB = getKeywordText(b).toLowerCase();
-        return textA.localeCompare(textB);
-    });
+                let filteredKeywords = emotionData.keywords;
 
-    let filteredKeywords = sortedKeywords;
+                // Apply search filter
+                if (searchTerm) {
+                    filteredKeywords = emotionData.keywords.filter(item =>
+                        getKeywordText(item).toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
 
-    // Apply search filter
-    if (searchTerm) {
-        filteredKeywords = sortedKeywords.filter(item =>
-            getKeywordText(item).toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }
+                // Update statistics
+                updateKeywordStats(
+                    emotionData.keywords.length,
+                    filteredKeywords.length,
+                    getTotalKeywordsCount()
+                );
 
-    // Update statistics
-    updateKeywordStats(
-        emotionData.keywords.length,
-        filteredKeywords.length,
-        getTotalKeywordsCount()
-    );
+                if (filteredKeywords.length === 0) {
+                    keywordReferenceList.innerHTML = `
+                        <div class="empty-keywords-state">
+                            <i class="bi bi-search"></i>
+                            <p>No keywords match your search</p>
+                        </div>
+                    `;
+                    return;
+                }
 
-    if (filteredKeywords.length === 0) {
-        keywordReferenceList.innerHTML = `
-            <div class="empty-keywords-state">
-                <i class="bi bi-search"></i>
-                <p>No keywords match your search</p>
-            </div>
-        `;
-        return;
-    }
+                keywordReferenceList.innerHTML = '';
 
-    keywordReferenceList.innerHTML = '';
+                filteredKeywords.forEach((item, index) => {
+                    const keywordText = getKeywordText(item);
+                    const score = getKeywordScore(item);
 
-    filteredKeywords.forEach((item, originalIndex) => {
-        // Find the original index for editing/deleting
-        const originalItemIndex = emotionData.keywords.findIndex(origItem => 
-            getKeywordText(origItem) === getKeywordText(item)
-        );
-        
-        const keywordText = getKeywordText(item);
-        const score = getKeywordScore(item);
+                    const keywordItem = document.createElement('div');
+                    keywordItem.className = 'keyword-reference-item';
+                    keywordItem.innerHTML = `
+                        <div class="keyword-reference-content">
+                            <span class="keyword-text">${keywordText}</span>
+                            ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
+                        </div>
+                        <div class="keyword-actions">
+                            <button class="btn btn-sm btn-outline-primary edit-keyword-btn" 
+                                    data-emotion="${selectedEmotion}" 
+                                    data-index="${index}">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-keyword-btn" 
+                                    data-emotion="${selectedEmotion}" 
+                                    data-index="${index}">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
 
-        const keywordItem = document.createElement('div');
-        keywordItem.className = 'keyword-reference-item';
-        keywordItem.innerHTML = `
-            <div class="keyword-reference-content">
-                <span class="keyword-text">${keywordText}</span>
-                ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
-            </div>
-            <div class="keyword-actions">
-                <button class="btn btn-sm btn-outline-primary edit-keyword-btn" 
-                        data-emotion="${selectedEmotion}" 
-                        data-index="${originalItemIndex}">
-                    <i class="bi bi-pencil"></i> Edit
-                </button>
-                <button class="btn btn-sm btn-outline-danger delete-keyword-btn" 
-                        data-emotion="${selectedEmotion}" 
-                        data-index="${originalItemIndex}">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-            </div>
-        `;
+                    keywordReferenceList.appendChild(keywordItem);
+                });
 
-        keywordReferenceList.appendChild(keywordItem);
-    });
+               function editKeywordReference(emotion, index) {
+                        editingKeywordId = { emotion, index };
+                        currentEditingEmotion = emotion;
 
-    // Add event listeners to action buttons
-    document.querySelectorAll('.edit-keyword-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const emotion = this.getAttribute('data-emotion');
-            const index = parseInt(this.getAttribute('data-index'));
-            editKeywordReference(emotion, index);
-        });
-    });
+                        const item = emotions[emotion].keywords[index];
+                        const keywordText = getKeywordText(item);
+                        const score = getKeywordScore(item);
 
-    document.querySelectorAll('.delete-keyword-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const emotion = this.getAttribute('data-emotion');
-            const index = parseInt(this.getAttribute('data-index'));
-            deleteKeywordReference(emotion, index);
-        });
-    });
+                        document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+                        document.getElementById('editKeywordInput').value = keywordText;
+                        document.getElementById('editKeywordEmotion').value = emotion;
+                        document.getElementById('editKeywordScore').value = (score !== null ? score : '1');
+
+                        // Show the modal
+                        keywordEditModalRef.show();
+                    }
+
+                function deleteKeywordReference(emotion, index) {
+                    const item = emotions[emotion].keywords[index];
+                    const keywordText = getKeywordText(item);
+                    if (confirm(`Are you sure you want to delete the keyword "${keywordText}" from ${emotion} category?`)) {
+                        // Remove keyword from emotions data
+                        if (emotions[emotion] && emotions[emotion].keywords) {
+                            emotions[emotion].keywords.splice(index, 1);
+
+                            // Save to cookies
+                            saveEmotionsToCookies();
+
+                            // Update UI
+                            renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+
+                            // Show success message
+                            showToast('Keyword deleted successfully', 'success');
+                        }
+                    }
+                }
+
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-keyword-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        const index = parseInt(this.getAttribute('data-index'));
+                        editKeywordReference(emotion, index);
+                    });
+                });
+
+                document.querySelectorAll('.delete-keyword-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteKeywordReference(emotion, index);
+                    });
+                });
+
+            
+// ...existing code...
+
+                function editKeywordReference(emotion, keyword, index) {
+    editingKeywordId = { emotion, index };
+    currentEditingEmotion = emotion;
+
+    document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+    document.getElementById('editKeywordInput').value = keyword;
+    document.getElementById('editKeywordEmotion').value = emotion;
+
+    // Show the modal
+    keywordEditModalRef.show();
 }
+                function deleteKeywordReference(emotion, keyword, index) {
+    if (confirm(`Are you sure you want to delete the keyword "${keyword}" from ${emotion} category?`)) {
+        // Remove keyword from emotions data
+        if (emotions[emotion] && emotions[emotion].keywords) {
+            emotions[emotion].keywords.splice(index, 1);
 
+            // Save to cookies
+            saveEmotionsToCookies();
+
+            // Update UI
+            renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+
+            // Show success message
+            showToast('Keyword deleted successfully', 'success');
+        }
+    }
+}
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-keyword-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const emotion = this.getAttribute('data-emotion');
+        const keyword = this.getAttribute('data-keyword');
+        const index = this.getAttribute('data-index');
+        editKeywordReference(emotion, keyword, index); // <-- changed
+    });
+});
+
+document.querySelectorAll('.delete-keyword-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const emotion = this.getAttribute('data-emotion');
+        const keyword = this.getAttribute('data-keyword');
+        const index = this.getAttribute('data-index');
+        deleteKeywordReference(emotion, keyword, index); // <-- changed
+    });
+});
+
+            }
+
+            // Function to open add keyword modal
             // Function to open add keyword modal
             function openAddKeywordModal() {
                 editingKeywordId = null;
@@ -2486,203 +2637,122 @@ function renderKeywordReferenceList(searchTerm = '') {
                 // Show the modal
                 keywordEditModalRef.show();
             }
+            // Function to edit keyword
+            function editKeyword(emotion, keyword, index) {
+                editingKeywordId = { emotion, index };
+                currentEditingEmotion = emotion;
+                
+                document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+                document.getElementById('editKeywordInput').value = keyword;
+                document.getElementById('editKeywordEmotion').value = emotion;
+                
+                // Show the modal
+                keywordEditModalRef.show();
+            }
+
+            // Function to delete keyword
+            function deleteKeyword(emotion, keyword, index) {
+                if (confirm(`Are you sure you want to delete the keyword "${keyword}" from ${emotion} category?`)) {
+                    // Remove keyword from emotions data
+                    if (emotions[emotion] && emotions[emotion].keywords) {
+                        emotions[emotion].keywords.splice(index, 1);
+                        
+                        // Save to cookies
+                        saveEmotionsToCookies();
+                        
+                        // Update UI
+                        renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+                        
+                        // Show success message
+                        showToast('Keyword deleted successfully', 'success');
+                    }
+                }
+            }
 
             // Function to save keyword (both add and edit)
-            // Function to save keyword (both add and edit) and maintain alphabetical order
-function saveKeywordFromModal() {
-    const keyword = document.getElementById('editKeywordInput').value.trim();
-    const emotion = document.getElementById('editKeywordEmotion').value;
-    const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 1;
+            // ...existing code...
+            // Function to save keyword (both add and edit)
+            function saveKeywordFromModal() {
+                const keyword = document.getElementById('editKeywordInput').value.trim();
+                const emotion = document.getElementById('editKeywordEmotion').value;
+                const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 1;
 
-    if (!keyword) {
-        alert('Please enter a keyword');
-        return;
-    }
+                if (!keyword) {
+                    alert('Please enter a keyword');
+                    return;
+                }
+                
 
-    if (!emotions[emotion]) {
-        emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
-    }
+                if (!emotions[emotion]) {
+                    emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
+                }
 
-    if (!emotions[emotion].keywords) {
-        emotions[emotion].keywords = [];
-    }
+                if (!emotions[emotion].keywords) {
+                    emotions[emotion].keywords = [];
+                }
 
-    if (editingKeywordId) {
-        // Editing existing keyword
-        if (editingKeywordId.emotion === emotion) {
-            // Same emotion category - update the keyword object
-            emotions[emotion].keywords[editingKeywordId.index] = { keyword: keyword, score: score };
-        } else {
-            // Different emotion category - remove from old, add to new
-            emotions[editingKeywordId.emotion].keywords.splice(editingKeywordId.index, 1);
-            emotions[emotion].keywords.push({ keyword: keyword, score: score });
-        }
+                if (editingKeywordId) {
+                    // Editing existing keyword
+                    if (editingKeywordId.emotion === emotion) {
+                        // Same emotion category - just update the keyword object
+                        emotions[emotion].keywords[editingKeywordId.index] = { keyword: keyword, score: score };
+                    } else {
+                        // Different emotion category - remove from old, add to new
+                        emotions[editingKeywordId.emotion].keywords.splice(editingKeywordId.index, 1);
+                        emotions[emotion].keywords.push({ keyword: keyword, score: score });
+                    }
 
-        showToast('Keyword updated successfully', 'success');
-    } else {
-        // Adding new keyword
-        // Normalize existing keywords to text for comparison
-        const existingKeys = (emotions[emotion].keywords || []).map(k => (typeof k === 'string' ? k : k.keyword));
-        if (existingKeys.includes(keyword)) {
-            alert('This keyword already exists in the selected emotion category');
-            return;
-        }
+                    showToast('Keyword updated successfully', 'success');
+                } else {
+                    // Adding new keyword
+                    // Normalize existing keywords to text for comparison
+                    const existingKeys = (emotions[emotion].keywords || []).map(k => (typeof k === 'string' ? k : k.keyword));
+                    if (existingKeys.includes(keyword)) {
+                        alert('This keyword already exists in the selected emotion category');
+                        return;
+                    }
 
-        emotions[emotion].keywords.push({ keyword: keyword, score: score });
-        showToast('Keyword added successfully', 'success');
-    }
+                    emotions[emotion].keywords.push({ keyword: keyword, score: score });
+                    showToast('Keyword added successfully', 'success');
+                }
 
-    // Sort keywords alphabetically after modification
-    emotions[emotion].keywords.sort((a, b) => {
-        const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
-        const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
-        return textA.localeCompare(textB);
-    });
+                // Save to cookies
+                saveEmotionsToCookies();
 
-    // Save to cookies
-    saveEmotionsToCookies();
+                // Close modal and refresh list
+                keywordEditModalRef.hide();
 
-    // Close modal and refresh list
-    keywordEditModalRef.hide();
+                // If we changed emotion categories, update the tabs
+                if (currentEditingEmotion && currentEditingEmotion !== emotion) {
+                    currentEditingEmotion = emotion;
+                    document.querySelectorAll('.emotion-tab').forEach(tab => {
+                        if (tab.getAttribute('data-emotion') === emotion) {
+                            tab.classList.add('active');
+                        } else {
+                            tab.classList.remove('active');
+                        }
+                    });
+                }
 
-    // If we changed emotion categories, update the tabs
-    if (currentEditingEmotion && currentEditingEmotion !== emotion) {
-        currentEditingEmotion = emotion;
-        document.querySelectorAll('.emotion-tab').forEach(tab => {
-            if (tab.getAttribute('data-emotion') === emotion) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
+                renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
             }
-        });
-    }
-
-    renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
-}
+// ...existing code...
 
             // Function to reset keywords to default
             function resetKeywordsToDefault() {
                 if (confirm('Are you sure you want to reset all keywords to their default values? This action cannot be undone.')) {
-                    // Reset to original emotion keywords with alphabetical sorting
+                    // Reset to original emotion keywords
                     emotions = {
                         'happy': {
-                            'keywords': [
-                                'ability to attract', 'absolutely', 'abundant', 'acclaimed', 'accommodative', 'accessible', 
-                                'achievement', 'admire', 'adore', 'adulation', 'advancing', 'amazing', 'approve', 
-                                'assure', 'attractive', 'awesome', 'beaming', 'beloved', 'beneficial', 'best', 
-                                'booming', 'breakthrough', 'bright', 'bright future', 'brilliant', 'buoyant', 'celebration', 
-                                'centered', 'champion', 'charming', 'cheerful', 'clever', 'confidence', 'confident', 
-                                'constant', 'courage', 'courageous', 'definite', 'delectable', 'delightful', 'dependable', 
-                                'developing', 'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'ecstatic', 
-                                'efficient', 'electrifying', 'employable', 'empowered', 'endearing', 'enjoyable', 
-                                'enriching', 'enthusiastic', 'enticing', 'exceptional', 'exciting', 'exhilarating', 
-                                'expansion', 'exponential', 'exultant', 'fabulous', 'fascinating', 'favorite', 
-                                'fearless', 'fetching', 'finest', 'flourishing', 'gallant', 'generous', 'generously', 
-                                'genuine', 'gains', 'gleaming', 'goal-oriented', 'good future', 'good judgment', 
-                                'good perception', 'good quarter', 'good report', 'great', 'greatest', 'growing', 
-                                'growing revenue', 'growth', 'growth potential', 'gumptious', 'happiness', 'happy', 
-                                'healthy cash balance', 'high achievement', 'high investment motivation', 'high market share', 
-                                'high outcomes', 'high potential', 'high profit margin', 'high reward', 'highest', 
-                                'highest quality', 'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
-                                'increased net income', 'increase in value', 'increase share value', 'increase stock value', 
-                                'increasing', 'incredible', 'innovative', 'insightful', 'inspiring', 'instinctive', 
-                                'intellectual', 'irresistible', 'jolly', 'jovial', 'joysome', 'judicious', 'just', 
-                                'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 'leading ahead', 'legendary', 
-                                'likable', 'lively', 'low debt-to-equity', 'luminous', 'magical', 'magnetic', 
-                                'magnificent', 'majestic', 'making headway', 'making progress', 'marvelous', 'masterful', 
-                                'milestone', 'mindful', 'miraculous', 'motivated', 'moving up', 'new products', 
-                                'numinous', 'on the increase', 'on the rise', 'on-target', 'optimistic', 'orderly', 
-                                'organized', 'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
-                                'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 'pleasing', 
-                                'poise', 'polished', 'positive', 'positive achievement', 'positive future', 'positive outcomes', 
-                                'positive quarter', 'positive return', 'powerful', 'praiseworthy', 'pride', 'prized', 
-                                'proactive', 'productive', 'profit', 'profitable', 'projected price increase', 'prominent', 
-                                'promising', 'prospering', 'punctual', 'quick-witted', 'radiant', 'rallying', 
-                                'rational', 'rapturous', 'razor-sharp', 'reassuring', 'recherche', 'record high', 
-                                'refulgent', 'reliable', 'remarkable', 'remarkably', 'resilient', 'resourceful', 
-                                'respectable', 'return on assets', 'revolutionary', 'rising', 'rising return on equity', 
-                                'sagacious', 'savvy', 'sensational', 'sensationally', 'shrewd', 'sincere', 'skilled', 
-                                'smart', 'soar', 'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 
-                                'stimulating', 'strong bottom-line', 'strong growth', 'strong profitability', 
-                                'success', 'successful', 'succeeding', 'surge', 'surprising', 'surprisingly', 
-                                'systematic', 'teeming', 'tenacious', 'thriving', 'trailblazing', 'transcendental', 
-                                'triumph', 'tubular', 'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
-                                'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 'vigor', 
-                                'vigorous', 'visionary', 'vivacious', 'wise', 'win', 'wins', 'winner', 'winners', 
-                                'worthy', 'worthy of praise'
-                            ].sort(),
+                            'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 'milestone'],
                             'emoji': '😊'
                         },
                         'neutral': {
-                            'keywords': [
-                                'according', 'analyst call', 'annual general meeting', 'annual report', 'announced', 
-                                'announcement', 'anticipated data', 'audit report', 'balance sheet', 'board meeting', 
-                                'business', 'business update', 'cautionary statement', 'company update', 'compliance report', 
-                                'conference', 'conference call', 'corporate announcement', 'data', 'disclaimer', 
-                                'earnings', 'earnings call', 'economic data', 'estimated figures', 'extraordinary meeting', 
-                                'final results', 'financial', 'financial results', 'financial statement', 'financial update', 
-                                'forward looking statement', 'government data', 'income statement', 'industry news', 
-                                'industry report', 'information', 'interim report', 'investor presentation', 'launch', 
-                                'legal notice', 'management discussion', 'market analysis', 'market announcement', 
-                                'market update', 'material information', 'meeting', 'meeting minutes', 'media release', 
-                                'non-material information', 'official communication', 'official statement', 'operational update', 
-                                'outlook statement', 'performance review', 'planned release', 'preliminary results', 
-                                'press conference', 'press release', 'price sensitive information', 'projected results', 
-                                'proxy statement', 'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
-                                'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 'revised figures', 
-                                'risk factors', 'routine update', 'scheduled announcement', 'sector update', 'service announcement', 
-                                'shareholder meeting', 'shareholder vote', 'special meeting', 'statement', 'statistical release', 
-                                'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
-                                'trading update', 'update', 'updated guidance', 'updates', 'website update'
-                            ].sort(),
+                            'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference', 'statement'],
                             'emoji': '😐'
                         },
                         'sad': {
-                            'keywords': [
-                                'abate', 'abysmal', 'accounting discrepancies', 'administration', 'adverse', 'alarming', 
-                                'anxious', 'apathy', 'appalling', 'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 
-                                'battle', 'belligerent', 'bemoan', 'beneath', 'boring', 'broken', 'cash-strapped', 
-                                'cheap', 'chronic', 'closed', 'collapse', 'contrary', 'corrosive', 'criminal', 'crummy', 
-                                'cut', 'cutback', 'cutting', 'damage', 'dangerous', 'dead', 'death', 'debts', 'decrease', 
-                                'decreasing', 'defective', 'deficient', 'deformed', 'dejected', 'deleterious', 'deny', 
-                                'depressed', 'deprived', 'destructive', 'detrimental', 'diabolical', 'difficult', 
-                                'diminished', 'diminish', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
-                                'disastrous', 'dishonest', 'dishonorable', 'disheveled', 'dismal', 'disobedient', 
-                                'dreadful', 'dreary', 'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'emergency maintenance', 
-                                'enraged', 'eroding', 'evil', 'execrable', 'fade', 'fail', 'failing', 'fall', 'falling', 
-                                'falling market share', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
-                                'financial trouble', 'financial weakness', 'fired', 'foul', 'frighten', 'frightful', 
-                                'ghastly', 'going concern warning', 'grave', 'grim', 'grimace', 'gross', 'grotesque', 
-                                'gruesome', 'guilty', 'haggard', 'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 
-                                'high debt levels', 'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
-                                'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
-                                'imperfect', 'impossible', 'inability', 'inadequate', 'inane', 'inauspicious', 
-                                'incompetent', 'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
-                                'inimical', 'injure', 'injurious', 'inappropriate', 'insane', 'insidious', 'insipid', 
-                                'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 'junky', 'lack of innovation', 
-                                'lamentable', 'laughable', 'layoffs', 'legal dispute', 'legal disputes', 'legal issues', 
-                                'lessen', 'lessening', 'liabilities', 'lose', 'losing', 'losing money', 'loss', 'low', 
-                                'low growth', 'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
-                                'lower', 'lowering', 'lousy', 'lumpy', 'malicious', 'market value decline', 'meagre', 
-                                'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 'misunderstood', 
-                                'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 'negative cash flow', 
-                                'negative financial state', 'negative order book', 'negate', 'neglect', 'never', 
-                                'nondescript', 'nonsense', 'noxious', 'objectionable', 'obliterate', 'obliterated', 
-                                'odious', 'offensive', 'oppressive', 'outstanding debts', 'pain', 'parlous', 'pathetic', 
-                                'pessimistic', 'perturb', 'petty', 'pitiful', 'poisonous', 'poor', 'poor credit control', 
-                                'poor credit ratings', 'poor report', 'poor reports', 'prejudice', 'product call back', 
-                                'product call backs', 'questionable', 'quit', 'redundancies', 'reduction', 'regrettable', 
-                                'reject', 'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
-                                'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 'scanty', 'second-class', 
-                                'second-rate', 'severe', 'severe financial trouble', 'shoddy', 'shock', 'shocking', 
-                                'shrink', 'shrinking', 'shutdown', 'significant drop', 'slow economic growth', 'stagflation', 
-                                'subdued', 'subside', 'substandard', 'suffering', 'terrible', 'terrifying', 'third-rate', 
-                                'threatening', 'tragedy', 'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 
-                                'unfortunate', 'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
-                                'unskilled', 'unsuitable', 'untoward', 'unwelcome', 'useless', 'vulnerable', 'wane', 
-                                'weak leadership', 'weak management', 'wretched', 'wipe out', 'woeful', 'worthless', 
-                                'wrong'
-                            ].sort(),
+                            'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop', 'fall'],
                             'emoji': '😢'
                         }
                     };
@@ -2775,6 +2845,7 @@ function saveKeywordFromModal() {
                 });
             }
 
+            // ...existing code...
             // Setup emoticon selector in keyword modal
             function setupEmoticonSelector() {
                 const emoticonSelector = document.getElementById('emoticonSelector');
@@ -2783,8 +2854,13 @@ function saveKeywordFromModal() {
                 Object.entries(emotionConfig).forEach(([emotion, config]) => {
                     const emoticonOption = document.createElement('div');
                     emoticonOption.className = `emoticon-option ${emotion === selectedEmotion ? 'selected' : ''}`;
-                    emoticonOption.textContent = config.emoji;
                     emoticonOption.setAttribute('data-emotion', emotion);
+
+                    // show emoji + label for clarity
+                    emoticonOption.innerHTML = `
+                        <div style="font-size:1.6rem;">${config.emoji}</div>
+                        <div style="font-size:0.85rem; margin-top:6px;">${config.label}</div>
+                    `;
                     
                     emoticonOption.addEventListener('click', function() {
                         selectedEmotion = emotion;
@@ -2803,77 +2879,68 @@ function saveKeywordFromModal() {
                     emoticonSelector.appendChild(emoticonOption);
                 });
             }
+// ...existing code...
             
             // Render keyword list for selected emotion
-          // Render keyword list for selected emotion - UPDATED to use emotions data structure
-function renderKeywordList() {
-    const keywordList = document.getElementById('keywordList');
-    keywordList.innerHTML = '';
-    
-    const emotionData = emotions[selectedEmotion];
-    
-    if (emotionData && emotionData.keywords && emotionData.keywords.length > 0) {
-        // Sort keywords alphabetically
-        const sortedKeywords = [...emotionData.keywords].sort((a, b) => {
-            const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
-            const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
-            return textA.localeCompare(textB);
-        });
-        
-        sortedKeywords.forEach((keywordData, displayIndex) => {
-            const keywordText = typeof keywordData === 'string' ? keywordData : keywordData.keyword;
-            const score = typeof keywordData === 'object' ? keywordData.score : null;
+   
+            // ...existing code...
+            // Render keyword list for selected emotion
+            function renderKeywordList() {
+                const keywordList = document.getElementById('keywordList');
+                keywordList.innerHTML = '';
+                
+                if (emotionKeywords[selectedEmotion] && emotionKeywords[selectedEmotion].length > 0) {
+                    emotionKeywords[selectedEmotion].forEach((keywordData, index) => {
+                        const scoreDisplay = keywordData.score ? `<span class="badge bg-info ms-2">Score: ${keywordData.score}</span>` : `<span class="badge bg-info ms-2">Score: 1</span>`;
+                        const mentionsDisplay = typeof keywordData.mentions !== 'undefined' ? `<small class="text-muted ms-2">${keywordData.mentions} mentions</small>` : '';
+                        
+                        const keywordItem = document.createElement('div');
+                        keywordItem.className = 'keyword-item';
+                        keywordItem.innerHTML = `
+                            <div class="keyword-item-content">
+                                <span class="keyword-text">${keywordData.keyword}</span>
+                                ${scoreDisplay}
+                            </div>
+                            <div class="keyword-item-actions">
+                                <button class="btn btn-edit edit-keyword" data-index="${index}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-delete delete-keyword" data-index="${index}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        keywordList.appendChild(keywordItem);
+                    });
+                } else {
+                    keywordList.innerHTML = `
+                        <div class="empty-keywords-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No keywords for this emotion yet</p>
+                        </div>
+                    `;
+                }
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-keyword').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        editKeyword(index);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-keyword').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteKeyword(index);
+                    });
+                });
+            }
+// ...existing code...
             
-            // Find the original index for editing/deleting
-            const originalIndex = emotionData.keywords.findIndex(item => {
-                const itemText = typeof item === 'string' ? item : item.keyword;
-                return itemText === keywordText;
-            });
-            
-            const keywordItem = document.createElement('div');
-            keywordItem.className = 'keyword-item';
-            keywordItem.innerHTML = `
-                <div class="keyword-item-content">
-                    <span class="keyword-text">${keywordText}</span>
-                    ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
-                </div>
-                <div class="keyword-item-actions">
-                    <button class="btn btn-edit edit-keyword" data-index="${originalIndex}">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-delete delete-keyword" data-index="${originalIndex}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            `;
-            
-            keywordList.appendChild(keywordItem);
-        });
-    } else {
-        keywordList.innerHTML = `
-            <div class="empty-keywords-state">
-                <i class="bi bi-inbox"></i>
-                <p>No keywords for this emotion yet</p>
-            </div>
-        `;
-    }
-    
-    // Add event listeners to action buttons
-    document.querySelectorAll('.edit-keyword').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            editKeyword(index);
-        });
-    });
-    
-    document.querySelectorAll('.delete-keyword').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            deleteKeyword(index);
-        });
-    });
-}
-            
+            // Edit keyword
+            // ...existing code...
             // Edit keyword
             function editKeyword(index) {
                 editingKeywordIndex = index;
@@ -2884,11 +2951,75 @@ function renderKeywordList() {
                 
                 // Fill form with current values
                 document.getElementById('keywordInput').value = keywordData.keyword;
-                document.getElementById('keywordMentions').value = keywordData.mentions;
+                document.getElementById('keywordMentions').value = keywordData.mentions || '';
+                document.getElementById('keywordScore').value = keywordData.score || 1;
                 
                 // Show edit modal
                 keywordEditModal.show();
             }
+            
+            // Add new keyword
+            function addNewKeyword() {
+                editingKeywordIndex = null;
+                
+                // Set modal title
+                document.getElementById('keywordEditModalTitle').textContent = 'Add New Keyword';
+                
+                // Clear form
+                document.getElementById('keywordInput').value = '';
+                document.getElementById('keywordMentions').value = '';
+                document.getElementById('keywordScore').value = '1'; // default
+                
+                // Show edit modal
+                keywordEditModal.show();
+            }
+            
+            // Save keyword (both add and edit)
+            function saveKeyword() {
+                const keyword = document.getElementById('keywordInput').value.trim();
+                const mentions = parseInt(document.getElementById('keywordMentions').value) || 0;
+                const score = parseInt(document.getElementById('keywordScore').value, 10) || 1;
+                
+                if (keyword) {
+                    if (!emotionKeywords[selectedEmotion]) {
+                        emotionKeywords[selectedEmotion] = [];
+                    }
+
+                    if (editingKeywordIndex !== null) {
+                        // Update existing keyword
+                        emotionKeywords[selectedEmotion][editingKeywordIndex] = {
+                            keyword: keyword,
+                            mentions: mentions,
+                            score: score
+                        };
+                    } else {
+                        // Check if keyword already exists for this emotion
+                        const existingIndex = emotionKeywords[selectedEmotion].findIndex(k => k.keyword === keyword);
+                        
+                        if (existingIndex === -1) {
+                            // Add new keyword
+                            emotionKeywords[selectedEmotion].push({
+                                keyword: keyword,
+                                mentions: mentions,
+                                score: score
+                            });
+                        } else {
+                            alert('This keyword already exists for this emotion.');
+                            return;
+                        }
+                    }
+                    
+                    saveKeywordsToStorage();
+                    renderKeywordList();
+                    keywordEditModal.hide();
+                    
+                    // Refresh the main display if analysis data exists
+                    if (analysisData) {
+                        displayAnalysisResults(analysisData);
+                    }
+                }
+            }
+// ...existing code...
             
             // Delete keyword
             function deleteKeyword(index) {
@@ -3502,163 +3633,146 @@ function renderKeywordList() {
             }
 
             // Function to display emotion keywords in the new UI matching Keyword Management Modal
-            // Function to display emotion keywords in the new UI matching Keyword Management Modal
-function displayEmotionKeywords(emotions) {
-    // Create keywords reference section
-    const keywordsSection = document.createElement('div');
-    keywordsSection.className = 'keywords-reference-section';
-    keywordsSection.innerHTML = `
-        <div class="keywords-reference-header">
-            <h5><i class="bi bi-tags me-2"></i>Emotion Keywords Reference</h5>
-            <button class="btn btn-outline-primary btn-sm" id="manageAllKeywordsBtn">
-                <i class="bi bi-gear me-1"></i> Manage All Keywords
-            </button>
-        </div>
-        <div class="keywords-reference-grid" id="keywordsReferenceGrid">
-            <!-- Emotion keyword panels will be populated here -->
-        </div>
-    `;
+            function displayEmotionKeywords(emotions) {
+                // Create keywords reference section
+                const keywordsSection = document.createElement('div');
+                keywordsSection.className = 'keywords-reference-section';
+                keywordsSection.innerHTML = `
+                    <div class="keywords-reference-header">
+                        <h5><i class="bi bi-tags me-2"></i>Emotion Keywords Reference</h5>
+                        <button class="btn btn-outline-primary btn-sm" id="manageAllKeywordsBtn">
+                            <i class="bi bi-gear me-1"></i> Manage All Keywords
+                        </button>
+                    </div>
+                    <div class="keywords-reference-grid" id="keywordsReferenceGrid">
+                        <!-- Emotion keyword panels will be populated here -->
+                    </div>
+                `;
 
-    // Insert after the emotion distribution section
-    const emotionDistribution = document.querySelector('.emotion-distribution');
-    if (emotionDistribution) {
-        emotionDistribution.parentNode.insertBefore(keywordsSection, emotionDistribution.nextSibling);
-    } else {
-        // Fallback: insert at the end of results container
-        resultsContainer.appendChild(keywordsSection);
-    }
+                // Insert after the emotion distribution section
+                const emotionDistribution = document.querySelector('.emotion-distribution');
+                if (emotionDistribution) {
+                    emotionDistribution.parentNode.insertBefore(keywordsSection, emotionDistribution.nextSibling);
+                } else {
+                    // Fallback: insert at the end of results container
+                    resultsContainer.appendChild(keywordsSection);
+                }
 
-    // Populate emotion keyword panels
-    const grid = document.getElementById('keywordsReferenceGrid');
-    
-    Object.entries(emotions).forEach(([emotion, data]) => {
-        const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
-        
-        // Sort keywords alphabetically for display
-        const sortedKeywords = [...data.keywords].sort((a, b) => {
-            const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
-            const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
-            return textA.localeCompare(textB);
-        });
-        
-        const keywordPanel = document.createElement('div');
-        keywordPanel.className = 'keyword-emotion-panel';
-        keywordPanel.innerHTML = `
-            <div class="keyword-emotion-header">
-                <div class="keyword-emotion-icon">${data.emoji}</div>
-                <div class="keyword-emotion-info">
-                    <div class="keyword-emotion-label">${config.label}</div>
-                    <div class="keyword-emotion-count">${sortedKeywords.length} keywords</div>
-                </div>
-            </div>
-            <div class="keyword-emotion-body">
-                <div class="keyword-tags-container">
-                    ${sortedKeywords.slice(0, 20).map(keyword => {
-                        const keywordText = typeof keyword === 'string' ? keyword : keyword.keyword;
-                        return `<span class="keyword-tag" title="${keywordText}">${keywordText}</span>`;
-                    }).join('')}
-                    ${sortedKeywords.length > 20 ? 
-                        `<span class="keyword-tag" style="background: #17a2b8; color: white;">+${sortedKeywords.length - 20} more</span>` : ''
-                    }
-                </div>
-            </div>
-            <div class="keyword-emotion-footer">
-                <div class="keyword-emotion-count">
-                    <small class="text-muted">${sortedKeywords.length} total keywords</small>
-                </div>
-                <div class="keyword-actions-inline">
-                    <button class="btn btn-view" data-emotion="${emotion}">
-                        <i class="bi bi-eye me-1"></i> View All
-                    </button>
-                    <button class="btn btn-manage" data-emotion="${emotion}">
-                        <i class="bi bi-pencil me-1"></i> Manage
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        grid.appendChild(keywordPanel);
-    });
+                // Populate emotion keyword panels
+                const grid = document.getElementById('keywordsReferenceGrid');
+                
+                Object.entries(emotions).forEach(([emotion, data]) => {
+                    const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
+                    
+                    const keywordPanel = document.createElement('div');
+                    keywordPanel.className = 'keyword-emotion-panel';
+                    keywordPanel.innerHTML = `
+                        <div class="keyword-emotion-header">
+                            <div class="keyword-emotion-icon">${data.emoji}</div>
+                            <div class="keyword-emotion-info">
+                                <div class="keyword-emotion-label">${config.label}</div>
+                                <div class="keyword-emotion-count">${data.keywords.length} keywords</div>
+                            </div>
+                        </div>
+                        <div class="keyword-emotion-body">
+                            <div class="keyword-tags-container">
+                                ${data.keywords.slice(0, 20).map(keyword => 
+                                    `<span class="keyword-tag" title="${keyword}">${keyword}</span>`
+                                ).join('')}
+                                ${data.keywords.length > 20 ? 
+                                    `<span class="keyword-tag" style="background: #17a2b8; color: white;">+${data.keywords.length - 20} more</span>` : ''
+                                }
+                            </div>
+                        </div>
+                        <div class="keyword-emotion-footer">
+                            <div class="keyword-emotion-count">
+                                <small class="text-muted">${data.keywords.length} total keywords</small>
+                            </div>
+                            <div class="keyword-actions-inline">
+                                <button class="btn btn-view" data-emotion="${emotion}">
+                                    <i class="bi bi-eye me-1"></i> View All
+                                </button>
+                              
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(keywordPanel);
+                });
 
-    // Add event listeners for action buttons
-    document.querySelectorAll('.btn-view').forEach(button => {
-        button.addEventListener('click', function() {
-            const emotion = this.getAttribute('data-emotion');
-            showAllKeywordsModal(emotion, emotions[emotion]);
-        });
-    });
+                // Add event listeners for action buttons
+                document.querySelectorAll('.btn-view').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        showAllKeywordsModal(emotion, emotions[emotion]);
+                    });
+                });
 
-    document.querySelectorAll('.btn-manage').forEach(button => {
-        button.addEventListener('click', function() {
-            const emotion = this.getAttribute('data-emotion');
-            openKeywordModal(emotion);
-        });
-    });
+                document.querySelectorAll('.btn-manage').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        openKeywordModal(emotion);
+                    });
+                });
 
-    // Add event listener for "Manage All Keywords" button
-    document.getElementById('manageAllKeywordsBtn').addEventListener('click', function() {
-        // Open the first emotion's keyword management modal
-        const firstEmotion = Object.keys(emotions)[0];
-        openKeywordModal(firstEmotion);
-    });
-}
-
-           // Function to show all keywords in a modal with alphabetical sorting
-function showAllKeywordsModal(emotion, emotionData) {
-    const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
-    
-    // Sort keywords alphabetically
-    const sortedKeywords = [...emotionData.keywords].sort((a, b) => {
-        const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
-        const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
-        return textA.localeCompare(textB);
-    });
-    
-    // Update modal title
-    document.getElementById('keywordsModalLabel').textContent = `${emotionData.emoji} ${config.label} Keywords (${sortedKeywords.length})`;
-    
-    // Populate keywords
-    const keywordsContainer = document.getElementById('allKeywordsContainer');
-    keywordsContainer.innerHTML = sortedKeywords.map(keyword => {
-        const keywordText = typeof keyword === 'string' ? keyword : keyword.keyword;
-        return `<span class="keyword-tag-large" data-keyword="${keywordText.toLowerCase()}">${keywordText}</span>`;
-    }).join('');
-    
-    // Add info text
-    const infoText = document.querySelector('#keywordsModal .text-muted');
-    if (infoText) {
-        infoText.innerHTML = `<i class="bi bi-info-circle me-1"></i>These keywords are used to detect ${emotion} emotion in article analysis`;
-    }
-    
-    // Update copy button
-    const copyBtn = document.getElementById('copyKeywordsBtn');
-    copyBtn.onclick = () => copyKeywords(emotion);
-    
-    // Show modal
-    keywordsModal.show();
-
-    // Add search functionality
-    const searchInput = document.getElementById('keywordSearch');
-    searchInput.value = '';
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const keywordTags = keywordsContainer.querySelectorAll('.keyword-tag-large');
-        
-        keywordTags.forEach(tag => {
-            const keyword = tag.getAttribute('data-keyword');
-            if (keyword.includes(searchTerm)) {
-                tag.style.display = 'inline-block';
-            } else {
-                tag.style.display = 'none';
+                // Add event listener for "Manage All Keywords" button
+                    document.getElementById('manageAllKeywordsBtn').addEventListener('click', function() {
+                    // Open the Keyword Reference modal and initialize its contents
+                    renderEmotionTabs();
+                    renderKeywordReferenceList();
+                   keywordReferenceModal.show();
+                });
             }
-        });
-    });
 
-    // Focus search input
-    setTimeout(() => {
-        searchInput.focus();
-    }, 500);
-}
+            // Function to show all keywords in a modal
+            function showAllKeywordsModal(emotion, emotionData) {
+                const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
+                
+                // Update modal title
+                document.getElementById('keywordsModalLabel').textContent = `${emotionData.emoji} ${config.label} Keywords (${emotionData.keywords.length})`;
+                
+                // Populate keywords
+                const keywordsContainer = document.getElementById('allKeywordsContainer');
+                keywordsContainer.innerHTML = emotionData.keywords.map(keyword => 
+                    `<span class="keyword-tag-large" data-keyword="${keyword.toLowerCase()}">${keyword}</span>`
+                ).join('');
+                
+                // Add info text
+                const infoText = document.querySelector('#keywordsModal .text-muted');
+                if (infoText) {
+                    infoText.innerHTML = `<i class="bi bi-info-circle me-1"></i>These keywords are used to detect ${emotion} emotion in article analysis`;
+                }
+                
+                // Update copy button
+                const copyBtn = document.getElementById('copyKeywordsBtn');
+                copyBtn.onclick = () => copyKeywords(emotion);
+                
+                // Show modal
+                keywordsModal.show();
+
+                // Add search functionality
+                const searchInput = document.getElementById('keywordSearch');
+                searchInput.value = '';
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const keywordTags = keywordsContainer.querySelectorAll('.keyword-tag-large');
+                    
+                    keywordTags.forEach(tag => {
+                        const keyword = tag.getAttribute('data-keyword');
+                        if (keyword.includes(searchTerm)) {
+                            tag.style.display = 'inline-block';
+                        } else {
+                            tag.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Focus search input
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 500);
+            }
+
             // Function to copy keywords to clipboard
             function copyKeywords(emotion) {
                 const emotionData = emotions[emotion];
@@ -3710,23 +3824,22 @@ function showAllKeywordsModal(emotion, emotionData) {
             }
 
             // Open keyword management modal
-            // Open keyword management modal - UPDATED to use emotions data structure
-function openKeywordModal(emotion) {
-    selectedEmotion = emotion;
-    const config = emotionConfig[emotion];
-    
-    // Update modal title
-    document.getElementById('selectedEmotionLabel').textContent = config.label;
-    
-    // Setup emoticon selector
-    setupEmoticonSelector();
-    
-    // Render keyword list using emotions data structure
-    renderKeywordList();
-    
-    // Show modal
-    keywordModal.show();
-}
+            function openKeywordModal(emotion) {
+                selectedEmotion = emotion;
+                const config = emotionConfig[emotion];
+                
+                // Update modal title
+                document.getElementById('selectedEmotionLabel').textContent = config.label;
+                
+                // Setup emoticon selector
+                setupEmoticonSelector();
+                
+                // Render keyword list
+                renderKeywordList();
+                
+                // Show modal
+                keywordModal.show();
+            }
 
             // Perform emotion analysis
             async function performAnalysis() {
