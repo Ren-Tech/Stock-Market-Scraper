@@ -2355,144 +2355,119 @@
                 });
             }
             
-            // FIXED: renderKeywordReferenceList function with proper data structure handling
-            function renderKeywordReferenceList(searchTerm = '') {
-                const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
-                const keywordReferenceList = document.getElementById('keywordReferenceList');
-                const emotionData = emotions[selectedEmotion];
+           // FIXED: renderKeywordReferenceList function with proper data structure handling and alphabetical sorting
+function renderKeywordReferenceList(searchTerm = '') {
+    const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
+    const keywordReferenceList = document.getElementById('keywordReferenceList');
+    const emotionData = emotions[selectedEmotion];
 
-                // helper to normalize keyword item (string or object)
-                function getKeywordText(item) {
-                    if (!item && item !== '') return '';
-                    return (typeof item === 'string') ? item : (item.keyword || '');
-                }
-                function getKeywordScore(item) {
-                    if (!item) return null;
-                    return (typeof item === 'object' && item.score !== undefined) ? item.score : null;
-                }
+    // helper to normalize keyword item (string or object)
+    function getKeywordText(item) {
+        if (!item && item !== '') return '';
+        return (typeof item === 'string') ? item : (item.keyword || '');
+    }
+    function getKeywordScore(item) {
+        if (!item) return null;
+        return (typeof item === 'object' && item.score !== undefined) ? item.score : null;
+    }
 
-                // Check if emotion data exists and has keywords
-                if (!emotionData || !emotionData.keywords || emotionData.keywords.length === 0) {
-                    keywordReferenceList.innerHTML = `
-                        <div class="empty-keywords-state">
-                            <i class="bi bi-inbox"></i>
-                            <p>No keywords available for this emotion</p>
-                        </div>
-                    `;
-                    updateKeywordStats(0, 0, 0);
-                    return;
-                }
+    // Check if emotion data exists and has keywords
+    if (!emotionData || !emotionData.keywords || emotionData.keywords.length === 0) {
+        keywordReferenceList.innerHTML = `
+            <div class="empty-keywords-state">
+                <i class="bi bi-inbox"></i>
+                <p>No keywords available for this emotion</p>
+            </div>
+        `;
+        updateKeywordStats(0, 0, 0);
+        return;
+    }
 
-                let filteredKeywords = emotionData.keywords;
+    // Sort keywords alphabetically
+    let sortedKeywords = [...emotionData.keywords].sort((a, b) => {
+        const textA = getKeywordText(a).toLowerCase();
+        const textB = getKeywordText(b).toLowerCase();
+        return textA.localeCompare(textB);
+    });
 
-                // Apply search filter
-                if (searchTerm) {
-                    filteredKeywords = emotionData.keywords.filter(item =>
-                        getKeywordText(item).toLowerCase().includes(searchTerm.toLowerCase())
-                    );
-                }
+    let filteredKeywords = sortedKeywords;
 
-                // Update statistics
-                updateKeywordStats(
-                    emotionData.keywords.length,
-                    filteredKeywords.length,
-                    getTotalKeywordsCount()
-                );
+    // Apply search filter
+    if (searchTerm) {
+        filteredKeywords = sortedKeywords.filter(item =>
+            getKeywordText(item).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
 
-                if (filteredKeywords.length === 0) {
-                    keywordReferenceList.innerHTML = `
-                        <div class="empty-keywords-state">
-                            <i class="bi bi-search"></i>
-                            <p>No keywords match your search</p>
-                        </div>
-                    `;
-                    return;
-                }
+    // Update statistics
+    updateKeywordStats(
+        emotionData.keywords.length,
+        filteredKeywords.length,
+        getTotalKeywordsCount()
+    );
 
-                keywordReferenceList.innerHTML = '';
+    if (filteredKeywords.length === 0) {
+        keywordReferenceList.innerHTML = `
+            <div class="empty-keywords-state">
+                <i class="bi bi-search"></i>
+                <p>No keywords match your search</p>
+            </div>
+        `;
+        return;
+    }
 
-                filteredKeywords.forEach((item, index) => {
-                    const keywordText = getKeywordText(item);
-                    const score = getKeywordScore(item);
+    keywordReferenceList.innerHTML = '';
 
-                    const keywordItem = document.createElement('div');
-                    keywordItem.className = 'keyword-reference-item';
-                    keywordItem.innerHTML = `
-                        <div class="keyword-reference-content">
-                            <span class="keyword-text">${keywordText}</span>
-                            ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
-                        </div>
-                        <div class="keyword-actions">
-                            <button class="btn btn-sm btn-outline-primary edit-keyword-btn" 
-                                    data-emotion="${selectedEmotion}" 
-                                    data-index="${index}">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger delete-keyword-btn" 
-                                    data-emotion="${selectedEmotion}" 
-                                    data-index="${index}">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </div>
-                    `;
+    filteredKeywords.forEach((item, originalIndex) => {
+        // Find the original index for editing/deleting
+        const originalItemIndex = emotionData.keywords.findIndex(origItem => 
+            getKeywordText(origItem) === getKeywordText(item)
+        );
+        
+        const keywordText = getKeywordText(item);
+        const score = getKeywordScore(item);
 
-                    keywordReferenceList.appendChild(keywordItem);
-                });
+        const keywordItem = document.createElement('div');
+        keywordItem.className = 'keyword-reference-item';
+        keywordItem.innerHTML = `
+            <div class="keyword-reference-content">
+                <span class="keyword-text">${keywordText}</span>
+                ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
+            </div>
+            <div class="keyword-actions">
+                <button class="btn btn-sm btn-outline-primary edit-keyword-btn" 
+                        data-emotion="${selectedEmotion}" 
+                        data-index="${originalItemIndex}">
+                    <i class="bi bi-pencil"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-keyword-btn" 
+                        data-emotion="${selectedEmotion}" 
+                        data-index="${originalItemIndex}">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        `;
 
-                function editKeywordReference(emotion, index) {
-                    editingKeywordId = { emotion, index };
-                    currentEditingEmotion = emotion;
+        keywordReferenceList.appendChild(keywordItem);
+    });
 
-                    const item = emotions[emotion].keywords[index];
-                    const keywordText = getKeywordText(item);
-                    const score = getKeywordScore(item);
+    // Add event listeners to action buttons
+    document.querySelectorAll('.edit-keyword-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const emotion = this.getAttribute('data-emotion');
+            const index = parseInt(this.getAttribute('data-index'));
+            editKeywordReference(emotion, index);
+        });
+    });
 
-                    document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
-                    document.getElementById('editKeywordInput').value = keywordText;
-                    document.getElementById('editKeywordEmotion').value = emotion;
-                    document.getElementById('editKeywordScore').value = (score !== null ? score : '1');
-
-                    // Show the modal
-                    keywordEditModalRef.show();
-                }
-
-                function deleteKeywordReference(emotion, index) {
-                    const item = emotions[emotion].keywords[index];
-                    const keywordText = getKeywordText(item);
-                    if (confirm(`Are you sure you want to delete the keyword "${keywordText}" from ${emotion} category?`)) {
-                        // Remove keyword from emotions data
-                        if (emotions[emotion] && emotions[emotion].keywords) {
-                            emotions[emotion].keywords.splice(index, 1);
-
-                            // Save to cookies
-                            saveEmotionsToCookies();
-
-                            // Update UI
-                            renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
-
-                            // Show success message
-                            showToast('Keyword deleted successfully', 'success');
-                        }
-                    }
-                }
-
-                // Add event listeners to action buttons
-                document.querySelectorAll('.edit-keyword-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const emotion = this.getAttribute('data-emotion');
-                        const index = parseInt(this.getAttribute('data-index'));
-                        editKeywordReference(emotion, index);
-                    });
-                });
-
-                document.querySelectorAll('.delete-keyword-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const emotion = this.getAttribute('data-emotion');
-                        const index = parseInt(this.getAttribute('data-index'));
-                        deleteKeywordReference(emotion, index);
-                    });
-                });
-            }
+    document.querySelectorAll('.delete-keyword-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const emotion = this.getAttribute('data-emotion');
+            const index = parseInt(this.getAttribute('data-index'));
+            deleteKeywordReference(emotion, index);
+        });
+    });
+}
 
             // Function to open add keyword modal
             function openAddKeywordModal() {
@@ -2513,69 +2488,77 @@
             }
 
             // Function to save keyword (both add and edit)
-            function saveKeywordFromModal() {
-                const keyword = document.getElementById('editKeywordInput').value.trim();
-                const emotion = document.getElementById('editKeywordEmotion').value;
-                const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 1;
+            // Function to save keyword (both add and edit) and maintain alphabetical order
+function saveKeywordFromModal() {
+    const keyword = document.getElementById('editKeywordInput').value.trim();
+    const emotion = document.getElementById('editKeywordEmotion').value;
+    const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 1;
 
-                if (!keyword) {
-                    alert('Please enter a keyword');
-                    return;
-                }
+    if (!keyword) {
+        alert('Please enter a keyword');
+        return;
+    }
 
-                if (!emotions[emotion]) {
-                    emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
-                }
+    if (!emotions[emotion]) {
+        emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
+    }
 
-                if (!emotions[emotion].keywords) {
-                    emotions[emotion].keywords = [];
-                }
+    if (!emotions[emotion].keywords) {
+        emotions[emotion].keywords = [];
+    }
 
-                if (editingKeywordId) {
-                    // Editing existing keyword
-                    if (editingKeywordId.emotion === emotion) {
-                        // Same emotion category - just update the keyword object
-                        emotions[emotion].keywords[editingKeywordId.index] = { keyword: keyword, score: score };
-                    } else {
-                        // Different emotion category - remove from old, add to new
-                        emotions[editingKeywordId.emotion].keywords.splice(editingKeywordId.index, 1);
-                        emotions[emotion].keywords.push({ keyword: keyword, score: score });
-                    }
+    if (editingKeywordId) {
+        // Editing existing keyword
+        if (editingKeywordId.emotion === emotion) {
+            // Same emotion category - update the keyword object
+            emotions[emotion].keywords[editingKeywordId.index] = { keyword: keyword, score: score };
+        } else {
+            // Different emotion category - remove from old, add to new
+            emotions[editingKeywordId.emotion].keywords.splice(editingKeywordId.index, 1);
+            emotions[emotion].keywords.push({ keyword: keyword, score: score });
+        }
 
-                    showToast('Keyword updated successfully', 'success');
-                } else {
-                    // Adding new keyword
-                    // Normalize existing keywords to text for comparison
-                    const existingKeys = (emotions[emotion].keywords || []).map(k => (typeof k === 'string' ? k : k.keyword));
-                    if (existingKeys.includes(keyword)) {
-                        alert('This keyword already exists in the selected emotion category');
-                        return;
-                    }
+        showToast('Keyword updated successfully', 'success');
+    } else {
+        // Adding new keyword
+        // Normalize existing keywords to text for comparison
+        const existingKeys = (emotions[emotion].keywords || []).map(k => (typeof k === 'string' ? k : k.keyword));
+        if (existingKeys.includes(keyword)) {
+            alert('This keyword already exists in the selected emotion category');
+            return;
+        }
 
-                    emotions[emotion].keywords.push({ keyword: keyword, score: score });
-                    showToast('Keyword added successfully', 'success');
-                }
+        emotions[emotion].keywords.push({ keyword: keyword, score: score });
+        showToast('Keyword added successfully', 'success');
+    }
 
-                // Save to cookies
-                saveEmotionsToCookies();
+    // Sort keywords alphabetically after modification
+    emotions[emotion].keywords.sort((a, b) => {
+        const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
+        const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
+        return textA.localeCompare(textB);
+    });
 
-                // Close modal and refresh list
-                keywordEditModalRef.hide();
+    // Save to cookies
+    saveEmotionsToCookies();
 
-                // If we changed emotion categories, update the tabs
-                if (currentEditingEmotion && currentEditingEmotion !== emotion) {
-                    currentEditingEmotion = emotion;
-                    document.querySelectorAll('.emotion-tab').forEach(tab => {
-                        if (tab.getAttribute('data-emotion') === emotion) {
-                            tab.classList.add('active');
-                        } else {
-                            tab.classList.remove('active');
-                        }
-                    });
-                }
+    // Close modal and refresh list
+    keywordEditModalRef.hide();
 
-                renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+    // If we changed emotion categories, update the tabs
+    if (currentEditingEmotion && currentEditingEmotion !== emotion) {
+        currentEditingEmotion = emotion;
+        document.querySelectorAll('.emotion-tab').forEach(tab => {
+            if (tab.getAttribute('data-emotion') === emotion) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
             }
+        });
+    }
+
+    renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+}
 
             // Function to reset keywords to default
             function resetKeywordsToDefault() {
@@ -2822,54 +2805,74 @@
             }
             
             // Render keyword list for selected emotion
-            function renderKeywordList() {
-                const keywordList = document.getElementById('keywordList');
-                keywordList.innerHTML = '';
-                
-                if (emotionKeywords[selectedEmotion] && emotionKeywords[selectedEmotion].length > 0) {
-                    emotionKeywords[selectedEmotion].forEach((keywordData, index) => {
-                        const keywordItem = document.createElement('div');
-                        keywordItem.className = 'keyword-item';
-                        keywordItem.innerHTML = `
-                            <div class="keyword-item-content">
-                                <span class="keyword-text">${keywordData.keyword}</span>
-                            </div>
-                            <div class="keyword-item-actions">
-                                <button class="btn btn-edit edit-keyword" data-index="${index}">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-delete delete-keyword" data-index="${index}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        `;
-                        
-                        keywordList.appendChild(keywordItem);
-                    });
-                } else {
-                    keywordList.innerHTML = `
-                        <div class="empty-keywords-state">
-                            <i class="bi bi-inbox"></i>
-                            <p>No keywords for this emotion yet</p>
-                        </div>
-                    `;
-                }
-                
-                // Add event listeners to action buttons
-                document.querySelectorAll('.edit-keyword').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const index = parseInt(this.getAttribute('data-index'));
-                        editKeyword(index);
-                    });
-                });
-                
-                document.querySelectorAll('.delete-keyword').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const index = parseInt(this.getAttribute('data-index'));
-                        deleteKeyword(index);
-                    });
-                });
-            }
+          // Render keyword list for selected emotion - UPDATED to use emotions data structure
+function renderKeywordList() {
+    const keywordList = document.getElementById('keywordList');
+    keywordList.innerHTML = '';
+    
+    const emotionData = emotions[selectedEmotion];
+    
+    if (emotionData && emotionData.keywords && emotionData.keywords.length > 0) {
+        // Sort keywords alphabetically
+        const sortedKeywords = [...emotionData.keywords].sort((a, b) => {
+            const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
+            const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
+            return textA.localeCompare(textB);
+        });
+        
+        sortedKeywords.forEach((keywordData, displayIndex) => {
+            const keywordText = typeof keywordData === 'string' ? keywordData : keywordData.keyword;
+            const score = typeof keywordData === 'object' ? keywordData.score : null;
+            
+            // Find the original index for editing/deleting
+            const originalIndex = emotionData.keywords.findIndex(item => {
+                const itemText = typeof item === 'string' ? item : item.keyword;
+                return itemText === keywordText;
+            });
+            
+            const keywordItem = document.createElement('div');
+            keywordItem.className = 'keyword-item';
+            keywordItem.innerHTML = `
+                <div class="keyword-item-content">
+                    <span class="keyword-text">${keywordText}</span>
+                    ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
+                </div>
+                <div class="keyword-item-actions">
+                    <button class="btn btn-edit edit-keyword" data-index="${originalIndex}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-delete delete-keyword" data-index="${originalIndex}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            keywordList.appendChild(keywordItem);
+        });
+    } else {
+        keywordList.innerHTML = `
+            <div class="empty-keywords-state">
+                <i class="bi bi-inbox"></i>
+                <p>No keywords for this emotion yet</p>
+            </div>
+        `;
+    }
+    
+    // Add event listeners to action buttons
+    document.querySelectorAll('.edit-keyword').forEach(button => {
+        button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            editKeyword(index);
+        });
+    });
+    
+    document.querySelectorAll('.delete-keyword').forEach(button => {
+        button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            deleteKeyword(index);
+        });
+    });
+}
             
             // Edit keyword
             function editKeyword(index) {
@@ -3499,147 +3502,163 @@
             }
 
             // Function to display emotion keywords in the new UI matching Keyword Management Modal
-            function displayEmotionKeywords(emotions) {
-                // Create keywords reference section
-                const keywordsSection = document.createElement('div');
-                keywordsSection.className = 'keywords-reference-section';
-                keywordsSection.innerHTML = `
-                    <div class="keywords-reference-header">
-                        <h5><i class="bi bi-tags me-2"></i>Emotion Keywords Reference</h5>
-                        <button class="btn btn-outline-primary btn-sm" id="manageAllKeywordsBtn">
-                            <i class="bi bi-gear me-1"></i> Manage All Keywords
-                        </button>
-                    </div>
-                    <div class="keywords-reference-grid" id="keywordsReferenceGrid">
-                        <!-- Emotion keyword panels will be populated here -->
-                    </div>
-                `;
+            // Function to display emotion keywords in the new UI matching Keyword Management Modal
+function displayEmotionKeywords(emotions) {
+    // Create keywords reference section
+    const keywordsSection = document.createElement('div');
+    keywordsSection.className = 'keywords-reference-section';
+    keywordsSection.innerHTML = `
+        <div class="keywords-reference-header">
+            <h5><i class="bi bi-tags me-2"></i>Emotion Keywords Reference</h5>
+            <button class="btn btn-outline-primary btn-sm" id="manageAllKeywordsBtn">
+                <i class="bi bi-gear me-1"></i> Manage All Keywords
+            </button>
+        </div>
+        <div class="keywords-reference-grid" id="keywordsReferenceGrid">
+            <!-- Emotion keyword panels will be populated here -->
+        </div>
+    `;
 
-                // Insert after the emotion distribution section
-                const emotionDistribution = document.querySelector('.emotion-distribution');
-                if (emotionDistribution) {
-                    emotionDistribution.parentNode.insertBefore(keywordsSection, emotionDistribution.nextSibling);
-                } else {
-                    // Fallback: insert at the end of results container
-                    resultsContainer.appendChild(keywordsSection);
-                }
+    // Insert after the emotion distribution section
+    const emotionDistribution = document.querySelector('.emotion-distribution');
+    if (emotionDistribution) {
+        emotionDistribution.parentNode.insertBefore(keywordsSection, emotionDistribution.nextSibling);
+    } else {
+        // Fallback: insert at the end of results container
+        resultsContainer.appendChild(keywordsSection);
+    }
 
-                // Populate emotion keyword panels
-                const grid = document.getElementById('keywordsReferenceGrid');
-                
-                Object.entries(emotions).forEach(([emotion, data]) => {
-                    const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
-                    
-                    const keywordPanel = document.createElement('div');
-                    keywordPanel.className = 'keyword-emotion-panel';
-                    keywordPanel.innerHTML = `
-                        <div class="keyword-emotion-header">
-                            <div class="keyword-emotion-icon">${data.emoji}</div>
-                            <div class="keyword-emotion-info">
-                                <div class="keyword-emotion-label">${config.label}</div>
-                                <div class="keyword-emotion-count">${data.keywords.length} keywords</div>
-                            </div>
-                        </div>
-                        <div class="keyword-emotion-body">
-                            <div class="keyword-tags-container">
-                                ${data.keywords.slice(0, 20).map(keyword => 
-                                    `<span class="keyword-tag" title="${keyword}">${keyword}</span>`
-                                ).join('')}
-                                ${data.keywords.length > 20 ? 
-                                    `<span class="keyword-tag" style="background: #17a2b8; color: white;">+${data.keywords.length - 20} more</span>` : ''
-                                }
-                            </div>
-                        </div>
-                        <div class="keyword-emotion-footer">
-                            <div class="keyword-emotion-count">
-                                <small class="text-muted">${data.keywords.length} total keywords</small>
-                            </div>
-                            <div class="keyword-actions-inline">
-                                <button class="btn btn-view" data-emotion="${emotion}">
-                                    <i class="bi bi-eye me-1"></i> View All
-                                </button>
-                                <button class="btn btn-manage" data-emotion="${emotion}">
-                                    <i class="bi bi-pencil me-1"></i> Manage
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    grid.appendChild(keywordPanel);
-                });
+    // Populate emotion keyword panels
+    const grid = document.getElementById('keywordsReferenceGrid');
+    
+    Object.entries(emotions).forEach(([emotion, data]) => {
+        const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
+        
+        // Sort keywords alphabetically for display
+        const sortedKeywords = [...data.keywords].sort((a, b) => {
+            const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
+            const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
+            return textA.localeCompare(textB);
+        });
+        
+        const keywordPanel = document.createElement('div');
+        keywordPanel.className = 'keyword-emotion-panel';
+        keywordPanel.innerHTML = `
+            <div class="keyword-emotion-header">
+                <div class="keyword-emotion-icon">${data.emoji}</div>
+                <div class="keyword-emotion-info">
+                    <div class="keyword-emotion-label">${config.label}</div>
+                    <div class="keyword-emotion-count">${sortedKeywords.length} keywords</div>
+                </div>
+            </div>
+            <div class="keyword-emotion-body">
+                <div class="keyword-tags-container">
+                    ${sortedKeywords.slice(0, 20).map(keyword => {
+                        const keywordText = typeof keyword === 'string' ? keyword : keyword.keyword;
+                        return `<span class="keyword-tag" title="${keywordText}">${keywordText}</span>`;
+                    }).join('')}
+                    ${sortedKeywords.length > 20 ? 
+                        `<span class="keyword-tag" style="background: #17a2b8; color: white;">+${sortedKeywords.length - 20} more</span>` : ''
+                    }
+                </div>
+            </div>
+            <div class="keyword-emotion-footer">
+                <div class="keyword-emotion-count">
+                    <small class="text-muted">${sortedKeywords.length} total keywords</small>
+                </div>
+                <div class="keyword-actions-inline">
+                    <button class="btn btn-view" data-emotion="${emotion}">
+                        <i class="bi bi-eye me-1"></i> View All
+                    </button>
+                    <button class="btn btn-manage" data-emotion="${emotion}">
+                        <i class="bi bi-pencil me-1"></i> Manage
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        grid.appendChild(keywordPanel);
+    });
 
-                // Add event listeners for action buttons
-                document.querySelectorAll('.btn-view').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const emotion = this.getAttribute('data-emotion');
-                        showAllKeywordsModal(emotion, emotions[emotion]);
-                    });
-                });
+    // Add event listeners for action buttons
+    document.querySelectorAll('.btn-view').forEach(button => {
+        button.addEventListener('click', function() {
+            const emotion = this.getAttribute('data-emotion');
+            showAllKeywordsModal(emotion, emotions[emotion]);
+        });
+    });
 
-                document.querySelectorAll('.btn-manage').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const emotion = this.getAttribute('data-emotion');
-                        openKeywordModal(emotion);
-                    });
-                });
+    document.querySelectorAll('.btn-manage').forEach(button => {
+        button.addEventListener('click', function() {
+            const emotion = this.getAttribute('data-emotion');
+            openKeywordModal(emotion);
+        });
+    });
 
-                // Add event listener for "Manage All Keywords" button
-                document.getElementById('manageAllKeywordsBtn').addEventListener('click', function() {
-                    // Open the first emotion's keyword management modal
-                    const firstEmotion = Object.keys(emotions)[0];
-                    openKeywordModal(firstEmotion);
-                });
+    // Add event listener for "Manage All Keywords" button
+    document.getElementById('manageAllKeywordsBtn').addEventListener('click', function() {
+        // Open the first emotion's keyword management modal
+        const firstEmotion = Object.keys(emotions)[0];
+        openKeywordModal(firstEmotion);
+    });
+}
+
+           // Function to show all keywords in a modal with alphabetical sorting
+function showAllKeywordsModal(emotion, emotionData) {
+    const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
+    
+    // Sort keywords alphabetically
+    const sortedKeywords = [...emotionData.keywords].sort((a, b) => {
+        const textA = (typeof a === 'string' ? a : a.keyword || '').toLowerCase();
+        const textB = (typeof b === 'string' ? b : b.keyword || '').toLowerCase();
+        return textA.localeCompare(textB);
+    });
+    
+    // Update modal title
+    document.getElementById('keywordsModalLabel').textContent = `${emotionData.emoji} ${config.label} Keywords (${sortedKeywords.length})`;
+    
+    // Populate keywords
+    const keywordsContainer = document.getElementById('allKeywordsContainer');
+    keywordsContainer.innerHTML = sortedKeywords.map(keyword => {
+        const keywordText = typeof keyword === 'string' ? keyword : keyword.keyword;
+        return `<span class="keyword-tag-large" data-keyword="${keywordText.toLowerCase()}">${keywordText}</span>`;
+    }).join('');
+    
+    // Add info text
+    const infoText = document.querySelector('#keywordsModal .text-muted');
+    if (infoText) {
+        infoText.innerHTML = `<i class="bi bi-info-circle me-1"></i>These keywords are used to detect ${emotion} emotion in article analysis`;
+    }
+    
+    // Update copy button
+    const copyBtn = document.getElementById('copyKeywordsBtn');
+    copyBtn.onclick = () => copyKeywords(emotion);
+    
+    // Show modal
+    keywordsModal.show();
+
+    // Add search functionality
+    const searchInput = document.getElementById('keywordSearch');
+    searchInput.value = '';
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const keywordTags = keywordsContainer.querySelectorAll('.keyword-tag-large');
+        
+        keywordTags.forEach(tag => {
+            const keyword = tag.getAttribute('data-keyword');
+            if (keyword.includes(searchTerm)) {
+                tag.style.display = 'inline-block';
+            } else {
+                tag.style.display = 'none';
             }
+        });
+    });
 
-            // Function to show all keywords in a modal
-            function showAllKeywordsModal(emotion, emotionData) {
-                const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
-                
-                // Update modal title
-                document.getElementById('keywordsModalLabel').textContent = `${emotionData.emoji} ${config.label} Keywords (${emotionData.keywords.length})`;
-                
-                // Populate keywords
-                const keywordsContainer = document.getElementById('allKeywordsContainer');
-                keywordsContainer.innerHTML = emotionData.keywords.map(keyword => 
-                    `<span class="keyword-tag-large" data-keyword="${keyword.toLowerCase()}">${keyword}</span>`
-                ).join('');
-                
-                // Add info text
-                const infoText = document.querySelector('#keywordsModal .text-muted');
-                if (infoText) {
-                    infoText.innerHTML = `<i class="bi bi-info-circle me-1"></i>These keywords are used to detect ${emotion} emotion in article analysis`;
-                }
-                
-                // Update copy button
-                const copyBtn = document.getElementById('copyKeywordsBtn');
-                copyBtn.onclick = () => copyKeywords(emotion);
-                
-                // Show modal
-                keywordsModal.show();
-
-                // Add search functionality
-                const searchInput = document.getElementById('keywordSearch');
-                searchInput.value = '';
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const keywordTags = keywordsContainer.querySelectorAll('.keyword-tag-large');
-                    
-                    keywordTags.forEach(tag => {
-                        const keyword = tag.getAttribute('data-keyword');
-                        if (keyword.includes(searchTerm)) {
-                            tag.style.display = 'inline-block';
-                        } else {
-                            tag.style.display = 'none';
-                        }
-                    });
-                });
-
-                // Focus search input
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 500);
-            }
-
+    // Focus search input
+    setTimeout(() => {
+        searchInput.focus();
+    }, 500);
+}
             // Function to copy keywords to clipboard
             function copyKeywords(emotion) {
                 const emotionData = emotions[emotion];
@@ -3691,22 +3710,23 @@
             }
 
             // Open keyword management modal
-            function openKeywordModal(emotion) {
-                selectedEmotion = emotion;
-                const config = emotionConfig[emotion];
-                
-                // Update modal title
-                document.getElementById('selectedEmotionLabel').textContent = config.label;
-                
-                // Setup emoticon selector
-                setupEmoticonSelector();
-                
-                // Render keyword list
-                renderKeywordList();
-                
-                // Show modal
-                keywordModal.show();
-            }
+            // Open keyword management modal - UPDATED to use emotions data structure
+function openKeywordModal(emotion) {
+    selectedEmotion = emotion;
+    const config = emotionConfig[emotion];
+    
+    // Update modal title
+    document.getElementById('selectedEmotionLabel').textContent = config.label;
+    
+    // Setup emoticon selector
+    setupEmoticonSelector();
+    
+    // Render keyword list using emotions data structure
+    renderKeywordList();
+    
+    // Show modal
+    keywordModal.show();
+}
 
             // Perform emotion analysis
             async function performAnalysis() {
