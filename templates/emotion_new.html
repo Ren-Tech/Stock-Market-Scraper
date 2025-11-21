@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sector Sentiment Analysis</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; }
+.container { background: rgba(255,255,255,0.97); border-radius: 24px; padding: 25px; max-width: 1200px; margin: 0 auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4); }
+.header { background: linear-gradient(135deg, #ff6b9d, #c44569, #ff6b9d); padding: 22px; text-align: center; border-radius: 16px; margin-bottom: 20px; position: relative; overflow: hidden; }
+.header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent); animation: shimmer 3s infinite; }
+@keyframes shimmer { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+.header h1 { font-size: 26px; color: white; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+.nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
+.nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 30px; border: none; background: linear-gradient(135deg, #f8f9fa, #e9ecef); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.nav-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.nav-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.nav-btn .icon { font-size: 16px; }
+.arrow-btn { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; font-size: 20px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.arrow-btn:hover { transform: scale(1.1); }
+.main-content { display: flex; gap: 25px; flex-wrap: wrap; }
+.sidebar { width: 230px; flex-shrink: 0; }
+@media (max-width: 900px) { .sidebar { width: 100%; } .main-content { flex-direction: column; } }
+.sidebar-box { background: linear-gradient(180deg, #f8f9fa, #fff); border-radius: 18px; padding: 22px; box-shadow: 0 10px 35px rgba(0,0,0,0.08); border: 1px solid rgba(102,126,234,0.15); }
+.sidebar-title { font-weight: 700; margin-bottom: 18px; color: #1a1a2e; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.analysis-section { margin-top: 20px; padding: 18px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; }
+.analysis-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.analysis-icon { font-size: 22px; }
+.analysis-label { font-weight: 600; color: #1565c0; font-size: 14px; }
+.analysis-select { width: 100%; padding: 11px 14px; border-radius: 10px; border: 2px solid #90caf9; background: white; font-size: 13px; cursor: pointer; transition: all 0.3s; margin-bottom: 15px; }
+.analysis-select:focus { outline: none; border-color: #42a5f5; box-shadow: 0 0 0 4px rgba(66,165,245,0.2); }
+.analyze-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+.analyze-btn:disabled { background: #bdbdbd; cursor: not-allowed; transform: none; box-shadow: none; }
+.timer-display { text-align: center; margin-top: 15px; font-size: 16px; font-weight: 600; color: #1565c0; }
+.status-display { text-align: center; margin-top: 10px; font-size: 12px; color: #666; }
+.table-container { flex: 1; min-width: 0; }
+.keyword-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding: 14px 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; }
+.keyword-header span:first-child { font-size: 22px; }
+.keyword-header span:last-child { font-weight: 600; color: #1565c0; font-size: 15px; }
+.table-wrapper { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { background: linear-gradient(135deg, #00897b, #00796b); color: white; padding: 16px 12px; text-align: center; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.data-table td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 13px; transition: all 0.3s; }
+.data-table tbody tr { transition: all 0.3s; }
+.data-table tbody tr:hover { background: linear-gradient(135deg, #e0f7fa, #e8f5e9); }
+.data-table tbody tr:nth-child(even) { background: #fafbfc; }
+.data-table tbody tr:nth-child(even):hover { background: linear-gradient(135deg, #e0f7fa, #e8f5e9); }
+.emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.score-cell { font-weight: 600; font-size: 13px; }
+.score-sad { color: #e53935; }
+.score-neutral { color: #f57c00; }
+.score-happy { color: #43a047; }
+.rag-cell { display: flex; justify-content: center; }
+.rag-dot { width: 26px; height: 26px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s; cursor: pointer; }
+.rag-dot:hover { transform: scale(1.25); }
+.rag-green { background: linear-gradient(135deg, #66bb6a, #43a047); }
+.rag-yellow { background: linear-gradient(135deg, #ffee58, #fdd835); }
+.rag-red { background: linear-gradient(135deg, #ef5350, #e53935); }
+.rag-header { display: flex; gap: 4px; justify-content: center; margin-bottom: 4px; }
+.rag-header span { width: 12px; height: 12px; border-radius: 50%; }
+.company-name { font-weight: 600; color: #1a1a2e; }
+.sector-badge { display: inline-block; padding: 5px 12px; background: linear-gradient(135deg, #ede7f6, #d1c4e9); color: #5e35b1; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.empty-cell { color: #bdbdbd; font-style: italic; }
+.loading-cell { color: #667eea; font-weight: 600; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.actions-cell { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.action-btn { width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+.action-btn:hover { transform: translateY(-3px) scale(1.1); }
+.btn-edit { background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; box-shadow: 0 4px 12px rgba(30,136,229,0.35); }
+.btn-delete { background: linear-gradient(135deg, #ef5350, #e53935); color: white; box-shadow: 0 4px 12px rgba(229,57,53,0.35); }
+.btn-up { background: linear-gradient(135deg, #66bb6a, #43a047); color: white; box-shadow: 0 4px 12px rgba(67,160,71,0.35); }
+.btn-down { background: linear-gradient(135deg, #ffa726, #fb8c00); color: white; box-shadow: 0 4px 12px rgba(251,140,0,0.35); }
+.add-row-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 2px dashed #81c784; cursor: pointer; transition: all 0.3s; color: #2e7d32; font-weight: 600; font-size: 14px; }
+.add-row-btn:hover { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); border-color: #66bb6a; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+.modal { background: white; border-radius: 24px; padding: 30px; width: 95%; max-width: 420px; box-shadow: 0 25px 80px rgba(0,0,0,0.3); animation: modalIn 0.4s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal h2 { margin-bottom: 25px; color: #1a1a2e; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 13px; }
+.form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; transition: all 0.3s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.15); }
+.modal-actions { display: flex; gap: 12px; margin-top: 25px; }
+.modal-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.modal-btn:hover { transform: translateY(-2px); }
+.btn-cancel { background: #f5f5f5; color: #666; }
+.btn-cancel:hover { background: #eeeeee; }
+.btn-save { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.btn-save:hover { box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+.toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 14px; font-weight: 500; box-shadow: 0 10px 40px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2000; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.loading-bar { height: 4px; background: linear-gradient(90deg, #667eea, #764ba2, #667eea); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 2px; margin-bottom: 15px; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>📊 Sector Sentiment Analysis</h1></div>
+  <div class="loading-bar"></div>
+  <div class="nav-bar">
+    <button class="arrow-btn">‹</button>
+    <button class="nav-btn" data-sector="mylist"><span class="icon">📋</span>My List</button>
+    <button class="nav-btn active" data-sector="semiconductors"><span class="icon">💾</span>Semiconductors</button>
+    <button class="nav-btn" data-sector="pharma"><span class="icon">💊</span>Pharma</button>
+    <button class="nav-btn" data-sector="electricity"><span class="icon">⚡</span>Electricity</button>
+    <button class="nav-btn" data-sector="mining"><span class="icon">⛏️</span>Mining</button>
+    <button class="nav-btn" data-sector="automobile"><span class="icon">🚗</span>Automobile</button>
+    <button class="nav-btn" data-sector="quantum"><span class="icon">⚛️</span>Quantum</button>
+    <button class="arrow-btn">›</button>
+  </div>
+  <div class="main-content">
+    <div class="sidebar">
+      <div class="sidebar-box">
+        <div class="sidebar-title">⚙️ Analysis Parameters</div>
+        
+        <div class="analysis-section">
+          <div class="analysis-header">
+            <span class="analysis-icon">🔍</span>
+            <span class="analysis-label">Analysis Depth</span>
+          </div>
+          <select class="analysis-select" id="analysisDepth">
+            <option value="basic">Basic Analysis</option>
+            <option value="standard" selected>Standard Analysis</option>
+            <option value="comprehensive">Comprehensive Analysis</option>
+            <option value="advanced">Advanced Analysis</option>
+          </select>
+          
+          <button class="analyze-btn" id="analyzeBtn">
+            <span class="icon">🚀</span>
+            <span>Analyze All</span>
+          </button>
+          
+          <div class="timer-display" id="timerDisplay">Ready</div>
+          <div class="status-display" id="statusDisplay">Click analyze to start</div>
+        </div>
+      </div>
+    </div>
+    <div class="table-container">
+      <div class="keyword-header"><span>🔑</span><span>Keyword Management</span></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Companies</th>
+              <th>Sector</th>
+              <th><span class="emoji">😢</span>Sad %</th>
+              <th><span class="emoji">😐</span>Neutral %</th>
+              <th><span class="emoji">😊</span>Happy %</th>
+              <th><div class="rag-header"><span style="background:#e53935"></span><span style="background:#fdd835"></span><span style="background:#43a047"></span></div>RAG</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="add-row-btn" onclick="openModal()">
+          <span style="font-size:20px">➕</span>
+          <span>Add New Company</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">✨ Add Company</h2>
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="companyName" placeholder="Enter company name...">
+    </div>
+    <div class="form-group">
+      <label>Sector</label>
+      <select id="sectorSelect">
+        <option value="Semiconductor">💾 Semiconductor</option>
+        <option value="Pharma">💊 Pharma</option>
+        <option value="Electricity">⚡ Electricity</option>
+        <option value="Mining">⛏️ Mining</option>
+        <option value="Automobile">🚗 Automobile</option>
+        <option value="Quantum">⚛️ Quantum</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn btn-save" onclick="saveCompany()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Action completed successfully!</div>
+
+<script>
+const API_URL = 'http://localhost:5000';
+
+let companies = [
+  {name:"Nvidia",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Broadcom",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"TSMC",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Samsung Electronics",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"AMD",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"ASML",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Micron Technology",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"SK Hynix",sector:"Semiconductor",sad:null,neutral:null,happy:null}
+];
+
+let editIndex = -1;
+let analysisInProgress = false;
+
+function getRAG(sad, happy) {
+  if (happy >= 70) return 'green';
+  if (sad >= 70) return 'red';
+  return 'yellow';
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = companies.map((c, i) => {
+    let sadDisplay, neutralDisplay, happyDisplay, ragDisplay;
+    
+    if (c.sad === null || c.neutral === null || c.happy === null) {
+      sadDisplay = '<span class="empty-cell">—</span>';
+      neutralDisplay = '<span class="empty-cell">—</span>';
+      happyDisplay = '<span class="empty-cell">—</span>';
+      ragDisplay = '<span class="empty-cell">—</span>';
+    } else if (c.sad === 'loading') {
+      sadDisplay = '<span class="loading-cell">⏳</span>';
+      neutralDisplay = '<span class="loading-cell">⏳</span>';
+      happyDisplay = '<span class="loading-cell">⏳</span>';
+      ragDisplay = '<span class="loading-cell">⏳</span>';
+    } else {
+      sadDisplay = `${c.sad}%`;
+      neutralDisplay = `${c.neutral}%`;
+      happyDisplay = `${c.happy}%`;
+      ragDisplay = `<div class="rag-dot rag-${getRAG(c.sad, c.happy)}"></div>`;
+    }
+    
+    return `
+    <tr>
+      <td><strong>${i + 1}</strong></td>
+      <td class="company-name">${c.name}</td>
+      <td><span class="sector-badge">${c.sector}</span></td>
+      <td class="score-cell score-sad">${sadDisplay}</td>
+      <td class="score-cell score-neutral">${neutralDisplay}</td>
+      <td class="score-cell score-happy">${happyDisplay}</td>
+      <td><div class="rag-cell">${ragDisplay}</div></td>
+      <td>
+        <div class="actions-cell">
+          <button class="action-btn btn-edit" onclick="editCompany(${i})" title="Edit">✏️</button>
+          <button class="action-btn btn-delete" onclick="deleteCompany(${i})" title="Delete">🗑️</button>
+          <button class="action-btn btn-up" onclick="moveUp(${i})" title="Move Up">↑</button>
+          <button class="action-btn btn-down" onclick="moveDown(${i})" title="Move Down">↓</button>
+        </div>
+      </td>
+    </tr>
+  `}).join('');
+}
+
+async function analyzeAllCompanies() {
+  if (analysisInProgress) {
+    showToast('⚠️ Analysis already in progress');
+    return;
+  }
+  
+  analysisInProgress = true;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const statusDisplay = document.getElementById('statusDisplay');
+  
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<span class="icon">⏳</span><span>Analyzing...</span>';
+  
+  let completed = 0;
+  const total = companies.length;
+  
+  for (let i = 0; i < companies.length; i++) {
+    const company = companies[i];
+    
+    // Mark as loading
+    companies[i].sad = 'loading';
+    companies[i].neutral = 'loading';
+    companies[i].happy = 'loading';
+    renderTable();
+    
+    timerDisplay.textContent = `Analyzing ${company.name}...`;
+    statusDisplay.textContent = `Processing ${completed + 1} of ${total}`;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/analyze-single`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ company_name: company.name })
+      });
+      
+      const data = await response.json();
+      
+      if (data.result) {
+        companies[i].sad = data.result.sad;
+        companies[i].neutral = data.result.neutral;
+        companies[i].happy = data.result.happy;
+      } else {
+        companies[i].sad = null;
+        companies[i].neutral = null;
+        companies[i].happy = null;
+      }
+    } catch (error) {
+      console.error(`Error analyzing ${company.name}:`, error);
+      companies[i].sad = null;
+      companies[i].neutral = null;
+      companies[i].happy = null;
+      showToast(`⚠️ Error analyzing ${company.name}`);
+    }
+    
+    renderTable();
+    completed++;
+    
+    // Add delay between requests
+    if (i < companies.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+  
+  analysisInProgress = false;
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
+  timerDisplay.textContent = 'Complete!';
+  statusDisplay.textContent = `Analyzed ${total} companies`;
+  showToast('✅ Analysis completed for all companies!');
+}
+
+function openModal(index = -1) {
+  editIndex = index;
+  document.getElementById('modalTitle').textContent = index === -1 ? '✨ Add Company' : '✏️ Edit Company';
+  if (index >= 0) {
+    const c = companies[index];
+    document.getElementById('companyName').value = c.name;
+    document.getElementById('sectorSelect').value = c.sector;
+  } else {
+    document.getElementById('companyName').value = '';
+    document.getElementById('sectorSelect').value = 'Semiconductor';
+  }
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  editIndex = -1;
+}
+
+function saveCompany() {
+  const name = document.getElementById('companyName').value.trim();
+  if (!name) { showToast('⚠️ Please enter company name'); return; }
+  const sector = document.getElementById('sectorSelect').value;
+  
+  const company = {name, sector, sad: null, neutral: null, happy: null};
+  if (editIndex >= 0) {
+    companies[editIndex].name = name;
+    companies[editIndex].sector = sector;
+    showToast('✅ Company updated successfully!');
+  } else {
+    companies.push(company);
+    showToast('✅ Company added successfully!');
+  }
+  renderTable();
+  closeModal();
+}
+
+function editCompany(i) { openModal(i); }
+
+function deleteCompany(i) {
+  if (confirm(`Delete "${companies[i].name}"?`)) {
+    companies.splice(i, 1);
+    renderTable();
+    showToast('🗑️ Company deleted!');
+  }
+}
+
+function moveUp(i) {
+  if (i > 0) {
+    [companies[i], companies[i-1]] = [companies[i-1], companies[i]];
+    renderTable();
+    showToast('⬆️ Moved up!');
+  }
+}
+
+function moveDown(i) {
+  if (i < companies.length - 1) {
+    [companies[i], companies[i+1]] = [companies[i+1], companies[i]];
+    renderTable();
+    showToast('⬇️ Moved down!');
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('analyzeBtn').addEventListener('click', analyzeAllCompanies);
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  
+  renderTable();
+});
+</script>
+</body>
+</html>

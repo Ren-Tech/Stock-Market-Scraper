@@ -26,7 +26,8 @@ from collections import Counter
 import langdetect
 from textblob import TextBlob
 import numpy as np
-
+from logging.handlers import RotatingFileHandler
+from urllib.parse import quote_plus
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
@@ -4503,6 +4504,919 @@ def extract_apnews_articles(soup, source_name):
         except Exception as e:
             logger.warning(f"Error processing AP News article: {str(e)}")
     return articles
+PROXIES = [
+    'http://proxy1:port',
+    'http://proxy2:port'
+]
+
+def get_proxy():
+    return random.choice(PROXIES) if PROXIES else None
+
+# Configure logging
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+
+file_handler = RotatingFileHandler('logs/sentiment_analysis.log', maxBytes=10240000, backupCount=10)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+))
+file_handler.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+app.logger.info('Sentiment Analysis Backend startup')
+
+# User agents for scraping
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+]
+
+def get_headers():
+    """Get random headers for scraping"""
+    return {
+        'User-Agent': random.choice(USER_AGENTS),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+    }
+
+def analyze_sentiment(text):
+    """Analyze sentiment using TextBlob"""
+    try:
+        blob = TextBlob(text)
+        polarity = blob.sentiment.polarity
+        
+        # Convert polarity to sentiment
+        if polarity > 0.1:
+            return 'happy'
+        elif polarity < -0.1:
+            return 'sad'
+        else:
+            return 'neutral'
+    except Exception as e:
+        app.logger.error(f"Error in sentiment analysis: {str(e)}")
+        return 'neutral'
+
+def scrape_google_news(company_name, max_results=10):
+    """Scrape Google News for company articles"""
+    articles = []
+    try:
+        query = quote_plus(f"{company_name} news")
+        url = f"https://news.google.com/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+        
+        app.logger.info(f"Scraping Google News for: {company_name}")
+        
+        response = requests.get(url, headers=get_headers(), timeout=10)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Find article elements
+            article_elements = soup.find_all('article', limit=max_results)
+            
+            for article in article_elements:
+                try:
+                    title_element = article.find('a', class_='gPFEn')
+                    if title_element:
+                        title = title_element.get_text(strip=True)
+                        articles.append({
+                            'title': title,
+                            'source': 'Google News',
+                            'sentiment': analyze_sentiment(title)
+                        })
+                except Exception as e:
+                    app.logger.warning(f"Error parsing Google News article: {str(e)}")
+                    continue
+        
+        app.logger.info(f"Found {len(articles)} articles from Google News")
+    except Exception as e:
+        app.logger.error(f"Error scraping Google News: {str(e)}")
+    
+    return articles
+
+def scrape_bing_news(company_name, max_results=10):
+    """Scrape Bing News for company articles"""
+    articles = []
+    try:
+        query = quote_plus(company_name)
+        url = f"https://www.bing.com/news/search?q={query}&FORM=HDRSC6"
+        
+        app.logger.info(f"Scraping Bing News for: {company_name}")
+        
+        response = requests.get(url, headers=get_headers(), timeout=10)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Find news cards
+            news_cards = soup.find_all('div', class_='news-card', limit=max_results)
+            
+            for card in news_cards:
+                try:
+                    title_element = card.find('a', class_='title')
+                    if title_element:
+                        title = title_element.get_text(strip=True)
+                        articles.append({
+                            'title': title,
+                            'source': 'Bing News',
+                            'sentiment': analyze_sentiment(title)
+                        })
+                except Exception as e:
+                    app.logger.warning(f"Error parsing Bing News article: {str(e)}")
+                    continue
+        
+        app.logger.info(f"Found {len(articles)} articles from Bing News")
+    except Exception as e:
+        app.logger.error(f"Error scraping Bing News: {str(e)}")
+    
+    return articles
+
+def scrape_yahoo_finance(company_name, max_results=10):
+    """Scrape Yahoo Finance for company news"""
+    articles = []
+    try:
+        query = quote_plus(company_name)
+        url = f"https://finance.yahoo.com/quote/{query}/news"
+        
+        app.logger.info(f"Scraping Yahoo Finance for: {company_name}")
+        
+        response = requests.get(url, headers=get_headers(), timeout=10)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Find news items
+            news_items = soup.find_all('h3', limit=max_results)
+            
+            for item in news_items:
+                try:
+                    title = item.get_text(strip=True)
+                    if title and len(title) > 10:
+                        articles.append({
+                            'title': title,
+                            'source': 'Yahoo Finance',
+                            'sentiment': analyze_sentiment(title)
+                        })
+                except Exception as e:
+                    app.logger.warning(f"Error parsing Yahoo Finance article: {str(e)}")
+                    continue
+        
+        app.logger.info(f"Found {len(articles)} articles from Yahoo Finance")
+    except Exception as e:
+        app.logger.error(f"Error scraping Yahoo Finance: {str(e)}")
+    
+    return articles
+
+def calculate_sentiment_percentages(articles):
+    """Calculate sentiment percentages from articles"""
+    if not articles:
+        app.logger.warning("No articles found for sentiment calculation")
+        return {'sad': 0, 'neutral': 0, 'happy': 0}
+    
+    sentiments = {'sad': 0, 'neutral': 0, 'happy': 0}
+    
+    for article in articles:
+        sentiment = article.get('sentiment', 'neutral')
+        sentiments[sentiment] += 1
+    
+    total = len(articles)
+    percentages = {
+        'sad': round((sentiments['sad'] / total) * 100),
+        'neutral': round((sentiments['neutral'] / total) * 100),
+        'happy': round((sentiments['happy'] / total) * 100)
+    }
+    
+    # Ensure percentages add up to 100
+    diff = 100 - sum(percentages.values())
+    if diff != 0:
+        percentages['neutral'] += diff
+    
+    app.logger.info(f"Sentiment percentages: {percentages}")
+    return percentages
+
+def scrape_all_sources(company_name):
+    """Scrape all news sources for a company"""
+    app.logger.info(f"Starting comprehensive scraping for: {company_name}")
+    start_time = time.time()
+    
+    all_articles = []
+    
+    # Scrape Google News
+    try:
+        google_articles = scrape_google_news(company_name, max_results=8)
+        all_articles.extend(google_articles)
+        time.sleep(random.uniform(1, 2))  # Delay between requests
+    except Exception as e:
+        app.logger.error(f"Failed to scrape Google News: {str(e)}")
+    
+    # Scrape Bing News
+    try:
+        bing_articles = scrape_bing_news(company_name, max_results=8)
+        all_articles.extend(bing_articles)
+        time.sleep(random.uniform(1, 2))
+    except Exception as e:
+        app.logger.error(f"Failed to scrape Bing News: {str(e)}")
+    
+    # Scrape Yahoo Finance
+    try:
+        yahoo_articles = scrape_yahoo_finance(company_name, max_results=8)
+        all_articles.extend(yahoo_articles)
+    except Exception as e:
+        app.logger.error(f"Failed to scrape Yahoo Finance: {str(e)}")
+    
+    elapsed_time = time.time() - start_time
+    app.logger.info(f"Scraping completed in {elapsed_time:.2f} seconds. Total articles: {len(all_articles)}")
+    
+    return all_articles
+
+@app.route('/')
+def index():
+    """Home page"""
+    return jsonify({
+        'message': 'Sentiment Analysis Backend API',
+        'status': 'running',
+        'endpoints': {
+            'analyze_single': '/api/analyze-single (POST)',
+            'analyze_batch': '/api/analyze-batch (POST)',
+            'emotion_page': '/emotion_new (GET)'
+        }
+    })
+@app.route('/emotion_new')
+def emotion_new():
+    """Render the emotion analysis page with Visual Timer and Tab Switching"""
+    
+    html_content = ''' <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sector Sentiment Analysis</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; }
+.container { background: rgba(255,255,255,0.97); border-radius: 24px; padding: 25px; max-width: 1200px; margin: 0 auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4); }
+.header { background: linear-gradient(135deg, #ff6b9d, #c44569, #ff6b9d); padding: 22px; text-align: center; border-radius: 16px; margin-bottom: 20px; position: relative; overflow: hidden; }
+.header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent); animation: shimmer 3s infinite; }
+@keyframes shimmer { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+.header h1 { font-size: 26px; color: white; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+
+/* Navigation */
+.nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
+.nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 30px; border: none; background: linear-gradient(135deg, #f8f9fa, #e9ecef); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.nav-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.nav-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.nav-btn .icon { font-size: 16px; }
+.arrow-btn { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; font-size: 20px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.arrow-btn:hover { transform: scale(1.1); }
+
+/* Layout */
+.main-content { display: flex; gap: 25px; flex-wrap: wrap; }
+.sidebar { width: 230px; flex-shrink: 0; }
+@media (max-width: 900px) { .sidebar { width: 100%; } .main-content { flex-direction: column; } }
+.sidebar-box { background: linear-gradient(180deg, #f8f9fa, #fff); border-radius: 18px; padding: 22px; box-shadow: 0 10px 35px rgba(0,0,0,0.08); border: 1px solid rgba(102,126,234,0.15); }
+.sidebar-title { font-weight: 700; margin-bottom: 18px; color: #1a1a2e; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+
+/* Analysis Section */
+.analysis-section { margin-top: 20px; padding: 18px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; }
+.analysis-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; margin-top: 15px; }
+.analysis-header:first-child { margin-top: 0; }
+.analysis-icon { font-size: 22px; }
+.analysis-label { font-weight: 600; color: #1565c0; font-size: 14px; }
+.analysis-select { width: 100%; padding: 11px 14px; border-radius: 10px; border: 2px solid #90caf9; background: white; font-size: 13px; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
+.analysis-select:focus { outline: none; border-color: #42a5f5; box-shadow: 0 0 0 4px rgba(66,165,245,0.2); }
+.analyze-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+.analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+.analyze-btn:disabled { background: #bdbdbd; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Status & Timer */
+.timer-display { text-align: center; margin-top: 15px; font-size: 14px; font-weight: 600; color: #1565c0; }
+.status-display { text-align: center; margin-top: 5px; font-size: 12px; color: #666; }
+
+/* NEW: Line Timer Styles */
+.timer-line-container {
+    margin-top: 15px;
+    display: none; /* Hidden by default */
+}
+.timer-text-small {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+.timer-line-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.8);
+}
+.timer-line-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #43a047, #66bb6a);
+    border-radius: 10px;
+    transition: width 1s linear, background 0.3s;
+}
+.timer-line-fill.warning { background: linear-gradient(90deg, #fdd835, #ffee58); }
+.timer-line-fill.danger { background: linear-gradient(90deg, #e53935, #ef5350); }
+
+
+/* Table */
+.table-container { flex: 1; min-width: 0; }
+.keyword-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding: 14px 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; }
+.keyword-header span:first-child { font-size: 22px; }
+.keyword-header span:last-child { font-weight: 600; color: #1565c0; font-size: 15px; }
+.table-wrapper { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { background: linear-gradient(135deg, #00897b, #00796b); color: white; padding: 16px 12px; text-align: center; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.data-table td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 13px; transition: all 0.3s; }
+.data-table tbody tr:hover { background: linear-gradient(135deg, #e0f7fa, #e8f5e9); }
+.data-table tbody tr:nth-child(even) { background: #fafbfc; }
+.emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.score-cell { font-weight: 600; font-size: 13px; }
+.score-sad { color: #e53935; }
+.score-neutral { color: #f57c00; }
+.score-happy { color: #43a047; }
+.rag-cell { display: flex; justify-content: center; }
+.rag-dot { width: 26px; height: 26px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s; cursor: pointer; }
+.rag-dot:hover { transform: scale(1.25); }
+.rag-green { background: linear-gradient(135deg, #66bb6a, #43a047); }
+.rag-yellow { background: linear-gradient(135deg, #ffee58, #fdd835); }
+.rag-red { background: linear-gradient(135deg, #ef5350, #e53935); }
+.rag-header { display: flex; gap: 4px; justify-content: center; margin-bottom: 4px; }
+.rag-header span { width: 12px; height: 12px; border-radius: 50%; }
+.company-name { font-weight: 600; color: #1a1a2e; }
+.sector-badge { display: inline-block; padding: 5px 12px; background: linear-gradient(135deg, #ede7f6, #d1c4e9); color: #5e35b1; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.empty-cell { color: #bdbdbd; font-style: italic; }
+.loading-cell { color: #667eea; font-weight: 600; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Actions & Modal */
+.actions-cell { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.action-btn { width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+.action-btn:hover { transform: translateY(-3px) scale(1.1); }
+.btn-edit { background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; box-shadow: 0 4px 12px rgba(30,136,229,0.35); }
+.btn-delete { background: linear-gradient(135deg, #ef5350, #e53935); color: white; box-shadow: 0 4px 12px rgba(229,57,53,0.35); }
+.btn-up { background: linear-gradient(135deg, #66bb6a, #43a047); color: white; box-shadow: 0 4px 12px rgba(67,160,71,0.35); }
+.btn-down { background: linear-gradient(135deg, #ffa726, #fb8c00); color: white; box-shadow: 0 4px 12px rgba(251,140,0,0.35); }
+.add-row-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 2px dashed #81c784; cursor: pointer; transition: all 0.3s; color: #2e7d32; font-weight: 600; font-size: 14px; }
+.add-row-btn:hover { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); border-color: #66bb6a; }
+
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+.modal { background: white; border-radius: 24px; padding: 30px; width: 95%; max-width: 420px; box-shadow: 0 25px 80px rgba(0,0,0,0.3); animation: modalIn 0.4s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal h2 { margin-bottom: 25px; color: #1a1a2e; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 13px; }
+.form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; transition: all 0.3s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.15); }
+.modal-actions { display: flex; gap: 12px; margin-top: 25px; }
+.modal-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.modal-btn:hover { transform: translateY(-2px); }
+.btn-cancel { background: #f5f5f5; color: #666; }
+.btn-cancel:hover { background: #eeeeee; }
+.btn-save { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.btn-save:hover { box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+.toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 14px; font-weight: 500; box-shadow: 0 10px 40px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2000; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.loading-bar { height: 4px; background: linear-gradient(90deg, #667eea, #764ba2, #667eea); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 2px; margin-bottom: 15px; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>📊 Sector Sentiment Analysis</h1></div>
+  <div class="loading-bar"></div>
+  
+  <div class="nav-bar">
+    <button class="arrow-btn">‹</button>
+    <button class="nav-btn active" data-sector="mylist"><span class="icon">📋</span>My List</button>
+    <button class="nav-btn" data-sector="Semiconductor"><span class="icon">💾</span>Semiconductors</button>
+    <button class="nav-btn" data-sector="Pharma"><span class="icon">💊</span>Pharma</button>
+    <button class="nav-btn" data-sector="Electricity"><span class="icon">⚡</span>Electricity</button>
+    <button class="nav-btn" data-sector="Mining"><span class="icon">⛏️</span>Mining</button>
+    <button class="nav-btn" data-sector="Automobile"><span class="icon">🚗</span>Automobile</button>
+    <button class="nav-btn" data-sector="Quantum"><span class="icon">⚛️</span>Quantum</button>
+    <button class="arrow-btn">›</button>
+  </div>
+
+  <div class="main-content">
+    <div class="sidebar">
+      <div class="sidebar-box">
+        <div class="sidebar-title">⚙️ Analysis Parameters</div>
+        
+        <div class="analysis-section">
+          <div class="analysis-header">
+            <span class="analysis-icon">🔍</span>
+            <span class="analysis-label">Analysis Depth</span>
+          </div>
+          <select class="analysis-select" id="analysisDepth">
+            <option value="basic">Basic Analysis</option>
+            <option value="standard" selected>Standard Analysis</option>
+            <option value="comprehensive">Comprehensive Analysis</option>
+            <option value="advanced">Advanced Analysis</option>
+          </select>
+          
+          <div class="analysis-header">
+            <span class="analysis-icon">⏱️</span>
+            <span class="analysis-label">Refresh Timer</span>
+          </div>
+          <select class="analysis-select" id="timerSelect">
+            <option value="0">Off (Manual)</option>
+            <option value="15">15 Minutes</option>
+            <option value="30">30 Minutes</option>
+            <option value="45">45 Minutes</option>
+            <option value="60">60 Minutes</option>
+          </select>
+          
+          <button class="analyze-btn" id="analyzeBtn">
+            <span class="icon">🚀</span>
+            <span>Analyze All</span>
+          </button>
+          
+          <div class="timer-display" id="timerDisplay">Ready</div>
+          <div class="status-display" id="statusDisplay">Click analyze to start</div>
+          
+          <div class="timer-line-container" id="timerLineContainer">
+            <div class="timer-text-small">
+              <span>Auto-refresh</span>
+              <span id="timerTextTime">00:00</span>
+            </div>
+            <div class="timer-line-track">
+              <div class="timer-line-fill" id="timerLineFill"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="table-container">
+      <div class="keyword-header"><span>🔑</span><span id="tableHeaderTitle">My List</span></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Companies</th>
+              <th>Sector</th>
+              <th><span class="emoji">😢</span>Sad %</th>
+              <th><span class="emoji">😐</span>Neutral %</th>
+              <th><span class="emoji">😊</span>Happy %</th>
+              <th><div class="rag-header"><span style="background:#e53935"></span><span style="background:#fdd835"></span><span style="background:#43a047"></span></div>RAG</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="add-row-btn" onclick="openModal()">
+          <span style="font-size:20px">➕</span>
+          <span>Add New Company</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">✨ Add Company</h2>
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="companyName" placeholder="Enter company name...">
+    </div>
+    <div class="form-group">
+      <label>Sector</label>
+      <select id="sectorSelect">
+        <option value="Semiconductor">💾 Semiconductor</option>
+        <option value="Pharma">💊 Pharma</option>
+        <option value="Electricity">⚡ Electricity</option>
+        <option value="Mining">⛏️ Mining</option>
+        <option value="Automobile">🚗 Automobile</option>
+        <option value="Quantum">⚛️ Quantum</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn btn-save" onclick="saveCompany()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Action completed successfully!</div>
+
+<script>
+const API_URL = window.location.origin;
+
+// Expanded Dummy Data for Tabs functionality
+let companies = [
+  {name:"Nvidia",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Pfizer",sector:"Pharma",sad:null,neutral:null,happy:null},
+  {name:"Broadcom",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"NextEra Energy",sector:"Electricity",sad:null,neutral:null,happy:null},
+  {name:"TSMC",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Tesla",sector:"Automobile",sad:null,neutral:null,happy:null},
+  {name:"Samsung",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Rio Tinto",sector:"Mining",sad:null,neutral:null,happy:null},
+  {name:"IonQ",sector:"Quantum",sad:null,neutral:null,happy:null},
+  {name:"AMD",sector:"Semiconductor",sad:null,neutral:null,happy:null}
+];
+
+let editIndex = -1;
+let analysisInProgress = false;
+let refreshInterval = null;
+let currentSector = 'mylist'; // Default tab
+
+function getRAG(sad, happy) {
+  if (happy >= 70) return 'green';
+  if (sad >= 70) return 'red';
+  return 'yellow';
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// New function to filter companies based on sector
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  
+  // Filter data
+  let displayCompanies = [];
+  if (currentSector === 'mylist') {
+    displayCompanies = companies; // Show all for My List
+    document.getElementById('tableHeaderTitle').textContent = "My List";
+  } else {
+    displayCompanies = companies.filter(c => c.sector === currentSector);
+    document.getElementById('tableHeaderTitle').textContent = currentSector;
+  }
+
+  if (displayCompanies.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#999;">No companies found in this sector.</td></tr>';
+      return;
+  }
+
+  tbody.innerHTML = displayCompanies.map((c, i) => {
+    // Find original index for actions to work correctly on the main array
+    const originalIndex = companies.indexOf(c);
+    
+    let sadDisplay, neutralDisplay, happyDisplay, ragDisplay;
+    
+    if (c.sad === null || c.neutral === null || c.happy === null) {
+      sadDisplay = '<span class="empty-cell">—</span>';
+      neutralDisplay = '<span class="empty-cell">—</span>';
+      happyDisplay = '<span class="empty-cell">—</span>';
+      ragDisplay = '<span class="empty-cell">—</span>';
+    } else if (c.sad === 'loading') {
+      sadDisplay = '<span class="loading-cell">⏳</span>';
+      neutralDisplay = '<span class="loading-cell">⏳</span>';
+      happyDisplay = '<span class="loading-cell">⏳</span>';
+      ragDisplay = '<span class="loading-cell">⏳</span>';
+    } else {
+      sadDisplay = `${c.sad}%`;
+      neutralDisplay = `${c.neutral}%`;
+      happyDisplay = `${c.happy}%`;
+      ragDisplay = `<div class="rag-dot rag-${getRAG(c.sad, c.happy)}"></div>`;
+    }
+    
+    return `
+    <tr>
+      <td><strong>${i + 1}</strong></td>
+      <td class="company-name">${c.name}</td>
+      <td><span class="sector-badge">${c.sector}</span></td>
+      <td class="score-cell score-sad">${sadDisplay}</td>
+      <td class="score-cell score-neutral">${neutralDisplay}</td>
+      <td class="score-cell score-happy">${happyDisplay}</td>
+      <td><div class="rag-cell">${ragDisplay}</div></td>
+      <td>
+        <div class="actions-cell">
+          <button class="action-btn btn-edit" onclick="editCompany(${originalIndex})" title="Edit">✏️</button>
+          <button class="action-btn btn-delete" onclick="deleteCompany(${originalIndex})" title="Delete">🗑️</button>
+          <button class="action-btn btn-up" onclick="moveUp(${originalIndex})" title="Move Up">↑</button>
+          <button class="action-btn btn-down" onclick="moveDown(${originalIndex})" title="Move Down">↓</button>
+        </div>
+      </td>
+    </tr>
+  `}).join('');
+}
+
+function startRefreshTimer(minutes) {
+    if (refreshInterval) clearInterval(refreshInterval);
+    
+    const container = document.getElementById('timerLineContainer');
+    const fill = document.getElementById('timerLineFill');
+    const timeText = document.getElementById('timerTextTime');
+    
+    container.style.display = 'block';
+    
+    const duration = minutes * 60 * 1000;
+    const endTime = Date.now() + duration;
+    
+    refreshInterval = setInterval(() => {
+        const now = Date.now();
+        const remaining = endTime - now;
+        
+        if (remaining <= 0) {
+            clearInterval(refreshInterval);
+            fill.style.width = '0%';
+            timeText.textContent = 'Refreshing...';
+            location.reload();
+            return;
+        }
+        
+        // Calculate percentage
+        const percent = (remaining / duration) * 100;
+        fill.style.width = percent + '%';
+        
+        // Format time mm:ss
+        const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((remaining % (1000 * 60)) / 1000);
+        timeText.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        
+        // Change colors based on remaining percentage
+        fill.className = 'timer-line-fill'; // reset
+        if (percent < 20) fill.classList.add('danger');
+        else if (percent < 50) fill.classList.add('warning');
+        
+    }, 1000);
+}
+
+async function analyzeAllCompanies() {
+  if (analysisInProgress) {
+    showToast('⚠️ Analysis already in progress');
+    return;
+  }
+  
+  analysisInProgress = true;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const statusDisplay = document.getElementById('statusDisplay');
+  
+  // Check Timer
+  const timerMinutes = parseInt(document.getElementById('timerSelect').value);
+  if (timerMinutes > 0) {
+      startRefreshTimer(timerMinutes);
+  } else {
+      if(refreshInterval) clearInterval(refreshInterval);
+      document.getElementById('timerLineContainer').style.display = 'none';
+  }
+  
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<span class="icon">⏳</span><span>Analyzing...</span>';
+  
+  let completed = 0;
+  // Only analyze visible companies or all? Usually all, but let's do all
+  const total = companies.length;
+  
+  for (let i = 0; i < companies.length; i++) {
+    const company = companies[i];
+    
+    // Update status in data
+    companies[i].sad = 'loading';
+    companies[i].neutral = 'loading';
+    companies[i].happy = 'loading';
+    renderTable(); // Refresh table to show loading states
+    
+    timerDisplay.textContent = `Analyzing ${company.name}...`;
+    statusDisplay.textContent = `Processing ${completed + 1} of ${total}`;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/analyze-single`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: company.name })
+      });
+      
+      const data = await response.json();
+      
+      if (data.result) {
+        companies[i].sad = data.result.sad;
+        companies[i].neutral = data.result.neutral;
+        companies[i].happy = data.result.happy;
+      } else {
+        companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+      }
+    } catch (error) {
+      console.error(`Error analyzing ${company.name}:`, error);
+      companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+    }
+    
+    renderTable();
+    completed++;
+    
+    if (i < companies.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+  
+  analysisInProgress = false;
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
+  timerDisplay.textContent = 'Complete!';
+  statusDisplay.textContent = `Analyzed ${total} companies`;
+  showToast('✅ Analysis completed for all companies!');
+}
+
+function openModal(index = -1) {
+  editIndex = index;
+  document.getElementById('modalTitle').textContent = index === -1 ? '✨ Add Company' : '✏️ Edit Company';
+  if (index >= 0) {
+    const c = companies[index];
+    document.getElementById('companyName').value = c.name;
+    document.getElementById('sectorSelect').value = c.sector;
+  } else {
+    document.getElementById('companyName').value = '';
+    document.getElementById('sectorSelect').value = 'Semiconductor';
+  }
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  editIndex = -1;
+}
+
+function saveCompany() {
+  const name = document.getElementById('companyName').value.trim();
+  if (!name) { showToast('⚠️ Please enter company name'); return; }
+  const sector = document.getElementById('sectorSelect').value;
+  
+  const company = {name, sector, sad: null, neutral: null, happy: null};
+  if (editIndex >= 0) {
+    companies[editIndex].name = name;
+    companies[editIndex].sector = sector;
+    showToast('✅ Company updated successfully!');
+  } else {
+    companies.push(company);
+    showToast('✅ Company added successfully!');
+  }
+  renderTable();
+  closeModal();
+}
+
+function editCompany(i) { openModal(i); }
+
+function deleteCompany(i) {
+  if (confirm(`Delete "${companies[i].name}"?`)) {
+    companies.splice(i, 1);
+    renderTable();
+    showToast('🗑️ Company deleted!');
+  }
+}
+
+function moveUp(i) {
+  if (i > 0) {
+    [companies[i], companies[i-1]] = [companies[i-1], companies[i]];
+    renderTable();
+    showToast('⬆️ Moved up!');
+  }
+}
+
+function moveDown(i) {
+  if (i < companies.length - 1) {
+    [companies[i], companies[i+1]] = [companies[i+1], companies[i]];
+    renderTable();
+    showToast('⬇️ Moved down!');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('analyzeBtn').addEventListener('click', analyzeAllCompanies);
+  
+  // Tab Switching Logic
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update current sector and re-render
+      currentSector = this.getAttribute('data-sector');
+      renderTable();
+    });
+  });
+  
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  
+  renderTable();
+});
+</script>
+</body>
+</html>'''
+    return html_content
+
+@app.route('/api/analyze-single', methods=['POST'])
+def analyze_single():
+    """Analyze sentiment for a single company"""
+    try:
+        data = request.get_json()
+        company_name = data.get('company_name', '').strip()
+        
+        if not company_name:
+            app.logger.warning("Empty company name received")
+            return jsonify({'error': 'Company name is required'}), 400
+        
+        app.logger.info(f"Analyzing sentiment for: {company_name}")
+        
+        # Scrape all sources
+        articles = scrape_all_sources(company_name)
+        
+        if not articles:
+            app.logger.warning(f"No articles found for: {company_name}")
+            return jsonify({
+                'company': company_name,
+                'result': {
+                    'sad': 0,
+                    'neutral': 100,
+                    'happy': 0
+                },
+                'articles_count': 0,
+                'message': 'No articles found'
+            })
+        
+        # Calculate sentiment percentages
+        percentages = calculate_sentiment_percentages(articles)
+        
+        response = {
+            'company': company_name,
+            'result': percentages,
+            'articles_count': len(articles),
+            'articles': articles[:10],  # Return first 10 articles for reference
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        app.logger.info(f"Analysis complete for {company_name}: {percentages}")
+        return jsonify(response)
+        
+    except Exception as e:
+        app.logger.error(f"Error in analyze_single: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analyze-batch', methods=['POST'])
+def analyze_batch():
+    """Analyze sentiment for multiple companies"""
+    try:
+        data = request.get_json()
+        companies = data.get('companies', [])
+        
+        if not companies:
+            return jsonify({'error': 'Companies list is required'}), 400
+        
+        app.logger.info(f"Batch analysis started for {len(companies)} companies")
+        
+        results = []
+        for company_data in companies:
+            company_name = company_data.get('name', '').strip()
+            
+            if not company_name:
+                continue
+            
+            try:
+                articles = scrape_all_sources(company_name)
+                percentages = calculate_sentiment_percentages(articles)
+                
+                results.append({
+                    'company': company_name,
+                    'sector': company_data.get('sector', ''),
+                    'result': percentages,
+                    'articles_count': len(articles)
+                })
+                
+                # Delay between companies to avoid rate limiting
+                time.sleep(random.uniform(2, 4))
+                
+            except Exception as e:
+                app.logger.error(f"Error analyzing {company_name}: {str(e)}")
+                results.append({
+                    'company': company_name,
+                    'sector': company_data.get('sector', ''),
+                    'error': str(e)
+                })
+        
+        app.logger.info(f"Batch analysis completed. Processed {len(results)} companies")
+        
+        return jsonify({
+            'results': results,
+            'total': len(results),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error in analyze_batch: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat()
+    })
 
   
 

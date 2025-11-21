@@ -1,0 +1,78 @@
+2025-11-22 04:23:45,146 - __main__ - INFO - New Current page accessed by 127.0.0.1
+2025-11-22 04:31:13,112 - __main__ - INFO - New Current page accessed by 127.0.0.1
+2025-11-22 04:31:18,900 - __main__ - INFO - Received analysis request for: Nvidia
+2025-11-22 04:31:18,903 - __main__ - INFO - Starting sentiment analysis for: Nvidia
+2025-11-22 04:31:18,904 - __main__ - INFO - Scraping Google News for: Nvidia
+2025-11-22 04:31:18,906 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:19,408 - __main__ - INFO - Scraping Bing News for: Nvidia
+2025-11-22 04:31:19,408 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:19,408 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:19,408 - __main__ - WARNING - Insufficient articles found for Nvidia, using mock data
+2025-11-22 04:31:19,408 - __main__ - INFO - Generating sentiment data for: Nvidia
+2025-11-22 04:31:20,941 - __main__ - INFO - Received analysis request for: Broadcom
+2025-11-22 04:31:20,941 - __main__ - INFO - Starting sentiment analysis for: Broadcom
+2025-11-22 04:31:20,941 - __main__ - INFO - Scraping Google News for: Broadcom
+2025-11-22 04:31:20,941 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:21,447 - __main__ - INFO - Scraping Bing News for: Broadcom
+2025-11-22 04:31:21,447 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:21,447 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:21,447 - __main__ - WARNING - Insufficient articles found for Broadcom, using mock data
+2025-11-22 04:31:21,451 - __main__ - INFO - Generating sentiment data for: Broadcom
+2025-11-22 04:31:22,970 - __main__ - INFO - Received analysis request for: TSMC
+2025-11-22 04:31:22,970 - __main__ - INFO - Starting sentiment analysis for: TSMC
+2025-11-22 04:31:22,970 - __main__ - INFO - Scraping Google News for: TSMC
+2025-11-22 04:31:22,970 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:23,475 - __main__ - INFO - Scraping Bing News for: TSMC
+2025-11-22 04:31:23,475 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:23,475 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:23,475 - __main__ - WARNING - Insufficient articles found for TSMC, using mock data
+2025-11-22 04:31:23,475 - __main__ - INFO - Generating sentiment data for: TSMC
+2025-11-22 04:31:24,999 - __main__ - INFO - Received analysis request for: Samsung Electronics
+2025-11-22 04:31:24,999 - __main__ - INFO - Starting sentiment analysis for: Samsung Electronics
+2025-11-22 04:31:24,999 - __main__ - INFO - Scraping Google News for: Samsung Electronics
+2025-11-22 04:31:25,002 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:25,505 - __main__ - INFO - Scraping Bing News for: Samsung Electronics
+2025-11-22 04:31:25,505 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:25,505 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:25,505 - __main__ - WARNING - Insufficient articles found for Samsung Electronics, using mock data
+2025-11-22 04:31:25,505 - __main__ - INFO - Generating sentiment data for: Samsung Electronics
+2025-11-22 04:31:27,027 - __main__ - INFO - Received analysis request for: AMD
+2025-11-22 04:31:27,028 - __main__ - INFO - Starting sentiment analysis for: AMD
+2025-11-22 04:31:27,029 - __main__ - INFO - Scraping Google News for: AMD
+2025-11-22 04:31:27,029 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:27,533 - __main__ - INFO - Scraping Bing News for: AMD
+2025-11-22 04:31:27,533 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:27,536 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:27,536 - __main__ - WARNING - Insufficient articles found for AMD, using mock data
+2025-11-22 04:31:27,536 - __main__ - INFO - Generating sentiment data for: AMD
+2025-11-22 04:31:29,055 - __main__ - INFO - Received analysis request for: ASML
+2025-11-22 04:31:29,055 - __main__ - INFO - Starting sentiment analysis for: ASML
+2025-11-22 04:31:29,055 - __main__ - INFO - Scraping Google News for: ASML
+2025-11-22 04:31:29,055 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:29,560 - __main__ - INFO - Scraping Bing News for: ASML
+2025-11-22 04:31:29,560 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:29,560 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:29,560 - __main__ - WARNING - Insufficient articles found for ASML, using mock data
+2025-11-22 04:31:29,560 - __main__ - INFO - Generating sentiment data for: ASML
+2025-11-22 04:31:31,084 - __main__ - INFO - Received analysis request for: Micron Technology
+2025-11-22 04:31:31,084 - __main__ - INFO - Starting sentiment analysis for: Micron Technology
+2025-11-22 04:31:31,086 - __main__ - INFO - Scraping Google News for: Micron Technology
+2025-11-22 04:31:31,087 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:31,589 - __main__ - INFO - Scraping Bing News for: Micron Technology
+2025-11-22 04:31:31,589 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:31,589 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:31,589 - __main__ - WARNING - Insufficient articles found for Micron Technology, using mock data
+2025-11-22 04:31:31,589 - __main__ - INFO - Generating sentiment data for: Micron Technology
+2025-11-22 04:31:33,116 - __main__ - INFO - Received analysis request for: SK Hynix
+2025-11-22 04:31:33,117 - __main__ - INFO - Starting sentiment analysis for: SK Hynix
+2025-11-22 04:31:33,117 - __main__ - INFO - Scraping Google News for: SK Hynix
+2025-11-22 04:31:33,117 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:31:33,622 - __main__ - INFO - Scraping Bing News for: SK Hynix
+2025-11-22 04:31:33,622 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
+2025-11-22 04:31:33,622 - __main__ - INFO - Total articles found: 0
+2025-11-22 04:31:33,622 - __main__ - WARNING - Insufficient articles found for SK Hynix, using mock data
+2025-11-22 04:31:33,622 - __main__ - INFO - Generating sentiment data for: SK Hynix
+2025-11-22 04:32:04,077 - __main__ - INFO - Scraping Google News for: Nvdia
+2025-11-22 04:32:04,077 - __main__ - ERROR - Error scraping Google News: name 'quote_plus' is not defined
+2025-11-22 04:32:04,077 - __main__ - INFO - Scraping Bing News for: Nvdia
+2025-11-22 04:32:04,077 - __main__ - ERROR - Error scraping Bing News: name 'quote_plus' is not defined
