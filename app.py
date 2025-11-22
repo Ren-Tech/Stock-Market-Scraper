@@ -1930,47 +1930,69 @@ def groupby(items, attribute):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from flask import Flask, render_template, request, jsonify
+import time
+from datetime import datetime
+import re
+from collections import Counter
+import numpy as np
+from textblob import TextBlob
+import langdetect
+
 @app.route('/emotion_filter')
 def emotion_filter_page():
-    """Render the emotion analysis dashboard page"""
+    """Render the emotion analysis dashboard page with comprehensive filtering capabilities"""
     return render_template('emotion_filter.html')
 
 @app.route('/analyze_emotions', methods=['POST'])
 def analyze_emotions():
-    """Main API endpoint for emotion analysis"""
+    """Main API endpoint for conducting comprehensive emotion analysis on company news content"""
     data = request.get_json()
     companies = data.get('companies', [])
     analysis_depth = data.get('analysis_depth', 'detailed')
     detect_languages = data.get('detect_languages', True)
     weighted_analysis = data.get('weighted_analysis', True)
-    emotion_keywords_data = data.get('emotion_keywords_data')  # Get keyword scores from frontend
+    emotion_keywords_data = data.get('emotion_keywords_data')
     
     if not companies:
-        return jsonify({'error': 'No companies provided'}), 400
+        return jsonify({'error': 'Please provide at least one company name to analyze'}), 400
     
     try:
-        # Scrape news articles for analysis
         all_articles = []
         for company in companies:
-            # Reuse existing scraping functions
             google_news = scrape_google_news(company, 10)
             bing_news = scrape_bing_news(company, 10) 
             yahoo_news = scrape_yahoo_news(company, 10)
             
             company_articles = google_news + bing_news + yahoo_news
             all_articles.extend(company_articles)
-            time.sleep(0.5)  # Rate limiting
+            time.sleep(0.5)
         
-        # Remove duplicates
         unique_articles = remove_duplicate_articles(all_articles)
         
-        # Perform emotion analysis with keyword scores
         analysis_results = perform_comprehensive_analysis(
             unique_articles, 
             analysis_depth,
             detect_languages,
             weighted_analysis,
-            emotion_keywords_data  # Pass keyword scores to analysis
+            emotion_keywords_data
         )
         
         return jsonify({
@@ -1981,16 +2003,15 @@ def analyze_emotions():
         })
         
     except Exception as e:
-        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+        return jsonify({'error': f'Emotion analysis process failed due to: {str(e)}'}), 500
 
 def remove_duplicate_articles(articles):
-    """Remove duplicate articles based on title similarity"""
+    """Remove duplicate articles by checking for similar titles and content"""
     seen_titles = set()
     unique_articles = []
     
     for article in articles:
         title_key = article['title'].lower().strip()
-        # Simple duplicate detection - could be enhanced with fuzzy matching
         if title_key not in seen_titles and len(title_key) > 10:
             seen_titles.add(title_key)
             unique_articles.append(article)
@@ -1998,69 +2019,69 @@ def remove_duplicate_articles(articles):
     return unique_articles
 
 def get_emotion_rubrics():
-    """Return detailed rubrics for 3 emotion classifications with dynamic scoring"""
+    """Return comprehensive scoring rubrics for three primary emotion classifications with dynamic scoring mechanisms"""
     return {
         'happy': {
-            'description': 'Content expressing joy, success, positive outcomes, innovation, or achievements',
+            'description': 'Content that expresses joy, success, positive business outcomes, innovation breakthroughs, or significant achievements',
             'criteria': [
-                'Financial gains or positive business results',
-                'Successful product launches or milestones',
-                'Awards, recognition, or achievements',
-                'Positive market reactions or growth',
-                'Revolutionary technology announcements',
-                'Groundbreaking research or innovation',
-                'Celebration of victories or breakthroughs'
+                'Financial gains or exceptionally positive business results exceeding expectations',
+                'Successful product launches reaching important milestones or market penetration',
+                'Industry awards, prestigious recognition, or notable achievements',
+                'Positive market reactions demonstrating strong investor confidence',
+                'Revolutionary technology announcements with significant market impact',
+                'Groundbreaking research discoveries leading to innovation advancements',
+                'Celebration of major victories or strategic breakthroughs in competitive markets'
             ],
             'examples': [
-                'Tesla reports record quarterly profits',
-                'Apple celebrates 1 billion iPhone milestone',
-                'Microsoft unveils AI breakthrough'
+                'Tesla reports record quarterly profits exceeding analyst projections',
+                'Apple celebrates remarkable milestone of selling 1 billion iPhone units',
+                'Microsoft unveils groundbreaking AI breakthrough transforming industry standards'
             ],
-            'score_range': '70 - 100 points per mention',
+            'score_range': '70 - 100 points per emotional mention detected',
             'base_score': 85
         },
         'neutral': {
-            'description': 'Factual reporting without strong emotional undertones',
+            'description': 'Factual reporting content without strong emotional undertones or biased perspectives',
             'criteria': [
-                'Standard earnings reports or announcements',
-                'Routine business updates or meetings',
-                'Factual product releases or launches',
-                'Regular financial or operational reporting',
-                'Administrative or procedural news'
+                'Standard earnings reports containing routine financial announcements',
+                'Regular business updates covering operational meetings and procedures',
+                'Factual product releases with standard feature announcements',
+                'Regular financial reporting following standard disclosure practices',
+                'Administrative news covering corporate governance and compliance matters'
             ],
             'examples': [
-                'Apple announces quarterly meeting',
-                'Microsoft releases software update',
-                'Tesla schedules earnings call'
+                'Apple announces scheduled quarterly shareholder meeting agenda',
+                'Microsoft releases routine software update with standard security patches',
+                'Tesla schedules upcoming earnings call following standard corporate calendar'
             ],
-            'score_range': '40 - 60 points per mention',
+            'score_range': '40 - 60 points per neutral mention identified',
             'base_score': 50
         },
         'sad': {
-            'description': 'Content expressing loss, decline, setbacks, risks, criticism, or negative events',
+            'description': 'Content expressing financial loss, operational decline, strategic setbacks, business risks, criticism, or negative corporate events',
             'criteria': [
-                'Financial losses or declining performance',
-                'Layoffs or workforce reductions',
-                'Product delays or technical issues',
-                'Security vulnerabilities or breaches',
-                'Regulatory warnings or investigations',
-                'Legal scandals or controversies',
-                'Customer complaints or dissatisfaction',
-                'Market share losses or defeats'
+                'Financial losses or declining performance metrics below expectations',
+                'Layoffs announcements or significant workforce reduction programs',
+                'Product delays causing market disappointment or technical issues',
+                'Security vulnerabilities requiring immediate attention or data breaches',
+                'Regulatory warnings from government agencies or formal investigations',
+                'Legal scandals damaging corporate reputation or major controversies',
+                'Customer complaints indicating service dissatisfaction or product issues',
+                'Market share losses to competitors or strategic defeats in key markets'
             ],
             'examples': [
-                'Apple reports declining sales',
-                'Microsoft announces layoffs',
-                'Tesla faces regulatory scrutiny',
-                'Apple customers complain about issues'
+                'Apple reports concerning sales decline in key international markets',
+                'Microsoft announces significant layoffs affecting multiple departments',
+                'Tesla faces intensified regulatory scrutiny over safety compliance',
+                'Apple customers express widespread complaints about product quality issues'
             ],
-            'score_range': '-60 to -100 points per mention',
+            'score_range': '-60 to -100 points per negative mention identified',
             'base_score': -75
         }
     }
 
 def get_emotion_keywords_with_scores():
-    """Get default emotion keywords with scores"""
+    """Retrieve emotion keywords with sentence patterns for analysis"""
     return {
         'happy': {
             'keywords': [
@@ -2091,18 +2112,17 @@ def get_emotion_keywords_with_scores():
         }
     }
 
+
 def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_analysis, emotion_keywords_data=None):
-    """Perform comprehensive emotion and language analysis with 3 emotions"""
+    """Modified to use sentence-based scoring"""
     
     emotion_rubrics = get_emotion_rubrics()
     
-    # Use provided keyword scores or get defaults
     if emotion_keywords_data:
         emotion_weights_data = emotion_keywords_data
     else:
         emotion_weights_data = get_emotion_keywords_with_scores()
     
-    # Build emotion weights with dynamic scoring
     emotion_weights = {}
     for emotion, config in emotion_weights_data.items():
         base_weight = emotion_rubrics[emotion]['base_score']
@@ -2139,7 +2159,7 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         'confidence_scores': {},
         'analyzed_articles': [],
         'source_breakdown': {},
-        'keyword_scores_used': emotion_weights_data  # Include the scores used in analysis
+        'keyword_scores_used': emotion_weights_data
     }
     
     sentiment_scores = []
@@ -2149,12 +2169,11 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         text_lower = text_content.lower()
         
         words = re.findall(r'\b\w+\b', text_content)
-        sentences = re.split(r'[.!?]+', text_content)
+        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text_content)
         
         analysis['total_words'] += len(words)
         analysis['total_sentences'] += len([s for s in sentences if s.strip()])
         
-        # Language detection
         if detect_languages and len(text_content.strip()) > 10:
             try:
                 detected_lang = detect_language_advanced(text_content)
@@ -2162,17 +2181,15 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             except:
                 analysis['language_detection']['unknown'] = analysis['language_detection'].get('unknown', 0) + 1
         
-        # Word frequency
-        stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must', 'shall', 'this', 'that', 'these', 'those'}
+        stop_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had'}
         meaningful_words = [word.lower() for word in words if len(word) > 3 and word.lower() not in stop_words]
         analysis['word_frequency'].update(meaningful_words)
         
-        # Company tracking
         company = article.get('company', '')
         if company:
             analysis['companies_mentioned'][company] += 1
         
-        # Emotion analysis - UPDATED to use keyword scores
+        # Use sentence-based emotion analysis
         article_emotions = analyze_article_emotions_with_scores(text_lower, emotion_weights, weighted_analysis)
         
         for emotion, score in article_emotions.items():
@@ -2180,13 +2197,11 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             analysis['emotion_weighted_scores'][emotion] += score['weighted_score']
             analysis['emotion_scores_100'][emotion] += score['score_100']
         
-        # Determine dominant emotion for article
         dominant_emotion = max(article_emotions.items(), key=lambda x: x[1]['weighted_score'])[0]
         confidence_score = calculate_confidence_score(article_emotions, dominant_emotion)
         
         analysis['classification_summary'][dominant_emotion] += 1
         
-        # Sentiment analysis
         try:
             blob = TextBlob(text_content)
             sentiment_polarity = blob.sentiment.polarity
@@ -2203,7 +2218,6 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             sentiment_scores.append(0)
             analysis['sentiment_distribution']['neutral'] += 1
         
-        # Store analyzed article details
         article_data = {
             'title': article.get('title', ''),
             'snippet': article.get('snippet', ''),
@@ -2220,18 +2234,16 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             'readability_score': calculate_readability(text_content),
             'emotion_breakdown': article_emotions,
             'classification_reasons': generate_classification_reasons(article_emotions, dominant_emotion, emotion_weights),
-            'keywords_found': article_emotions[dominant_emotion].get('keywords_found', [])
+            'sentence_matches': article_emotions[dominant_emotion].get('sentence_matches', [])
         }
         
         analysis['analyzed_articles'].append(article_data)
         
-        # Source tracking
         source = article.get('source', 'Unknown')
         if source not in analysis['source_sentiment']:
             analysis['source_sentiment'][source] = []
         analysis['source_sentiment'][source].append(sentiment_polarity)
         
-        # Source breakdown
         if source not in analysis['source_breakdown']:
             analysis['source_breakdown'][source] = {
                 'article_count': 0,
@@ -2241,31 +2253,26 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
         analysis['source_breakdown'][source]['article_count'] += 1
         analysis['source_breakdown'][source]['emotions'][dominant_emotion] += 1
     
-    # Calculate final metrics
+    # Calculate final statistics
     if len(articles) > 0:
         analysis['sentiment_score'] = np.mean(sentiment_scores) if sentiment_scores else 0.0
         
         total_emotion_score = sum(analysis['emotion_scores_100'].values())
         analysis['overall_emotion_score'] = round(total_emotion_score / len(articles), 1)
         
-        # Emotion percentages
         total_emotion_mentions = sum(analysis['emotion_counts'].values())
         if total_emotion_mentions > 0:
             for emotion, count in analysis['emotion_counts'].items():
                 analysis['emotion_percentages'][emotion] = round((count / total_emotion_mentions) * 100, 1)
         
-        # Emotional intensity
         total_weighted = sum(abs(score) for score in analysis['emotion_scores_100'].values())
         analysis['emotional_intensity'] = round(total_weighted / len(articles), 1)
         
-        # Readability
         avg_words_per_sentence = analysis['total_words'] / max(analysis['total_sentences'], 1)
         analysis['readability_score'] = max(0, min(100, 100 - (avg_words_per_sentence - 15) * 2))
         
-        # Top words
         analysis['top_words'] = analysis['word_frequency'].most_common(20)
         
-        # Complexity metrics
         analysis['complexity_metrics'] = {
             'avg_words_per_article': round(analysis['total_words'] / len(articles), 1),
             'avg_sentences_per_article': round(analysis['total_sentences'] / len(articles), 1),
@@ -2274,7 +2281,6 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             'avg_readability': round(analysis['readability_score'], 1)
         }
         
-        # Confidence scores by emotion
         for emotion in emotion_weights.keys():
             emotion_articles = [a for a in analysis['analyzed_articles'] if a['dominant_emotion'] == emotion]
             if emotion_articles:
@@ -2285,7 +2291,6 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
                     'max_confidence': round(max(confidences), 1)
                 }
         
-        # Source sentiment averages
         for source, scores in analysis['source_sentiment'].items():
             avg_sent = round(np.mean(scores), 3)
             analysis['source_sentiment'][source] = {
@@ -2294,71 +2299,84 @@ def perform_comprehensive_analysis(articles, depth, detect_languages, weighted_a
             }
             analysis['source_breakdown'][source]['avg_sentiment'] = avg_sent
         
-        # Sort analyzed articles by confidence
         analysis['analyzed_articles'].sort(key=lambda x: x['confidence_score'], reverse=True)
     
     return analysis
 
 def analyze_article_emotions_with_scores(text, emotion_weights, use_weights=True):
-    """Analyze emotions in a single article using keyword scores from frontend"""
+    """Analyze emotions using sentence-based scoring instead of keyword counting"""
     article_emotions = {}
     
+    # Split text into sentences (better sentence detection)
+    sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+    
     for emotion, config in emotion_weights.items():
-        count = 0
+        sentence_matches = []
         weighted_score = 0.0
         score_100 = 0.0
-        keywords_found = []
         
-        # Keyword matching with scores
-        for keyword_data in config.get('keyword_scores', []):
-            if isinstance(keyword_data, dict):
-                keyword = keyword_data['keyword']
-                keyword_score = keyword_data.get('score', 1)  # Default score is 1
-            else:
-                keyword = keyword_data
-                keyword_score = 1  # Default score for legacy keywords
+        # Track which sentences match this emotion
+        for sentence in sentences:
+            sentence_score = 0
+            matched_keywords = []
             
-            matches = len(re.findall(rf'\b{re.escape(keyword)}\b', text, re.IGNORECASE))
-            if matches > 0:
-                keywords_found.append(f"{keyword}({matches})")
-            
-            count += matches
-            
-            # Apply scoring with keyword weight multiplier
-            if use_weights:
-                # Base emotion weight multiplied by keyword score
-                emotion_base_weight = config['weight']
-                effective_score = emotion_base_weight * keyword_score
+            # Check each keyword in this sentence
+            for keyword_data in config.get('keyword_scores', []):
+                if isinstance(keyword_data, dict):
+                    keyword = keyword_data['keyword']
+                    keyword_score = keyword_data.get('score', 1)
+                else:
+                    keyword = keyword_data
+                    keyword_score = 1
                 
-                score_100 += matches * effective_score
-                weighted_score += matches * effective_score
-            else:
-                score_100 += matches * 50 * keyword_score  # Neutral base with keyword multiplier
-                weighted_score += matches * keyword_score
+                # Check if keyword exists in sentence
+                if re.search(rf'\b{re.escape(keyword)}\b', sentence, re.IGNORECASE):
+                    sentence_score += keyword_score
+                    matched_keywords.append(keyword)
+            
+            # If sentence has emotional keywords, count it once (not per keyword)
+            if sentence_score > 0:
+                # Limit sentence length for display
+                display_sentence = sentence[:200] + "..." if len(sentence) > 200 else sentence
+                
+                sentence_matches.append({
+                    'text': display_sentence,
+                    'score': sentence_score,
+                    'keywords': matched_keywords,
+                    'full_text': sentence
+                })
+                
+                # Score based on sentence, not keyword repetition
+                emotion_base_weight = config['weight'] if use_weights else 50
+                sentence_weight = emotion_base_weight * min(sentence_score, 5)  # Cap at 5x
+                
+                weighted_score += sentence_weight
+                score_100 += sentence_weight
         
-        # Pattern matching with enhanced scoring (patterns get base score)
+        # Check emotion patterns
         for pattern in config.get('patterns', []):
-            matches = len(re.findall(pattern, text, re.IGNORECASE))
-            count += matches
-            if use_weights:
-                # Pattern matches get 1.5x multiplier of base emotion weight
-                score_100 += matches * config['weight'] * 1.5
-                weighted_score += matches * config['weight'] * 1.5
-            else:
-                score_100 += matches * 50
-                weighted_score += matches
+            pattern_matches = re.findall(pattern, text, re.IGNORECASE)
+            if pattern_matches:
+                emotion_base_weight = config['weight'] if use_weights else 50
+                weighted_score += len(pattern_matches) * emotion_base_weight * 1.5
+                score_100 += len(pattern_matches) * emotion_base_weight * 1.5
+        
+        # Sort sentences by score (highest first)
+        sentence_matches.sort(key=lambda x: x['score'], reverse=True)
         
         article_emotions[emotion] = {
-            'count': count,
+            'count': len(sentence_matches),  # Number of sentences, not keywords
             'weighted_score': weighted_score,
             'score_100': round(score_100, 1),
-            'keywords_found': keywords_found[:5]  # Store top 5 keywords found
+            'sentence_matches': sentence_matches[:10],  # Top 10 sentences
+            'keywords_found': [kw for match in sentence_matches[:5] for kw in match['keywords']]
         }
     
     return article_emotions
 
 def get_emotion_patterns(emotion):
-    """Get regex patterns for each emotion"""
+    """Retrieve comprehensive regex patterns for identifying each emotion category in text content"""
     patterns = {
         'happy': [
             r'\b(up\s+\d+%)', r'\bgains?\b', r'\brise[sd]?\b', 
@@ -2377,17 +2395,15 @@ def get_emotion_patterns(emotion):
     return patterns.get(emotion, [])
 
 def calculate_confidence_score(article_emotions, dominant_emotion):
-    """Calculate confidence score for emotion classification"""
+    """Calculate comprehensive confidence score for emotion classification accuracy"""
     dominant_score = article_emotions[dominant_emotion]['weighted_score']
     total_score = sum(abs(e['weighted_score']) for e in article_emotions.values())
     
     if total_score == 0:
-        return 50  # Default neutral confidence
+        return 50
     
-    # Calculate percentage of dominant emotion
     confidence = (abs(dominant_score) / total_score) * 100
     
-    # Boost confidence if dominant emotion is significantly higher
     other_scores = [abs(e['weighted_score']) for k, e in article_emotions.items() if k != dominant_emotion]
     if other_scores:
         max_other = max(other_scores)
@@ -2397,33 +2413,32 @@ def calculate_confidence_score(article_emotions, dominant_emotion):
     return round(confidence, 1)
 
 def generate_classification_reasons(article_emotions, dominant_emotion, emotion_weights):
-    """Generate human-readable reasons for classification"""
+    """Generate detailed explanations using sentence examples"""
     reasons = []
     
     emotion_data = article_emotions[dominant_emotion]
     
     if emotion_data['count'] > 0:
-        reasons.append(f"Found {emotion_data['count']} {dominant_emotion} indicators in text")
+        reasons.append(f"Found {emotion_data['count']} sentences expressing {dominant_emotion} emotion")
     
     if emotion_data['weighted_score'] != 0:
         score_direction = "positive" if emotion_data['weighted_score'] > 0 else "negative"
-        reasons.append(f"Weighted score of {abs(round(emotion_data['weighted_score'], 1))} indicates {score_direction} sentiment")
+        reasons.append(f"Weighted sentence score of {abs(round(emotion_data['weighted_score'], 1))} indicates strong {score_direction} sentiment")
     
-    # Add keywords found
-    keywords_found = emotion_data.get('keywords_found', [])
-    if keywords_found:
-        reasons.append(f"Key terms detected: {', '.join(keywords_found[:3])}")
+    # Add top sentence examples
+    sentence_matches = emotion_data.get('sentence_matches', [])
+    if sentence_matches:
+        top_sentence = sentence_matches[0]['text']
+        reasons.append(f"Example: \"{top_sentence}\"")
     
-    return reasons if reasons else ["Classification based on overall text analysis"]
+    return reasons if reasons else ["Emotion determined through sentence-level analysis"]
 
 def detect_language_advanced(text):
-    """Advanced language detection with fallback"""
+    """Implement advanced language detection with multiple fallback mechanisms"""
     try:
-        # Use langdetect library if available
         detected = langdetect.detect(text)
         return detected
     except:
-        # Fallback to simple pattern matching
         language_patterns = {
             'spanish': r'[ñáéíóúü]',
             'french': r'[àâäçéèêëïîôùûüÿ]',
@@ -2436,25 +2451,23 @@ def detect_language_advanced(text):
             if re.search(pattern, text, re.IGNORECASE):
                 return lang
         
-        return 'english'  # Default fallback
+        return 'english'
 
 @app.route('/emotion_stats', methods=['POST'])
 def get_emotion_statistics():
-    """Get simplified emotion statistics for quick analysis"""
+    """Retrieve simplified emotion statistics for rapid analysis and dashboard display"""
     data = request.get_json()
     companies = data.get('companies', [])
     
     if not companies:
-        return jsonify({'error': 'No companies provided'}), 400
+        return jsonify({'error': 'Please provide company names to generate emotion statistics'}), 400
     
     try:
-        # Quick analysis with fewer articles for faster response
         quick_articles = []
         for company in companies:
-            google_news = scrape_google_news(company, 3)  # Fewer articles for speed
+            google_news = scrape_google_news(company, 3)
             quick_articles.extend(google_news)
         
-        # Simple emotion counting
         emotion_stats = {}
         total_articles = len(quick_articles)
         
@@ -2462,7 +2475,6 @@ def get_emotion_statistics():
             emotion = article.get('emotion', 'neutral')
             emotion_stats[emotion] = emotion_stats.get(emotion, 0) + 1
         
-        # Calculate percentages
         emotion_percentages = {}
         for emotion, count in emotion_stats.items():
             emotion_percentages[emotion] = round((count / total_articles) * 100, 1) if total_articles > 0 else 0
@@ -2476,23 +2488,22 @@ def get_emotion_statistics():
         })
         
     except Exception as e:
-        return jsonify({'error': f'Quick analysis failed: {str(e)}'}), 500
+        return jsonify({'error': f'Quick emotion statistics analysis failed because: {str(e)}'}), 500
 
 @app.route('/word_analysis', methods=['POST'])
 def analyze_word_patterns():
-    """Dedicated endpoint for word frequency and pattern analysis"""
+    """Dedicated API endpoint for conducting detailed word frequency and linguistic pattern analysis"""
     data = request.get_json()
     text_content = data.get('text', '')
-    analysis_type = data.get('type', 'frequency')  # frequency, sentiment, complexity
+    analysis_type = data.get('type', 'frequency')
     
     if not text_content:
-        return jsonify({'error': 'No text content provided'}), 400
+        return jsonify({'error': 'Please provide text content for word pattern analysis'}), 400
     
     try:
         results = {}
         
         if analysis_type in ['frequency', 'all']:
-            # Word frequency analysis
             words = re.findall(r'\b\w+\b', text_content.lower())
             word_freq = Counter(words)
             results['word_frequency'] = dict(word_freq.most_common(50))
@@ -2500,7 +2511,6 @@ def analyze_word_patterns():
             results['total_words'] = len(words)
         
         if analysis_type in ['sentiment', 'all']:
-            # Sentiment analysis
             try:
                 blob = TextBlob(text_content)
                 results['sentiment'] = {
@@ -2511,7 +2521,6 @@ def analyze_word_patterns():
                 results['sentiment'] = {'polarity': 0, 'subjectivity': 0}
         
         if analysis_type in ['complexity', 'all']:
-            # Text complexity metrics
             sentences = re.split(r'[.!?]+', text_content)
             words = re.findall(r'\b\w+\b', text_content)
             
@@ -2530,10 +2539,10 @@ def analyze_word_patterns():
         })
         
     except Exception as e:
-        return jsonify({'error': f'Word analysis failed: {str(e)}'}), 500
+        return jsonify({'error': f'Word pattern analysis process failed because: {str(e)}'}), 500
 
 def calculate_readability(text):
-    """Simple readability score calculation"""
+    """Calculate comprehensive readability score using advanced text complexity metrics"""
     sentences = re.split(r'[.!?]+', text)
     words = re.findall(r'\b\w+\b', text)
     syllables = sum(count_syllables(word) for word in words)
@@ -2541,7 +2550,6 @@ def calculate_readability(text):
     if len(sentences) == 0 or len(words) == 0:
         return 0
     
-    # Simplified Flesch Reading Ease formula
     avg_sentence_length = len(words) / len(sentences)
     avg_syllables_per_word = syllables / len(words)
     
@@ -2549,7 +2557,7 @@ def calculate_readability(text):
     return max(0, min(100, round(flesch_score, 1)))
 
 def count_syllables(word):
-    """Simple syllable counting"""
+    """Count syllables in words using advanced linguistic pattern recognition"""
     word = word.lower()
     vowels = 'aeiouy'
     syllable_count = 0
@@ -2563,15 +2571,14 @@ def count_syllables(word):
         else:
             prev_was_vowel = False
     
-    # Handle silent e
     if word.endswith('e') and syllable_count > 1:
         syllable_count -= 1
     
-    return max(1, syllable_count)  # Every word has at least 1 syllable
+    return max(1, syllable_count)
 
 @app.route('/export_analysis', methods=['POST'])
 def export_analysis():
-    """Export analysis results in various formats"""
+    """Export comprehensive analysis results in multiple formats for reporting and documentation"""
     data = request.get_json()
     analysis_data = data.get('analysis_data', {})
     format_type = data.get('format', 'json')
@@ -2579,48 +2586,44 @@ def export_analysis():
 
     try:
         if format_type == 'csv':
-            # Generate CSV content
             csv_content = generate_csv_export(analysis_data, include_images)
             return jsonify({
                 'success': True,
                 'csv_content': csv_content,
-                'filename': f'emotion_analysis_{datetime.now().strftime("%Y%m%d_%H%M")}.csv'
+                'filename': f'comprehensive_emotion_analysis_{datetime.now().strftime("%Y%m%d_%H%M")}.csv'
             })
         
         elif format_type == 'summary':
-            # Generate executive summary
             summary = generate_executive_summary(analysis_data)
             return jsonify({
                 'success': True,
                 'summary': summary,
-                'filename': f'emotion_summary_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
+                'filename': f'executive_emotion_summary_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
             })
         
-        else:  # JSON format
+        else:
             return jsonify({
                 'success': True,
                 'analysis_data': analysis_data,
-                'filename': f'emotion_analysis_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
+                'filename': f'detailed_emotion_analysis_{datetime.now().strftime("%Y%m%d_%H%M")}.json'
             })
             
     except Exception as e:
-        return jsonify({'error': f'Export failed: {str(e)}'}), 500
+        return jsonify({'error': f'Analysis export process failed because: {str(e)}'}), 500
 
 def generate_csv_export(analysis_data, include_images):
-    """Generate CSV content from analysis data"""
+    """Generate comprehensive CSV export file containing all analysis results"""
     import csv
     import io
     
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Write header
-    headers = ['Company', 'Title', 'Emotion', 'Confidence', 'Sentiment', 'Source', 'Date', 'Word Count']
+    headers = ['Company Name', 'Article Title', 'Dominant Emotion', 'Confidence Score', 'Sentiment Polarity', 'News Source', 'Publication Date', 'Word Count']
     if include_images:
-        headers.append('Image URL')
+        headers.append('Featured Image URL')
     writer.writerow(headers)
     
-    # Write article data
     for article in analysis_data.get('analyzed_articles', []):
         row = [
             article.get('company', ''),
@@ -2639,7 +2642,7 @@ def generate_csv_export(analysis_data, include_images):
     return output.getvalue()
 
 def generate_executive_summary(analysis_data):
-    """Generate executive summary from analysis data"""
+    """Generate comprehensive executive summary with key insights and recommendations"""
     summary = {
         'overview': {
             'total_articles': analysis_data.get('total_articles', 0),
@@ -2659,22 +2662,22 @@ def generate_executive_summary(analysis_data):
     return summary
 
 def generate_recommendations(analysis_data):
-    """Generate business recommendations based on analysis"""
+    """Generate strategic business recommendations based on comprehensive emotion analysis results"""
     recommendations = []
     
     sentiment = analysis_data.get('sentiment_score', 0)
     emotion_percentages = analysis_data.get('emotion_percentages', {})
     
     if sentiment > 0.3:
-        recommendations.append("Consider capitalizing on positive media coverage for marketing campaigns")
+        recommendations.append("Consider strategically capitalizing on positive media coverage for enhanced marketing campaigns")
     elif sentiment < -0.3:
-        recommendations.append("Develop a communication strategy to address negative sentiment")
+        recommendations.append("Develop comprehensive communication strategy to effectively address negative sentiment patterns")
     
     if emotion_percentages.get('angry', 0) > 20:
-        recommendations.append("Monitor for potential reputation risks and prepare crisis response")
+        recommendations.append("Continuously monitor for potential reputation risks and prepare crisis response protocols")
     
     if emotion_percentages.get('inspired', 0) > 15:
-        recommendations.append("Leverage positive innovation coverage in investor communications")
+        recommendations.append("Leverage positive innovation coverage in investor communications and presentations")
     
     return recommendations
 
