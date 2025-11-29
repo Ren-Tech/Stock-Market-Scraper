@@ -1,0 +1,4008 @@
+{% extends "base.html" %}
+{% block title %}Emotion Analysis Dashboard{% endblock %}
+{% block content %}
+   <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            --transition-speed: 0.3s;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Simplified 3-emotion color scheme */
+        .emotion-happy {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .emotion-neutral {
+            background: linear-gradient(135deg, #6c757d, #adb5bd);
+            color: white;
+        }
+        
+        .emotion-sad {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+        }
+        
+        /* Emotion cards for the 3 emotions */
+        .emotion-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .emotion-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .emotion-card:hover::before {
+            left: 100%;
+        }
+        
+        .emotion-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        
+        .emotion-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .emotion-percentage {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .emotion-count {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .emotion-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .progress-bar-custom {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        /* Confidence badges for 3 emotions */
+        .confidence-success {
+            border-left: 4px solid #28a745 !important;
+        }
+        
+        .confidence-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+        
+        .confidence-danger {
+            border-left: 4px solid #dc3545 !important;
+        }
+        
+        /* Emotion distribution section */
+        .emotion-distribution {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .emotion-distribution::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Guide table simplified for 3 emotions */
+        .guide-table tbody tr:nth-child(1) {
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .guide-table tbody tr:nth-child(2) {
+            background: rgba(108, 117, 125, 0.1);
+        }
+        
+        .guide-table tbody tr:nth-child(3) {
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .emotion-color-sample {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+        
+        /* Stats cards */
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .emotion-distribution {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        .emotion-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .emotion-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .emotion-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .emotion-percentage {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .emotion-count {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Add emotion label styling */
+        .emotion-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .split-container {
+            display: flex;
+            gap: 24px;
+            min-height: 80vh;
+        }
+        
+        .input-panel {
+            flex: 0 0 35%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .output-panel {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            min-height: 600px;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .language-analysis {
+            background: white;
+            border-radius: 12px;
+            border-left: 4px solid var(--success-color);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .word-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .word-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .word-tag:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .word-tag.high-weight {
+            font-size: 1.2rem;
+            background: var(--danger-color);
+        }
+
+        .word-tag.medium-weight {
+            font-size: 1rem;
+            background: var(--warning-color);
+            color: #000;
+        }
+
+        .word-tag.low-weight {
+            font-size: 0.8rem;
+            background: var(--secondary-color);
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 4px;
+            margin: 8px 0;
+        }
+
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .company-tag {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            margin: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .company-tag:hover {
+            transform: scale(1.05);
+        }
+
+        .analysis-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+        }
+
+        .sentiment-gauge {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            margin: 20px auto;
+        }
+
+        .gauge-bg {
+            width: 200px;
+            height: 100px;
+            background: linear-gradient(to right, #dc3545, #ffc107, #28a745);
+            border-radius: 100px 100px 0 0;
+            position: relative;
+        }
+
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            width: 2px;
+            height: 90px;
+            background: #333;
+            transition: transform 0.8s ease;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .gauge-center {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+        }
+
+        .search-btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary-color);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .article-item {
+            transition: all 0.3s ease;
+        }
+
+        .article-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .confidence-high { border-left-color: var(--success-color) !important; }
+        .confidence-medium { border-left-color: var(--warning-color) !important; }
+        .confidence-low { border-left-color: var(--danger-color) !important; }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--secondary-color);
+            background: transparent;
+            padding: 8px 16px;
+            margin-right: 8px;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+        }
+
+        .nav-tabs .nav-link:hover:not(.active) {
+            background: rgba(13, 110, 253, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* Guide Modal Styles */
+        .guide-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .emotion-color-sample {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .scoring-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+        }
+
+        /* Enhanced Keyword Management Styles */
+        .keyword-management-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        
+        .keyword-management-modal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: none;
+            padding: 25px 30px;
+            position: relative;
+        }
+        
+        .keyword-management-modal .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+        
+        .keyword-management-modal .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .keyword-management-modal .btn-close {
+            filter: invert(1);
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .keyword-management-modal .btn-close:hover {
+            opacity: 1;
+        }
+        
+        .keyword-management-modal .modal-body {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .emoticon-customization {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+        
+        .emoticon-customization h6 {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .emoticon-customization h6 i {
+            color: #667eea;
+        }
+        
+        .emoticon-selector {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .emoticon-option {
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .emoticon-option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .emoticon-option.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.3);
+        }
+.keywords-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+}
+
+        
+        .keywords-section h6 {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .keywords-section h6 i {
+            color: #667eea;
+        }
+        
+        .keyword-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+        }
+        
+        .keyword-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .keyword-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .keyword-item-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .keyword-text {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .keyword-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .keyword-item-actions button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .keyword-item-actions .btn-edit {
+            background: #28a745;
+            color: white;
+        }
+        
+        .keyword-item-actions .btn-edit:hover {
+            background: #218838;
+            transform: scale(1.1);
+        }
+        
+        .keyword-item-actions .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .keyword-item-actions .btn-delete:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+        
+        .keyword-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+        
+        .keyword-actions .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            min-width: 140px;
+        }
+        
+        .keyword-actions .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .keyword-actions .btn-reset:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+        
+        .keyword-actions .btn-sync {
+            background: #28a745;
+            color: white;
+        }
+        
+        .keyword-actions .btn-sync:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        /* Enhanced Keyword Edit Modal */
+        .keyword-edit-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        
+        .keyword-edit-modal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: none;
+            padding: 25px 30px;
+        }
+        
+        .keyword-edit-modal .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .keyword-edit-modal .modal-body {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .keyword-edit-modal .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .keyword-edit-modal .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .keyword-edit-modal .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .keyword-edit-modal .modal-footer {
+            border-top: 1px solid #e9ecef;
+            padding: 20px 30px;
+            background: white;
+        }
+
+        .empty-keywords-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-keywords-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-keywords-state p {
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Article and Analysis Results Styles */
+        .rubrics-accordion .accordion-button {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: none;
+            font-weight: 600;
+        }
+        
+        .rubrics-accordion .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .source-breakdown-card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .source-breakdown-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .article-card {
+            border: none;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .article-image-container {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .article-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .article-card:hover .article-image {
+            transform: scale(1.05);
+        }
+        
+        .article-source-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        /* Updated Keyword Display Styles - Matching Keyword Management Modal */
+        .keywords-reference-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .keywords-reference-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .keywords-reference-header h5 {
+            color: #495057;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .keywords-reference-header h5 i {
+            color: #667eea;
+        }
+
+        .keywords-reference-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .keyword-emotion-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-emotion-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .keyword-emotion-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .keyword-emotion-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .keyword-emotion-info {
+            flex: 1;
+        }
+
+        .keyword-emotion-label {
+            font-weight: 700;
+            color: #495057;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .keyword-emotion-count {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .keyword-emotion-body {
+            padding: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .keyword-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .keyword-tag {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .keyword-tag:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .keyword-emotion-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .keyword-actions-inline {
+            display: flex;
+            gap: 8px;
+        }
+
+        .keyword-actions-inline .btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: none;
+            font-weight: 500;
+        }
+
+        .keyword-actions-inline .btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .keyword-actions-inline .btn-view:hover {
+            background: #138496;
+            transform: scale(1.05);
+        }
+
+        .keyword-actions-inline .btn-manage {
+            background: #6c757d;
+            color: white;
+        }
+
+        .keyword-actions-inline .btn-manage:hover {
+            background: #5a6268;
+            transform: scale(1.05);
+        }
+
+        .keyword-search {
+            max-width: 300px;
+            margin-bottom: 15px;
+        }
+
+        .all-keywords-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+        }
+
+        .keyword-tag-large {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin: 4px;
+            display: inline-block;
+            transition: all 0.2s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .keyword-tag-large:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Animation for keyword display */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .keyword-emotion-panel {
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Keyword Reference Modal Styles */
+        .keyword-reference-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .keyword-reference-modal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: none;
+            padding: 25px 30px;
+            position: relative;
+        }
+
+        .keyword-reference-modal .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .keyword-reference-modal .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .keyword-reference-modal .btn-close {
+            filter: invert(1);
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .keyword-reference-modal .btn-close:hover {
+            opacity: 1;
+        }
+
+        .keyword-reference-modal .modal-body {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        /* Emotion Navigation Tabs */
+        .emotion-navigation {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .emotion-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .emotion-tab {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .emotion-tab:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .emotion-tab.active {
+            background: white;
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Keyword Reference Section */
+        .keywords-reference-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .keyword-stats {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .keyword-stats .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .keyword-stats .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .keyword-reference-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            padding: 15px;
+        }
+
+        .keyword-reference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .keyword-reference-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .keyword-reference-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .keyword-text {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .keyword-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .keyword-actions .btn {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+        }
+
+        .edit-keyword-btn:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .delete-keyword-btn:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Toast styles */
+        .toast {
+            z-index: 9999;
+        }
+
+        /* Ensure keyword items display properly with actions */
+        .keyword-reference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .keyword-reference-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .keyword-reference-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        /* Usage Instructions */
+        .usage-instructions {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .instruction-content {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        /* Modal Footer */
+        .keyword-reference-modal .modal-footer {
+            border-top: 1px solid #e9ecef;
+            padding: 20px 30px;
+            background: white;
+        }
+
+        .keyword-reference-modal .modal-footer .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .keyword-reference-modal .modal-footer .btn-primary {
+            background: #667eea;
+        }
+
+        .keyword-reference-modal .modal-footer .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .keyword-reference-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .keyword-actions {
+                align-self: flex-end;
+            }
+            
+            .keyword-reference-content {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .split-container {
+                flex-direction: column;
+            }
+            .input-panel {
+                position: relative;
+            }
+            .analysis-metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+            .emoticon-selector {
+                flex-wrap: wrap;
+            }
+            .keyword-actions {
+                flex-direction: column;
+            }
+            .keyword-actions-inline {
+                flex-wrap: wrap;
+            }
+            .keywords-reference-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .analysis-metrics {
+                grid-template-columns: 1fr;
+            }
+            .emotion-card {
+                margin: 4px;
+                padding: 15px;
+            }
+            .keyword-management-modal .modal-body,
+            .keyword-edit-modal .modal-body {
+                padding: 20px;
+            }
+            .keyword-tags-container {
+                justify-content: center;
+            }
+            .keyword-emotion-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            .keyword-emotion-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            .keyword-actions-inline {
+                justify-content: center;
+            }
+            .keyword-reference-modal .modal-body {
+                padding: 20px;
+            }
+            
+            .emotion-tabs {
+                flex-direction: column;
+            }
+            
+            .emotion-tab {
+                justify-content: center;
+            }
+            
+            .keyword-stats .row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .keyword-reference-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .keyword-reference-content {
+                width: 100%;
+            }
+        }
+    </style>
+ <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="display-5 fw-bold text-primary">
+                        <i class="bi bi-emoji-smile me-2"></i>Emotion Analysis Dashboard
+                    </h1>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" id="guideBtn">
+                            <i class="bi bi-question-circle me-1"></i> Guide
+                        </button>
+                        <button class="btn btn-outline-info" id="openKeywordReferenceBtn">
+                            <i class="bi bi-tags me-1"></i> Keyword Reference
+                        </button>
+                        <button class="btn btn-outline-secondary" id="exportBtn" disabled>
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                        <button class="btn btn-outline-info" id="compareBtn" disabled>
+                            <i class="bi bi-graph-up"></i> Compare
+                        </button>
+                    </div>
+                </div>
+                <p class="text-muted">Analyze emotional content and language patterns from news articles with detailed rubrics and confidence scoring</p>
+            </div>
+        </div>
+
+        <!-- Main Content - Split Layout -->
+        <div class="split-container">
+            <!-- Left Panel - Input -->
+            <div class="input-panel">
+                <div class="section-title">
+                    <i class="bi bi-input-cursor-text text-primary"></i>
+                    <h5 class="mb-0">Analysis Parameters</h5>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="companyInput" class="form-label">Company Names (comma separated)</label>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="companyInput" 
+                            placeholder="e.g., Tesla, Apple, Microsoft, Google"
+                            value="Tesla, Apple, Microsoft"
+                        >
+                        <button class="btn btn-primary search-btn" type="button" id="analyzeButton">
+                            <i class="bi bi-graph-up me-1"></i> Analyze
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Enter company names to analyze emotional patterns and language sentiment from their news coverage.
+                    </div>
+                </div>
+
+                <!-- Analysis Options -->
+                <div class="mb-3">
+                    <label for="analysisDepth" class="form-label">Analysis Depth</label>
+                    <select class="form-select" id="analysisDepth">
+                        <option value="basic">Basic Analysis</option>
+                        <option value="detailed" selected>Detailed Analysis</option>
+                        <option value="comprehensive">Comprehensive Analysis</option>
+                    </select>
+                    <div class="form-text">Detailed includes sentiment analysis. Comprehensive adds confidence scoring.</div>
+                </div>
+
+                <!-- Options -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="detectLanguages" checked>
+                        <label class="form-check-label" for="detectLanguages">
+                            Detect Multiple Languages
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="weightedAnalysis" checked>
+                        <label class="form-check-label" for="weightedAnalysis">
+                            Use Weighted Word Analysis
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showArticles" checked>
+                        <label class="form-check-label" for="showArticles">
+                            Display Individual Articles
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Company Tags -->
+                <div class="mb-3">
+                    <label class="form-label">Selected Companies</label>
+                    <div id="companyTagsContainer" class="d-flex flex-wrap gap-2 p-2 bg-light rounded"></div>
+                </div>
+
+                <!-- Analysis Summary -->
+                <div class="mb-3" id="quickSummary" style="display: none;">
+                    <div class="card bg-light">
+                        <div class="card-body p-3">
+                            <h6 class="card-title mb-2">Quick Summary</h6>
+                            <div id="summaryContent" class="small text-muted"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="mt-3 d-none" id="progressSection">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span class="small" id="progressText">Analyzing emotional content...</span>
+                    </div>
+                    <div class="progress">
+                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="small text-muted mt-1" id="progressDetail">Processing articles and calculating weights</div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Analysis Results -->
+            <div class="output-panel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="section-title mb-0">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        <h5 class="mb-0">Emotion Analysis Results</h5>
+                    </div>
+                    <span class="badge bg-info fs-6" id="analysisCountBadge">Ready for analysis</span>
+                </div>
+                
+                <!-- Results Container -->
+                <div id="resultsContainer">
+                    <div class="empty-state">
+                        <i class="bi bi-emoji-neutral"></i>
+                        <p class="mt-3">Enter company names to analyze emotional patterns and language sentiment</p>
+                        <div class="mt-4">
+                            <h6>What you'll get:</h6>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Detailed emotion classification with confidence scores</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Individual article analysis with reasoning</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Language detection and sentiment scoring</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Interactive visualizations and word clouds</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Comprehensive rubrics for each emotion category</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="modal fade" id="guideModal" tabindex="-1" aria-labelledby="guideModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="guideModalLabel">
+                        <i class="bi bi-question-circle me-2"></i>Emotion Analysis Scoring Guide
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>How Scoring Works</h5>
+                            <p>Our emotion analysis uses advanced NLP to classify articles into 3 emotion categories based on language patterns, keywords, and sentiment analysis.</p>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Scoring Process</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="mb-0">
+                                        <li><strong>Text Processing:</strong> Articles are cleaned and tokenized</li>
+                                        <li><strong>Keyword Analysis:</strong> Emotion-specific keywords are identified</li>
+                                        <li><strong>Sentiment Scoring:</strong> Overall sentiment is calculated (-1.0 to +1.0)</li>
+                                        <li><strong>Emotion Classification:</strong> Articles are classified into emotion categories</li>
+                                        <li><strong>Confidence Scoring:</strong> Each classification gets a confidence percentage</li>
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <h6>Confidence Levels</h6>
+                            <div class="d-flex gap-2 mb-3">
+                                <span class="badge bg-success scoring-badge">High: 70-100%</span>
+                                <span class="badge bg-warning text-dark scoring-badge">Medium: 40-69%</span>
+                                <span class="badge bg-danger scoring-badge">Low: 0-39%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Sentiment Scale</h5>
+                            <div class="sentiment-gauge mb-3">
+                                <div class="gauge-bg">
+                                    <div class="gauge-needle" style="transform: translateX(-50%) rotate(0deg);"></div>
+                                    <div class="gauge-center"></div>
+                                </div>
+                            </div>
+                            <div class="row text-center small">
+                                <div class="col-4 text-danger">Negative<br>-1.0 to -0.1</div>
+                                <div class="col-4 text-secondary">Neutral<br>-0.1 to +0.1</div>
+                                <div class="col-4 text-success">Positive<br>+0.1 to +1.0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Emotion Categories & Scoring Rubrics</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover guide-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Emotion</th>
+                                    <th>Color Code</th>
+                                    <th>Score Range</th>
+                                    <th>Key Indicators</th>
+                                    <th>Example Keywords</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>😊 Happy</strong></td>
+                                    <td><span class="emotion-color-sample" style="background-color: #28a745;"></span>#28a745</td>
+                                    <td>0.6 - 1.0</td>
+                                    <td>Positive outcomes, success stories, growth</td>
+                                    <td>success, growth, profit, achievement</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>😐 Neutral</strong></td>
+                                    <td><span class="emotion-color-sample" style="background-color: #6c757d;"></span>#6c757d</td>
+                                    <td>-0.1 - 0.1</td>
+                                    <td>Factual reporting, announcements</td>
+                                    <td>announced, reported, according, data</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>😢 Sad</strong></td>
+                                    <td><span class="emotion-color-sample" style="background-color: #17a2b8;"></span>#17a2b8</td>
+                                    <td>-0.4 - -1.0</td>
+                                    <td>Losses, declines, negative impacts</td>
+                                    <td>loss, decline, drop, decrease</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Word Weighting</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="word-tag high-weight me-2">High Weight</span>
+                                        <small>Strong emotional indicators (3x multiplier)</small>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="word-tag medium-weight me-2">Medium Weight</span>
+                                        <small>Moderate indicators (2x multiplier)</small>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="word-tag low-weight me-2">Low Weight</span>
+                                        <small>Weak indicators (1x multiplier)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Analysis Depth</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Basic:</strong> Emotion classification only</p>
+                                    <p><strong>Detailed:</strong> + Sentiment analysis</p>
+                                    <p><strong>Comprehensive:</strong> + Confidence scoring & rubrics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Export Analysis Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="json">JSON (Complete Data)</option>
+                            <option value="csv">CSV (Article Details)</option>
+                            <option value="summary">Executive Summary</option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="includeImages">
+                        <label class="form-check-label" for="includeImages">
+                            Include image URLs in export
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmExport">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyword Management Modal -->
+    <div class="modal fade keyword-management-modal" id="keywordModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordModalTitle">Manage Keywords for <span id="selectedEmotionLabel"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="emoticon-customization">
+                        <h6><i class="bi bi-emoji-smile"></i> Customize Emoticon</h6>
+                        <div class="emoticon-selector" id="emoticonSelector">
+                            <!-- Emoticon options will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="keywords-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6><i class="bi bi-tags"></i> Keywords for this Emotion</h6>
+                            <button class="btn btn-primary" id="addNewKeywordBtn">
+                                <i class="bi bi-plus-circle me-1"></i> Add Keyword
+                            </button>
+                        </div>
+                        <div class="keyword-list" id="keywordList">
+                            <!-- Keywords will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="keyword-actions">
+                        <button class="btn btn-reset" id="resetKeywordsBtn">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Reset to Default
+                        </button>
+                        <button class="btn btn-sync" id="syncKeywordsBtn">
+                            <i class="bi bi-cloud-arrow-up me-1"></i> Sync to Backend
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   // ...existing code...
+    <!-- Keyword Edit Modal -->
+    <div class="modal fade keyword-edit-modal" id="keywordEditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordEditModalTitle">Add New Keyword</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label for="keywordInput" class="form-label">Keyword</label>
+                        <input type="text" class="form-control" id="keywordInput" placeholder="Enter keyword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="keywordMentions" class="form-label">Mentions Count</label>
+                        <input type="number" class="form-control" id="keywordMentions" placeholder="Enter mentions count" min="0">
+                    </div>
+
+                    <!-- NEW: Score selector for keyword (1-5 points) -->
+                    <div class="mb-3">
+                        <label for="keywordScore" class="form-label">Keyword Score (1-5)</label>
+                        <select class="form-select" id="keywordScore">
+                            <option value="1" selected>1 — Default</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — Highest</option>
+                        </select>
+                        <div class="form-text">Assign how many points this keyword contributes to emotion scoring (1–5).</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveKeywordBtn">Save Keyword</button>
+                </div>
+            </div>
+        </div>
+    </div>
+// ...existing code...
+
+    <!-- Keywords Display Modal -->
+    <div class="modal fade" id="keywordsModal" tabindex="-1" aria-labelledby="keywordsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordsModalLabel">Keywords</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="keyword-search mb-3">
+                        <input type="text" class="form-control" id="keywordSearch" placeholder="Search keywords...">
+                    </div>
+                    <div class="all-keywords-container" id="allKeywordsContainer">
+                        <!-- Keywords will be populated here -->
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            These keywords are used to detect emotion in article analysis
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="copyKeywordsBtn">
+                        <i class="bi bi-clipboard me-1"></i> Copy Keywords
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyword Reference Modal -->
+    <div class="modal fade keyword-reference-modal" id="keywordReferenceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordReferenceModalTitle">
+                        <i class="bi bi-tags me-2"></i>Keyword Management
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Add Keyword Button -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6><i class="bi bi-emoji-smile"></i> Manage Keywords by Emotion Category</h6>
+                        <button class="btn btn-primary" id="addKeywordBtn">
+                            <i class="bi bi-plus-circle me-1"></i> Add Keyword
+                        </button>
+                    </div>
+                    
+                    <!-- Emotion Navigation Tabs -->
+                    <div class="emotion-navigation mb-4">
+                        <div class="emotion-tabs" id="emotionTabs">
+                            <!-- Emotion tabs will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Keyword Reference Section -->
+                    <div class="keywords-reference-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6><i class="bi bi-search"></i> Keyword Search & Filter</h6>
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-control form-control-sm" id="keywordSearchInput" placeholder="Search keywords...">
+                                <button class="btn btn-outline-secondary btn-sm" id="clearSearchBtn">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Keyword Statistics -->
+                        <div class="keyword-stats mb-3">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="stat-value" id="totalKeywordsCount">0</div>
+                                    <div class="stat-label">Total Keywords</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value" id="selectedEmotionCount">0</div>
+                                    <div class="stat-label">In Category</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value" id="searchResultsCount">0</div>
+                                    <div class="stat-label">Search Results</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Keywords Display with Edit/Delete Buttons -->
+                        <div class="keyword-reference-list" id="keywordReferenceList">
+                            <!-- Keywords will be populated here with edit/delete buttons -->
+                        </div>
+                    </div>
+                    
+                    <!-- Usage Instructions -->
+                    <div class="usage-instructions mt-4">
+                        <h6><i class="bi bi-info-circle"></i> How Keywords Work</h6>
+                        <div class="instruction-content">
+                            <p class="small mb-2">
+                                Keywords are used to detect emotional content in articles. Each keyword helps identify 
+                                the emotional tone of news content for accurate classification.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="resetToDefaultBtn">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset to Default
+                    </button>
+                    <button type="button" class="btn btn-primary" id="syncToBackendBtn">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Sync to Backend
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Keyword Modal -->
+    // ...existing code...
+    <!-- Add/Edit Keyword Modal -->
+    <div class="modal fade" id="keywordEditModalRef" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordEditModalTitleRef">Add Keyword</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editKeywordInput" class="form-label">Keyword</label>
+                        <input type="text" class="form-control" id="editKeywordInput" placeholder="Enter keyword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editKeywordEmotion" class="form-label">Emotion Category</label>
+                        <select class="form-select" id="editKeywordEmotion">
+                            <option value="happy">😊 Happy</option>
+                            <option value="neutral">😐 Neutral</option>
+                            <option value="sad">😢 Sad</option>
+                        </select>
+                    </div>
+
+                    <!-- NEW: Score selector for keyword (1-5 points) -->
+                      <!-- NEW: Score selector for keyword (1-5 points) -->
+                    <div class="mb-3">
+                        <label for="editKeywordScore" class="form-label">Keyword Score (1-5)</label>
+                        <select class="form-select" id="editKeywordScore">
+                            <option value="1" selected>1 — Default</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — Highest</option>
+                        </select>
+                        <div class="form-text">Assign how many points this keyword contributes to emotion scoring (1–5).</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveKeywordBtnRef">Save Keyword</button>
+                </div>
+            </div>
+        </div>
+    </div>
+// ...existing code...
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const companyInput = document.getElementById('companyInput');
+            const analyzeButton = document.getElementById('analyzeButton');
+            const analysisDepth = document.getElementById('analysisDepth');
+            const detectLanguages = document.getElementById('detectLanguages');
+            const weightedAnalysis = document.getElementById('weightedAnalysis');
+            const showArticles = document.getElementById('showArticles');
+            const companyTagsContainer = document.getElementById('companyTagsContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const analysisCountBadge = document.getElementById('analysisCountBadge');
+            const progressSection = document.getElementById('progressSection');
+            const progressText = document.getElementById('progressText');
+            const progressDetail = document.getElementById('progressDetail');
+            const progressBar = document.getElementById('progressBar');
+            const quickSummary = document.getElementById('quickSummary');
+            const summaryContent = document.getElementById('summaryContent');
+            const exportBtn = document.getElementById('exportBtn');
+            const compareBtn = document.getElementById('compareBtn');
+            const guideBtn = document.getElementById('guideBtn');
+            const openKeywordReferenceBtn = document.getElementById('openKeywordReferenceBtn');
+            
+            let companies = [];
+            let analysisData = null;
+            let selectedEmotion = 'happy';
+            let editingKeywordIndex = null;
+            
+            // Emotion configuration
+            // Emotion configuration - Updated with labels
+const emotionConfig = {
+    'happy': { 
+        emoji: '😊', 
+        color: '#28a745', 
+        label: 'HAPPY',
+        description: 'Positive emotions like joy, success, and achievement'
+    },
+    'neutral': { 
+        emoji: '😐', 
+        color: '#6c757d', 
+        label: 'NEUTRAL',
+        description: 'Neutral or factual content without strong emotional bias'
+    },
+    'sad': { 
+        emoji: '😢', 
+        color: '#17a2b8', 
+        label: 'SAD',
+        description: 'Negative emotions like sadness, loss, or disappointment'
+    }
+};
+
+            // Emotion keywords data - FIXED STRUCTURE
+            // Replace the current emotions configuration with this alphabetically sorted version
+const emotions = {
+    'happy': {
+        'keywords': [
+            'ability to attract', 'abundant', 'absolutely', 'accessible', 'acclaimed', 
+            'accommodative', 'achievement', 'admire', 'adore', 'adulation', 'advance', 
+            'advanced', 'advancing', 'amazing', 'approve', 'arousing', 'assure', 
+            'attentive', 'attractive', 'awe-inspiring', 'awesome', 'beaming', 
+            'beloved', 'beneficial', 'best', 'bold', 'booming', 'brainy', 'breakthrough', 
+            'breath-taking', 'bright', 'bright future', 'brilliant', 'buoyant', 
+            'celebration', 'centered', 'champion', 'charming', 'cheerful', 'clever', 
+            'confidence', 'confident', 'constant', 'courage', 'courageous', 
+            'delectable', 'definite', 'delightful', 'dependable', 'developing', 
+            'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'earnings growth', 
+            'ecstatic', 'efficient', 'efficient use of assets', 'electrifying', 
+            'employable', 'empowered', 'endearing', 'enjoyable', 'enriching', 
+            'enthusiastic', 'enticing', 'especial', 'exceptional', 'exciting', 
+            'exhilarating', 'exponential', 'exquisite', 'extraordinary', 
+            'extraordinary good', 'exultant', 'fabulous', 'fascinating', 'favorite', 
+            'fearless', 'fetching', 'financial stability', 'finest', 'flourishing', 
+            'gallant', 'generous', 'generously', 'genuine', 'gleaming', 'goal-oriented', 
+            'godawful', 'good future', 'good judgment', 'good perception', 'good quarter', 
+            'good report', 'great', 'greatest', 'growing', 'growing revenue', 'growth', 
+            'growth potential', 'gumptious', 'happiness', 'happy', 'healthy cash balance', 
+            'high achievement', 'high investment motivation', 'high market share', 
+            'high outcomes', 'high potential', 'high profit margin', 'high reward', 
+            'highest', 'highest quality', 'highly recommend', 'highly recommended', 
+            'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
+            'increased net income', 'increase in value', 'increase share value', 
+            'increase stock value', 'increasing', 'incredible', 'innovative', 
+            'insightful', 'inspiring', 'instinctive', 'intellectual', 'irreplaceable', 
+            'irresistible', 'jolly', 'jovial', 'joyful', 'joysome', 'judicious', 
+            'just', 'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 
+            'leading ahead', 'legendary', 'likable', 'lively', 'low debt-to-equity', 
+            'luminous', 'magical', 'magnetic', 'magnificent', 'majestic', 'making headway', 
+            'making progress', 'marvelous', 'masterful', 'meagre', 'miraculous', 
+            'mindful', 'motivated', 'moving up', 'new products', 'numinous', 'on the increase', 
+            'on the rise', 'on-target', 'optimistic', 'orderly', 'organized', 
+            'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
+            'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 
+            'poise', 'polished', 'positive', 'positive achievement', 'positive future', 
+            'positive outcomes', 'positive quarter', 'positive return', 'powerful', 
+            'praiseworthy', 'praise', 'proactive', 'productive', 'profit', 
+            'profitable', 'projected price increase', 'prominent', 'promising', 
+            'prompt', 'prospering', 'proud', 'punctual', 'quick-witted', 'radiant', 
+            'rallying', 'rapturous', 'rational', 'razor-sharp', 'reassuring', 
+            'recherche', 'record high', 'refulgent', 'rejoicing', 'reliable', 
+            'remarkable', 'remarkably', 'resilient', 'resourceful', 'respectable', 
+            'return on assets', 'revolutionary', 'rewarding', 'righteous', 'rising', 
+            'rising return on equity', 'sagacious', 'savvy', 'sensational', 
+            'sensationally', 'shrewd', 'sincere', 'skilled', 'smart', 'sound judgment', 
+            'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 'stimulating', 
+            'strong bottom-line', 'strong growth', 'strong profitability', 'struggling', 
+            'struggles', 'succeeding', 'success', 'successful', 'supreme', 'surge', 
+            'surprising', 'surprisingly', 'systematic', 'teeming', 'tenacious', 
+            'thriving', 'trailblazing', 'transcendental', 'triumph', 'tubular', 
+            'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
+            'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 
+            'vigor', 'vigorous', 'visionary', 'vivacious', 'well-informed', 'win', 
+            'winner', 'winners', 'wins', 'wise', 'worthy', 'worthy of praise'
+        ].sort(), // Alphabetically sorted
+        'emoji': '😊'
+    },
+    'neutral': {
+        'keywords': [
+            'according', 'analyst call', 'annual general meeting', 'annual report', 
+            'announced', 'announcement', 'anticipated data', 'audit report', 
+            'balance sheet', 'board meeting', 'business', 'business update', 
+            'cautionary statement', 'company update', 'compliance report', 
+            'conference', 'conference call', 'cookie policy', 'corporate announcement', 
+            'data', 'disclaimer', 'downtime notification', 'earnings', 'earnings call', 
+            'economic data', 'emergency maintenance', 'estimated figures', 
+            'expected report', 'extraordinary meeting', 'final results', 
+            'financial', 'financial results', 'financial statement', 'financial update', 
+            'formal announcement', 'forward looking statement', 'government data', 
+            'industry news', 'industry report', 'information', 'interim report', 
+            'investor presentation', 'launch', 'legal notice', 'management discussion', 
+            'market analysis', 'market announcement', 'market update', 'material information', 
+            'media release', 'meeting', 'meeting minutes', 'non-material information', 
+            'official communication', 'official statement', 'operational update', 
+            'outlook statement', 'performance review', 'planned outage', 'planned release', 
+            'preliminary results', 'press conference', 'press release', 'price sensitive information', 
+            'privacy policy', 'product update', 'projected results', 'proxy statement', 
+            'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
+            'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 
+            'revised figures', 'risk factors', 'routine maintenance', 'routine update', 
+            'scheduled announcement', 'scheduled downtime', 'sector update', 
+            'service announcement', 'service interruption', 'shareholder meeting', 
+            'shareholder vote', 'special meeting', 'statement', 'statistical release', 
+            'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
+            'trading update', 'unplanned outage', 'unscheduled downtime', 'update', 
+            'updated guidance', 'updates', 'website update'
+        ].sort(), // Alphabetically sorted
+        'emoji': '😐'
+    },
+    'sad': {
+        'keywords': [
+            'abate', 'abysmal', 'accounting discrepancies', 'administration', 
+            'adverse', 'alarming', 'annoy', 'anxious', 'apathy', 'appalling', 
+            'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 'battle', 
+            'belligerent', 'below', 'below expectation', 'bemoan', 'beneath', 
+            'blame', 'boring', 'broken', 'cash-strapped', 'cheap', 'chronic', 
+            'closed', 'collapse', 'conflict', 'confront', 'contrary', 'contradictory', 
+            'corrosive', 'corrupt', 'criminal', 'crummy', 'curtail', 'curtailment', 
+            'cut', 'cutback', 'cutting', 'damage', 'damaging', 'dangerous', 
+            'dead', 'death', 'deaths', 'debts', 'decaying', 'decrease', 'decreased', 
+            'decreasing', 'defective', 'deficient', 'deficiency', 'deformed', 
+            'dejected', 'deleterious', 'deny', 'depressed', 'deprived', 'destroy', 
+            'destructive', 'detrimental', 'diabolical', 'difficult', 'diminish', 
+            'diminished', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
+            'disastrous', 'disgusting', 'disheveled', 'dishonest', 'dishonorable', 
+            'dismal', 'disobedient', "don't", 'downside', 'dreary', 'dreadful', 
+            'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'enraged', 'eroding', 
+            'evil', 'execrable', 'fail', 'failing', 'fall', 'falling', 'falling market share', 
+            'falling off', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
+            'financial trouble', 'fired', 'flop', 'foul', 'frighten', 'frightful', 
+            'gawky', 'ghastly', 'going concern warning', 'grave', 'greed', 'grim', 
+            'grimace', 'gross', 'grotesque', 'gruesome', 'guilty', 'haggard', 
+            'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 'high debt levels', 
+            'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
+            'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
+            'immoral', 'imperfect', 'impossible', 'inability', 'inadequate', 
+            'inane', 'inappropriate', 'inauspicious', 'incompetent', 'ineffectual', 
+            'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
+            'injure', 'injurious', 'inimical', 'insane', 'insipid', 'insidious', 
+            'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 
+            'junky', 'lack of innovation', 'lamentable', 'laughable', 'layoffs', 
+            'legal dispute', 'legal disputes', 'legal issues', 'legal issues', 
+            'lessen', 'lessening', 'liabilities', 'life-threatening', 'lose', 
+            'losing', 'losing money', 'loss', 'lousy', 'low', 'low growth', 
+            'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
+            'lower', 'lowering', 'lumpy', 'malicious', 'market value decline', 
+            'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 
+            'misunderstood', 'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 
+            'negative cash flow', 'negative financial state', 'negative order book', 
+            'negate', 'neglect', 'never', 'nondescript', 'nonsense', 'not to par', 
+            'not up to scratch', 'noxious', 'objectionable', 'obliterate', 
+            'obliterated', 'odious', 'offensive', 'oppressive', 'outstanding debts', 
+            'pain', 'parlous', 'pathetic', 'pessimistic', 'perturb', 'petty', 
+            'pitiful', 'poisonous', 'poor', 'poor credit control', 'poor credit ratings', 
+            'poor report', 'poor reports', 'prejudice', 'product call back', 
+            'product call backs', 'questionable', 'quit', 'reduce', 'reducing', 
+            'reducing orders', 'reduction', 'redundancies', 'regrettable', 'reject', 
+            'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
+            'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 
+            'scanty', 'second-class', 'second-rate', 'severe', 'severe financial trouble', 
+            'serious decline', 'shoddy', 'shocking', 'shrink', 'shrinking', 'shutdown', 
+            'significant drop', 'slow economic growth', 'stagflation', 'struggling', 
+            'struggles', 'subdued', 'subside', 'substandard', 'suffering', 'substandard', 
+            'terrible', 'terrifying', 'third-rate', 'threatening', 'tragedy', 
+            'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 'unfortunate', 
+            'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
+            'unsuitable', 'unskilled', 'unwelcome', 'unpropitious', 'untoward', 
+            'useless', 'vulnerable', 'wane', 'weak leadership', 'weak management', 
+            'worthless', 'wretched', 'wrong', 'wipe out'
+        ].sort(), // Alphabetically sorted
+        'emoji': '😢'
+    }
+};
+            // Default backend keywords
+            const defaultKeywords = {
+                'happy': [
+                    { keyword: 'success', mentions: 12 },
+                    { keyword: 'profit', mentions: 10 },
+                    { keyword: 'growth', mentions: 15 },
+                    { keyword: 'achievement', mentions: 8 }
+                ],
+                'neutral': [
+                    { keyword: 'announced', mentions: 20 },
+                    { keyword: 'reported', mentions: 18 },
+                    { keyword: 'according', mentions: 12 },
+                    { keyword: 'data', mentions: 14 }
+                ],
+                'sad': [
+                    { keyword: 'loss', mentions: 9 },
+                    { keyword: 'decline', mentions: 11 },
+                    { keyword: 'drop', mentions: 7 },
+                    { keyword: 'decrease', mentions: 6 }
+                ]
+            };
+            
+            // Initialize Modals
+            const guideModal = new bootstrap.Modal(document.getElementById('guideModal'));
+            const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+            const keywordModal = new bootstrap.Modal(document.getElementById('keywordModal'));
+            const keywordEditModal = new bootstrap.Modal(document.getElementById('keywordEditModal'));
+            const keywordsModal = new bootstrap.Modal(document.getElementById('keywordsModal'));
+            const keywordReferenceModal = new bootstrap.Modal(document.getElementById('keywordReferenceModal'));
+            const keywordEditModalRef = new bootstrap.Modal(document.getElementById('keywordEditModalRef'));
+            
+            // Add these variables at the top with other declarations
+            let editingKeywordId = null;
+            let currentEditingEmotion = null;
+
+            // Initialize the dashboard
+            function initializeDashboard() {
+                // Load keywords from localStorage or use defaults
+                const savedKeywords = localStorage.getItem('emotionKeywords');
+                if (savedKeywords) {
+                    emotionKeywords = JSON.parse(savedKeywords);
+                } else {
+                    emotionKeywords = JSON.parse(JSON.stringify(defaultKeywords));
+                    saveKeywordsToStorage();
+                }
+                
+                // Load emotions from cookies or use defaults
+                loadEmotionsFromCookies();
+                
+                // Initialize with default companies
+                companies = parseCompanies();
+                updateCompanyTags();
+                updateQuickSummary();
+                
+                // Initialize keyword reference modal
+                initializeKeywordReferenceModal();
+            }
+            
+            // Cookie functions for temporary storage
+            function setCookie(name, value, days = 7) {
+                const expires = new Date();
+                expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${encodeURIComponent(JSON.stringify(value))};expires=${expires.toUTCString()};path=/`;
+            }
+            
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) {
+                        return JSON.parse(decodeURIComponent(c.substring(nameEQ.length, c.length)));
+                    }
+                }
+                return null;
+            }
+            
+            function deleteCookie(name) {
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+            }
+            
+            // Load emotions from cookies
+            function loadEmotionsFromCookies() {
+                const savedEmotions = getCookie('emotionKeywordsData');
+                if (savedEmotions) {
+                    emotions = savedEmotions;
+                }
+            }
+            
+            // Save emotions to cookies
+            function saveEmotionsToCookies() {
+                setCookie('emotionKeywordsData', emotions);
+            }
+            
+            // Update the initializeKeywordReferenceModal function
+            function initializeKeywordReferenceModal() {
+                // Open keyword reference modal
+                openKeywordReferenceBtn.addEventListener('click', function() {
+                    renderEmotionTabs();
+                    renderKeywordReferenceList();
+                    keywordReferenceModal.show();
+                });
+                
+                // Setup search functionality
+                document.getElementById('keywordSearchInput').addEventListener('input', function() {
+                    filterKeywords(this.value);
+                });
+                
+                document.getElementById('clearSearchBtn').addEventListener('click', function() {
+                    document.getElementById('keywordSearchInput').value = '';
+                    filterKeywords('');
+                });
+                
+                // Add keyword button
+                document.getElementById('addKeywordBtn').addEventListener('click', function() {
+                    openAddKeywordModal();
+                });
+                
+                // Reset to default functionality
+                document.getElementById('resetToDefaultBtn').addEventListener('click', resetKeywordsToDefault);
+                
+                // Sync to backend functionality
+                document.getElementById('syncToBackendBtn').addEventListener('click', syncKeywordsToBackend);
+                
+                // Save keyword in edit modal
+                document.getElementById('saveKeywordBtnRef').addEventListener('click', saveKeywordFromModal);
+            }
+
+            // Render emotion tabs
+            function renderEmotionTabs() {
+                const emotionTabs = document.getElementById('emotionTabs');
+                emotionTabs.innerHTML = '';
+                
+                Object.entries(emotionConfig).forEach(([emotion, config]) => {
+                    const tab = document.createElement('div');
+                    tab.className = `emotion-tab ${emotion === 'happy' ? 'active' : ''}`;
+                    tab.setAttribute('data-emotion', emotion);
+                    tab.innerHTML = `
+                        <span>${config.emoji}</span>
+                        <span>${config.label}</span>
+                    `;
+                    
+                    tab.addEventListener('click', function() {
+                        document.querySelectorAll('.emotion-tab').forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        renderKeywordReferenceList();
+                    });
+                    
+                    emotionTabs.appendChild(tab);
+                });
+            }
+            
+            // FIXED: renderKeywordReferenceList function with proper data structure handling
+            // ...existing code...
+            // FIXED: renderKeywordReferenceList function with proper data structure handling
+            function renderKeywordReferenceList(searchTerm = '') {
+                const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
+                const keywordReferenceList = document.getElementById('keywordReferenceList');
+                const emotionData = emotions[selectedEmotion];
+
+                // helper to normalize keyword item (string or object)
+                function getKeywordText(item) {
+                    if (!item && item !== '') return '';
+                    return (typeof item === 'string') ? item : (item.keyword || '');
+                }
+                function getKeywordScore(item) {
+                    if (!item) return null;
+                    return (typeof item === 'object' && item.score !== undefined) ? item.score : null;
+                }
+
+                // Check if emotion data exists and has keywords
+                if (!emotionData || !emotionData.keywords || emotionData.keywords.length === 0) {
+                    keywordReferenceList.innerHTML = `
+                        <div class="empty-keywords-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No keywords available for this emotion</p>
+                        </div>
+                    `;
+                    updateKeywordStats(0, 0, 0);
+                    return;
+                }
+
+                let filteredKeywords = emotionData.keywords;
+
+                // Apply search filter
+                if (searchTerm) {
+                    filteredKeywords = emotionData.keywords.filter(item =>
+                        getKeywordText(item).toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+
+                // Update statistics
+                updateKeywordStats(
+                    emotionData.keywords.length,
+                    filteredKeywords.length,
+                    getTotalKeywordsCount()
+                );
+
+                if (filteredKeywords.length === 0) {
+                    keywordReferenceList.innerHTML = `
+                        <div class="empty-keywords-state">
+                            <i class="bi bi-search"></i>
+                            <p>No keywords match your search</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                keywordReferenceList.innerHTML = '';
+
+                filteredKeywords.forEach((item, index) => {
+                    const keywordText = getKeywordText(item);
+                    const score = getKeywordScore(item);
+
+                    const keywordItem = document.createElement('div');
+                    keywordItem.className = 'keyword-reference-item';
+                    keywordItem.innerHTML = `
+                        <div class="keyword-reference-content">
+                            <span class="keyword-text">${keywordText}</span>
+                            ${score !== null ? `<span class="badge bg-info ms-2">Score: ${score}</span>` : ''}
+                        </div>
+                        <div class="keyword-actions">
+                            <button class="btn btn-sm btn-outline-primary edit-keyword-btn" 
+                                    data-emotion="${selectedEmotion}" 
+                                    data-index="${index}">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-keyword-btn" 
+                                    data-emotion="${selectedEmotion}" 
+                                    data-index="${index}">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
+
+                    keywordReferenceList.appendChild(keywordItem);
+                });
+
+               function editKeywordReference(emotion, index) {
+                        editingKeywordId = { emotion, index };
+                        currentEditingEmotion = emotion;
+
+                        const item = emotions[emotion].keywords[index];
+                        const keywordText = getKeywordText(item);
+                        const score = getKeywordScore(item);
+
+                        document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+                        document.getElementById('editKeywordInput').value = keywordText;
+                        document.getElementById('editKeywordEmotion').value = emotion;
+                        document.getElementById('editKeywordScore').value = (score !== null ? score : '1');
+
+                        // Show the modal
+                        keywordEditModalRef.show();
+                    }
+
+                function deleteKeywordReference(emotion, index) {
+                    const item = emotions[emotion].keywords[index];
+                    const keywordText = getKeywordText(item);
+                    if (confirm(`Are you sure you want to delete the keyword "${keywordText}" from ${emotion} category?`)) {
+                        // Remove keyword from emotions data
+                        if (emotions[emotion] && emotions[emotion].keywords) {
+                            emotions[emotion].keywords.splice(index, 1);
+
+                            // Save to cookies
+                            saveEmotionsToCookies();
+
+                            // Update UI
+                            renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+
+                            // Show success message
+                            showToast('Keyword deleted successfully', 'success');
+                        }
+                    }
+                }
+
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-keyword-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        const index = parseInt(this.getAttribute('data-index'));
+                        editKeywordReference(emotion, index);
+                    });
+                });
+
+                document.querySelectorAll('.delete-keyword-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteKeywordReference(emotion, index);
+                    });
+                });
+
+            
+// ...existing code...
+
+                function editKeywordReference(emotion, keyword, index) {
+    editingKeywordId = { emotion, index };
+    currentEditingEmotion = emotion;
+
+    document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+    document.getElementById('editKeywordInput').value = keyword;
+    document.getElementById('editKeywordEmotion').value = emotion;
+
+    // Show the modal
+    keywordEditModalRef.show();
+}
+                function deleteKeywordReference(emotion, keyword, index) {
+    if (confirm(`Are you sure you want to delete the keyword "${keyword}" from ${emotion} category?`)) {
+        // Remove keyword from emotions data
+        if (emotions[emotion] && emotions[emotion].keywords) {
+            emotions[emotion].keywords.splice(index, 1);
+
+            // Save to cookies
+            saveEmotionsToCookies();
+
+            // Update UI
+            renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+
+            // Show success message
+            showToast('Keyword deleted successfully', 'success');
+        }
+    }
+}
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-keyword-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const emotion = this.getAttribute('data-emotion');
+        const keyword = this.getAttribute('data-keyword');
+        const index = this.getAttribute('data-index');
+        editKeywordReference(emotion, keyword, index); // <-- changed
+    });
+});
+
+document.querySelectorAll('.delete-keyword-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const emotion = this.getAttribute('data-emotion');
+        const keyword = this.getAttribute('data-keyword');
+        const index = this.getAttribute('data-index');
+        deleteKeywordReference(emotion, keyword, index); // <-- changed
+    });
+});
+
+            }
+
+            // Function to open add keyword modal
+            // Function to open add keyword modal
+            function openAddKeywordModal() {
+                editingKeywordId = null;
+                document.getElementById('keywordEditModalTitleRef').textContent = 'Add New Keyword';
+                document.getElementById('editKeywordInput').value = '';
+                
+                // Set default emotion to currently selected one
+                const selectedEmotion = document.querySelector('.emotion-tab.active').getAttribute('data-emotion');
+                document.getElementById('editKeywordEmotion').value = selectedEmotion;
+
+                // Ensure new keyword score defaults to 1
+                const scoreEl = document.getElementById('editKeywordScore');
+                if (scoreEl) scoreEl.value = '1';
+                
+                // Show the modal
+                keywordEditModalRef.show();
+            }
+            // Function to edit keyword
+            function editKeyword(emotion, keyword, index) {
+                editingKeywordId = { emotion, index };
+                currentEditingEmotion = emotion;
+                
+                document.getElementById('keywordEditModalTitleRef').textContent = 'Edit Keyword';
+                document.getElementById('editKeywordInput').value = keyword;
+                document.getElementById('editKeywordEmotion').value = emotion;
+                
+                // Show the modal
+                keywordEditModalRef.show();
+            }
+
+            // Function to delete keyword
+            function deleteKeyword(emotion, keyword, index) {
+                if (confirm(`Are you sure you want to delete the keyword "${keyword}" from ${emotion} category?`)) {
+                    // Remove keyword from emotions data
+                    if (emotions[emotion] && emotions[emotion].keywords) {
+                        emotions[emotion].keywords.splice(index, 1);
+                        
+                        // Save to cookies
+                        saveEmotionsToCookies();
+                        
+                        // Update UI
+                        renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+                        
+                        // Show success message
+                        showToast('Keyword deleted successfully', 'success');
+                    }
+                }
+            }
+
+            // Function to save keyword (both add and edit)
+            // ...existing code...
+            // Function to save keyword (both add and edit)
+            function saveKeywordFromModal() {
+                const keyword = document.getElementById('editKeywordInput').value.trim();
+                const emotion = document.getElementById('editKeywordEmotion').value;
+                const score = parseInt(document.getElementById('editKeywordScore').value, 10) || 1;
+
+                if (!keyword) {
+                    alert('Please enter a keyword');
+                    return;
+                }
+                
+
+                if (!emotions[emotion]) {
+                    emotions[emotion] = { keywords: [], emoji: emotionConfig[emotion]?.emoji || '😐' };
+                }
+
+                if (!emotions[emotion].keywords) {
+                    emotions[emotion].keywords = [];
+                }
+
+                if (editingKeywordId) {
+                    // Editing existing keyword
+                    if (editingKeywordId.emotion === emotion) {
+                        // Same emotion category - just update the keyword object
+                        emotions[emotion].keywords[editingKeywordId.index] = { keyword: keyword, score: score };
+                    } else {
+                        // Different emotion category - remove from old, add to new
+                        emotions[editingKeywordId.emotion].keywords.splice(editingKeywordId.index, 1);
+                        emotions[emotion].keywords.push({ keyword: keyword, score: score });
+                    }
+
+                    showToast('Keyword updated successfully', 'success');
+                } else {
+                    // Adding new keyword
+                    // Normalize existing keywords to text for comparison
+                    const existingKeys = (emotions[emotion].keywords || []).map(k => (typeof k === 'string' ? k : k.keyword));
+                    if (existingKeys.includes(keyword)) {
+                        alert('This keyword already exists in the selected emotion category');
+                        return;
+                    }
+
+                    emotions[emotion].keywords.push({ keyword: keyword, score: score });
+                    showToast('Keyword added successfully', 'success');
+                }
+
+                // Save to cookies
+                saveEmotionsToCookies();
+
+                // Close modal and refresh list
+                keywordEditModalRef.hide();
+
+                // If we changed emotion categories, update the tabs
+                if (currentEditingEmotion && currentEditingEmotion !== emotion) {
+                    currentEditingEmotion = emotion;
+                    document.querySelectorAll('.emotion-tab').forEach(tab => {
+                        if (tab.getAttribute('data-emotion') === emotion) {
+                            tab.classList.add('active');
+                        } else {
+                            tab.classList.remove('active');
+                        }
+                    });
+                }
+
+                renderKeywordReferenceList(document.getElementById('keywordSearchInput').value);
+            }
+// ...existing code...
+
+            // Function to reset keywords to default
+            function resetKeywordsToDefault() {
+                if (confirm('Are you sure you want to reset all keywords to their default values? This action cannot be undone.')) {
+                    // Reset to original emotion keywords
+                    emotions = {
+                        'happy': {
+                            'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 'milestone'],
+                            'emoji': '😊'
+                        },
+                        'neutral': {
+                            'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference', 'statement'],
+                            'emoji': '😐'
+                        },
+                        'sad': {
+                            'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop', 'fall'],
+                            'emoji': '😢'
+                        }
+                    };
+                    
+                    // Save to cookies
+                    saveEmotionsToCookies();
+                    
+                    renderKeywordReferenceList();
+                    showToast('Keywords reset to default successfully', 'success');
+                }
+            }
+
+            // Function to sync keywords to backend
+            function syncKeywordsToBackend() {
+                // Show loading state
+                const syncBtn = document.getElementById('syncToBackendBtn');
+                const originalText = syncBtn.innerHTML;
+                syncBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner-border spinner-border-sm me-1"></i> Syncing...';
+                syncBtn.disabled = true;
+                
+                // Simulate API call to backend
+                setTimeout(() => {
+                    // In a real application, you would make an API call here
+                    // For example: fetch('/api/keywords/sync', { method: 'POST', body: JSON.stringify(emotions) })
+                    
+                    // Show success message
+                    showToast('Keywords synced to backend successfully', 'success');
+                    
+                    // Reset button state
+                    syncBtn.innerHTML = originalText;
+                    syncBtn.disabled = false;
+                }, 1500);
+            }
+
+            // Filter keywords based on search term
+            function filterKeywords(searchTerm) {
+                renderKeywordReferenceList(searchTerm);
+            }
+            
+            // Update keyword statistics
+            function updateKeywordStats(totalInCategory, searchResults, totalCount) {
+                document.getElementById('totalKeywordsCount').textContent = totalCount;
+                document.getElementById('selectedEmotionCount').textContent = totalInCategory;
+                document.getElementById('searchResultsCount').textContent = searchResults;
+            }
+            
+            // Calculate total keywords across all emotions
+            function getTotalKeywordsCount() {
+                let total = 0;
+                Object.values(emotions).forEach(emotionData => {
+                    if (emotionData && emotionData.keywords) {
+                        total += emotionData.keywords.length;
+                    }
+                });
+                return total;
+            }
+
+            // Helper function to show toast messages
+            function showToast(message, type = 'info') {
+                // Create toast container if it doesn't exist
+                let toastContainer = document.getElementById('toastContainer');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'toastContainer';
+                    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                    document.body.appendChild(toastContainer);
+                }
+                
+                const toastId = 'toast-' + Date.now();
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+                
+                // Remove toast from DOM after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastElement.remove();
+                });
+            }
+
+            // ...existing code...
+            // Setup emoticon selector in keyword modal
+            function setupEmoticonSelector() {
+                const emoticonSelector = document.getElementById('emoticonSelector');
+                emoticonSelector.innerHTML = '';
+                
+                Object.entries(emotionConfig).forEach(([emotion, config]) => {
+                    const emoticonOption = document.createElement('div');
+                    emoticonOption.className = `emoticon-option ${emotion === selectedEmotion ? 'selected' : ''}`;
+                    emoticonOption.setAttribute('data-emotion', emotion);
+
+                    // show emoji + label for clarity
+                    emoticonOption.innerHTML = `
+                        <div style="font-size:1.6rem;">${config.emoji}</div>
+                        <div style="font-size:0.85rem; margin-top:6px;">${config.label}</div>
+                    `;
+                    
+                    emoticonOption.addEventListener('click', function() {
+                        selectedEmotion = emotion;
+                        document.querySelectorAll('.emoticon-option').forEach(option => {
+                            option.classList.remove('selected');
+                        });
+                        this.classList.add('selected');
+                        
+                        // Update the emotion label in the modal
+                        document.getElementById('selectedEmotionLabel').textContent = config.label;
+                        
+                        // Update the keywords list
+                        renderKeywordList();
+                    });
+                    
+                    emoticonSelector.appendChild(emoticonOption);
+                });
+            }
+// ...existing code...
+            
+            // Render keyword list for selected emotion
+   
+            // ...existing code...
+            // Render keyword list for selected emotion
+            function renderKeywordList() {
+                const keywordList = document.getElementById('keywordList');
+                keywordList.innerHTML = '';
+                
+                if (emotionKeywords[selectedEmotion] && emotionKeywords[selectedEmotion].length > 0) {
+                    emotionKeywords[selectedEmotion].forEach((keywordData, index) => {
+                        const scoreDisplay = keywordData.score ? `<span class="badge bg-info ms-2">Score: ${keywordData.score}</span>` : `<span class="badge bg-info ms-2">Score: 1</span>`;
+                        const mentionsDisplay = typeof keywordData.mentions !== 'undefined' ? `<small class="text-muted ms-2">${keywordData.mentions} mentions</small>` : '';
+                        
+                        const keywordItem = document.createElement('div');
+                        keywordItem.className = 'keyword-item';
+                        keywordItem.innerHTML = `
+                            <div class="keyword-item-content">
+                                <span class="keyword-text">${keywordData.keyword}</span>
+                                ${scoreDisplay}
+                            </div>
+                            <div class="keyword-item-actions">
+                                <button class="btn btn-edit edit-keyword" data-index="${index}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-delete delete-keyword" data-index="${index}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        keywordList.appendChild(keywordItem);
+                    });
+                } else {
+                    keywordList.innerHTML = `
+                        <div class="empty-keywords-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No keywords for this emotion yet</p>
+                        </div>
+                    `;
+                }
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.edit-keyword').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        editKeyword(index);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-keyword').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteKeyword(index);
+                    });
+                });
+            }
+// ...existing code...
+            
+            // Edit keyword
+            // ...existing code...
+            // Edit keyword
+            function editKeyword(index) {
+                editingKeywordIndex = index;
+                const keywordData = emotionKeywords[selectedEmotion][index];
+                
+                // Set modal title
+                document.getElementById('keywordEditModalTitle').textContent = 'Edit Keyword';
+                
+                // Fill form with current values
+                document.getElementById('keywordInput').value = keywordData.keyword;
+                document.getElementById('keywordMentions').value = keywordData.mentions || '';
+                document.getElementById('keywordScore').value = keywordData.score || 1;
+                
+                // Show edit modal
+                keywordEditModal.show();
+            }
+            
+            // Add new keyword
+            function addNewKeyword() {
+                editingKeywordIndex = null;
+                
+                // Set modal title
+                document.getElementById('keywordEditModalTitle').textContent = 'Add New Keyword';
+                
+                // Clear form
+                document.getElementById('keywordInput').value = '';
+                document.getElementById('keywordMentions').value = '';
+                document.getElementById('keywordScore').value = '1'; // default
+                
+                // Show edit modal
+                keywordEditModal.show();
+            }
+            
+            // Save keyword (both add and edit)
+            function saveKeyword() {
+                const keyword = document.getElementById('keywordInput').value.trim();
+                const mentions = parseInt(document.getElementById('keywordMentions').value) || 0;
+                const score = parseInt(document.getElementById('keywordScore').value, 10) || 1;
+                
+                if (keyword) {
+                    if (!emotionKeywords[selectedEmotion]) {
+                        emotionKeywords[selectedEmotion] = [];
+                    }
+
+                    if (editingKeywordIndex !== null) {
+                        // Update existing keyword
+                        emotionKeywords[selectedEmotion][editingKeywordIndex] = {
+                            keyword: keyword,
+                            mentions: mentions,
+                            score: score
+                        };
+                    } else {
+                        // Check if keyword already exists for this emotion
+                        const existingIndex = emotionKeywords[selectedEmotion].findIndex(k => k.keyword === keyword);
+                        
+                        if (existingIndex === -1) {
+                            // Add new keyword
+                            emotionKeywords[selectedEmotion].push({
+                                keyword: keyword,
+                                mentions: mentions,
+                                score: score
+                            });
+                        } else {
+                            alert('This keyword already exists for this emotion.');
+                            return;
+                        }
+                    }
+                    
+                    saveKeywordsToStorage();
+                    renderKeywordList();
+                    keywordEditModal.hide();
+                    
+                    // Refresh the main display if analysis data exists
+                    if (analysisData) {
+                        displayAnalysisResults(analysisData);
+                    }
+                }
+            }
+// ...existing code...
+            
+            // Delete keyword
+            function deleteKeyword(index) {
+                if (confirm('Are you sure you want to delete this keyword?')) {
+                    emotionKeywords[selectedEmotion].splice(index, 1);
+                    saveKeywordsToStorage();
+                    renderKeywordList();
+                    // Refresh the main display if analysis data exists
+                    if (analysisData) {
+                        displayAnalysisResults(analysisData);
+                    }
+                }
+            }
+            
+            // Add new keyword
+            function addNewKeyword() {
+                editingKeywordIndex = null;
+                
+                // Set modal title
+                document.getElementById('keywordEditModalTitle').textContent = 'Add New Keyword';
+                
+                // Clear form
+                document.getElementById('keywordInput').value = '';
+                document.getElementById('keywordMentions').value = '';
+                
+                // Show edit modal
+                keywordEditModal.show();
+            }
+            
+            // Save keyword (both add and edit)
+            function saveKeyword() {
+                const keyword = document.getElementById('keywordInput').value.trim();
+                const mentions = parseInt(document.getElementById('keywordMentions').value) || 0;
+                
+                if (keyword) {
+                    if (editingKeywordIndex !== null) {
+                        // Update existing keyword
+                        emotionKeywords[selectedEmotion][editingKeywordIndex] = {
+                            keyword: keyword,
+                            mentions: mentions
+                        };
+                    } else {
+                        // Check if keyword already exists for this emotion
+                        const existingIndex = emotionKeywords[selectedEmotion].findIndex(k => k.keyword === keyword);
+                        
+                        if (existingIndex === -1) {
+                            // Add new keyword
+                            emotionKeywords[selectedEmotion].push({
+                                keyword: keyword,
+                                mentions: mentions
+                            });
+                        } else {
+                            alert('This keyword already exists for this emotion.');
+                            return;
+                        }
+                    }
+                    
+                    saveKeywordsToStorage();
+                    renderKeywordList();
+                    keywordEditModal.hide();
+                    
+                    // Refresh the main display if analysis data exists
+                    if (analysisData) {
+                        displayAnalysisResults(analysisData);
+                    }
+                }
+            }
+            
+            // Reset keywords to default
+            function resetKeywords() {
+                if (confirm('Are you sure you want to reset all keywords to default? This action cannot be undone.')) {
+                    emotionKeywords = JSON.parse(JSON.stringify(defaultKeywords));
+                    saveKeywordsToStorage();
+                    renderKeywordList();
+                    // Refresh the main display if analysis data exists
+                    if (analysisData) {
+                        displayAnalysisResults(analysisData);
+                    }
+                }
+            }
+            
+            // Sync keywords to backend
+            function syncKeywordsToBackend() {
+                // Simulate API call to backend
+                progressSection.classList.remove('d-none');
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Syncing keywords to backend...';
+                
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                        progressText.textContent = 'Keywords synced successfully!';
+                        
+                        setTimeout(() => {
+                            progressSection.classList.add('d-none');
+                            keywordModal.hide();
+                        }, 1500);
+                    }
+                }, 100);
+            }
+            
+            // Save keywords to localStorage
+            function saveKeywordsToStorage() {
+                localStorage.setItem('emotionKeywords', JSON.stringify(emotionKeywords));
+            }
+            
+            // Parse companies from input
+            function parseCompanies() {
+                const input = companyInput.value.trim();
+                if (!input) return [];
+                
+                return input.split(',')
+                    .map(company => company.trim())
+                    .filter(company => company.length > 0);
+            }
+            
+            // Update company tags display
+            function updateCompanyTags() {
+                companyTagsContainer.innerHTML = '';
+                companies.forEach(company => {
+                    const tag = document.createElement('span');
+                    tag.className = 'badge bg-primary company-tag';
+                    tag.innerHTML = `${company} <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-company="${company}"></button>`;
+                    companyTagsContainer.appendChild(tag);
+                });
+                
+                // Add event listeners to remove buttons
+                document.querySelectorAll('.company-tag .btn-close').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const companyToRemove = this.getAttribute('data-company');
+                        companies = companies.filter(c => c !== companyToRemove);
+                        companyInput.value = companies.join(', ');
+                        updateCompanyTags();
+                        updateQuickSummary();
+                    });
+                });
+            }
+
+            // Update quick summary
+            function updateQuickSummary() {
+                if (companies.length > 0) {
+                    quickSummary.style.display = 'block';
+                    summaryContent.textContent = `Ready to analyze ${companies.length} companies with ${analysisDepth.value} analysis depth. ${detectLanguages.checked ? 'Language detection enabled.' : ''} ${weightedAnalysis.checked ? 'Weighted scoring enabled.' : ''}`;
+                } else {
+                    quickSummary.style.display = 'none';
+                }
+            }
+
+            // Fetch and analyze emotions from backend
+            async function fetchAndAnalyzeEmotions() {
+                const response = await fetch('/analyze_emotions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        companies: companies,
+                        analysis_depth: analysisDepth.value,
+                        detect_languages: detectLanguages.checked,
+                        weighted_analysis: weightedAnalysis.checked
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                return data.analysis;
+            }
+
+            // Display analysis results with detailed rubrics and articles
+            function displayAnalysisResults(analysis) {
+                analysisCountBadge.textContent = `${analysis.total_articles} articles analyzed`;
+                exportBtn.disabled = false;
+                compareBtn.disabled = false;
+                
+                let html = `
+                    <!-- Overall Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stat-value">${analysis.total_articles}</div>
+                                <div class="stat-label">Articles Analyzed</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stat-value">${analysis.total_words.toLocaleString()}</div>
+                                <div class="stat-label">Total Words</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stat-value">${Object.keys(analysis.language_detection).length}</div>
+                                <div class="stat-label">Languages Detected</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stat-value">${analysis.sentiment_score.toFixed(2)}</div>
+                                <div class="stat-label">Sentiment Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emotion Distribution -->
+                    <div class="emotion-distribution">
+                        <h5 class="mb-4 text-white"><i class="bi bi-pie-chart me-2"></i>Emotion Distribution</h5>
+                        <div class="row">
+                `;
+
+                Object.entries(analysis.emotion_percentages || {}).forEach(([emotion, percentage]) => {
+                    const count = analysis.emotion_counts ? analysis.emotion_counts[emotion] : 0;
+                    const config = emotionConfig[emotion] || emotionConfig['neutral'];
+                    
+                    html += `
+                        <div class="col-md-4 col-6">
+                            <div class="emotion-card" data-emotion="${emotion}">
+                                <div class="emotion-icon">${config.emoji}</div>
+                                <div class="emotion-percentage">${percentage}%</div>
+                                <div class="emotion-count">${count} mentions</div>
+                                <div class="emotion-label">${config.label}</div>
+                                <div class="progress-container">
+                                    <div class="progress-bar-custom" style="background-color: ${config.color}; width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+
+                    <!-- Keyword Mentions Section -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-tags me-2"></i>Keyword Mentions</h5>
+                        <div class="word-cloud">
+                `;
+
+                // Show active mention keywords with their counts
+                Object.entries(emotionKeywords).forEach(([emotion, keywords]) => {
+                    keywords.forEach(keywordData => {
+                        if (keywordData.mentions > 0) {
+                            const config = emotionConfig[emotion];
+                            html += `<span class="word-tag medium-weight" title="${keywordData.mentions} mentions">${config.emoji} ${keywordData.keyword}</span>`;
+                        }
+                    });
+                });
+
+                html += `
+                        </div>
+                    </div>
+
+                    <!-- Emotion Rubrics Section -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-book me-2"></i>Emotion Classification Rubrics</h5>
+                        <div class="accordion rubrics-accordion" id="rubricsAccordion">
+                `;
+
+                // Generate rubrics section
+                Object.entries(analysis.emotion_rubrics || {}).forEach(([emotion, rubric], index) => {
+                    const config = emotionConfig[emotion];
+                    const count = analysis.classification_summary ? analysis.classification_summary[emotion] || 0 : 0;
+                    const confidence = analysis.confidence_scores ? analysis.confidence_scores[emotion] : null;
+                    
+                    html += `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button ${index !== 0 ? 'collapsed' : ''}" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#rubric-${emotion}">
+                                    <span class="me-2" style="font-size: 1.2rem;">${config?.emoji || '😐'}</span>
+                                    <strong class="text-capitalize me-2">${emotion}</strong>
+                                    <span class="badge bg-secondary me-2">${count} articles</span>
+                                    ${confidence ? `<span class="badge bg-info">${confidence.avg_confidence}% avg confidence</span>` : ''}
+                                </button>
+                            </h2>
+                            <div id="rubric-${emotion}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                                 data-bs-parent="#rubricsAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>Description:</strong> ${rubric.description}</p>
+                                    <p><strong>Scoring:</strong> ${rubric.score_range}</p>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Classification Criteria:</h6>
+                                            <ul class="list-unstyled">
+                                                ${rubric.criteria.map(criteria => `<li><i class="bi bi-check-circle text-success me-2"></i>${criteria}</li>`).join('')}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Example Headlines:</h6>
+                                            <ul class="list-unstyled text-muted">
+                                                ${rubric.examples.map(example => `<li><i class="bi bi-quote me-2"></i>"${example}"</li>`).join('')}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    ${confidence ? `
+                                        <div class="mt-3 p-2 bg-light rounded">
+                                            <small>
+                                                <strong>Confidence Range:</strong> 
+                                                ${confidence.min_confidence}% - ${confidence.max_confidence}% 
+                                                (Average: ${confidence.avg_confidence}%)
+                                            </small>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+
+                    <!-- Source Analysis -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-newspaper me-2"></i>Source Breakdown</h5>
+                        <div class="row">
+                `;
+
+                Object.entries(analysis.source_breakdown || {}).forEach(([source, data]) => {
+                    const dominantEmotion = Object.entries(data.emotions || {}).reduce((a, b) => a[1] > b[1] ? a : b, ['neutral', 0])[0];
+                    const sentimentClass = data.avg_sentiment > 0.1 ? 'text-success' : 
+                                         data.avg_sentiment < -0.1 ? 'text-danger' : 'text-secondary';
+                    
+                    html += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card source-breakdown-card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${source}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">${data.article_count || 0} articles</small><br>
+                                        <span class="badge bg-primary text-capitalize">${dominantEmotion}</span>
+                                        <span class="${sentimentClass}">${(data.avg_sentiment || 0).toFixed(2)} sentiment</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+
+                    <!-- Sentiment Gauge -->
+                    <div class="text-center mb-4">
+                        <h5><i class="bi bi-speedometer2 me-2"></i>Overall Sentiment</h5>
+                        <div class="sentiment-gauge">
+                            <div class="gauge-bg">
+                                <div class="gauge-needle" id="sentimentNeedle"></div>
+                                <div class="gauge-center"></div>
+                            </div>
+                        </div>
+                        <p class="text-muted">Score: ${analysis.sentiment_score.toFixed(2)} (Range: -1.0 to 1.0)</p>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="text-danger fw-bold">${analysis.sentiment_distribution?.negative || 0}</div>
+                                <small class="text-muted">Negative</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-secondary fw-bold">${analysis.sentiment_distribution?.neutral || 0}</div>
+                                <small class="text-muted">Neutral</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-success fw-bold">${analysis.sentiment_distribution?.positive || 0}</div>
+                                <small class="text-muted">Positive</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Word Cloud -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-cloud me-2"></i>Most Frequent Words</h5>
+                        <div class="word-cloud">
+                `;
+
+                (analysis.top_words || []).forEach(([word, frequency], index) => {
+                    let weightClass = 'low-weight';
+                    if (index < 5) weightClass = 'high-weight';
+                    else if (index < 10) weightClass = 'medium-weight';
+                    
+                    html += `<span class="word-tag ${weightClass}" title="${frequency} occurrences">${word}</span>`;
+                });
+
+                html += `
+                        </div>
+                    </div>
+
+                    <!-- Detailed Metrics -->
+                    <div class="analysis-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value text-success">${analysis.sentiment_distribution?.positive || 0}</div>
+                            <div class="metric-label">Positive Articles</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value text-danger">${analysis.sentiment_distribution?.negative || 0}</div>
+                            <div class="metric-label">Negative Articles</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value text-secondary">${analysis.sentiment_distribution?.neutral || 0}</div>
+                            <div class="metric-label">Neutral Articles</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value text-info">${analysis.complexity_metrics?.avg_readability || 0}</div>
+                            <div class="metric-label">Avg Readability</div>
+                        </div>
+                    </div>
+                `;
+
+                // Add articles section if enabled
+                if (showArticles.checked && analysis.analyzed_articles && analysis.analyzed_articles.length > 0) {
+                    html += `
+                        <!-- Analyzed Articles Section -->
+                        <div class="mt-5">
+                            <h5><i class="bi bi-list-check me-2"></i>Analyzed Articles <span class="badge bg-info">${analysis.analyzed_articles.length}</span></h5>
+                            <p class="text-muted mb-3">Articles sorted by classification confidence (highest first)</p>
+                            
+                            <!-- Article Filter Tabs -->
+                            <ul class="nav nav-tabs mb-3" id="articleTabs">
+                                <li class="nav-item">
+                                    <button class="nav-link active" data-emotion="all">All Articles</button>
+                                </li>
+                    `;
+
+                    // Create tabs for each emotion that has articles
+                    Object.entries(analysis.classification_summary || {}).forEach(([emotion, count]) => {
+                        if (count > 0) {
+                            const config = emotionConfig[emotion];
+                            html += `
+                                <li class="nav-item">
+                                    <button class="nav-link" data-emotion="${emotion}">
+                                        ${config?.emoji || '😐'} ${config?.label || emotion} (${count})
+                                    </button>
+                                </li>
+                            `;
+                        }
+                    });
+
+                    html += `
+                            </ul>
+
+                            <div class="row" id="articlesContainer">
+                    `;
+
+                    // Display analyzed articles
+                    analysis.analyzed_articles.forEach((article, index) => {
+                        const config = emotionConfig[article.dominant_emotion] || emotionConfig['neutral'];
+                        const confidenceClass = article.confidence_score > 70 ? 'success' : 
+                                              article.confidence_score > 40 ? 'warning' : 'danger';
+                        const sentimentClass = article.sentiment_polarity > 0.1 ? 'success' : 
+                                             article.sentiment_polarity < -0.1 ? 'danger' : 'secondary';
+                        
+                        html += `
+                            <div class="col-lg-6 mb-4 article-item" data-emotion="${article.dominant_emotion}">
+                                <div class="card h-100 article-card confidence-${confidenceClass.split(' ')[0]}">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2" style="font-size: 1.2rem;">${config.emoji}</span>
+                                            <span class="badge bg-${confidenceClass} text-capitalize">${article.dominant_emotion}</span>
+                                            <span class="badge bg-info ms-2">${article.confidence_score}% confidence</span>
+                                        </div>
+                                        <small class="text-muted">#${index + 1}</small>
+                                    </div>
+                                    
+                                    ${article.image ? `
+                                        <div class="article-image-container">
+                                            <img src="${article.image}" class="article-image" alt="Article image" onerror="this.style.display='none'">
+                                            <div class="article-source-badge">${article.source}</div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    <div class="card-body">
+                                        <h6 class="card-title">${article.title}</h6>
+                                        <p class="card-text text-muted small">${article.snippet}</p>
+                                        
+                                        <!-- Article Metrics -->
+                                        <div class="row text-center mb-3">
+                                            <div class="col-3">
+                                                <div class="small text-muted">Words</div>
+                                                <div class="fw-bold">${article.word_count}</div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="small text-muted">Sentiment</div>
+                                                <div class="fw-bold text-${sentimentClass}">${article.sentiment_polarity}</div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="small text-muted">Language</div>
+                                                <div class="fw-bold text-capitalize">${article.detected_language}</div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="small text-muted">Readability</div>
+                                                <div class="fw-bold">${article.readability_score}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Classification Details -->
+                                        <div class="accordion accordion-flush" id="details-${index}">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed py-2" type="button" 
+                                                            data-bs-toggle="collapse" data-bs-target="#collapse-${index}">
+                                                        <small>Classification Details</small>
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse-${index}" class="accordion-collapse collapse" 
+                                                     data-bs-parent="#details-${index}">
+                                                    <div class="accordion-body py-2">
+                                                        <div class="mb-2">
+                                                            <small class="fw-bold text-muted">Reasons:</small>
+                                                            <ul class="list-unstyled mb-2">
+                                                                ${(article.classification_reasons || []).map(reason => `<li class="small">• ${reason}</li>`).join('')}
+                                                            </ul>
+                                                        </div>
+                                                        
+                                                        <div class="mb-2">
+                                                            <small class="fw-bold text-muted">Emotion Breakdown:</small>
+                                                            <div class="row">
+                        `;
+
+                        // Show emotion breakdown for this article
+                        Object.entries(article.emotion_breakdown || {}).forEach(([emotion, data]) => {
+                            if (data.count > 0) {
+                                html += `
+                                    <div class="col-6 mb-1">
+                                        <small class="text-capitalize">${emotion}: ${data.count} (${data.weighted_score.toFixed(1)})</small>
+                                    </div>
+                                `;
+                            }
+                        });
+
+                        html += `
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        ${article.emotion_breakdown && article.emotion_breakdown[article.dominant_emotion]?.keywords_found?.length > 0 ? `
+                                                            <div>
+                                                                <small class="fw-bold text-muted">Key Terms Found:</small>
+                                                                <div class="mt-1">
+                                                                    ${article.emotion_breakdown[article.dominant_emotion].keywords_found.slice(0, 5).map(keyword => 
+                                                                        `<span class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">${keyword}</span>`
+                                                                    ).join('')}
+                                                                </div>
+                                                            </div>
+                                                        ` : ''}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge bg-secondary">${article.company}</span>
+                                                <small class="text-muted ms-2">${new Date(article.date).toLocaleDateString()}</small>
+                                            </div>
+                                            <a href="${article.link}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-arrow-up-right"></i> Read Article
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultsContainer.innerHTML = html;
+
+                // Display emotion keywords in the new UI matching Keyword Management Modal
+                displayEmotionKeywords(emotions);
+
+                // Add article filtering functionality if articles are shown
+                if (showArticles.checked) {
+                    setupArticleFiltering();
+                }
+
+                // Add event listeners to emotion cards
+                document.querySelectorAll('.emotion-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        openKeywordModal(emotion);
+                    });
+                });
+
+                // Animate sentiment gauge needle
+                setTimeout(() => {
+                    const needle = document.getElementById('sentimentNeedle');
+                    if (needle) {
+                        const angle = Math.max(-90, Math.min(90, analysis.sentiment_score * 90));
+                        needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+                    }
+                }, 500);
+            }
+
+            // Function to display emotion keywords in the new UI matching Keyword Management Modal
+            function displayEmotionKeywords(emotions) {
+                // Create keywords reference section
+                const keywordsSection = document.createElement('div');
+                keywordsSection.className = 'keywords-reference-section';
+                keywordsSection.innerHTML = `
+                    <div class="keywords-reference-header">
+                        <h5><i class="bi bi-tags me-2"></i>Emotion Keywords Reference</h5>
+                        <button class="btn btn-outline-primary btn-sm" id="manageAllKeywordsBtn">
+                            <i class="bi bi-gear me-1"></i> Manage All Keywords
+                        </button>
+                    </div>
+                    <div class="keywords-reference-grid" id="keywordsReferenceGrid">
+                        <!-- Emotion keyword panels will be populated here -->
+                    </div>
+                `;
+
+                // Insert after the emotion distribution section
+                const emotionDistribution = document.querySelector('.emotion-distribution');
+                if (emotionDistribution) {
+                    emotionDistribution.parentNode.insertBefore(keywordsSection, emotionDistribution.nextSibling);
+                } else {
+                    // Fallback: insert at the end of results container
+                    resultsContainer.appendChild(keywordsSection);
+                }
+
+                // Populate emotion keyword panels
+                const grid = document.getElementById('keywordsReferenceGrid');
+                
+                Object.entries(emotions).forEach(([emotion, data]) => {
+                    const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
+                    
+                    const keywordPanel = document.createElement('div');
+                    keywordPanel.className = 'keyword-emotion-panel';
+                    keywordPanel.innerHTML = `
+                        <div class="keyword-emotion-header">
+                            <div class="keyword-emotion-icon">${data.emoji}</div>
+                            <div class="keyword-emotion-info">
+                                <div class="keyword-emotion-label">${config.label}</div>
+                                <div class="keyword-emotion-count">${data.keywords.length} keywords</div>
+                            </div>
+                        </div>
+                        <div class="keyword-emotion-body">
+                            <div class="keyword-tags-container">
+                                ${data.keywords.slice(0, 20).map(keyword => 
+                                    `<span class="keyword-tag" title="${keyword}">${keyword}</span>`
+                                ).join('')}
+                                ${data.keywords.length > 20 ? 
+                                    `<span class="keyword-tag" style="background: #17a2b8; color: white;">+${data.keywords.length - 20} more</span>` : ''
+                                }
+                            </div>
+                        </div>
+                        <div class="keyword-emotion-footer">
+                            <div class="keyword-emotion-count">
+                                <small class="text-muted">${data.keywords.length} total keywords</small>
+                            </div>
+                            <div class="keyword-actions-inline">
+                                <button class="btn btn-view" data-emotion="${emotion}">
+                                    <i class="bi bi-eye me-1"></i> View All
+                                </button>
+                              
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(keywordPanel);
+                });
+
+                // Add event listeners for action buttons
+                document.querySelectorAll('.btn-view').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        showAllKeywordsModal(emotion, emotions[emotion]);
+                    });
+                });
+
+                document.querySelectorAll('.btn-manage').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const emotion = this.getAttribute('data-emotion');
+                        openKeywordModal(emotion);
+                    });
+                });
+
+                // Add event listener for "Manage All Keywords" button
+                    document.getElementById('manageAllKeywordsBtn').addEventListener('click', function() {
+                    // Open the Keyword Reference modal and initialize its contents
+                    renderEmotionTabs();
+                    renderKeywordReferenceList();
+                   keywordReferenceModal.show();
+                });
+            }
+
+            // Function to show all keywords in a modal
+            function showAllKeywordsModal(emotion, emotionData) {
+                const config = emotionConfig[emotion] || { emoji: '😐', color: '#6c757d', label: emotion.toUpperCase() };
+                
+                // Update modal title
+                document.getElementById('keywordsModalLabel').textContent = `${emotionData.emoji} ${config.label} Keywords (${emotionData.keywords.length})`;
+                
+                // Populate keywords
+                const keywordsContainer = document.getElementById('allKeywordsContainer');
+                keywordsContainer.innerHTML = emotionData.keywords.map(keyword => 
+                    `<span class="keyword-tag-large" data-keyword="${keyword.toLowerCase()}">${keyword}</span>`
+                ).join('');
+                
+                // Add info text
+                const infoText = document.querySelector('#keywordsModal .text-muted');
+                if (infoText) {
+                    infoText.innerHTML = `<i class="bi bi-info-circle me-1"></i>These keywords are used to detect ${emotion} emotion in article analysis`;
+                }
+                
+                // Update copy button
+                const copyBtn = document.getElementById('copyKeywordsBtn');
+                copyBtn.onclick = () => copyKeywords(emotion);
+                
+                // Show modal
+                keywordsModal.show();
+
+                // Add search functionality
+                const searchInput = document.getElementById('keywordSearch');
+                searchInput.value = '';
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const keywordTags = keywordsContainer.querySelectorAll('.keyword-tag-large');
+                    
+                    keywordTags.forEach(tag => {
+                        const keyword = tag.getAttribute('data-keyword');
+                        if (keyword.includes(searchTerm)) {
+                            tag.style.display = 'inline-block';
+                        } else {
+                            tag.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Focus search input
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 500);
+            }
+
+            // Function to copy keywords to clipboard
+            function copyKeywords(emotion) {
+                const emotionData = emotions[emotion];
+                const keywordsText = emotionData.keywords.join(', ');
+                
+                navigator.clipboard.writeText(keywordsText).then(() => {
+                    // Show success feedback
+                    const copyBtn = document.getElementById('copyKeywordsBtn');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="bi bi-check me-1"></i> Copied!';
+                    copyBtn.classList.remove('btn-primary');
+                    copyBtn.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('btn-success');
+                        copyBtn.classList.add('btn-primary');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy keywords: ', err);
+                    alert('Failed to copy keywords to clipboard');
+                });
+            }
+
+            // Setup article filtering by emotion
+            function setupArticleFiltering() {
+                const articleTabs = document.querySelectorAll('#articleTabs button');
+                const articleItems = document.querySelectorAll('.article-item');
+
+                articleTabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Update active tab
+                        articleTabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+
+                        const filterEmotion = this.getAttribute('data-emotion');
+
+                        // Filter articles
+                        articleItems.forEach(item => {
+                            if (filterEmotion === 'all' || item.getAttribute('data-emotion') === filterEmotion) {
+                                item.style.display = 'block';
+                                item.style.animation = 'fadeIn 0.3s ease';
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+            }
+
+            // Open keyword management modal
+            function openKeywordModal(emotion) {
+                selectedEmotion = emotion;
+                const config = emotionConfig[emotion];
+                
+                // Update modal title
+                document.getElementById('selectedEmotionLabel').textContent = config.label;
+                
+                // Setup emoticon selector
+                setupEmoticonSelector();
+                
+                // Render keyword list
+                renderKeywordList();
+                
+                // Show modal
+                keywordModal.show();
+            }
+
+            // Perform emotion analysis
+            async function performAnalysis() {
+                companies = parseCompanies();
+                if (companies.length === 0) {
+                    alert('Please enter at least one company name');
+                    return;
+                }
+
+                updateCompanyTags();
+                updateQuickSummary();
+
+                // Show progress
+                progressSection.classList.remove('d-none');
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Fetching articles for analysis...';
+                progressDetail.textContent = `Processing ${companies.length} companies`;
+
+                try {
+                    // Simulate progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 10;
+                        if (progress <= 90) {
+                            progressBar.style.width = `${progress}%`;
+                            if (progress === 30) {
+                                progressText.textContent = 'Analyzing emotional content...';
+                                progressDetail.textContent = 'Calculating emotion weights and language patterns';
+                            } else if (progress === 60) {
+                                progressText.textContent = 'Processing language detection...';
+                                progressDetail.textContent = 'Identifying language patterns and word frequencies';
+                            } else if (progress === 90) {
+                                progressText.textContent = 'Generating analysis results...';
+                                progressDetail.textContent = 'Compiling statistics and visualizations';
+                            }
+                        }
+                    }, 200);
+
+                    // Perform analysis
+                    analysisData = await fetchAndAnalyzeEmotions();
+
+                    clearInterval(progressInterval);
+
+                    // Complete progress bar
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Analysis completed!';
+                    progressDetail.textContent = `Analyzed ${analysisData.total_articles} articles with ${analysisData.total_words} total words`;
+
+                    // Display results
+                    displayAnalysisResults(analysisData);
+
+                    // Hide progress after delay
+                    setTimeout(() => {
+                        progressSection.classList.add('d-none');
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    progressSection.classList.add('d-none');
+                    resultsContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Error performing analysis: ${error.message}
+                        </div>
+                    `;
+                }
+            }
+
+            // Export functionality
+            function setupExportFunctionality() {
+                exportBtn.addEventListener('click', () => {
+                    if (analysisData) {
+                        exportModal.show();
+                    }
+                });
+
+                document.getElementById('confirmExport').addEventListener('click', async () => {
+                    const format = document.getElementById('exportFormat').value;
+                    const includeImages = document.getElementById('includeImages').checked;
+
+                    try {
+                        const response = await fetch('/export_analysis', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                analysis_data: analysisData,
+                                format: format,
+                                include_images: includeImages
+                            })
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            if (format === 'csv') {
+                                downloadCSV(result.csv_content, result.filename);
+                            } else {
+                                downloadJSON(result, `analysis_${format}_${new Date().toISOString().split('T')[0]}.json`);
+                            }
+                            exportModal.hide();
+                        }
+                    } catch (error) {
+                        alert('Export failed: ' + error.message);
+                    }
+                });
+            }
+
+            // Download helpers
+            function downloadCSV(content, filename) {
+                const blob = new Blob([content], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            function downloadJSON(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            // Event listeners
+            analyzeButton.addEventListener('click', performAnalysis);
+
+            companyInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performAnalysis();
+                }
+            });
+
+            companyInput.addEventListener('input', function() {
+                companies = parseCompanies();
+                updateCompanyTags();
+                updateQuickSummary();
+            });
+
+            analysisDepth.addEventListener('change', updateQuickSummary);
+            detectLanguages.addEventListener('change', updateQuickSummary);
+            weightedAnalysis.addEventListener('change', updateQuickSummary);
+
+            // Guide button event listener
+            guideBtn.addEventListener('click', function() {
+                guideModal.show();
+            });
+
+            // Keyword management event listeners
+            document.getElementById('addNewKeywordBtn').addEventListener('click', addNewKeyword);
+            document.getElementById('resetKeywordsBtn').addEventListener('click', resetKeywords);
+            document.getElementById('syncKeywordsBtn').addEventListener('click', syncKeywordsToBackend);
+            document.getElementById('saveKeywordBtn').addEventListener('click', saveKeyword);
+
+            // Setup export functionality
+            setupExportFunctionality();
+
+            // Initialize the dashboard
+            initializeDashboard();
+        });
+    </script>
+{% endblock %}

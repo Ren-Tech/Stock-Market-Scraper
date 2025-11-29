@@ -2080,457 +2080,34 @@ def get_emotion_rubrics():
     }
 
 def get_emotion_keywords_with_scores():
-    """Retrieve comprehensive emotion keywords with associated scoring values for analysis"""
+    """Retrieve default emotion keywords with associated scoring values for analysis"""
     return {
         'happy': {
             'keywords': [
-                # General Happy Words with weights
-                {'keyword': 'success', 'score': 1}, {'keyword': 'profit', 'score': 1}, {'keyword': 'growth', 'score': 1},
-                {'keyword': 'achievement', 'score': 1}, {'keyword': 'surge', 'score': 1}, {'keyword': 'soar', 'score': 1},
-                {'keyword': 'breakthrough', 'score': 1}, {'keyword': 'milestone', 'score': 1}, {'keyword': 'celebration', 'score': 1},
-                {'keyword': 'victory', 'score': 1}, {'keyword': 'triumph', 'score': 1}, {'keyword': 'boom', 'score': 1},
-                {'keyword': 'record high', 'score': 1}, {'keyword': 'excellent results', 'score': 1}, {'keyword': 'positive', 'score': 1},
-                {'keyword': 'expansion', 'score': 1}, {'keyword': 'thriving', 'score': 1}, {'keyword': 'increase', 'score': 1},
-                {'keyword': 'increased', 'score': 1}, {'keyword': 'growing', 'score': 1}, {'keyword': 'growing revenue', 'score': 1},
-                {'keyword': 'upside', 'score': 1}, {'keyword': 'high profit margin', 'score': 1}, {'keyword': 'bullish', 'score': 1},
-                {'keyword': 'strong bottom-line', 'score': 1}, {'keyword': 'increased net income', 'score': 1},
-                {'keyword': 'rising return on equity', 'score': 1}, {'keyword': 'return on assets', 'score': 1},
-                {'keyword': 'healthy cash balance', 'score': 1}, {'keyword': 'low debt-to-equity', 'score': 1},
-                {'keyword': 'financial stability', 'score': 1}, {'keyword': 'strong profitability', 'score': 1},
-                {'keyword': 'efficient use of assets', 'score': 1}, {'keyword': 'high market share', 'score': 1},
-                {'keyword': 'increase share value', 'score': 1}, {'keyword': 'increase stock value', 'score': 1},
-                {'keyword': 'market leader', 'score': 1}, {'keyword': 'earnings growth', 'score': 1},
-                {'keyword': 'strong growth', 'score': 1}, {'keyword': 'gains', 'score': 1}, {'keyword': 'confidence', 'score': 1},
-                {'keyword': 'successful', 'score': 1}, {'keyword': 'doing well', 'score': 1}, {'keyword': 'flourishing', 'score': 1},
-                {'keyword': 'prospering', 'score': 1}, {'keyword': 'succeeding', 'score': 1}, {'keyword': 'booming', 'score': 1},
-                {'keyword': 'vigorous', 'score': 1}, {'keyword': 'rallying', 'score': 1}, {'keyword': 'making headway', 'score': 1},
-                {'keyword': 'making progress', 'score': 1}, {'keyword': 'profitable', 'score': 1}, {'keyword': 'increasing', 'score': 1},
-                {'keyword': 'developing', 'score': 1}, {'keyword': 'advancing', 'score': 1}, {'keyword': 'rising', 'score': 1},
-                {'keyword': 'high reward', 'score': 1}, {'keyword': 'increase in value', 'score': 1}, {'keyword': 'positive return', 'score': 1},
-                {'keyword': 'projected price increase', 'score': 1}, {'keyword': 'high investment motivation', 'score': 1},
-                {'keyword': 'high outcomes', 'score': 1}, {'keyword': 'positive outcomes', 'score': 1}, {'keyword': 'on the rise', 'score': 1},
-                {'keyword': 'on the increase', 'score': 1}, {'keyword': 'great', 'score': 1}, {'keyword': 'high potential', 'score': 1},
-                {'keyword': 'growth potential', 'score': 1}, {'keyword': 'good quarter', 'score': 1}, {'keyword': 'positive quarter', 'score': 1},
-                {'keyword': 'good report', 'score': 1}, {'keyword': 'brilliant', 'score': 1}, {'keyword': 'excellent', 'score': 1},
-                {'keyword': 'amazing', 'score': 1}, {'keyword': 'buoyant', 'score': 1}, {'keyword': 'new products', 'score': 1},
-                {'keyword': 'leading', 'score': 1}, {'keyword': 'leading ahead', 'score': 1}, {'keyword': 'happy', 'score': 1},
-                {'keyword': 'joyful', 'score': 1}, {'keyword': 'courageous', 'score': 1}, {'keyword': 'confident', 'score': 1},
-                {'keyword': 'abundant', 'score': 1}, {'keyword': 'absolutely', 'score': 1}, {'keyword': 'accessible', 'score': 1},
-                {'keyword': 'accommodative', 'score': 1}, {'keyword': 'acclaimed', 'score': 1}, {'keyword': 'high achievement', 'score': 1},
-                {'keyword': 'admire', 'score': 1}, {'keyword': 'adore', 'score': 1}, {'keyword': 'adulation', 'score': 1},
-                {'keyword': 'approve', 'score': 1}, {'keyword': 'awesome', 'score': 1}, {'keyword': 'attractive', 'score': 1},
-                {'keyword': 'assure', 'score': 1}, {'keyword': 'beaming', 'score': 1}, {'keyword': 'radiating', 'score': 1},
-                {'keyword': 'impressive', 'score': 1}, {'keyword': 'beloved', 'score': 1}, {'keyword': 'best', 'score': 1},
-                {'keyword': 'smart', 'score': 1}, {'keyword': 'clever', 'score': 1}, {'keyword': 'intelligent', 'score': 1},
-                {'keyword': 'breathtaking', 'score': 1}, {'keyword': 'centered', 'score': 1}, {'keyword': 'goal-oriented', 'score': 1},
-                {'keyword': 'champion', 'score': 1}, {'keyword': 'win', 'score': 1}, {'keyword': 'wins', 'score': 1},
-                {'keyword': 'winner', 'score': 1}, {'keyword': 'winners', 'score': 1}, {'keyword': 'ability to attract', 'score': 1},
-                {'keyword': 'fascinating', 'score': 1}, {'keyword': 'charming', 'score': 1}, {'keyword': 'cheerful', 'score': 1},
-                {'keyword': 'vigor', 'score': 1}, {'keyword': 'constant', 'score': 1}, {'keyword': 'steadfast', 'score': 1},
-                {'keyword': 'courage', 'score': 1}, {'keyword': 'definite', 'score': 1}, {'keyword': 'delectable', 'score': 1},
-                {'keyword': 'delightful', 'score': 1}, {'keyword': 'dependable', 'score': 1}, {'keyword': 'dignified', 'score': 1},
-                {'keyword': 'respectable', 'score': 1}, {'keyword': 'divine', 'score': 1}, {'keyword': 'heavenly', 'score': 1},
-                {'keyword': 'dynamite', 'score': 1}, {'keyword': 'outstanding', 'score': 1}, {'keyword': 'ecstatic', 'score': 1},
-                {'keyword': 'pleasurable', 'score': 1}, {'keyword': 'electrifying', 'score': 1}, {'keyword': 'employable', 'score': 1},
-                {'keyword': 'empowered', 'score': 1}, {'keyword': 'endearing', 'score': 1}, {'keyword': 'enjoyable', 'score': 1},
-                {'keyword': 'enriching', 'score': 1}, {'keyword': 'enthusiastic', 'score': 1}, {'keyword': 'keen', 'score': 1},
-                {'keyword': 'eager', 'score': 1}, {'keyword': 'enticing', 'score': 1}, {'keyword': 'alluring', 'score': 1},
-                {'keyword': 'exceptional', 'score': 1}, {'keyword': 'especial', 'score': 1}, {'keyword': 'finest', 'score': 1},
-                {'keyword': 'highest quality', 'score': 1}, {'keyword': 'exciting', 'score': 1}, {'keyword': 'stimulating', 'score': 1},
-                {'keyword': 'exhilarating', 'score': 1}, {'keyword': 'exponential', 'score': 1}, {'keyword': 'exultant', 'score': 1},
-                {'keyword': 'rejoicing', 'score': 1}, {'keyword': 'fabulous', 'score': 1}, {'keyword': 'fab', 'score': 1},
-                {'keyword': 'pleasing', 'score': 1}, {'keyword': 'extraordinary', 'score': 1}, {'keyword': 'extraordinary good', 'score': 1},
-                {'keyword': 'favorite', 'score': 1}, {'keyword': 'favourite', 'score': 1}, {'keyword': 'fearless', 'score': 1},
-                {'keyword': 'bold', 'score': 1}, {'keyword': 'fetching', 'score': 1}, {'keyword': 'gallant', 'score': 1},
-                {'keyword': 'heroic', 'score': 1}, {'keyword': 'honorable', 'score': 1}, {'keyword': 'genuine', 'score': 1},
-                {'keyword': 'authentic', 'score': 1}, {'keyword': 'gleaming', 'score': 1}, {'keyword': 'impressively', 'score': 1},
-                {'keyword': 'bright', 'score': 1}, {'keyword': 'bright future', 'score': 1}, {'keyword': 'positive future', 'score': 1},
-                {'keyword': 'good future', 'score': 1}, {'keyword': 'greatest', 'score': 1}, {'keyword': 'highest', 'score': 1},
-                {'keyword': 'gumptious', 'score': 1}, {'keyword': 'good judgment', 'score': 1}, {'keyword': 'good perception', 'score': 1},
-                {'keyword': 'ideal', 'score': 1}, {'keyword': 'imaginative', 'score': 1}, {'keyword': 'impeccable', 'score': 1},
-                {'keyword': 'remarkable', 'score': 1}, {'keyword': 'incredible', 'score': 1}, {'keyword': 'good run', 'score': 1},
-                {'keyword': 'innovative', 'score': 1}, {'keyword': 'insightful', 'score': 1}, {'keyword': 'inspiring', 'score': 1},
-                {'keyword': 'instinctive', 'score': 1}, {'keyword': 'intellectual', 'score': 1}, {'keyword': 'irresistible', 'score': 1},
-                {'keyword': 'jolly', 'score': 1}, {'keyword': 'jovial', 'score': 1}, {'keyword': 'joysome', 'score': 1},
-                {'keyword': 'judicious', 'score': 1}, {'keyword': 'sound judgment', 'score': 1}, {'keyword': 'just', 'score': 1},
-                {'keyword': 'righteous', 'score': 1}, {'keyword': 'strikingly impressive', 'score': 1}, {'keyword': 'knowledgeable', 'score': 1},
-                {'keyword': 'lambent', 'score': 1}, {'keyword': 'laudable', 'score': 1}, {'keyword': 'praiseworthy', 'score': 1},
-                {'keyword': 'legendary', 'score': 1}, {'keyword': 'extremely popular', 'score': 1}, {'keyword': 'rational', 'score': 1},
-                {'keyword': 'likable', 'score': 1}, {'keyword': 'lively', 'score': 1}, {'keyword': 'luminous', 'score': 1},
-                {'keyword': 'magical', 'score': 1}, {'keyword': 'enchanting', 'score': 1}, {'keyword': 'magnetic', 'score': 1},
-                {'keyword': 'magnificent', 'score': 1}, {'keyword': 'majestic', 'score': 1}, {'keyword': 'marvelous', 'score': 1},
-                {'keyword': 'masterful', 'score': 1}, {'keyword': 'attentive', 'score': 1}, {'keyword': 'miraculous', 'score': 1},
-                {'keyword': 'mindful', 'score': 1}, {'keyword': 'motivated', 'score': 1}, {'keyword': 'arousing', 'score': 1},
-                {'keyword': 'moving up', 'score': 1}, {'keyword': 'numinous', 'score': 1}, {'keyword': 'awe-inspiring', 'score': 1},
-                {'keyword': 'on-target', 'score': 1}, {'keyword': 'accurate', 'score': 1}, {'keyword': 'optimistic', 'score': 1},
-                {'keyword': 'systematic', 'score': 1}, {'keyword': 'orderly', 'score': 1}, {'keyword': 'organized', 'score': 1},
-                {'keyword': 'out-of-this-world', 'score': 1}, {'keyword': 'overjoyed', 'score': 1}, {'keyword': 'prominent', 'score': 1},
-                {'keyword': 'paramount', 'score': 1}, {'keyword': 'supreme', 'score': 1}, {'keyword': 'powerful', 'score': 1},
-                {'keyword': 'splendid', 'score': 1}, {'keyword': 'perceptive', 'score': 1}, {'keyword': 'persistent', 'score': 1},
-                {'keyword': 'persuasive', 'score': 1}, {'keyword': 'polished', 'score': 1}, {'keyword': 'prized', 'score': 1},
-                {'keyword': 'cherished', 'score': 1}, {'keyword': 'convincing', 'score': 1}, {'keyword': 'irreplaceable', 'score': 1},
-                {'keyword': 'phenomenal', 'score': 1}, {'keyword': 'generous', 'score': 1}, {'keyword': 'generously', 'score': 1},
-                {'keyword': 'piquant', 'score': 1}, {'keyword': 'proactive', 'score': 1}, {'keyword': 'advance', 'score': 1},
-                {'keyword': 'advanced', 'score': 1}, {'keyword': 'promising', 'score': 1}, {'keyword': 'proud', 'score': 1},
-                {'keyword': 'positive achievement', 'score': 1}, {'keyword': 'relishing', 'score': 1}, {'keyword': 'punctual', 'score': 1},
-                {'keyword': 'prompt', 'score': 1}, {'keyword': 'radiant', 'score': 1}, {'keyword': 'emanating', 'score': 1},
-                {'keyword': 'rapturous', 'score': 1}, {'keyword': 'razor-sharp', 'score': 1}, {'keyword': 'extremely sharp', 'score': 1},
-                {'keyword': 'quick-witted', 'score': 1}, {'keyword': 'very clever', 'score': 1}, {'keyword': 'very successful', 'score': 1},
-                {'keyword': 'reassuring', 'score': 1}, {'keyword': 'recherche', 'score': 1}, {'keyword': 'exquisite', 'score': 1},
-                {'keyword': 'highly recommend', 'score': 1}, {'keyword': 'highly recommended', 'score': 1}, {'keyword': 'worthy', 'score': 1},
-                {'keyword': 'worthy of praise', 'score': 1}, {'keyword': 'praise', 'score': 1}, {'keyword': 'refulgent', 'score': 1},
-                {'keyword': 'reliable', 'score': 1}, {'keyword': 'trustworthy', 'score': 1}, {'keyword': 'remarkably', 'score': 1},
-                {'keyword': 'resilient', 'score': 1}, {'keyword': 'resourceful', 'score': 1}, {'keyword': 'high esteem', 'score': 1},
-                {'keyword': 'revolutionary', 'score': 1}, {'keyword': 'surprising', 'score': 1}, {'keyword': 'surprisingly', 'score': 1},
-                {'keyword': 'sagacious', 'score': 1}, {'keyword': 'acutely wise', 'score': 1}, {'keyword': 'savvy', 'score': 1},
-                {'keyword': 'well-informed', 'score': 1}, {'keyword': 'shrewd', 'score': 1}, {'keyword': 'poise', 'score': 1},
-                {'keyword': 'sensational', 'score': 1}, {'keyword': 'sensationally', 'score': 1}, {'keyword': 'exceptionally good', 'score': 1},
-                {'keyword': 'exceptionally positive', 'score': 1}, {'keyword': 'sincere', 'score': 1}, {'keyword': 'energetic', 'score': 1},
-                {'keyword': 'spellbinding', 'score': 1}, {'keyword': 'spunky', 'score': 1}, {'keyword': 'spirited', 'score': 1},
-                {'keyword': 'stellar', 'score': 1}, {'keyword': 'teeming', 'score': 1}, {'keyword': 'productive', 'score': 1},
-                {'keyword': 'very profitable', 'score': 1}, {'keyword': 'trailblazing', 'score': 1}, {'keyword': 'transcendental', 'score': 1},
-                {'keyword': 'tubular', 'score': 1}, {'keyword': 'upbeat', 'score': 1}, {'keyword': 'uplifting', 'score': 1},
-                {'keyword': 'happiness', 'score': 1}, {'keyword': 'upstanding', 'score': 1}, {'keyword': 'valiant', 'score': 1},
-                {'keyword': 'brave', 'score': 1}, {'keyword': 'vibrant', 'score': 1}, {'keyword': 'victorious', 'score': 1},
-                {'keyword': 'visionary', 'score': 1}, {'keyword': 'vivacious', 'score': 1}, {'keyword': 'wise', 'score': 1},
-                {'keyword': 'skilled', 'score': 1}, {'keyword': 'tenacious', 'score': 1}, {'keyword': 'beneficial', 'score': 1},
-                {'keyword': 'efficient', 'score': 1}, {'keyword': 'optimistic', 'score': 1},
-                
-                # Finance Happy Sentences with weights
-                {'keyword': 'hikes sale', 'score': 3}, {'keyword': 'positive earning forecast', 'score': 5},
-                {'keyword': 'attracts investors', 'score': 5}, {'keyword': 'beat expectations', 'score': 5},
-                {'keyword': 'raised its full-year forecast', 'score': 5}, {'keyword': 'raised its quarter forecast', 'score': 5},
-                {'keyword': 'increased incomes', 'score': 5}, {'keyword': 'raised its first quarter forecast', 'score': 5},
-                {'keyword': 'raised its 1st quarter forecast', 'score': 5}, {'keyword': 'raised its second quarter forecast', 'score': 5},
-                {'keyword': 'raised its 2nd quarter forecast', 'score': 5}, {'keyword': 'raised its third quarter forecast', 'score': 5},
-                {'keyword': 'raised its 3rd quarter forecast', 'score': 5}, {'keyword': 'raised its fourth quarter forecast', 'score': 5},
-                {'keyword': 'raised its 4th quarter forecast', 'score': 5}, {'keyword': 'increase demands', 'score': 5},
-                {'keyword': 'increased demands', 'score': 5}, {'keyword': 'raised its sales', 'score': 5},
-                {'keyword': 'raised its earnings outlook', 'score': 5}, {'keyword': 'full-year net sales increase', 'score': 5},
-                {'keyword': 'full-year net sales climb', 'score': 5}, {'keyword': 'adjusted earnings', 'score': 3},
-                {'keyword': 'increase demands adjusted earnings', 'score': 5}, {'keyword': 'has gained more sales', 'score': 5},
-                {'keyword': 'has gained more customers', 'score': 5}, {'keyword': 'sales increased', 'score': 5},
-                {'keyword': 'high demands for its products', 'score': 5}, {'keyword': 'high demands for its service', 'score': 5},
-                {'keyword': 'high demands for its services', 'score': 5}, {'keyword': 'providing value', 'score': 5},
-                {'keyword': 'starting to rebound', 'score': 2}, {'keyword': 'positive fiscal first quarter', 'score': 5},
-                {'keyword': 'increase fiscal first quarter', 'score': 5}, {'keyword': 'hikes fiscal first quarter', 'score': 5},
-                {'keyword': 'positive fiscal 1st quarter', 'score': 5}, {'keyword': 'increase fiscal 1st quarter', 'score': 5},
-                {'keyword': 'hikes fiscal 1st quarter', 'score': 5}, {'keyword': 'positive fiscal second quarter', 'score': 5},
-                {'keyword': 'increase fiscal second quarter', 'score': 5}, {'keyword': 'hikes fiscal second quarter', 'score': 5},
-                {'keyword': 'positive fiscal 2nd quarter', 'score': 5}, {'keyword': 'increase fiscal 2nd quarter', 'score': 5},
-                {'keyword': 'hikes fiscal 2nd quarter', 'score': 5}, {'keyword': 'positive fiscal third quarter', 'score': 5},
-                {'keyword': 'increase fiscal third quarter', 'score': 5}, {'keyword': 'hikes fiscal third quarter', 'score': 5},
-                {'keyword': 'positive fiscal fourth quarter', 'score': 5}, {'keyword': 'increase fiscal fourth quarter', 'score': 5},
-                {'keyword': 'hikes fiscal fourth quarter', 'score': 5}, {'keyword': 'positive fiscal 4th quarter', 'score': 5},
-                {'keyword': 'increase fiscal 4th quarter', 'score': 5}, {'keyword': 'hikes fiscal 4th quarter', 'score': 5},
-                {'keyword': 'positive half-year report', 'score': 5}, {'keyword': 'increase half-year report', 'score': 5},
-                {'keyword': 'increased half-year report', 'score': 5}, {'keyword': 'hikes half-year report', 'score': 5},
-                {'keyword': 'positive half-yearly report', 'score': 5}, {'keyword': 'increase half-yearly report', 'score': 5},
-                {'keyword': 'increased half-yearly report', 'score': 5}, {'keyword': 'hikes half-yearly report', 'score': 5},
-                {'keyword': 'positive half-yearly financial report', 'score': 5}, {'keyword': 'increase half-yearly financial report', 'score': 5},
-                {'keyword': 'increased half-yearly financial report', 'score': 5}, {'keyword': 'hikes half-yearly financial report', 'score': 5},
-                {'keyword': 'forward-looking', 'score': 5}, {'keyword': 'forward looking', 'score': 5},
-                {'keyword': 'significant increase', 'score': 3}, {'keyword': 'significant increase in sales', 'score': 5},
-                {'keyword': 'positive long-term strategy', 'score': 5}, {'keyword': 'positive long term strategy', 'score': 5},
-                {'keyword': 'new products launches', 'score': 5}, {'keyword': 'new products launch', 'score': 5},
-                {'keyword': 'major acquisitions', 'score': 5}, {'keyword': 'reversal of impairments', 'score': 5},
-                {'keyword': 'positive business transformation', 'score': 5}, {'keyword': 'positive business restructuring', 'score': 5},
-                {'keyword': 'positive macroeconomics', 'score': 5}, {'keyword': 'positive geopolitical environment', 'score': 5},
-                {'keyword': 'high economic growth', 'score': 5}, {'keyword': 'good supply chains', 'score': 5},
-                {'keyword': 'positive supply chains', 'score': 5}, {'keyword': 'low interest rates', 'score': 5},
-                {'keyword': 'low inflation', 'score': 5}, {'keyword': 'Financial KPIs', 'score': 2},
-                {'keyword': 'positive Return on capital employed', 'score': 5}, {'keyword': 'increase Profit before tax', 'score': 5},
-                {'keyword': 'increase gross margin', 'score': 5}, {'keyword': 'increase percentage of revenue for new products', 'score': 5},
-                {'keyword': 'increase basic earnings per share', 'score': 5}, {'keyword': 'increase diluted earnings per share', 'score': 5},
-                {'keyword': 'increase investment in core products', 'score': 5}, {'keyword': 'increase market share', 'score': 5},
-                {'keyword': 'positive financial statement', 'score': 5}, {'keyword': 'positive financial statements', 'score': 5},
-                {'keyword': 'strong financial position', 'score': 5}, {'keyword': 'increase financial position', 'score': 5},
-                {'keyword': 'strong cash flow', 'score': 5}, {'keyword': 'strong cash-flow', 'score': 5},
-                {'keyword': 'increase cash flow', 'score': 5}, {'keyword': 'increase cash-flow', 'score': 5},
-                {'keyword': 'positive cash-flow', 'score': 5}, {'keyword': 'low competitor risk', 'score': 5},
-                {'keyword': 'good commercial relationship', 'score': 5}, {'keyword': 'strong commercial relationship', 'score': 5},
-                {'keyword': 'positive commercial relationship', 'score': 5}, {'keyword': 'increase productions', 'score': 4},
-                {'keyword': 'increased productions', 'score': 4}, {'keyword': 'increase manufacturing', 'score': 4},
-                {'keyword': 'increased manufacturing', 'score': 4}, {'keyword': 'good future outlooks', 'score': 5},
-                {'keyword': 'positive future outlooks', 'score': 5}, {'keyword': 'good future sales', 'score': 5},
-                {'keyword': 'strong future sales', 'score': 5}, {'keyword': 'positive future sales', 'score': 5},
-                {'keyword': 'good expected future margins', 'score': 5}, {'keyword': 'positive expected future margins', 'score': 5},
-                {'keyword': 'strong expected future margins', 'score': 5}, {'keyword': 'good revenue', 'score': 5},
-                {'keyword': 'increase revenue', 'score': 5}, {'keyword': 'strong revenue', 'score': 5},
-                {'keyword': 'low cost of sales', 'score': 5}, {'keyword': 'decrease cost of sales', 'score': 5},
-                {'keyword': 'low cost-of-sales', 'score': 5}, {'keyword': 'decrease cost-of-sales', 'score': 5},
-                {'keyword': 'depreciating cost of sales', 'score': 5}, {'keyword': 'depreciating cost-of-sales', 'score': 5},
-                {'keyword': 'good continuing operations', 'score': 5}, {'keyword': 'increase gross profit', 'score': 5},
-                {'keyword': 'improve gross profit', 'score': 4}, {'keyword': 'low distribution cost', 'score': 5},
-                {'keyword': 'low administrative cost', 'score': 5}, {'keyword': 'low inpairment losses', 'score': 5},
-                {'keyword': 'low financial liabilities', 'score': 5}, {'keyword': 'comprehensive income', 'score': 5},
-                {'keyword': 'increase income for the period', 'score': 5}, {'keyword': 'increase profit for the period', 'score': 5},
-                {'keyword': 'increase dividends', 'score': 5}, {'keyword': 'good investing activities', 'score': 5},
-                {'keyword': 'positive investing activities', 'score': 5}, {'keyword': 'low interest paid', 'score': 3},
-                {'keyword': 'decrease in transaction cost', 'score': 5}, {'keyword': 'low transaction cost', 'score': 5},
-                {'keyword': 'low loans and borrowing', 'score': 5}, {'keyword': 'decrease transaction cost', 'score': 5},
-                {'keyword': 'decrease loans and borrowing', 'score': 5}, {'keyword': 'low operating expenses', 'score': 5},
-                {'keyword': 'decrease operating expenses', 'score': 5}, {'keyword': 'cut operating cost', 'score': 5},
-                {'keyword': 'reduce operating cost', 'score': 5}, {'keyword': 'improve operating cost', 'score': 5},
-                {'keyword': 'increase pre-tax profit', 'score': 5}, {'keyword': 'beat wallstreet expectations', 'score': 5},
-                {'keyword': 'assuaging concerns', 'score': 3}, {'keyword': 'surpassed wall street\'s expectation', 'score': 5},
-                {'keyword': 'beating expectations', 'score': 5}, {'keyword': 'increase in share value', 'score': 5},
-                {'keyword': 'increase in stock value', 'score': 5}, {'keyword': 'increase in company valuation', 'score': 5},
-                {'keyword': 'exceeds expectations', 'score': 5}, {'keyword': 'make the grade', 'score': 5},
-                {'keyword': 'turn out well', 'score': 5}, {'keyword': 'be successful', 'score': 5}, {'keyword': 'pan out', 'score': 3},
-                {'keyword': 'be effective', 'score': 5}, {'keyword': 'get results', 'score': 4}, {'keyword': 'successful results', 'score': 5},
-                {'keyword': 'successful result', 'score': 5}, {'keyword': 'go as planned', 'score': 4}, {'keyword': 'pay off', 'score': 4},
-                {'keyword': 'turn out as planned', 'score': 5}, {'keyword': 'meet with success', 'score': 5},
-                {'keyword': 'yield results', 'score': 5}, {'keyword': 'have the desired results', 'score': 5},
-                {'keyword': 'be a success', 'score': 5}, {'keyword': 'produce desirable results', 'score': 5},
-                {'keyword': 'be impressive', 'score': 5}, {'keyword': 'deliver the goods', 'score': 5},
-                {'keyword': 'go like clockwork', 'score': 5}, {'keyword': 'produce the desired result', 'score': 5},
-                {'keyword': 'produced the desired result', 'score': 5}, {'keyword': 'produce the desired results', 'score': 5},
-                {'keyword': 'produced the desired results', 'score': 5}, {'keyword': 'be efficacious', 'score': 4},
-                {'keyword': 'go down well', 'score': 5}, {'keyword': 'get an enthusiastic reception', 'score': 5},
-                {'keyword': 'received well', 'score': 5}, {'keyword': 'go off well', 'score': 5}, {'keyword': 'prove a success', 'score': 4},
-                {'keyword': 'prove popular', 'score': 5}, {'keyword': 'come into force', 'score': 3}, {'keyword': 'had a positive impact', 'score': 5},
-                {'keyword': 'have a positive impact', 'score': 5}, {'keyword': 'become operative', 'score': 3},
-                {'keyword': 'take hold', 'score': 4}, {'keyword': 'work like a charm', 'score': 4}, {'keyword': 'go smoothly', 'score': 4},
-                {'keyword': 'work wonders', 'score': 4}, {'keyword': 'work well', 'score': 4}, {'keyword': 'successful partnership', 'score': 5},
-                {'keyword': 'come up with the goods', 'score': 4}, {'keyword': 'make good', 'score': 4}, {'keyword': 'win out', 'score': 4},
-                {'keyword': 'dominate the market', 'score': 5}, {'keyword': 'dominate the industry', 'score': 5},
-                {'keyword': 'market leader', 'score': 5}, {'keyword': 'win hands downs', 'score': 5},
-                {'keyword': 'producing the intended results', 'score': 5}, {'keyword': 'having the desired results', 'score': 5}
+                {'keyword': 'success', 'score': 1},
+                {'keyword': 'profit', 'score': 1},
+                {'keyword': 'growth', 'score': 1},
+                {'keyword': 'achievement', 'score': 1}
             ],
             'emoji': '😊'
         },
-        'sad': {
-            'keywords': [
-                # General Sad Words with weights
-                {'keyword': 'loss', 'score': 1}, {'keyword': 'death', 'score': 1}, {'keyword': 'tragedy', 'score': 1},
-                {'keyword': 'sad', 'score': 1}, {'keyword': 'unfortunate', 'score': 1}, {'keyword': 'decline', 'score': 1},
-                {'keyword': 'drop', 'score': 1}, {'keyword': 'fall', 'score': 1}, {'keyword': 'decrease', 'score': 1},
-                {'keyword': 'layoffs', 'score': 1}, {'keyword': 'fired', 'score': 1}, {'keyword': 'closed', 'score': 1},
-                {'keyword': 'shutdown', 'score': 1}, {'keyword': 'bankrupt', 'score': 1}, {'keyword': 'poor', 'score': 1},
-                {'keyword': 'awful', 'score': 1}, {'keyword': 'terrible', 'score': 1}, {'keyword': 'inferior', 'score': 1},
-                {'keyword': 'harmful', 'score': 1}, {'keyword': 'unpleasant', 'score': 1}, {'keyword': 'lousy', 'score': 1},
-                {'keyword': 'shoddy', 'score': 1}, {'keyword': 'cheap', 'score': 1}, {'keyword': 'wretched', 'score': 1},
-                {'keyword': 'horrible', 'score': 1}, {'keyword': 'dreadful', 'score': 1}, {'keyword': 'abysmal', 'score': 1},
-                {'keyword': 'serious decline', 'score': 1}, {'keyword': 'defective', 'score': 1}, {'keyword': 'faulty', 'score': 1},
-                {'keyword': 'wrong', 'score': 1}, {'keyword': 'immoral', 'score': 1}, {'keyword': 'atrocious', 'score': 1},
-                {'keyword': 'mischievous', 'score': 1}, {'keyword': 'detrimental', 'score': 1}, {'keyword': 'disobedient', 'score': 1},
-                {'keyword': 'dangerous', 'score': 1}, {'keyword': 'miserable', 'score': 1}, {'keyword': 'troubled', 'score': 1},
-                {'keyword': 'rotten', 'score': 1}, {'keyword': 'distressing', 'score': 1}, {'keyword': 'adverse', 'score': 1},
-                {'keyword': 'grim', 'score': 1}, {'keyword': 'regrettable', 'score': 1}, {'keyword': 'unwelcome', 'score': 1},
-                {'keyword': 'deplorable', 'score': 1}, {'keyword': 'hopeless', 'score': 1}, {'keyword': 'worthless', 'score': 1},
-                {'keyword': 'laughable', 'score': 1}, {'keyword': 'lamentable', 'score': 1}, {'keyword': 'sorry', 'score': 1},
-                {'keyword': 'third-rate', 'score': 1}, {'keyword': 'sacking', 'score': 1}, {'keyword': 'diabolical', 'score': 1},
-                {'keyword': 'execrable', 'score': 1}, {'keyword': 'incompetent', 'score': 1}, {'keyword': 'inept', 'score': 1},
-                {'keyword': 'inexpert', 'score': 1}, {'keyword': 'unskilled', 'score': 1}, {'keyword': 'ineffectual', 'score': 1},
-                {'keyword': 'crummy', 'score': 1}, {'keyword': 'pathetic', 'score': 1}, {'keyword': 'useless', 'score': 1},
-                {'keyword': 'woeful', 'score': 1}, {'keyword': 'appalling', 'score': 1}, {'keyword': 'pitiful', 'score': 1},
-                {'keyword': 'godawful', 'score': 1}, {'keyword': 'dire', 'score': 1}, {'keyword': 'duff', 'score': 1},
-                {'keyword': 'chronic', 'score': 1}, {'keyword': 'rubbish', 'score': 1}, {'keyword': 'egregious', 'score': 1},
-                {'keyword': 'inauspicious', 'score': 1}, {'keyword': 'disadvantageous', 'score': 1}, {'keyword': 'difficult', 'score': 1},
-                {'keyword': 'inopportune', 'score': 1}, {'keyword': 'unpropitious', 'score': 1}, {'keyword': 'inappropriate', 'score': 1},
-                {'keyword': 'unsuitable', 'score': 1}, {'keyword': 'unfavourable', 'score': 1}, {'keyword': 'unfavorable', 'score': 1},
-                {'keyword': 'untoward', 'score': 1}, {'keyword': 'disastrous', 'score': 1}, {'keyword': 'parlous', 'score': 1},
-                {'keyword': 'severe', 'score': 1}, {'keyword': 'grave', 'score': 1}, {'keyword': 'critical', 'score': 1},
-                {'keyword': 'shocking', 'score': 1}, {'keyword': 'life-threatening', 'score': 1}, {'keyword': 'frightful', 'score': 1},
-                {'keyword': 'ghastly', 'score': 1}, {'keyword': 'inimical', 'score': 1}, {'keyword': 'destructive', 'score': 1},
-                {'keyword': 'ruinous', 'score': 1}, {'keyword': 'deleterious', 'score': 1}, {'keyword': 'unhealthy', 'score': 1},
-                {'keyword': 'corrupt', 'score': 1}, {'keyword': 'redundancies', 'score': 1}, {'keyword': 'obliterate', 'score': 1},
-                {'keyword': 'obliterated', 'score': 1}, {'keyword': 'wipe out', 'score': 1}, {'keyword': 'dejected', 'score': 1},
-                {'keyword': 'meagre', 'score': 1}, {'keyword': 'diminished', 'score': 1}, {'keyword': 'subdued', 'score': 1},
-                {'keyword': 'reduce', 'score': 1}, {'keyword': 'lessen', 'score': 1}, {'keyword': 'diminish', 'score': 1},
-                {'keyword': 'lower', 'score': 1}, {'keyword': 'abate', 'score': 1}, {'keyword': 'dwindle', 'score': 1},
-                {'keyword': 'curtail', 'score': 1}, {'keyword': 'shrink', 'score': 1}, {'keyword': 'shrinking', 'score': 1},
-                {'keyword': 'wane', 'score': 1}, {'keyword': 'ebb', 'score': 1}, {'keyword': 'fade', 'score': 1},
-                {'keyword': 'reduction', 'score': 1}, {'keyword': 'lessening', 'score': 1}, {'keyword': 'lowering', 'score': 1},
-                {'keyword': 'falling off', 'score': 1}, {'keyword': 'contract', 'score': 1}, {'keyword': 'subside', 'score': 1},
-                {'keyword': 'contraction', 'score': 1}, {'keyword': 'cut', 'score': 1}, {'keyword': 'cutback', 'score': 1},
-                {'keyword': 'curtailment', 'score': 1}, {'keyword': 'downturn', 'score': 1}, {'keyword': 'slackening', 'score': 1},
-                {'keyword': 'make less', 'score': 1}, {'keyword': 'low margin', 'score': 1}, {'keyword': 'disappointed', 'score': 1},
-                {'keyword': 'pessimistic', 'score': 1}, {'keyword': 'apathy', 'score': 1}, {'keyword': 'adverse', 'score': 1},
-                {'keyword': 'annoy', 'score': 1}, {'keyword': 'alarming', 'score': 1}, {'keyword': 'anxious', 'score': 1},
-                {'keyword': 'belligerent', 'score': 1}, {'keyword': 'boring', 'score': 1}, {'keyword': 'banal', 'score': 1},
-                {'keyword': 'bemoan', 'score': 1}, {'keyword': 'broken', 'score': 1}, {'keyword': 'beneath', 'score': 1},
-                {'keyword': 'collapse', 'score': 1}, {'keyword': 'contrary', 'score': 1}, {'keyword': 'corrosive', 'score': 1},
-                {'keyword': 'contradictory', 'score': 1}, {'keyword': 'criminal', 'score': 1}, {'keyword': 'cutting', 'score': 1},
-                {'keyword': 'damage', 'score': 1}, {'keyword': 'dead', 'score': 1}, {'keyword': 'deny', 'score': 1},
-                {'keyword': 'deprived', 'score': 1}, {'keyword': 'dirty', 'score': 1}, {'keyword': 'disheveled', 'score': 1},
-                {'keyword': 'dismal', 'score': 1}, {'keyword': 'damaging', 'score': 1}, {'keyword': 'decaying', 'score': 1},
-                {'keyword': 'despicable', 'score': 1}, {'keyword': 'disease', 'score': 1}, {'keyword': 'dishonest', 'score': 1},
-                {'keyword': 'dreary', 'score': 1}, {'keyword': 'dastardly', 'score': 1}, {'keyword': 'deformed', 'score': 1},
-                {'keyword': 'depressed', 'score': 1}, {'keyword': 'disgusting', 'score': 1}, {'keyword': 'dishonorable', 'score': 1},
-                {'keyword': "don't", 'score': 1}, {'keyword': 'enraged', 'score': 1}, {'keyword': 'eroding', 'score': 1},
-                {'keyword': 'evil', 'score': 1}, {'keyword': 'fail', 'score': 1}, {'keyword': 'fear', 'score': 1},
-                {'keyword': 'feeble', 'score': 1}, {'keyword': 'fight', 'score': 1}, {'keyword': 'filthy', 'score': 1},
-                {'keyword': 'foul', 'score': 1}, {'keyword': 'frighten', 'score': 1}, {'keyword': 'frightful', 'score': 1},
-                {'keyword': 'gawky', 'score': 1}, {'keyword': 'greed', 'score': 1}, {'keyword': 'grimace', 'score': 1},
-                {'keyword': 'gross', 'score': 1}, {'keyword': 'grotesque', 'score': 1}, {'keyword': 'gruesome', 'score': 1},
-                {'keyword': 'guilty', 'score': 1}, {'keyword': 'haggard', 'score': 1}, {'keyword': 'hate', 'score': 1},
-                {'keyword': 'hideous', 'score': 1}, {'keyword': 'horrendous', 'score': 1}, {'keyword': 'hostile', 'score': 1},
-                {'keyword': 'hurt', 'score': 1}, {'keyword': 'hurtful', 'score': 1}, {'keyword': 'ignorant', 'score': 1},
-                {'keyword': 'ignore', 'score': 1}, {'keyword': 'ill', 'score': 1}, {'keyword': 'immature', 'score': 1},
-                {'keyword': 'imperfect', 'score': 1}, {'keyword': 'impossible', 'score': 1}, {'keyword': 'inane', 'score': 1},
-                {'keyword': 'inelegant', 'score': 1}, {'keyword': 'infernal', 'score': 1}, {'keyword': 'injure', 'score': 1},
-                {'keyword': 'injurious', 'score': 1}, {'keyword': 'insane', 'score': 1}, {'keyword': 'insidious', 'score': 1},
-                {'keyword': 'insipid', 'score': 1}, {'keyword': 'jealous', 'score': 1}, {'keyword': 'junk', 'score': 1},
-                {'keyword': 'junky', 'score': 1}, {'keyword': 'lose', 'score': 1}, {'keyword': 'lumpy', 'score': 1},
-                {'keyword': 'malicious', 'score': 1}, {'keyword': 'menacing', 'score': 1}, {'keyword': 'messy', 'score': 1},
-                {'keyword': 'misshapen', 'score': 1}, {'keyword': 'missing', 'score': 1}, {'keyword': 'misunderstood', 'score': 1},
-                {'keyword': 'monstrous', 'score': 1}, {'keyword': 'naïve', 'score': 1}, {'keyword': 'nasty', 'score': 1},
-                {'keyword': 'naughty', 'score': 1}, {'keyword': 'negate', 'score': 1}, {'keyword': 'negative', 'score': 1},
-                {'keyword': 'never', 'score': 1}, {'keyword': 'nondescript', 'score': 1}, {'keyword': 'nonsense', 'score': 1},
-                {'keyword': 'noxious', 'score': 1}, {'keyword': 'objectionable', 'score': 1}, {'keyword': 'odious', 'score': 1},
-                {'keyword': 'offensive', 'score': 1}, {'keyword': 'oppressive', 'score': 1}, {'keyword': 'pain', 'score': 1},
-                {'keyword': 'perturb', 'score': 1}, {'keyword': 'petty', 'score': 1}, {'keyword': 'poisonous', 'score': 1},
-                {'keyword': 'prejudice', 'score': 1}, {'keyword': 'questionable', 'score': 1}, {'keyword': 'quit', 'score': 1},
-                {'keyword': 'reject', 'score': 1}, {'keyword': 'renege', 'score': 1}, {'keyword': 'repellant', 'score': 1},
-                {'keyword': 'repugnant', 'score': 1}, {'keyword': 'repulsive', 'score': 1}, {'keyword': 'revenge', 'score': 1},
-                {'keyword': 'revolting', 'score': 1}, {'keyword': 'rocky', 'score': 1}, {'keyword': 'rude', 'score': 1},
-                {'keyword': 'terrifying', 'score': 1}, {'keyword': 'threatening', 'score': 1}, {'keyword': 'substandard', 'score': 1},
-                {'keyword': 'second-rate', 'score': 1}, {'keyword': 'second-class', 'score': 1}, {'keyword': 'unsatisfactory', 'score': 1},
-                {'keyword': 'suffering', 'score': 1}, {'keyword': 'inadequate', 'score': 1}, {'keyword': 'unacceptable', 'score': 1},
-                {'keyword': 'not up to scratch', 'score': 1}, {'keyword': 'not to par', 'score': 1}, {'keyword': 'deficient', 'score': 1},
-                {'keyword': 'deficiency', 'score': 1}, {'keyword': 'low', 'score': 1}, {'keyword': 'below', 'score': 1},
-                {'keyword': 'below expectation', 'score': 1}, {'keyword': 'imperfect', 'score': 1}, {'keyword': 'disagreeable', 'score': 1},
-                {'keyword': 'bad', 'score': 1}, {'keyword': 'weak management', 'score': 1}, {'keyword': 'weak leadership', 'score': 1},
-                {'keyword': 'unlucky', 'score': 1}, {'keyword': 'dwindling', 'score': 1}, {'keyword': 'failing', 'score': 1},
-                {'keyword': 'losing', 'score': 1}, {'keyword': 'losing money', 'score': 1}, {'keyword': 'facing difficulties', 'score': 1},
-                {'keyword': 'falling', 'score': 1}, {'keyword': 'scanty', 'score': 1}, {'keyword': 'neglect', 'score': 1},
-                {'keyword': 'inefficient', 'score': 1}, {'keyword': 'unproductive', 'score': 1}, {'keyword': 'insolvency', 'score': 1},
-                {'keyword': 'negative financial state', 'score': 1}, {'keyword': 'high overheads', 'score': 1},
-                {'keyword': 'low revenue', 'score': 1}, {'keyword': 'low sales', 'score': 1}, {'keyword': 'low order book', 'score': 1},
-                {'keyword': 'low turnover', 'score': 1}, {'keyword': 'falling market share', 'score': 1}, {'keyword': 'legal dispute', 'score': 1},
-                {'keyword': 'legal disputes', 'score': 1}, {'keyword': 'lack of innovation', 'score': 1}, {'keyword': 'struggling', 'score': 1},
-                {'keyword': 'struggles', 'score': 1}, {'keyword': 'negative cash flow', 'score': 1}, {'keyword': 'financial distress', 'score': 1},
-                {'keyword': 'going concern warning', 'score': 1}, {'keyword': 'severe financial trouble', 'score': 1},
-                {'keyword': 'high debt', 'score': 1}, {'keyword': 'high debt levels', 'score': 1}, {'keyword': 'poor credit ratings', 'score': 1},
-                {'keyword': 'product call back', 'score': 1}, {'keyword': 'product call backs', 'score': 1},
-                {'keyword': 'poor credit control', 'score': 1}, {'keyword': 'financial weakness', 'score': 1},
-                {'keyword': 'poor report', 'score': 1}, {'keyword': 'poor reports', 'score': 1}, {'keyword': 'downside', 'score': 1},
-                {'keyword': 'headwinds', 'score': 1}, {'keyword': 'insolvent', 'score': 1}, {'keyword': 'imminent failure', 'score': 1},
-                {'keyword': 'liabilities', 'score': 1}, {'keyword': 'bad assets', 'score': 1}, {'keyword': 'administration', 'score': 1},
-                {'keyword': 'inability', 'score': 1}, {'keyword': 'debts', 'score': 1}, {'keyword': 'outstanding debts', 'score': 1},
-                {'keyword': 'accounting discrepancies', 'score': 1}, {'keyword': 'interest payments', 'score': 1},
-                {'keyword': 'legal issues', 'score': 1}, {'keyword': 'stagflation', 'score': 1}, {'keyword': 'slow economic growth', 'score': 1},
-                {'keyword': 'negative order book', 'score': 1}, {'keyword': 'low growth', 'score': 1}, {'keyword': 'market value decline', 'score': 1},
-                {'keyword': 'significant drop', 'score': 1}, {'keyword': 'reducing', 'score': 1}, {'keyword': 'reducing orders', 'score': 1},
-                {'keyword': 'financial trouble', 'score': 1}, {'keyword': 'unprofitable', 'score': 1}, {'keyword': 'vulnerable', 'score': 1},
-                {'keyword': 'cash-strapped', 'score': 1},
-                
-                # Finance Sad Sentences with weights
-                {'keyword': 'reduce sales', 'score': 5}, {'keyword': 'reduce sale', 'score': 5},
-                {'keyword': 'reduce sale forecast', 'score': 5}, {'keyword': 'reduce sales forecast', 'score': 5},
-                {'keyword': 'negative earning forecast', 'score': 5}, {'keyword': 'repels investors', 'score': 5},
-                {'keyword': 'deter investors', 'score': 5}, {'keyword': 'deters investors', 'score': 5},
-                {'keyword': 'drives investors away', 'score': 5}, {'keyword': 'divestment', 'score': 4},
-                {'keyword': 'reduction of assets', 'score': 4}, {'keyword': 'reduction of sales', 'score': 5},
-                {'keyword': 'risk-averse', 'score': 3}, {'keyword': 'lowered expectations', 'score': 5},
-                {'keyword': 'lowered sales expectations', 'score': 5}, {'keyword': 'worst case', 'score': 3},
-                {'keyword': 'worst than expected', 'score': 5}, {'keyword': 'worst that expectations', 'score': 5},
-                {'keyword': 'general feeling of doubt', 'score': 5}, {'keyword': 'worst case scenarios', 'score': 5},
-                {'keyword': 'worst case scenario', 'score': 5}, {'keyword': 'unfavourable expectation', 'score': 3},
-                {'keyword': 'unfavorable expectation', 'score': 3}, {'keyword': 'unfavourable expectations', 'score': 3},
-                {'keyword': 'unfavorable expectations', 'score': 3}, {'keyword': 'unrealistic expectation', 'score': 5},
-                {'keyword': 'unrealistic expectations', 'score': 5}, {'keyword': 'pessimistic outlook', 'score': 5},
-                {'keyword': 'worst possible outcome', 'score': 5}, {'keyword': 'challenging market', 'score': 5},
-                {'keyword': 'difficult market', 'score': 5}, {'keyword': 'competitive market', 'score': 5},
-                {'keyword': 'reduced its full-year forecast', 'score': 5}, {'keyword': 'reduced its quarter forecast', 'score': 5},
-                {'keyword': 'lowered its full-year forecast', 'score': 5}, {'keyword': 'lowered its quarter forecast', 'score': 5},
-                {'keyword': 'reduced incomes', 'score': 5}, {'keyword': 'reduced its first quarter forecast', 'score': 5},
-                {'keyword': 'reduced its 1st quarter forecast', 'score': 5}, {'keyword': 'lowers its first quarter forecast', 'score': 5},
-                {'keyword': 'lowers its 1st quarter forecast', 'score': 5}, {'keyword': 'lowered its first quarter forecast', 'score': 5},
-                {'keyword': 'lowered its 1st quarter forecast', 'score': 5}, {'keyword': 'reduced its second quarter forecast', 'score': 5},
-                {'keyword': 'reduced its 2nd quarter forecast', 'score': 5}, {'keyword': 'lowers its second quarter forecast', 'score': 5},
-                {'keyword': 'lowers its 2nd quarter forecast', 'score': 5}, {'keyword': 'lowered its second quarter forecast', 'score': 5},
-                {'keyword': 'lowered its 2nd quarter forecast', 'score': 5}, {'keyword': 'reduced its third quarter forecast', 'score': 5},
-                {'keyword': 'reduced its 3rd quarter forecast', 'score': 5}, {'keyword': 'lowers its third quarter forecast', 'score': 5},
-                {'keyword': 'lowers its 3rd quarter forecast', 'score': 5}, {'keyword': 'lowered its third quarter forecast', 'score': 5},
-                {'keyword': 'lowered its 3rd quarter forecast', 'score': 5}, {'keyword': 'reduced its fourth quarter forecast', 'score': 5},
-                {'keyword': 'reduced its 4th quarter forecast', 'score': 5}, {'keyword': 'lowers its fourth quarter forecast', 'score': 5},
-                {'keyword': 'lowers its 4th quarter forecast', 'score': 5}, {'keyword': 'lowered its fourth quarter forecast', 'score': 5},
-                {'keyword': 'lowered its 4th quarter forecast', 'score': 5}, {'keyword': 'negative outlook', 'score': 5},
-                {'keyword': 'negative half-year report', 'score': 5}, {'keyword': 'decrease half-year report', 'score': 5},
-                {'keyword': 'decreased half-year report', 'score': 5}, {'keyword': 'lessens half-year report', 'score': 5},
-                {'keyword': 'negative half-yearly report', 'score': 5}, {'keyword': 'decrease half-yearly report', 'score': 5},
-                {'keyword': 'decreased half-yearly report', 'score': 5}, {'keyword': 'lesses half-yearly report', 'score': 5},
-                {'keyword': 'negative half-yearly financial report', 'score': 5}, {'keyword': 'decrease half-yearly financial report', 'score': 5},
-                {'keyword': 'decreased half-yearly financial report', 'score': 5}, {'keyword': 'lesses half-yearly financial report', 'score': 5},
-                {'keyword': 'backward-looking', 'score': 3}, {'keyword': 'backward looking', 'score': 3},
-                {'keyword': 'insignificant increase', 'score': 5}, {'keyword': 'insignificant increase in sales', 'score': 5},
-                {'keyword': 'negative long-term strategy', 'score': 5}, {'keyword': 'negative long term strategy', 'score': 5},
-                {'keyword': 'no products launches', 'score': 5}, {'keyword': 'no products launch', 'score': 5},
-                {'keyword': 'lack of leadership', 'score': 5}, {'keyword': 'lacking of leadership', 'score': 5},
-                {'keyword': 'ultra competitive market', 'score': 5}, {'keyword': 'lack of innovation', 'score': 5},
-                {'keyword': 'stagnant market', 'score': 5}, {'keyword': 'stagnant products', 'score': 5},
-                {'keyword': 'diminishing return', 'score': 5}, {'keyword': 'expensive products', 'score': 5},
-                {'keyword': 'uncompetitive products', 'score': 5}, {'keyword': 'uncompetitive pricing', 'score': 5},
-                {'keyword': 'negative business transformation', 'score': 5}, {'keyword': 'negative business restructuring', 'score': 5},
-                {'keyword': 'negative macroeconomics', 'score': 5}, {'keyword': 'negative geopolitical environment', 'score': 5},
-                {'keyword': 'low economic growth', 'score': 5}, {'keyword': 'bad supply chains', 'score': 5},
-                {'keyword': 'high interest rates', 'score': 4}, {'keyword': 'high inflation', 'score': 4},
-                {'keyword': 'negative Return on capital employed', 'score': 5}, {'keyword': 'decrease Profit before tax', 'score': 5},
-                {'keyword': 'decrease gross margin', 'score': 5}, {'keyword': 'decrease percentage of revenue for new products', 'score': 5},
-                {'keyword': 'decrease basic earnings per share', 'score': 5}, {'keyword': 'decrease diluted earnings per share', 'score': 5},
-                {'keyword': 'decrease investment in core products', 'score': 5}, {'keyword': 'decrease market share', 'score': 5},
-                {'keyword': 'negative financial statement', 'score': 5}, {'keyword': 'negative financial statements', 'score': 5},
-                {'keyword': 'weak financial position', 'score': 5}, {'keyword': 'decrease financial position', 'score': 5},
-                {'keyword': 'weak cash flow', 'score': 5}, {'keyword': 'weak cash-flow', 'score': 5},
-                {'keyword': 'decrease cash flow', 'score': 5}, {'keyword': 'decrease cash-flow', 'score': 5},
-                {'keyword': 'negative cash-flow', 'score': 5}, {'keyword': 'high competitor risk', 'score': 5},
-                {'keyword': 'bad commercial relationship', 'score': 5}, {'keyword': 'weak commercial relationship', 'score': 5},
-                {'keyword': 'negative commercial relationship', 'score': 5}, {'keyword': 'decrease productions', 'score': 5},
-                {'keyword': 'decreased productions', 'score': 5}, {'keyword': 'decrease manufacturing', 'score': 5},
-                {'keyword': 'decreased manufacturing', 'score': 5}, {'keyword': 'bad future outlooks', 'score': 5},
-                {'keyword': 'negative future outlooks', 'score': 5}, {'keyword': 'bad future sales', 'score': 5},
-                {'keyword': 'weak future sales', 'score': 5}, {'keyword': 'negative future sales', 'score': 5},
-                {'keyword': 'bad expected future margins', 'score': 5}, {'keyword': 'negative expected future margins', 'score': 5},
-                {'keyword': 'weak expected future margins', 'score': 5}, {'keyword': 'bad revenue', 'score': 5},
-                {'keyword': 'decrease revenue', 'score': 5}, {'keyword': 'weak revenue', 'score': 5},
-                {'keyword': 'high cost of sales', 'score': 5}, {'keyword': 'increase cost of sales', 'score': 5},
-                {'keyword': 'high cost-of-sales', 'score': 5}, {'keyword': 'increase cost-of-sales', 'score': 5},
-                {'keyword': 'appreciating cost of sales', 'score': 5}, {'keyword': 'appreciating cost-of-sales', 'score': 5},
-                {'keyword': 'bad continuing operations', 'score': 5}, {'keyword': 'decrease gross profit', 'score': 5},
-                {'keyword': 'worsened gross profit', 'score': 5}, {'keyword': 'high distribution cost', 'score': 5},
-                {'keyword': 'high administrative cost', 'score': 5}, {'keyword': 'high inpairment losses', 'score': 5},
-                {'keyword': 'high financial liabilities', 'score': 5}, {'keyword': 'limited income', 'score': 5},
-                {'keyword': 'decrease income for the period', 'score': 5}, {'keyword': 'decrease profit for the period', 'score': 5},
-                {'keyword': 'decrease dividends', 'score': 5}, {'keyword': 'bad investing activities', 'score': 5},
-                {'keyword': 'negative investing activities', 'score': 5}, {'keyword': 'high interest paid', 'score': 5},
-                {'keyword': 'increase in transaction cost', 'score': 5}, {'keyword': 'high transaction cost', 'score': 5},
-                {'keyword': 'high loans and borrowing', 'score': 5}, {'keyword': 'increase transaction cost', 'score': 5},
-                {'keyword': 'increase loans and borrowing', 'score': 5}, {'keyword': 'high operating expenses', 'score': 5},
-                {'keyword': 'increase operating expenses', 'score': 5}, {'keyword': 'increase operating cost', 'score': 5},
-                {'keyword': 'worsen operating cost', 'score': 5}, {'keyword': 'decrease pre-tax profit', 'score': 5},
-                {'keyword': 'not beat wallstreet expectations', 'score': 5}, {'keyword': 'aggravate concerns', 'score': 5},
-                {'keyword': 'not surpassed wall street\'s expectation', 'score': 5}, {'keyword': 'not beating expectations', 'score': 5},
-                {'keyword': 'decrease in share value', 'score': 5}, {'keyword': 'decrease in stock value', 'score': 5},
-                {'keyword': 'decrease in company valuation', 'score': 5}, {'keyword': 'subceed expectations', 'score': 5},
-                {'keyword': 'fall short of', 'score': 5}, {'keyword': 'stop short of', 'score': 5},
-                {'keyword': 'fail to reach', 'score': 5}, {'keyword': 'fail to meet', 'score': 5},
-                {'keyword': 'fail to equal', 'score': 4}, {'keyword': 'fall behind', 'score': 4},
-                {'keyword': 'not be as good at', 'score': 4}, {'keyword': 'be inferior', 'score': 4},
-                {'keyword': 'be inferior to', 'score': 5}, {'keyword': 'low yield', 'score': 5},
-                {'keyword': 'underperform against its competitors', 'score': 5}, {'keyword': 'underforming stocks', 'score': 5},
-                {'keyword': 'be beaten by', 'score': 5}, {'keyword': 'admit defeat', 'score': 5},
-                {'keyword': 'drop behind', 'score': 5}, {'keyword': 'drop back', 'score': 4},
-                {'keyword': 'fall back', 'score': 4}, {'keyword': 'fall off', 'score': 4},
-                {'keyword': 'lose ground', 'score': 5}, {'keyword': 'trail behind', 'score': 5},
-                {'keyword': 'lag behind', 'score': 4}, {'keyword': 'drift from', 'score': 4},
-                {'keyword': 'fall back from', 'score': 3}, {'keyword': 'linger behind', 'score': 3},
-                {'keyword': 'stray from', 'score': 3}, {'keyword': 'lose ground to', 'score': 5}
-            ],
-            'emoji': '😢'
-        },
         'neutral': {
             'keywords': [
-                {'keyword': 'announced', 'score': 1}, {'keyword': 'reported', 'score': 1}, {'keyword': 'according', 'score': 1},
-                {'keyword': 'data', 'score': 1}, {'keyword': 'reports', 'score': 1}, {'keyword': 'updates', 'score': 1},
-                {'keyword': 'quarterly', 'score': 1}, {'keyword': 'meeting', 'score': 1}, {'keyword': 'conference', 'score': 1},
-                {'keyword': 'statement', 'score': 1}, {'keyword': 'earnings', 'score': 1}, {'keyword': 'revenue', 'score': 1},
-                {'keyword': 'financial', 'score': 1}, {'keyword': 'business', 'score': 1}, {'keyword': 'launch', 'score': 1},
-                {'keyword': 'release', 'score': 1}
+                {'keyword': 'announced', 'score': 1},
+                {'keyword': 'reported', 'score': 1},
+                {'keyword': 'according', 'score': 1},
+                {'keyword': 'data', 'score': 1}
             ],
             'emoji': '😐'
+        },
+        'sad': {
+            'keywords': [
+                {'keyword': 'loss', 'score': 1},
+                {'keyword': 'decline', 'score': 1},
+                {'keyword': 'drop', 'score': 1},
+                {'keyword': 'decrease', 'score': 1}
+            ],
+            'emoji': '😢'
         }
     }
 
@@ -3098,6 +2675,179 @@ def generate_recommendations(analysis_data):
         recommendations.append("Leverage positive innovation coverage in investor communications and presentations")
     
     return recommendations
+
+
+
+
+
+
+
+
+def analyze_emotion(title, snippet):
+    """Analyze emotion of article based on title and snippet with extended keywords"""
+    text = f"{title} {snippet}".lower()
+    
+    # Define emotion keywords and patterns
+    emotions = {
+        'happy': {
+            'keywords': ['success', 'profit', 'growth', 'surge', 'soar', 'breakthrough', 'achievement', 'milestone', 
+                        'celebration', 'victory', 'triumph', 'boom', 'record high', 'excellent results', 'positive', 
+                        'expansion', 'thriving', 'increase', 'increased', 'growing', 'growing revenue', 'upside', 
+                        'high profit margin', 'bullish', 'strong bottom-line', 'increased net income', 
+                        'rising return on equity', 'return on assets', 'healthy cash balance', 'low debt-to-equity', 
+                        'financial stability', 'strong profitability', 'efficient use of assets', 'high market share', 
+                        'increase share value', 'increase stock value', 'market leader', 'earnings growth', 
+                        'strong growth', 'gains', 'confidence', 'successful', 'doing well', 'flourishing', 
+                        'prospering', 'succeeding', 'booming', 'vigorous', 'rallying', 'making headway', 
+                        'making progress', 'profitable', 'increasing', 'developing', 'advancing', 'rising', 
+                        'high reward', 'increase in value', 'positive return', 'projected price increase', 
+                        'high investment motivation', 'high outcomes', 'positive outcomes', 'on the rise', 
+                        'on the increase', 'great', 'high potential', 'growth potential', 'good quarter', 
+                        'positive quarter', 'good report', 'brilliant', 'excellent', 'amazing', 'buoyant', 
+                        'new products', 'leading', 'leading ahead', 'happy', 'joyful', 'courageous', 'confident', 
+                        'abundant', 'absolutely', 'accessible', 'accommodative', 'acclaimed', 'high achievement', 
+                        'admire', 'adore', 'adulation', 'approve', 'awesome', 'attractive', 'assure', 'beaming', 
+                        'radiating', 'impressive', 'beloved', 'best', 'smart', 'clever', 'intelligent', 
+                        'breathtaking', 'centered', 'goal-oriented', 'champion', 'win', 'wins', 'winner', 'winners', 
+                        'ability to attract', 'fascinating', 'charming', 'cheerful', 'vigor', 'constant', 'steadfast', 
+                        'courage', 'definite', 'delectable', 'delightful', 'dependable', 'dignified', 'respectable', 
+                        'divine', 'heavenly', 'dynamite', 'outstanding', 'ecstatic', 'pleasurable', 'electrifying', 
+                        'employable', 'empowered', 'endearing', 'enjoyable', 'enriching', 'enthusiastic', 'keen', 
+                        'eager', 'enticing', 'alluring', 'exceptional', 'especial', 'finest', 'highest quality', 
+                        'exciting', 'stimulating', 'exhilarating', 'exponential', 'exultant', 'rejoicing', 'fabulous', 
+                        'fab', 'pleasing', 'extraordinary', 'extraordinary good', 'favorite', 'favourite', 'fearless', 
+                        'bold', 'fetching', 'gallant', 'heroic', 'honorable', 'genuine', 'authentic', 'gleaming', 
+                        'impressively', 'bright', 'bright future', 'positive future', 'good future', 'greatest', 
+                        'highest', 'gumptious', 'good judgment', 'good perception', 'ideal', 'imaginative', 
+                        'impeccable', 'remarkable', 'incredible', 'good run', 'innovative', 'insightful', 'inspiring', 
+                        'instinctive', 'intellectual', 'irresistible', 'jolly', 'jovial', 'joysome', 'judicious', 
+                        'sound judgment', 'just', 'righteous', 'strikingly impressive', 'knowledgeable', 'lambent', 
+                        'laudable', 'praiseworthy', 'legendary', 'extremely popular', 'rational', 'likable', 'lively', 
+                        'luminous', 'magical', 'enchanting', 'magnetic', 'magnificent', 'majestic', 'marvelous', 
+                        'masterful', 'attentive', 'miraculous', 'mindful', 'motivated', 'arousing', 'moving up', 
+                        'numinous', 'awe-inspiring', 'on-target', 'accurate', 'optimistic', 'systematic', 'orderly', 
+                        'organized', 'out-of-this-world', 'overjoyed', 'prominent', 'paramount', 'supreme', 'powerful', 
+                        'splendid', 'perceptive', 'persistent', 'persuasive', 'polished', 'prized', 'cherished', 
+                        'convincing', 'irreplaceable', 'phenomenal', 'generous', 'generously', 'piquant', 'proactive', 
+                        'advance', 'advanced', 'promising', 'proud', 'positive achievement', 'relishing', 'punctual', 
+                        'prompt', 'radiant', 'emanating', 'rapturous', 'razor-sharp', 'extremely sharp', 'quick-witted', 
+                        'very clever', 'very successful', 'reassuring', 'recherche', 'exquisite', 'highly recommend', 
+                        'highly recommended', 'worthy', 'worthy of praise', 'praise', 'refulgent', 'reliable', 
+                        'trustworthy', 'remarkably', 'resilient', 'resourceful', 'high esteem', 'revolutionary', 
+                        'surprising', 'surprisingly', 'sagacious', 'acutely wise', 'savvy', 'well-informed', 'shrewd', 
+                        'poise', 'sensational', 'sensationally', 'exceptionally good', 'exceptionally positive', 
+                        'sincere', 'energetic', 'spellbinding', 'spunky', 'spirited', 'stellar', 'teeming', 
+                        'productive', 'very profitable', 'trailblazing', 'transcendental', 'tubular', 'upbeat', 
+                        'uplifting', 'happiness', 'upstanding', 'valiant', 'brave', 'vibrant', 'victorious', 
+                        'visionary', 'vivacious', 'wise', 'skilled', 'tenacious', 'beneficial', 'efficient', 'optimistic'],
+            'emoji': '😊'
+        },
+        'amused': {
+            'keywords': ['funny', 'meme', 'viral', 'joke', 'amusing', 'entertaining', 'bizarre', 'weird', 
+                        'unusual', 'quirky', 'odd', 'strange move', 'unexpected'],
+            'emoji': '😄'
+        },
+        'inspired': {
+            'keywords': ['innovation', 'revolutionary', 'breakthrough', 'pioneering', 'groundbreaking', 
+                        'visionary', 'transformative', 'inspiring', 'amazing', 'incredible', 'future', 
+                        'advancement', 'cutting-edge'],
+            'emoji': '🌟'
+        },
+        'neutral': {
+            'keywords': ['reports', 'announces', 'updates', 'quarterly', 'meeting', 'conference', 'statement', 
+                        'earnings', 'revenue', 'financial', 'business', 'launch', 'release'],
+            'emoji': '😐'
+        },
+        'annoyed': {
+            'keywords': ['delay', 'postpone', 'issue', 'problem', 'glitch', 'bug', 'complaint', 'criticism', 
+                        'controversy', 'dispute', 'setback', 'challenge', 'difficulty'],
+            'emoji': '😤'
+        },
+        'afraid': {
+            'keywords': ['warning', 'risk', 'threat', 'danger', 'concern', 'worry', 'fear', 'uncertainty', 
+                        'caution', 'alert', 'security', 'vulnerability', 'breach'],
+            'emoji': '😰'
+        },
+        'sad': {
+            'keywords': ['loss', 'death', 'tragedy', 'sad', 'unfortunate', 'decline', 'drop', 'fall', 'decrease', 
+                        'layoffs', 'fired', 'closed', 'shutdown', 'bankrupt', 'poor', 'awful', 'terrible', 
+                        'inferior', 'harmful', 'unpleasant', 'lousy', 'shoddy', 'cheap', 'wretched', 'horrible', 
+                        'dreadful', 'abysmal', 'serious decline', 'defective', 'faulty', 'wrong', 'immoral', 
+                        'atrocious', 'mischievous', 'detrimental', 'disobedient', 'dangerous', 'miserable', 
+                        'troubled', 'rotten', 'distressing', 'adverse', 'grim', 'regrettable', 'unwelcome', 
+                        'deplorable', 'hopeless', 'worthless', 'laughable', 'lamentable', 'sorry', 'third-rate', 
+                        'sacking', 'diabolical', 'execrable', 'incompetent', 'inept', 'inexpert', 'unskilled', 
+                        'ineffectual', 'crummy', 'pathetic', 'useless', 'woeful', 'appalling', 'pitiful', 
+                        'godawful', 'dire', 'duff', 'chronic', 'rubbish', 'egregious', 'inauspicious', 
+                        'disadvantageous', 'difficult', 'inopportune', 'unpropitious', 'inappropriate', 
+                        'unsuitable', 'unfavourable', 'unfavorable', 'untoward', 'disastrous', 'parlous', 
+                        'severe', 'grave', 'critical', 'shocking', 'life-threatening', 'frightful', 'ghastly', 
+                        'inimical', 'destructive', 'ruinous', 'deleterious', 'unhealthy', 'corrupt', 'redundancies', 
+                        'obliterate', 'obliterated', 'wipe out', 'dejected', 'meagre', 'diminished', 'subdued', 
+                        'reduce', 'lessen', 'diminish', 'lower', 'abate', 'dwindle', 'curtail', 'shrink', 
+                        'shrinking', 'wane', 'ebb', 'fade', 'reduction', 'lessening', 'lowering', 'falling off', 
+                        'contract', 'subside', 'contraction', 'cut', 'cutback', 'curtailment', 'downturn', 
+                        'slackening', 'make less', 'low margin', 'disappointed', 'pessimistic', 'apathy', 
+                        'adverse', 'annoy', 'alarming', 'anxious', 'belligerent', 'boring', 'banal', 'bemoan', 
+                        'broken', 'beneath', 'collapse', 'contrary', 'corrosive', 'contradictory', 'criminal', 
+                        'cutting', 'damage', 'dead', 'deny', 'deprived', 'dirty', 'disheveled', 'dismal', 
+                        'damaging', 'decaying', 'despicable', 'disease', 'dishonest', 'dreary', 'dastardly', 
+                        'deformed', 'depressed', 'disgusting', 'dishonorable', "don't", 'enraged', 'eroding', 
+                        'evil', 'fail', 'fear', 'feeble', 'fight', 'filthy', 'foul', 'frighten', 'frightful', 
+                        'gawky', 'greed', 'grimace', 'gross', 'grotesque', 'gruesome', 'guilty', 'haggard', 
+                        'hate', 'hideous', 'horrendous', 'hostile', 'hurt', 'hurtful', 'ignorant', 'ignore', 
+                        'ill', 'immature', 'imperfect', 'impossible', 'inane', 'inelegant', 'infernal', 'injure', 
+                        'injurious', 'insane', 'insidious', 'insipid', 'jealous', 'junk', 'junky', 'lose', 
+                        'lumpy', 'malicious', 'menacing', 'messy', 'misshapen', 'missing', 'misunderstood', 
+                        'monstrous', 'naïve', 'nasty', 'naughty', 'negate', 'negative', 'never', 'nondescript', 
+                        'nonsense', 'noxious', 'objectionable', 'odious', 'offensive', 'oppressive', 'pain', 
+                        'perturb', 'petty', 'poisonous', 'prejudice', 'questionable', 'quit', 'reject', 'renege', 
+                        'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 'rocky', 'rude', 
+                        'terrifying', 'threatening', 'substandard', 'second-rate', 'second-class', 'unsatisfactory', 
+                        'suffering', 'inadequate', 'unacceptable', 'not up to scratch', 'not to par', 'deficient', 
+                        'deficiency', 'low', 'below', 'below expectation', 'imperfect', 'disagreeable', 'bad', 
+                        'weak management', 'weak leadership', 'unlucky', 'dwindling', 'failing', 'losing', 
+                        'losing money', 'facing difficulties', 'falling', 'scanty', 'neglect', 'inefficient', 
+                        'unproductive', 'insolvency', 'negative financial state', 'high overheads', 'low revenue', 
+                        'low sales', 'low order book', 'low turnover', 'falling market share', 'legal dispute', 
+                        'legal disputes', 'lack of innovation', 'struggling', 'struggles', 'negative cash flow', 
+                        'financial distress', 'going concern warning', 'severe financial trouble', 'high debt', 
+                        'high debt levels', 'poor credit ratings', 'product call back', 'product call backs', 
+                        'poor credit control', 'financial weakness', 'poor report', 'poor reports', 'downside', 
+                        'headwinds', 'insolvent', 'imminent failure', 'liabilities', 'bad assets', 'administration', 
+                        'inability', 'debts', 'outstanding debts', 'accounting discrepancies', 'interest payments', 
+                        'legal issues', 'stagflation', 'slow economic growth', 'negative order book', 'low growth', 
+                        'market value decline', 'significant drop', 'reducing', 'reducing orders', 'financial trouble', 
+                        'unprofitable', 'vulnerable', 'cash-strapped'],
+            'emoji': '😢'
+        },
+        'angry': {
+            'keywords': ['scandal', 'fraud', 'lawsuit', 'sued', 'investigation', 'accused', 'allegation', 
+                        'outrage', 'protest', 'boycott', 'angry', 'furious', 'controversy', 'backlash'],
+            'emoji': '😠'
+        }
+    }
+    
+    # Score each emotion
+    emotion_scores = {}
+    for emotion, data in emotions.items():
+        score = 0
+        for keyword in data['keywords']:
+            # Count occurrences of keywords
+            score += text.count(keyword)
+            # Give higher weight to title matches
+            if keyword in title.lower():
+                score += 2
+        emotion_scores[emotion] = score
+    
+    # Find the emotion with highest score
+    max_emotion = max(emotion_scores, key=emotion_scores.get)
+    
+    # If no keywords found or neutral has highest score, default to neutral (don't care)
+    if emotion_scores[max_emotion] == 0 or max_emotion == 'neutral':
+        return 'neutral', emotions['neutral']['emoji']
+    
+    return max_emotion, emotions[max_emotion]['emoji']
 
 def extract_image_from_article(link, headers):
     """Extract main image from article page"""
@@ -4993,8 +4743,570 @@ def index():
 def emotion_new():
     """Render the emotion analysis page with Visual Timer and Tab Switching"""
     
+    html_content = ''' <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sector Sentiment Analysis</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; }
+.container { background: rgba(255,255,255,0.97); border-radius: 24px; padding: 25px; max-width: 1200px; margin: 0 auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4); }
+.header { background: linear-gradient(135deg, #ff6b9d, #c44569, #ff6b9d); padding: 22px; text-align: center; border-radius: 16px; margin-bottom: 20px; position: relative; overflow: hidden; }
+.header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent); animation: shimmer 3s infinite; }
+@keyframes shimmer { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+.header h1 { font-size: 26px; color: white; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+
+/* Navigation */
+.nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
+.nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 30px; border: none; background: linear-gradient(135deg, #f8f9fa, #e9ecef); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.nav-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.nav-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.nav-btn .icon { font-size: 16px; }
+.arrow-btn { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; font-size: 20px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.arrow-btn:hover { transform: scale(1.1); }
+
+/* Layout */
+.main-content { display: flex; gap: 25px; flex-wrap: wrap; }
+.sidebar { width: 230px; flex-shrink: 0; }
+@media (max-width: 900px) { .sidebar { width: 100%; } .main-content { flex-direction: column; } }
+.sidebar-box { background: linear-gradient(180deg, #f8f9fa, #fff); border-radius: 18px; padding: 22px; box-shadow: 0 10px 35px rgba(0,0,0,0.08); border: 1px solid rgba(102,126,234,0.15); }
+.sidebar-title { font-weight: 700; margin-bottom: 18px; color: #1a1a2e; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+
+/* Analysis Section */
+.analysis-section { margin-top: 20px; padding: 18px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; }
+.analysis-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; margin-top: 15px; }
+.analysis-header:first-child { margin-top: 0; }
+.analysis-icon { font-size: 22px; }
+.analysis-label { font-weight: 600; color: #1565c0; font-size: 14px; }
+.analysis-select { width: 100%; padding: 11px 14px; border-radius: 10px; border: 2px solid #90caf9; background: white; font-size: 13px; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
+.analysis-select:focus { outline: none; border-color: #42a5f5; box-shadow: 0 0 0 4px rgba(66,165,245,0.2); }
+.analyze-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+.analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+.analyze-btn:disabled { background: #bdbdbd; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Status & Timer */
+.timer-display { text-align: center; margin-top: 15px; font-size: 14px; font-weight: 600; color: #1565c0; }
+.status-display { text-align: center; margin-top: 5px; font-size: 12px; color: #666; }
+
+/* NEW: Line Timer Styles */
+.timer-line-container {
+    margin-top: 15px;
+    display: none; /* Hidden by default */
+}
+.timer-text-small {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+.timer-line-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.8);
+}
+.timer-line-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #43a047, #66bb6a);
+    border-radius: 10px;
+    transition: width 1s linear, background 0.3s;
+}
+.timer-line-fill.warning { background: linear-gradient(90deg, #fdd835, #ffee58); }
+.timer-line-fill.danger { background: linear-gradient(90deg, #e53935, #ef5350); }
+
+
+/* Table */
+.table-container { flex: 1; min-width: 0; }
+.keyword-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding: 14px 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; }
+.keyword-header span:first-child { font-size: 22px; }
+.keyword-header span:last-child { font-weight: 600; color: #1565c0; font-size: 15px; }
+.table-wrapper { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { background: linear-gradient(135deg, #00897b, #00796b); color: white; padding: 16px 12px; text-align: center; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.data-table td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 13px; transition: all 0.3s; }
+.data-table tbody tr:hover { background: linear-gradient(135deg, #e0f7fa, #e8f5e9); }
+.data-table tbody tr:nth-child(even) { background: #fafbfc; }
+.emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.score-cell { font-weight: 600; font-size: 13px; }
+.score-sad { color: #e53935; }
+.score-neutral { color: #f57c00; }
+.score-happy { color: #43a047; }
+.rag-cell { display: flex; justify-content: center; }
+.rag-dot { width: 26px; height: 26px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s; cursor: pointer; }
+.rag-dot:hover { transform: scale(1.25); }
+.rag-green { background: linear-gradient(135deg, #66bb6a, #43a047); }
+.rag-yellow { background: linear-gradient(135deg, #ffee58, #fdd835); }
+.rag-red { background: linear-gradient(135deg, #ef5350, #e53935); }
+.rag-header { display: flex; gap: 4px; justify-content: center; margin-bottom: 4px; }
+.rag-header span { width: 12px; height: 12px; border-radius: 50%; }
+.company-name { font-weight: 600; color: #1a1a2e; }
+.sector-badge { display: inline-block; padding: 5px 12px; background: linear-gradient(135deg, #ede7f6, #d1c4e9); color: #5e35b1; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.empty-cell { color: #bdbdbd; font-style: italic; }
+.loading-cell { color: #667eea; font-weight: 600; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Actions & Modal */
+.actions-cell { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.action-btn { width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+.action-btn:hover { transform: translateY(-3px) scale(1.1); }
+.btn-edit { background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; box-shadow: 0 4px 12px rgba(30,136,229,0.35); }
+.btn-delete { background: linear-gradient(135deg, #ef5350, #e53935); color: white; box-shadow: 0 4px 12px rgba(229,57,53,0.35); }
+.btn-up { background: linear-gradient(135deg, #66bb6a, #43a047); color: white; box-shadow: 0 4px 12px rgba(67,160,71,0.35); }
+.btn-down { background: linear-gradient(135deg, #ffa726, #fb8c00); color: white; box-shadow: 0 4px 12px rgba(251,140,0,0.35); }
+.add-row-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 2px dashed #81c784; cursor: pointer; transition: all 0.3s; color: #2e7d32; font-weight: 600; font-size: 14px; }
+.add-row-btn:hover { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); border-color: #66bb6a; }
+
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+.modal { background: white; border-radius: 24px; padding: 30px; width: 95%; max-width: 420px; box-shadow: 0 25px 80px rgba(0,0,0,0.3); animation: modalIn 0.4s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal h2 { margin-bottom: 25px; color: #1a1a2e; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 13px; }
+.form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; transition: all 0.3s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.15); }
+.modal-actions { display: flex; gap: 12px; margin-top: 25px; }
+.modal-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.modal-btn:hover { transform: translateY(-2px); }
+.btn-cancel { background: #f5f5f5; color: #666; }
+.btn-cancel:hover { background: #eeeeee; }
+.btn-save { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.btn-save:hover { box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+.toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 14px; font-weight: 500; box-shadow: 0 10px 40px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2000; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.loading-bar { height: 4px; background: linear-gradient(90deg, #667eea, #764ba2, #667eea); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 2px; margin-bottom: 15px; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>📊 Sector Sentiment Analysis</h1></div>
+  <div class="loading-bar"></div>
+  
+  <div class="nav-bar">
+    <button class="arrow-btn">‹</button>
+    <button class="nav-btn active" data-sector="mylist"><span class="icon">📋</span>My List</button>
+    <button class="nav-btn" data-sector="Semiconductor"><span class="icon">💾</span>Semiconductors</button>
+    <button class="nav-btn" data-sector="Pharma"><span class="icon">💊</span>Pharma</button>
+    <button class="nav-btn" data-sector="Electricity"><span class="icon">⚡</span>Electricity</button>
+    <button class="nav-btn" data-sector="Mining"><span class="icon">⛏️</span>Mining</button>
+    <button class="nav-btn" data-sector="Automobile"><span class="icon">🚗</span>Automobile</button>
+    <button class="nav-btn" data-sector="Quantum"><span class="icon">⚛️</span>Quantum</button>
+    <button class="arrow-btn">›</button>
+  </div>
+
+  <div class="main-content">
+    <div class="sidebar">
+      <div class="sidebar-box">
+        <div class="sidebar-title">⚙️ Analysis Parameters</div>
+        
+        <div class="analysis-section">
+          <div class="analysis-header">
+            <span class="analysis-icon">🔍</span>
+            <span class="analysis-label">Analysis Depth</span>
+          </div>
+          <select class="analysis-select" id="analysisDepth">
+            <option value="basic">Basic Analysis</option>
+            <option value="standard" selected>Standard Analysis</option>
+            <option value="comprehensive">Comprehensive Analysis</option>
+            <option value="advanced">Advanced Analysis</option>
+          </select>
+          
+          <div class="analysis-header">
+            <span class="analysis-icon">⏱️</span>
+            <span class="analysis-label">Refresh Timer</span>
+          </div>
+          <select class="analysis-select" id="timerSelect">
+            <option value="0">Off (Manual)</option>
+            <option value="15">15 Minutes</option>
+            <option value="30">30 Minutes</option>
+            <option value="45">45 Minutes</option>
+            <option value="60">60 Minutes</option>
+          </select>
+          
+          <button class="analyze-btn" id="analyzeBtn">
+            <span class="icon">🚀</span>
+            <span>Analyze All</span>
+          </button>
+          
+          <div class="timer-display" id="timerDisplay">Ready</div>
+          <div class="status-display" id="statusDisplay">Click analyze to start</div>
+          
+          <div class="timer-line-container" id="timerLineContainer">
+            <div class="timer-text-small">
+              <span>Auto-refresh</span>
+              <span id="timerTextTime">00:00</span>
+            </div>
+            <div class="timer-line-track">
+              <div class="timer-line-fill" id="timerLineFill"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="table-container">
+      <div class="keyword-header"><span>🔑</span><span id="tableHeaderTitle">My List</span></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Companies</th>
+              <th>Sector</th>
+              <th><span class="emoji">😢</span>Sad %</th>
+              <th><span class="emoji">😐</span>Neutral %</th>
+              <th><span class="emoji">😊</span>Happy %</th>
+              <th><div class="rag-header"><span style="background:#e53935"></span><span style="background:#fdd835"></span><span style="background:#43a047"></span></div>RAG</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="add-row-btn" onclick="openModal()">
+          <span style="font-size:20px">➕</span>
+          <span>Add New Company</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">✨ Add Company</h2>
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="companyName" placeholder="Enter company name...">
+    </div>
+    <div class="form-group">
+      <label>Sector</label>
+      <select id="sectorSelect">
+        <option value="Semiconductor">💾 Semiconductor</option>
+        <option value="Pharma">💊 Pharma</option>
+        <option value="Electricity">⚡ Electricity</option>
+        <option value="Mining">⛏️ Mining</option>
+        <option value="Automobile">🚗 Automobile</option>
+        <option value="Quantum">⚛️ Quantum</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn btn-save" onclick="saveCompany()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Action completed successfully!</div>
+
+<script>
+const API_URL = window.location.origin;
+
+// Expanded Dummy Data for Tabs functionality
+let companies = [
+  {name:"Nvidia",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Pfizer",sector:"Pharma",sad:null,neutral:null,happy:null},
+  {name:"Broadcom",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"NextEra Energy",sector:"Electricity",sad:null,neutral:null,happy:null},
+  {name:"TSMC",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Tesla",sector:"Automobile",sad:null,neutral:null,happy:null},
+  {name:"Samsung",sector:"Semiconductor",sad:null,neutral:null,happy:null},
+  {name:"Rio Tinto",sector:"Mining",sad:null,neutral:null,happy:null},
+  {name:"IonQ",sector:"Quantum",sad:null,neutral:null,happy:null},
+  {name:"AMD",sector:"Semiconductor",sad:null,neutral:null,happy:null}
+];
+
+let editIndex = -1;
+let analysisInProgress = false;
+let refreshInterval = null;
+let currentSector = 'mylist'; // Default tab
+
+function getRAG(sad, happy) {
+  if (happy >= 70) return 'green';
+  if (sad >= 70) return 'red';
+  return 'yellow';
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// New function to filter companies based on sector
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  
+  // Filter data
+  let displayCompanies = [];
+  if (currentSector === 'mylist') {
+    displayCompanies = companies; // Show all for My List
+    document.getElementById('tableHeaderTitle').textContent = "My List";
+  } else {
+    displayCompanies = companies.filter(c => c.sector === currentSector);
+    document.getElementById('tableHeaderTitle').textContent = currentSector;
+  }
+
+  if (displayCompanies.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#999;">No companies found in this sector.</td></tr>';
+      return;
+  }
+
+  tbody.innerHTML = displayCompanies.map((c, i) => {
+    // Find original index for actions to work correctly on the main array
+    const originalIndex = companies.indexOf(c);
     
-    return render_template('emotion_new.html')
+    let sadDisplay, neutralDisplay, happyDisplay, ragDisplay;
+    
+    if (c.sad === null || c.neutral === null || c.happy === null) {
+      sadDisplay = '<span class="empty-cell">—</span>';
+      neutralDisplay = '<span class="empty-cell">—</span>';
+      happyDisplay = '<span class="empty-cell">—</span>';
+      ragDisplay = '<span class="empty-cell">—</span>';
+    } else if (c.sad === 'loading') {
+      sadDisplay = '<span class="loading-cell">⏳</span>';
+      neutralDisplay = '<span class="loading-cell">⏳</span>';
+      happyDisplay = '<span class="loading-cell">⏳</span>';
+      ragDisplay = '<span class="loading-cell">⏳</span>';
+    } else {
+      sadDisplay = `${c.sad}%`;
+      neutralDisplay = `${c.neutral}%`;
+      happyDisplay = `${c.happy}%`;
+      ragDisplay = `<div class="rag-dot rag-${getRAG(c.sad, c.happy)}"></div>`;
+    }
+    
+    return `
+    <tr>
+      <td><strong>${i + 1}</strong></td>
+      <td class="company-name">${c.name}</td>
+      <td><span class="sector-badge">${c.sector}</span></td>
+      <td class="score-cell score-sad">${sadDisplay}</td>
+      <td class="score-cell score-neutral">${neutralDisplay}</td>
+      <td class="score-cell score-happy">${happyDisplay}</td>
+      <td><div class="rag-cell">${ragDisplay}</div></td>
+      <td>
+        <div class="actions-cell">
+          <button class="action-btn btn-edit" onclick="editCompany(${originalIndex})" title="Edit">✏️</button>
+          <button class="action-btn btn-delete" onclick="deleteCompany(${originalIndex})" title="Delete">🗑️</button>
+          <button class="action-btn btn-up" onclick="moveUp(${originalIndex})" title="Move Up">↑</button>
+          <button class="action-btn btn-down" onclick="moveDown(${originalIndex})" title="Move Down">↓</button>
+        </div>
+      </td>
+    </tr>
+  `}).join('');
+}
+
+function startRefreshTimer(minutes) {
+    if (refreshInterval) clearInterval(refreshInterval);
+    
+    const container = document.getElementById('timerLineContainer');
+    const fill = document.getElementById('timerLineFill');
+    const timeText = document.getElementById('timerTextTime');
+    
+    container.style.display = 'block';
+    
+    const duration = minutes * 60 * 1000;
+    const endTime = Date.now() + duration;
+    
+    refreshInterval = setInterval(() => {
+        const now = Date.now();
+        const remaining = endTime - now;
+        
+        if (remaining <= 0) {
+            clearInterval(refreshInterval);
+            fill.style.width = '0%';
+            timeText.textContent = 'Refreshing...';
+            location.reload();
+            return;
+        }
+        
+        // Calculate percentage
+        const percent = (remaining / duration) * 100;
+        fill.style.width = percent + '%';
+        
+        // Format time mm:ss
+        const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((remaining % (1000 * 60)) / 1000);
+        timeText.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        
+        // Change colors based on remaining percentage
+        fill.className = 'timer-line-fill'; // reset
+        if (percent < 20) fill.classList.add('danger');
+        else if (percent < 50) fill.classList.add('warning');
+        
+    }, 1000);
+}
+
+async function analyzeAllCompanies() {
+  if (analysisInProgress) {
+    showToast('⚠️ Analysis already in progress');
+    return;
+  }
+  
+  analysisInProgress = true;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const statusDisplay = document.getElementById('statusDisplay');
+  
+  // Check Timer
+  const timerMinutes = parseInt(document.getElementById('timerSelect').value);
+  if (timerMinutes > 0) {
+      startRefreshTimer(timerMinutes);
+  } else {
+      if(refreshInterval) clearInterval(refreshInterval);
+      document.getElementById('timerLineContainer').style.display = 'none';
+  }
+  
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<span class="icon">⏳</span><span>Analyzing...</span>';
+  
+  let completed = 0;
+  // Only analyze visible companies or all? Usually all, but let's do all
+  const total = companies.length;
+  
+  for (let i = 0; i < companies.length; i++) {
+    const company = companies[i];
+    
+    // Update status in data
+    companies[i].sad = 'loading';
+    companies[i].neutral = 'loading';
+    companies[i].happy = 'loading';
+    renderTable(); // Refresh table to show loading states
+    
+    timerDisplay.textContent = `Analyzing ${company.name}...`;
+    statusDisplay.textContent = `Processing ${completed + 1} of ${total}`;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/analyze-single`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: company.name })
+      });
+      
+      const data = await response.json();
+      
+      if (data.result) {
+        companies[i].sad = data.result.sad;
+        companies[i].neutral = data.result.neutral;
+        companies[i].happy = data.result.happy;
+      } else {
+        companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+      }
+    } catch (error) {
+      console.error(`Error analyzing ${company.name}:`, error);
+      companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+    }
+    
+    renderTable();
+    completed++;
+    
+    if (i < companies.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+  
+  analysisInProgress = false;
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
+  timerDisplay.textContent = 'Complete!';
+  statusDisplay.textContent = `Analyzed ${total} companies`;
+  showToast('✅ Analysis completed for all companies!');
+}
+
+function openModal(index = -1) {
+  editIndex = index;
+  document.getElementById('modalTitle').textContent = index === -1 ? '✨ Add Company' : '✏️ Edit Company';
+  if (index >= 0) {
+    const c = companies[index];
+    document.getElementById('companyName').value = c.name;
+    document.getElementById('sectorSelect').value = c.sector;
+  } else {
+    document.getElementById('companyName').value = '';
+    document.getElementById('sectorSelect').value = 'Semiconductor';
+  }
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  editIndex = -1;
+}
+
+function saveCompany() {
+  const name = document.getElementById('companyName').value.trim();
+  if (!name) { showToast('⚠️ Please enter company name'); return; }
+  const sector = document.getElementById('sectorSelect').value;
+  
+  const company = {name, sector, sad: null, neutral: null, happy: null};
+  if (editIndex >= 0) {
+    companies[editIndex].name = name;
+    companies[editIndex].sector = sector;
+    showToast('✅ Company updated successfully!');
+  } else {
+    companies.push(company);
+    showToast('✅ Company added successfully!');
+  }
+  renderTable();
+  closeModal();
+}
+
+function editCompany(i) { openModal(i); }
+
+function deleteCompany(i) {
+  if (confirm(`Delete "${companies[i].name}"?`)) {
+    companies.splice(i, 1);
+    renderTable();
+    showToast('🗑️ Company deleted!');
+  }
+}
+
+function moveUp(i) {
+  if (i > 0) {
+    [companies[i], companies[i-1]] = [companies[i-1], companies[i]];
+    renderTable();
+    showToast('⬆️ Moved up!');
+  }
+}
+
+function moveDown(i) {
+  if (i < companies.length - 1) {
+    [companies[i], companies[i+1]] = [companies[i+1], companies[i]];
+    renderTable();
+    showToast('⬇️ Moved down!');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('analyzeBtn').addEventListener('click', analyzeAllCompanies);
+  
+  // Tab Switching Logic
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update current sector and re-render
+      currentSector = this.getAttribute('data-sector');
+      renderTable();
+    });
+  });
+  
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  
+  renderTable();
+});
+</script>
+</body>
+</html>'''
+    return html_content
 
 @app.route('/api/analyze-single', methods=['POST'])
 def analyze_single():
