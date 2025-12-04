@@ -1258,10 +1258,12 @@
             <option value="60">60 Minutes</option>
           </select>
           
-          <button class="analyze-btn" id="analyzeBtn">
-            <span class="icon">🚀</span>
-            <span>Analyze All</span>
-          </button>
+          <div style="position: relative; display: inline-block; width: 100%;">
+            <button class="analyze-btn" id="analyzeBtn">
+              <span class="icon">🚀</span>
+              <span>Analyze All</span>
+            </button>
+          </div>
           
           <div class="timer-display" id="timerDisplay">Ready</div>
           <div class="status-display" id="statusDisplay">Click analyze to start</div>
@@ -1676,6 +1678,11 @@ let tabNames = {
 // Custom tabs storage
 let customTabs = [];
 
+// Countdown timer variables
+let countdownInterval = null;
+let estimatedTimeRemaining = 0;
+const TIME_PER_COMPANY = 11.69; // seconds per company
+
 function getRAG(sad, happy) {
   if (sad === null || happy === null) return '';
   if (happy >= 70) return 'green';
@@ -1688,6 +1695,88 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Function to calculate total analysis time
+function calculateTotalAnalysisTime() {
+  const totalCompanies = companies.length;
+  return Math.round(totalCompanies * TIME_PER_COMPANY); // Total seconds
+}
+
+// Function to start countdown timer
+function startCountdownTimer() {
+  // Clear any existing timer
+  if (countdownInterval) clearInterval(countdownInterval);
+  
+  // Calculate estimated time
+  estimatedTimeRemaining = calculateTotalAnalysisTime();
+  
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  
+  // Create countdown overlay if it doesn't exist
+  let countdownOverlay = document.getElementById('countdownOverlay');
+  if (!countdownOverlay) {
+    const btnContainer = analyzeBtn.parentNode;
+    countdownOverlay = document.createElement('div');
+    countdownOverlay.id = 'countdownOverlay';
+    countdownOverlay.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      color: white;
+      font-weight: bold;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    `;
+    btnContainer.style.position = 'relative';
+    btnContainer.appendChild(countdownOverlay);
+  }
+  
+  // Show countdown
+  countdownOverlay.style.opacity = '1';
+  
+  // Update countdown every second
+  countdownInterval = setInterval(() => {
+    estimatedTimeRemaining--;
+    
+    if (estimatedTimeRemaining <= 0) {
+      clearInterval(countdownInterval);
+      countdownOverlay.style.opacity = '0';
+      return;
+    }
+    
+    // Format time as MM:SS
+    const minutes = Math.floor(estimatedTimeRemaining / 60);
+    const seconds = estimatedTimeRemaining % 60;
+    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Update timer display
+    countdownOverlay.textContent = timeString;
+    
+  }, 1000);
+}
+
+// Function to stop countdown timer
+function stopCountdownTimer() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+  
+  const countdownOverlay = document.getElementById('countdownOverlay');
+  if (countdownOverlay) {
+    countdownOverlay.style.opacity = '0';
+  }
 }
 
 // Existing MyList name editing functions
@@ -2594,7 +2683,92 @@ function renderTable() {
   `}).join('');
 }
 
-// Existing functions
+// Enhanced analyzeAllCompanies function with countdown
+async function analyzeAllCompanies() {
+  if (analysisInProgress) {
+    showToast('⚠️ Analysis already in progress');
+    return;
+  }
+  
+  analysisInProgress = true;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const statusDisplay = document.getElementById('statusDisplay');
+  
+  // Check Timer
+  const timerMinutes = parseInt(document.getElementById('timerSelect').value);
+  if (timerMinutes > 0) {
+      startRefreshTimer(timerMinutes);
+  } else {
+      if(refreshInterval) clearInterval(refreshInterval);
+      document.getElementById('timerLineContainer').style.display = 'none';
+  }
+  
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<span class="icon">⏳</span><span>Analyzing...</span>';
+  
+  // Start countdown timer
+  startCountdownTimer();
+  
+  let completed = 0;
+  const total = companies.length;
+  
+  // Use fixed delay of 11.69 seconds per company
+  const delay = 11690; // 11.69 seconds in milliseconds
+  
+  for (let i = 0; i < companies.length; i++) {
+    const company = companies[i];
+    
+    // Update status in data
+    companies[i].sad = 'loading';
+    companies[i].neutral = 'loading';
+    companies[i].happy = 'loading';
+    renderTable();
+    
+    timerDisplay.textContent = `Analyzing ${company.name}...`;
+    statusDisplay.textContent = `Processing ${completed + 1} of ${total}`;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/analyze-single`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: company.name })
+      });
+      
+      const data = await response.json();
+      
+      if (data.result) {
+        companies[i].sad = data.result.sad;
+        companies[i].neutral = data.result.neutral;
+        companies[i].happy = data.result.happy;
+      } else {
+        companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+      }
+    } catch (error) {
+      console.error(`Error analyzing ${company.name}:`, error);
+      companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+    }
+    
+    renderTable();
+    completed++;
+    
+    if (i < companies.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  analysisInProgress = false;
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
+  timerDisplay.textContent = 'Complete!';
+  statusDisplay.textContent = `Analyzed ${total} companies`;
+  
+  // Stop countdown timer
+  stopCountdownTimer();
+  
+  showToast('✅ Analysis completed for all companies!');
+}
+
 function startRefreshTimer(minutes) {
     if (refreshInterval) clearInterval(refreshInterval);
     
@@ -2634,81 +2808,6 @@ function startRefreshTimer(minutes) {
         else if (percent < 50) fill.classList.add('warning');
         
     }, 1000);
-}
-
-async function analyzeAllCompanies() {
-  if (analysisInProgress) {
-    showToast('⚠️ Analysis already in progress');
-    return;
-  }
-  
-  analysisInProgress = true;
-  const analyzeBtn = document.getElementById('analyzeBtn');
-  const timerDisplay = document.getElementById('timerDisplay');
-  const statusDisplay = document.getElementById('statusDisplay');
-  
-  // Check Timer
-  const timerMinutes = parseInt(document.getElementById('timerSelect').value);
-  if (timerMinutes > 0) {
-      startRefreshTimer(timerMinutes);
-  } else {
-      if(refreshInterval) clearInterval(refreshInterval);
-      document.getElementById('timerLineContainer').style.display = 'none';
-  }
-  
-  analyzeBtn.disabled = true;
-  analyzeBtn.innerHTML = '<span class="icon">⏳</span><span>Analyzing...</span>';
-  
-  let completed = 0;
-  const total = companies.length;
-  
-  for (let i = 0; i < companies.length; i++) {
-    const company = companies[i];
-    
-    // Update status in data
-    companies[i].sad = 'loading';
-    companies[i].neutral = 'loading';
-    companies[i].happy = 'loading';
-    renderTable(); // Refresh table to show loading states
-    
-    timerDisplay.textContent = `Analyzing ${company.name}...`;
-    statusDisplay.textContent = `Processing ${completed + 1} of ${total}`;
-    
-    try {
-      const response = await fetch(`${API_URL}/api/analyze-single`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_name: company.name })
-      });
-      
-      const data = await response.json();
-      
-      if (data.result) {
-        companies[i].sad = data.result.sad;
-        companies[i].neutral = data.result.neutral;
-        companies[i].happy = data.result.happy;
-      } else {
-        companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
-      }
-    } catch (error) {
-      console.error(`Error analyzing ${company.name}:`, error);
-      companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
-    }
-    
-    renderTable();
-    completed++;
-    
-    if (i < companies.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-  }
-  
-  analysisInProgress = false;
-  analyzeBtn.disabled = false;
-  analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
-  timerDisplay.textContent = 'Complete!';
-  statusDisplay.textContent = `Analyzed ${total} companies`;
-  showToast('✅ Analysis completed for all companies!');
 }
 
 function openModal(index = -1) {
@@ -2838,6 +2937,18 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
+  
+  // Calculate and show initial estimated time
+  const totalSeconds = calculateTotalAnalysisTime();
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
+  const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+  document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
+  setTimeout(() => {
+    if (!analysisInProgress) {
+      document.getElementById('timerDisplay').textContent = 'Ready';
+    }
+  }, 3000);
   
   renderTable();
 });
