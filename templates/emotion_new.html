@@ -17,6 +17,224 @@
     font-weight: 600;
     color: #333;
 }
+/* Keyword Actions */
+.keyword-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.edit-keyword-modal {
+    max-width: 500px;
+    width: 95%;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+    animation: modalIn 0.4s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+.keyword-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.keyword-action-btn.edit {
+    background: rgba(66, 165, 245, 0.1);
+    color: #42a5f5;
+}
+
+.keyword-action-btn.delete {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.keyword-action-btn.edit:hover {
+    background: rgba(66, 165, 245, 0.2);
+    transform: translateY(-1px);
+}
+
+.keyword-action-btn.delete:hover {
+    background: rgba(244, 67, 54, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Edit Keyword Modal Styles */
+/* .edit-keyword-modal {
+    max-width: 500px;
+    width: 95%;
+} */
+
+.edit-keyword-modal .modal-body {
+    padding: 25px;
+}
+
+.edit-keyword-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.edit-keyword-header .emoji {
+    font-size: 24px;
+}
+
+.edit-keyword-header .title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.keyword-to-edit {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+    word-break: break-word;
+}
+
+/* Emotion Selection Buttons */
+.emotion-select-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.emotion-select-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.emotion-select-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.emotion-select-btn.selected {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.emotion-select-btn.happy {
+    color: #2e7d32;
+}
+
+.emotion-select-btn.neutral {
+    color: #f57c00;
+}
+
+.emotion-select-btn.sad {
+    color: #c62828;
+}
+
+/* Score Weight Input */
+.score-weight-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.score-weight-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.score-weight-value {
+    font-size: 18px;
+    color: #667eea;
+    font-weight: 700;
+}
+
+.score-slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #e0e0e0;
+    border-radius: 4px;
+    outline: none;
+}
+
+.score-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.score-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.score-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #666;
+}
+
+/* Danger Zone for Delete */
+.danger-zone {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.danger-zone h4 {
+    color: #c62828;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.danger-zone p {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+}
 /* Enhanced Keyword Modal Styles */
 .keyword-tabs-nav {
   display: flex;
@@ -178,146 +396,11 @@
   color: #c62828;
 }
 
-.keyword-actions {
-  display: flex;
-  gap: 5px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(0,0,0,0.1);
-}
+/* REMOVED EDIT CSS: .keyword-actions and related styles deleted */
 
-.keyword-action-btn {
-  flex: 1;
-  padding: 6px;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
+/* REMOVED EDIT CSS: Emotion Select Buttons in Edit Modal deleted */
 
-.keyword-action-btn.edit {
-  background: rgba(66, 165, 245, 0.1);
-  color: #1e88e5;
-}
-
-.keyword-action-btn.edit:hover {
-  background: rgba(66, 165, 245, 0.2);
-}
-
-.keyword-action-btn.copy {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-}
-
-.keyword-action-btn.copy:hover {
-  background: rgba(102, 126, 234, 0.2);
-}
-
-/* Emotion Select Buttons in Edit Modal */
-.emotion-select-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.emotion-select-btn {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.emotion-select-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.emotion-select-btn[data-emotion="happy"] {
-  color: #2e7d32;
-}
-
-.emotion-select-btn[data-emotion="neutral"] {
-  color: #f57c00;
-}
-
-.emotion-select-btn[data-emotion="sad"] {
-  color: #c62828;
-}
-
-.emotion-select-btn.selected {
-  border-color: currentColor;
-  background: rgba(currentColor, 0.1);
-}
-
-/* Score Slider */
-.score-slider-container {
-  margin-top: 10px;
-}
-
-.score-slider {
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: #e0e0e0;
-  outline: none;
-  -webkit-appearance: none;
-}
-
-.score-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #667eea;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-}
-
-.score-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #667eea;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-}
-
-.score-slider-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 12px;
-  color: #666;
-}
-
-.score-slider-labels #currentScoreValue {
-  font-weight: 600;
-  color: #667eea;
-  font-size: 14px;
-}
-
-.score-description {
-  margin-top: 5px;
-  color: #888;
-  font-size: 11px;
-  text-align: center;
-}
+/* REMOVED EDIT CSS: Score Slider deleted */
 
 /* Danger Button */
 .btn-danger {
@@ -370,10 +453,6 @@
   .keyword-tab-btn {
     padding: 12px 15px;
     font-size: 13px;
-  }
-  
-  .emotion-select-buttons {
-    flex-direction: column;
   }
 }
 /* Navigation with Scrollable Tabs */
@@ -826,12 +905,7 @@
     padding: 20px;
 }
 
-/* FIXED: Edit Keyword Modal has higher z-index */
-#editKeywordModal.modal-overlay {
-    z-index: 1100;
-}
-
-
+/* REMOVED: Edit Keyword Modal CSS deleted */
 
 .modal { 
     background: white; 
@@ -1138,12 +1212,6 @@
     align-items: center;
     gap: 8px;
     font-size: 12px;
-}
-
-.legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
 }
 
 .legend-color.happy { background: #4caf50; }
@@ -2227,7 +2295,7 @@
             Run Test
           </button>
         </div>
-        
+
         <!-- Enhanced Test Results Section -->
         <div id="testResultsSection" style="display: none;">
           <div class="chart-container">
@@ -2397,7 +2465,80 @@
   </div>
 </div>
 
-<!-- Enhanced Keyword Reference Modal -->
+<!-- Edit Keyword Modal -->
+<div class="modal-overlay" id="editKeywordModal" style="display: none;">
+  <div class="modal edit-keyword-modal">
+    <div class="modal-header">
+      <h2><span class="icon">✏️</span> Edit Keyword</h2>
+      <button class="modal-close" onclick="closeEditKeywordModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="edit-keyword-header">
+        <span class="emoji" id="currentEmotionEmoji">😊</span>
+        <span class="title" id="editModalTitle">Edit Keyword</span>
+      </div>
+      
+      <div class="keyword-to-edit" id="keywordToEdit">
+        <!-- Keyword will be populated here -->
+      </div>
+      
+      <div class="form-group">
+        <label>Emotion Category</label>
+        <div class="emotion-select-buttons">
+          <button class="emotion-select-btn happy" data-emotion="happy" onclick="selectEmotion('happy')">
+            <span class="icon">😊</span>
+            <span>Happy</span>
+          </button>
+          <button class="emotion-select-btn neutral" data-emotion="neutral" onclick="selectEmotion('neutral')">
+            <span class="icon">😐</span>
+            <span>Neutral</span>
+          </button>
+          <button class="emotion-select-btn sad" data-emotion="sad" onclick="selectEmotion('sad')">
+            <span class="icon">😢</span>
+            <span>Sad</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="score-weight-container">
+        <div class="score-weight-label">
+          <span>Score Weight</span>
+          <span class="score-weight-value" id="scoreWeightValue">5</span>
+        </div>
+        <input type="range" 
+               min="1" 
+               max="10" 
+               value="5" 
+               class="score-slider" 
+               id="scoreWeightSlider"
+               oninput="updateScoreWeightValue(this.value)">
+        <div class="score-ticks">
+          <span>1 (Low)</span>
+          <span>5 (Medium)</span>
+          <span>10 (High)</span>
+        </div>
+      </div>
+      
+      <div class="danger-zone">
+        <h4><span class="icon">⚠️</span> Danger Zone</h4>
+        <p>Deleting this keyword will remove it from all analyses. This action cannot be undone.</p>
+        <button class="modal-btn btn-danger" onclick="confirmDeleteKeyword()" style="width: 100%;">
+          <span class="icon">🗑️</span>
+          <span>Delete Keyword</span>
+        </button>
+      </div>
+    </div>
+    <div class="modal-actions-sticky">
+      <button class="modal-btn btn-cancel" onclick="closeEditKeywordModal()">Cancel</button>
+      <button class="modal-btn btn-save" onclick="saveKeywordEdit()">
+        <span class="icon">💾</span>
+        <span>Save Changes</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Keyword Reference Modal - EDIT FUNCTIONALITY REMOVED -->
 <div class="modal-overlay" id="keywordModal" style="display: none;">
   <div class="modal keyword-modal">
     <div class="modal-header">
@@ -2450,71 +2591,7 @@
   </div>
 </div>
 
-<!-- Edit Keyword Dialog -->
-<div class="modal-overlay" id="editKeywordModal" style="display: none;">
-  <div class="modal">
-    <div class="modal-header">
-      <h2><span class="icon">✏️</span> Edit Keyword</h2>
-      <button class="modal-close" onclick="closeEditKeywordModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Keyword Name</label>
-        <input type="text" id="editKeywordName" placeholder="Enter keyword name...">
-      </div>
-      
-      <div class="form-group">
-        <label>Emotion Category</label>
-        <div class="emotion-select-buttons">
-          <button class="emotion-select-btn" data-emotion="happy" onclick="selectEditEmotion('happy')">
-            <span class="icon">😊</span>
-            <span>Happy</span>
-          </button>
-          <button class="emotion-select-btn" data-emotion="neutral" onclick="selectEditEmotion('neutral')">
-            <span class="icon">😐</span>
-            <span>Neutral</span>
-          </button>
-          <button class="emotion-select-btn" data-emotion="sad" onclick="selectEditEmotion('sad')">
-            <span class="icon">😢</span>
-            <span>Sad</span>
-          </button>
-        </div>
-        <input type="hidden" id="editKeywordEmotion" value="">
-      </div>
-      
-      <div class="form-group">
-        <label>Keyword Score (Weight)</label>
-        <div class="score-slider-container">
-          <input type="range" id="editKeywordScore" min="1" max="10" value="1" class="score-slider">
-          <div class="score-slider-labels">
-            <span>Low (1)</span>
-            <span id="currentScoreValue">1</span>
-            <span>High (10)</span>
-          </div>
-          <div class="score-description">
-            <small>Higher scores give more weight to this keyword in sentiment analysis</small>
-          </div>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label>Additional Notes (Optional)</label>
-        <textarea id="editKeywordNotes" placeholder="Add any notes about this keyword..." rows="3"></textarea>
-      </div>
-    </div>
-    <div class="modal-actions-sticky">
-      <button class="modal-btn btn-cancel" onclick="closeEditKeywordModal()">Cancel</button>
-      <button class="modal-btn btn-danger" onclick="deleteKeyword()" id="deleteKeywordBtn">
-        <span class="icon">🗑️</span>
-        Delete
-      </button>
-      <button class="modal-btn btn-save" onclick="saveKeywordEdit()">
-        <span class="icon">💾</span>
-        Save Changes
-      </button>
-    </div>
-  </div>
-</div>
+<!-- REMOVED: Edit Keyword Dialog deleted -->
 
 <!-- Guide Modal -->
 <div class="modal-overlay" id="guideModal" style="display: none;">
@@ -2808,8 +2885,11 @@
 <div class="toast" id="toast">✅ Action completed successfully!</div>
 <script>
 const API_URL = window.location.origin;
-let editingKeywordIndex = -1;
-let editingKeywordEmotion = '';
+let currentEditKeyword = null;
+let currentEditEmotion = null;
+let selectedEditEmotion = null;
+
+// REMOVED: Edit keyword variables deleted
 let currentKeywordFilter = 'all';
 
 // Emotions data - this is your provided keyword data
@@ -3027,37 +3107,6 @@ let countdownInterval = null;
 let estimatedTimeRemaining = 0;
 const TIME_PER_COMPANY = 11.69; // seconds per company
 
-// Emotions with scores
-const emotionsWithScores = {
-    'happy': {
-        'keywords': emotions.happy.keywords.map(keyword => ({
-            name: keyword,
-            score: 1,
-            notes: ''
-        })),
-        'emoji': '😊',
-        'color': '#4caf50'
-    },
-    'neutral': {
-        'keywords': emotions.neutral.keywords.map(keyword => ({
-            name: keyword,
-            score: 1,
-            notes: ''
-        })),
-        'emoji': '😐',
-        'color': '#ff9800'
-    },
-    'sad': {
-        'keywords': emotions.sad.keywords.map(keyword => ({
-            name: keyword,
-            score: 1,
-            notes: ''
-        })),
-        'emoji': '😢',
-        'color': '#f44336'
-    }
-};
-
 function getRAG(sad, happy) {
   if (sad === null || happy === null) return '';
   if (happy >= 70) return 'green';
@@ -3077,7 +3126,178 @@ function calculateTotalAnalysisTime() {
   const totalCompanies = companies.length;
   return Math.round(totalCompanies * TIME_PER_COMPANY); // Total seconds
 }
+// Open edit keyword modal
+// Open edit keyword modal
+function editKeyword(keyword, emotion) {
+    // Unescape the keyword
+    const unescapedKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
+    
+    currentEditKeyword = unescapedKeyword;
+    currentEditEmotion = emotion;
+    selectedEditEmotion = emotion;
+    
+    // Update modal content
+    document.getElementById('keywordToEdit').textContent = unescapedKeyword;
+    document.getElementById('editModalTitle').textContent = `Edit "${unescapedKeyword}"`;
+    
+    // Set current emotion
+    const emoji = emotions[emotion].emoji;
+    document.getElementById('currentEmotionEmoji').textContent = emoji;
+    
+    // Update emotion selection
+    document.querySelectorAll('.emotion-select-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.getAttribute('data-emotion') === emotion) {
+            btn.classList.add('selected');
+        }
+    });
+    
+    // Reset score weight to default 5
+    document.getElementById('scoreWeightSlider').value = 5;
+    document.getElementById('scoreWeightValue').textContent = '5';
+    
+    // Show modal
+    document.getElementById('editKeywordModal').style.display = 'flex';
+}
 
+// Close edit keyword modal
+function closeEditKeywordModal() {
+    document.getElementById('editKeywordModal').style.display = 'none';
+    currentEditKeyword = null;
+    currentEditEmotion = null;
+    selectedEditEmotion = null;
+}
+
+// Select emotion in edit modal
+function selectEmotion(emotion) {
+    selectedEditEmotion = emotion;
+    
+    // Update UI
+    document.querySelectorAll('.emotion-select-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.getAttribute('data-emotion') === emotion) {
+            btn.classList.add('selected');
+        }
+    });
+    
+    // Update emoji
+    const emoji = emotions[emotion].emoji;
+    document.getElementById('currentEmotionEmoji').textContent = emoji;
+}
+
+// Update score weight display
+function updateScoreWeightValue(value) {
+    document.getElementById('scoreWeightValue').textContent = value;
+}
+
+// Save keyword edit
+function saveKeywordEdit() {
+    if (!currentEditKeyword || !selectedEditEmotion) return;
+    
+    // Check if emotion changed
+    if (currentEditEmotion !== selectedEditEmotion) {
+        // Remove from old emotion category
+        const oldIndex = emotions[currentEditEmotion].keywords.indexOf(currentEditKeyword);
+        if (oldIndex !== -1) {
+            emotions[currentEditEmotion].keywords.splice(oldIndex, 1);
+        }
+        
+        // Add to new emotion category
+        if (!emotions[selectedEditEmotion].keywords.includes(currentEditKeyword)) {
+            emotions[selectedEditEmotion].keywords.push(currentEditKeyword);
+            emotions[selectedEditEmotion].keywords.sort();
+        }
+        
+        // Update currentEditEmotion
+        currentEditEmotion = selectedEditEmotion;
+    }
+    
+    // Get score weight (for future use if you want to implement weighted scoring)
+    const scoreWeight = parseInt(document.getElementById('scoreWeightSlider').value);
+    
+    // Save to localStorage for persistence (optional)
+    saveEmotionsToLocalStorage();
+    
+    // Refresh the keyword modal
+    populateKeywordModal();
+    
+    // Close modal
+    closeEditKeywordModal();
+    
+    showToast('✅ Keyword updated successfully!');
+}
+
+// Delete keyword with confirmation
+// Delete keyword with confirmation
+function deleteKeyword(keyword, emotion) {
+    // Unescape the keyword for display
+    const displayKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
+    
+    if (confirm(`Are you sure you want to delete the keyword "${displayKeyword}"? This action cannot be undone.`)) {
+        // Use the original keyword (unescaped) for searching
+        const originalKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
+        const emotionIndex = emotions[emotion].keywords.indexOf(originalKeyword);
+        if (emotionIndex !== -1) {
+            emotions[emotion].keywords.splice(emotionIndex, 1);
+            
+            // Save to localStorage for persistence
+            saveEmotionsToLocalStorage();
+            
+            // Refresh the keyword modal
+            populateKeywordModal();
+            
+            showToast('🗑️ Keyword deleted successfully!');
+        }
+    }
+}
+
+// Confirm delete from edit modal
+function confirmDeleteKeyword() {
+    if (confirm(`Are you absolutely sure you want to delete "${currentEditKeyword}"? This will affect all future analyses.`)) {
+        const emotionIndex = emotions[currentEditEmotion].keywords.indexOf(currentEditKeyword);
+        if (emotionIndex !== -1) {
+            emotions[currentEditEmotion].keywords.splice(emotionIndex, 1);
+            
+            // Save to localStorage for persistence (optional)
+            saveEmotionsToLocalStorage();
+            
+            // Refresh the keyword modal
+            populateKeywordModal();
+            
+            // Close edit modal
+            closeEditKeywordModal();
+            
+            showToast('🗑️ Keyword deleted successfully!');
+        }
+    }
+}
+
+// Optional: Save emotions to localStorage for persistence
+function saveEmotionsToLocalStorage() {
+    try {
+        localStorage.setItem('sentimentKeywords', JSON.stringify(emotions));
+    } catch (e) {
+        console.error('Error saving to localStorage:', e);
+    }
+}
+
+// Optional: Load emotions from localStorage on startup
+function loadEmotionsFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('sentimentKeywords');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            // Merge with default emotions
+            Object.keys(parsed).forEach(emotion => {
+                if (emotions[emotion]) {
+                    emotions[emotion].keywords = parsed[emotion].keywords;
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Error loading from localStorage:', e);
+    }
+}
 // Function to start countdown timer
 function startCountdownTimer() {
   // Clear any existing timer
@@ -3246,149 +3466,9 @@ function handleMyListAction(action) {
   }
 }
 
-// Update original emotions object
-function updateOriginalEmotions() {
-    // Update happy keywords
-    emotions.happy.keywords = emotionsWithScores.happy.keywords.map(k => k.name).sort();
-    
-    // Update neutral keywords
-    emotions.neutral.keywords = emotionsWithScores.neutral.keywords.map(k => k.name).sort();
-    
-    // Update sad keywords
-    emotions.sad.keywords = emotionsWithScores.sad.keywords.map(k => k.name).sort();
-}
+// REMOVED: All edit keyword functions deleted
 
-// Delete keyword
-function deleteKeyword() {
-    if (editingKeywordIndex === -1 || !editingKeywordEmotion) return;
-    
-    if (confirm(`Are you sure you want to delete this keyword? This action cannot be undone.`)) {
-        // Remove from emotionsWithScores
-        emotionsWithScores[editingKeywordEmotion].keywords.splice(editingKeywordIndex, 1);
-        
-        // Update original emotions object
-        updateOriginalEmotions();
-        
-        // Re-render the modal
-        populateKeywordModal();
-        filterKeywordsByEmotion(currentKeywordFilter);
-        
-        closeEditKeywordModal();
-        showToast('🗑️ Keyword deleted successfully!');
-    }
-}
-
-// Save keyword edit
-function saveKeywordEdit() {
-    if (editingKeywordIndex === -1) return;
-    
-    const newName = document.getElementById('editKeywordName').value.trim();
-    const newEmotion = document.getElementById('editKeywordEmotion').value;
-    const newScore = parseInt(document.getElementById('editKeywordScore').value);
-    const newNotes = document.getElementById('editKeywordNotes').value.trim();
-    
-    if (!newName) {
-        showToast('⚠️ Please enter a keyword name');
-        return;
-    }
-    
-    if (!newEmotion) {
-        showToast('⚠️ Please select an emotion');
-        return;
-    }
-    
-    // Check if keyword name already exists (excluding current keyword)
-    for (const [emotion, data] of Object.entries(emotionsWithScores)) {
-        for (let i = 0; i < data.keywords.length; i++) {
-            if (emotion === editingKeywordEmotion && i === editingKeywordIndex) {
-                continue; // Skip current keyword
-            }
-            
-            if (data.keywords[i].name.toLowerCase() === newName.toLowerCase()) {
-                showToast(`⚠️ Keyword "${newName}" already exists`);
-                return;
-            }
-        }
-    }
-    
-    // Remove from old emotion if emotion changed
-    if (newEmotion !== editingKeywordEmotion) {
-        // Remove from old emotion
-        emotionsWithScores[editingKeywordEmotion].keywords.splice(editingKeywordIndex, 1);
-        
-        // Add to new emotion
-        emotionsWithScores[newEmotion].keywords.push({
-            name: newName,
-            score: newScore,
-            notes: newNotes
-        });
-        
-        // Sort keywords
-        emotionsWithScores[newEmotion].keywords.sort((a, b) => a.name.localeCompare(b.name));
-        
-        // Update original emotions object (for backward compatibility)
-        updateOriginalEmotions();
-        
-        // Re-render the modal
-        populateKeywordModal();
-        filterKeywordsByEmotion(currentKeywordFilter);
-    } else {
-        // Update within same emotion
-        emotionsWithScores[editingKeywordEmotion].keywords[editingKeywordIndex] = {
-            name: newName,
-            score: newScore,
-            notes: newNotes
-        };
-        
-        // Update original emotions object
-        updateOriginalEmotions();
-        
-        // Update the specific keyword item
-        const keywordItems = document.querySelectorAll('.keyword-item');
-        keywordItems.forEach(item => {
-            const itemEmotion = item.getAttribute('data-emotion');
-            const itemIndex = parseInt(item.getAttribute('data-index'));
-            
-            if (itemEmotion === editingKeywordEmotion && itemIndex === editingKeywordIndex) {
-                item.querySelector('.keyword-text').textContent = newName;
-                item.querySelector('.keyword-score').textContent = newScore;
-                item.querySelector('.keyword-score').title = `Score: ${newScore}`;
-                
-                if (newNotes) {
-                    let notesElement = item.querySelector('.keyword-notes');
-                    if (!notesElement) {
-                        const emotionElement = item.querySelector('.keyword-emotion');
-                        notesElement = document.createElement('div');
-                        notesElement.className = 'keyword-notes';
-                        notesElement.style.cssText = 'margin-top: 8px; font-size: 11px; color: #666; font-style: italic;';
-                        emotionElement.after(notesElement);
-                    }
-                    notesElement.textContent = newNotes;
-                } else {
-                    const notesElement = item.querySelector('.keyword-notes');
-                    if (notesElement) notesElement.remove();
-                }
-            }
-        });
-    }
-    
-    closeEditKeywordModal();
-    showToast('✅ Keyword updated successfully!');
-}
-
-// Update score display
-function updateScoreDisplay() {
-    const scoreValue = document.getElementById('editKeywordScore').value;
-    document.getElementById('currentScoreValue').textContent = scoreValue;
-}
-
-// Close edit keyword modal
-function closeEditKeywordModal() {
-    document.getElementById('editKeywordModal').style.display = 'none';
-    editingKeywordIndex = -1;
-    editingKeywordEmotion = '';
-}
-
+// Enhanced populate keyword modal with individual containers - EDIT FUNCTIONALITY REMOVED
 // Enhanced populate keyword modal with individual containers
 function populateKeywordModal() {
     const container = document.getElementById('keywordsContainer');
@@ -3402,45 +3482,63 @@ function populateKeywordModal() {
     document.getElementById('sadKeywordCount').textContent = emotions.sad.keywords.length;
     
     // Create keyword items for all emotions
-    for (const [emotion, data] of Object.entries(emotionsWithScores)) {
+    for (const [emotion, data] of Object.entries(emotions)) {
         const keywords = data.keywords;
         
-        keywords.forEach((keywordObj, index) => {
-            const keyword = keywordObj.name;
-            const score = keywordObj.score || 1;
-            const notes = keywordObj.notes || '';
+        keywords.forEach((keyword, index) => {
+            // Properly escape the keyword for JavaScript
+            const escapedKeyword = keyword.replace(/'/g, "\\'").replace(/"/g, '\\"');
             
             html += `
-                <div class="keyword-item ${emotion}" data-emotion="${emotion}" data-index="${index}">
-                    <div class="keyword-header">
-                        <div class="keyword-text">${keyword}</div>
-                        <div class="keyword-score" title="Score: ${score}">${score}</div>
-                    </div>
-                    <div class="keyword-emotion">
-                        <span class="icon">${data.emoji}</span>
-                        <span>${emotion.charAt(0).toUpperCase() + emotion.slice(1)}</span>
-                    </div>
-                    ${notes ? `
-                    <div class="keyword-notes" style="margin-top: 8px; font-size: 11px; color: #666; font-style: italic;">
-                        ${notes}
-                    </div>
-                    ` : ''}
-                    <div class="keyword-actions">
-                        <button class="keyword-action-btn edit" onclick="editKeyword('${emotion}', ${index})">
-                            <span class="icon">✏️</span>
-                            <span>Edit</span>
-                        </button>
-                        <button class="keyword-action-btn copy" onclick="copyKeyword('${keyword}')">
-                            <span class="icon">📋</span>
-                            <span>Copy</span>
-                        </button>
-                    </div>
-                </div>
-            `;
+    <div class="keyword-item ${emotion}" data-emotion="${emotion}" data-index="${index}" data-keyword="${keyword}">
+        <div class="keyword-header">
+            <div class="keyword-text">${keyword}</div>
+            <div class="keyword-actions">
+                <button class="keyword-action-btn edit" data-keyword="${keyword}" data-emotion="${emotion}" title="Edit">
+                    <span class="icon">✏️</span>
+                </button>
+                <button class="keyword-action-btn delete" data-keyword="${keyword}" data-emotion="${emotion}" title="Delete">
+                    <span class="icon">🗑️</span>
+                </button>
+            </div>
+        </div>
+        <div class="keyword-emotion">
+            <span class="icon">${data.emoji}</span>
+            <span>${emotion.charAt(0).toUpperCase() + emotion.slice(1)}</span>
+        </div>
+        <button class="keyword-action-btn copy" data-keyword="${keyword}" style="margin-top: 12px; padding: 6px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; background: rgba(102, 126, 234, 0.1); color: #667eea;">
+            <span class="icon">📋</span>
+            <span>Copy Keyword</span>
+        </button>
+    </div>
+`;
         });
     }
     
     container.innerHTML = html;
+    container.addEventListener('click', function(e) {
+    const editBtn = e.target.closest('.keyword-action-btn.edit');
+    const deleteBtn = e.target.closest('.keyword-action-btn.delete');
+    const copyBtn = e.target.closest('.keyword-action-btn.copy');
+    
+    if (editBtn) {
+        const keyword = editBtn.getAttribute('data-keyword');
+        const emotion = editBtn.getAttribute('data-emotion');
+        editKeyword(keyword, emotion);
+    }
+    
+    if (deleteBtn) {
+        const keyword = deleteBtn.getAttribute('data-keyword');
+        const emotion = deleteBtn.getAttribute('data-emotion');
+        deleteKeyword(keyword, emotion);
+    }
+    
+    if (copyBtn) {
+        const keyword = copyBtn.getAttribute('data-keyword');
+        copyKeyword(keyword);
+    }
+});
+
     
     // Add search functionality
     const searchInput = document.getElementById('keywordSearch');
@@ -3553,49 +3651,6 @@ function filterKeywords(searchTerm) {
     }
 }
 
-// Edit keyword function
-function editKeyword(emotion, index) {
-    editingKeywordIndex = index;
-    editingKeywordEmotion = emotion;
-    
-    const keywordObj = emotionsWithScores[emotion].keywords[index];
-    
-    // Set modal values
-    document.getElementById('editKeywordName').value = keywordObj.name;
-    document.getElementById('editKeywordEmotion').value = emotion;
-    document.getElementById('editKeywordScore').value = keywordObj.score || 1;
-    document.getElementById('currentScoreValue').textContent = keywordObj.score || 1;
-    document.getElementById('editKeywordNotes').value = keywordObj.notes || '';
-    
-    // Set selected emotion button
-    document.querySelectorAll('.emotion-select-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (btn.getAttribute('data-emotion') === emotion) {
-            btn.classList.add('selected');
-        }
-    });
-    
-    // Update score slider display
-    updateScoreDisplay();
-    
-    // Show modal
-    document.getElementById('editKeywordModal').style.display = 'flex';
-}
-
-// Select emotion in edit modal
-function selectEditEmotion(emotion) {
-    editingKeywordEmotion = emotion;
-    document.getElementById('editKeywordEmotion').value = emotion;
-    
-    // Update button selection
-    document.querySelectorAll('.emotion-select-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (btn.getAttribute('data-emotion') === emotion) {
-            btn.classList.add('selected');
-        }
-    });
-}
-
 // Copy keyword to clipboard
 function copyKeyword(keyword) {
     navigator.clipboard.writeText(keyword)
@@ -3612,15 +3667,11 @@ function copyKeyword(keyword) {
 function copyAllKeywords() {
     let allKeywords = '';
     
-    for (const [emotion, data] of Object.entries(emotionsWithScores)) {
+    for (const [emotion, data] of Object.entries(emotions)) {
         const emotionName = emotion.charAt(0).toUpperCase() + emotion.slice(1);
         allKeywords += `${emotionName} Keywords:\n`;
-        data.keywords.forEach(keywordObj => {
-            allKeywords += `${keywordObj.name} (Score: ${keywordObj.score})`;
-            if (keywordObj.notes) {
-                allKeywords += ` - ${keywordObj.notes}`;
-            }
-            allKeywords += '\n';
+        data.keywords.forEach(keyword => {
+            allKeywords += `${keyword}\n`;
         });
         allKeywords += '\n';
     }
@@ -3664,8 +3715,6 @@ function openKeywordModal() {
 
 function closeKeywordModal() {
     document.getElementById('keywordModal').style.display = 'none';
-    // Also close edit modal if open
-    closeEditKeywordModal();
 }
 
 // Open export modal
@@ -5253,7 +5302,32 @@ function moveDown(i) {
     showToast('⬇️ Moved down!');
   }
 }
-
+function addNewKeyword() {
+    const keyword = prompt('Enter a new keyword:');
+    if (keyword && keyword.trim()) {
+        const trimmedKeyword = keyword.trim();
+        const emotion = prompt('Select emotion (happy/neutral/sad):');
+        if (emotion && ['happy', 'neutral', 'sad'].includes(emotion.toLowerCase())) {
+            const emotionKey = emotion.toLowerCase();
+            if (!emotions[emotionKey].keywords.includes(trimmedKeyword)) {
+                emotions[emotionKey].keywords.push(trimmedKeyword);
+                emotions[emotionKey].keywords.sort();
+                
+                // Save to localStorage
+                saveEmotionsToLocalStorage();
+                
+                // Refresh modal
+                populateKeywordModal();
+                
+                showToast('✅ New keyword added successfully!');
+            } else {
+                showToast('⚠️ Keyword already exists!');
+            }
+        } else {
+            showToast('⚠️ Please enter a valid emotion (happy, neutral, or sad)');
+        }
+    }
+}
 function showQuickStart() {
   showToast('🚀 Starting quick demo...');
   // Add demo companies
@@ -5275,7 +5349,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('keywordRefBtn').addEventListener('click', () => handleMyListAction('keyword'));
   document.getElementById('exportBtn').addEventListener('click', () => handleMyListAction('export'));
   document.getElementById('compareBtn').addEventListener('click', () => handleMyListAction('compare'));
-  
+  document.getElementById('editKeywordModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditKeywordModal();
+        }
+    });
+
+   loadEmotionsFromLocalStorage();
   // Add tab button
   document.getElementById('addTabBtn').addEventListener('click', openAddTabModal);
   
@@ -5369,12 +5449,6 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('timerDisplay').textContent = 'Ready';
     }
   }, 3000);
-  
-  // Initialize score slider
-  const scoreSlider = document.getElementById('editKeywordScore');
-  if (scoreSlider) {
-    scoreSlider.addEventListener('input', updateScoreDisplay);
-  }
   
   // Initial render
   renderTable();
