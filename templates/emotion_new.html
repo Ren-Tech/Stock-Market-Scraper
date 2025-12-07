@@ -2583,6 +2583,7 @@
   </div>
 </div>
 
+
 <!-- ENHANCED: Export Modal with Import and Update Options -->
 <div class="modal-overlay" id="exportModal" style="display: none;">
   <div class="modal export-modal">
@@ -2599,18 +2600,18 @@
           
           <div class="import-section">
             <div class="import-options">
-              <div class="import-option" onclick="selectImportOption('csv')">
-                <div class="icon">📄</div>
-                <h4>CSV File</h4>
-                <p>Import data from CSV format</p>
-              </div>
-              
-              <div class="import-option" onclick="selectImportOption('json')">
-                <div class="icon">🔧</div>
-                <h4>JSON Format</h4>
-                <p>Import structured JSON data</p>
-              </div>
-            </div>
+  <div class="import-option" data-format="csv" onclick="selectImportOption('csv')">
+    <div class="icon">📄</div>
+    <h4>CSV File</h4>
+    <p>Import data from CSV format</p>
+  </div>
+  
+  <div class="import-option" data-format="json" onclick="selectImportOption('json')">
+    <div class="icon">🔧</div>
+    <h4>JSON Format</h4>
+    <p>Import structured JSON data</p>
+  </div>
+</div>
             
             <div style="margin-top: 20px;">
               <input type="file" id="importFile" accept=".csv,.json,.txt" style="display: none;" onchange="handleFileImport()">
@@ -2658,30 +2659,30 @@
           <p>Choose how you want to export your sentiment analysis data:</p>
           
           <div class="export-options">
-            <div class="export-option" data-format="csv" onclick="selectExportOption('csv')">
-              <div class="icon">📄</div>
-              <h4>CSV File</h4>
-              <p>Comma-separated values, compatible with Excel and data analysis tools</p>
-            </div>
-            
-            <div class="export-option" data-format="json" onclick="selectExportOption('json')">
-              <div class="icon">🔧</div>
-              <h4>JSON Format</h4>
-              <p>Structured data format for developers and API integration</p>
-            </div>
-            
-            <div class="export-option" data-format="pdf" onclick="selectExportOption('pdf')">
-              <div class="icon">📊</div>
-              <h4>PDF Report</h4>
-              <p>Formatted report with charts and analysis summary</p>
-            </div>
-            
-            <div class="export-option" data-format="excel" onclick="selectExportOption('excel')">
-              <div class="icon">📈</div>
-              <h4>Excel File</h4>
-              <p>Formatted Excel spreadsheet with styling and charts</p>
-            </div>
-          </div>
+  <div class="export-option" data-format="csv" onclick="selectExportOption('csv')">
+    <div class="icon">📄</div>
+    <h4>CSV File</h4>
+    <p>Comma-separated values, compatible with Excel and data analysis tools</p>
+  </div>
+  
+  <div class="export-option" data-format="json" onclick="selectExportOption('json')">
+    <div class="icon">🔧</div>
+    <h4>JSON Format</h4>
+    <p>Structured data format for developers and API integration</p>
+  </div>
+  
+  <div class="export-option" data-format="pdf" onclick="selectExportOption('pdf')">
+    <div class="icon">📊</div>
+    <h4>PDF Report</h4>
+    <p>Formatted report with charts and analysis summary</p>
+  </div>
+  
+  <div class="export-option" data-format="excel" onclick="selectExportOption('excel')">
+    <div class="icon">📈</div>
+    <h4>Excel File</h4>
+    <p>Formatted Excel spreadsheet with styling and charts</p>
+  </div>
+</div>
           
           <div class="form-group" style="margin-top: 20px;">
             <label>Export Scope</label>
@@ -2805,7 +2806,6 @@
 </div>
 
 <div class="toast" id="toast">✅ Action completed successfully!</div>
-
 <script>
 const API_URL = window.location.origin;
 let editingKeywordIndex = -1;
@@ -3002,6 +3002,8 @@ let refreshInterval = null;
 let currentSector = 'mylist'; // Default tab
 let currentRagEditIndex = -1; // Track which company's RAG we're editing
 let selectedExportFormat = 'csv'; // Default export format
+let selectedFile = null;
+let selectedImportFormat = 'csv';
 
 // Enhanced tab names with new sectors and custom tabs
 let tabNames = {
@@ -3025,9 +3027,36 @@ let countdownInterval = null;
 let estimatedTimeRemaining = 0;
 const TIME_PER_COMPANY = 11.69; // seconds per company
 
-// Import/Export variables
-let selectedImportFormat = 'csv';
-let selectedFile = null;
+// Emotions with scores
+const emotionsWithScores = {
+    'happy': {
+        'keywords': emotions.happy.keywords.map(keyword => ({
+            name: keyword,
+            score: 1,
+            notes: ''
+        })),
+        'emoji': '😊',
+        'color': '#4caf50'
+    },
+    'neutral': {
+        'keywords': emotions.neutral.keywords.map(keyword => ({
+            name: keyword,
+            score: 1,
+            notes: ''
+        })),
+        'emoji': '😐',
+        'color': '#ff9800'
+    },
+    'sad': {
+        'keywords': emotions.sad.keywords.map(keyword => ({
+            name: keyword,
+            score: 1,
+            notes: ''
+        })),
+        'emoji': '😢',
+        'color': '#f44336'
+    }
+};
 
 function getRAG(sad, happy) {
   if (sad === null || happy === null) return '';
@@ -3217,122 +3246,7 @@ function handleMyListAction(action) {
   }
 }
 
-// NEW: Populate keyword modal with emotion data
-function populateKeywordModal() {
-  const container = document.getElementById('keywordCategories');
-  let html = '';
-  
-  // Create HTML for each emotion category
-  for (const [emotion, data] of Object.entries(emotions)) {
-    const keywords = data.keywords;
-    const emoji = data.emoji;
-    const emotionName = emotion.charAt(0).toUpperCase() + emotion.slice(1);
-    
-    html += `
-      <div class="emotion-category" data-emotion="${emotion}">
-        <div class="emotion-category-header">
-          <div class="emotion-emoji">${emoji}</div>
-          <h3 class="emotion-title">${emotionName} Keywords</h3>
-          <span class="emotion-count">${keywords.length} keywords</span>
-        </div>
-        
-        <div class="keyword-list-container">
-          <div class="keyword-grid" id="keywords-${emotion}">
-            ${keywords.map(keyword => 
-              `<span class="keyword-tag ${emotion}" data-keyword="${keyword.toLowerCase()}">${keyword}</span>`
-            ).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  
-  container.innerHTML = html;
-  
-  // Add search functionality
-  const searchInput = document.getElementById('keywordSearch');
-  searchInput.addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase().trim();
-    filterKeywords(searchTerm);
-  });
-}
-
-// NEW: Filter keywords based on search
-function filterKeywords(searchTerm) {
-  const allKeywordTags = document.querySelectorAll('.keyword-tag');
-  
-  allKeywordTags.forEach(tag => {
-    const keyword = tag.getAttribute('data-keyword');
-    const emotion = tag.classList.contains('happy') ? 'happy' : 
-                    tag.classList.contains('neutral') ? 'neutral' : 'sad';
-    
-    if (searchTerm === '') {
-      tag.style.display = 'block';
-      // Show the emotion category
-      const category = tag.closest('.emotion-category');
-      if (category) {
-        category.style.display = 'block';
-      }
-    } else {
-      if (keyword.includes(searchTerm)) {
-        tag.style.display = 'block';
-        // Show the emotion category
-        const category = tag.closest('.emotion-category');
-        if (category) {
-          category.style.display = 'block';
-        }
-      } else {
-        tag.style.display = 'none';
-        
-        // Hide the emotion category if no keywords match
-        const category = tag.closest('.emotion-category');
-        if (category) {
-          const visibleTags = category.querySelectorAll('.keyword-tag[style*="display: block"]');
-          if (visibleTags.length === 0) {
-            category.style.display = 'none';
-          }
-        }
-      }
-    }
-  });
-}
-
-// NEW: Copy all keywords to clipboard
-function copyAllKeywords() {
-    let allKeywords = '';
-    
-    for (const [emotion, data] of Object.entries(emotionsWithScores)) {
-        const emotionName = emotion.charAt(0).toUpperCase() + emotion.slice(1);
-        allKeywords += `${emotionName} Keywords:\n`;
-        data.keywords.forEach(keywordObj => {
-            allKeywords += `${keywordObj.name} (Score: ${keywordObj.score})`;
-            if (keywordObj.notes) {
-                allKeywords += ` - ${keywordObj.notes}`;
-            }
-            allKeywords += '\n';
-        });
-        allKeywords += '\n';
-    }
-    
-    navigator.clipboard.writeText(allKeywords.trim())
-        .then(() => {
-            showToast('📋 All keywords copied to clipboard!');
-        })
-        .catch(err => {
-            console.error('Failed to copy keywords:', err);
-            showToast('❌ Failed to copy keywords');
-        });
-}
-function copyKeyword(keyword) {
-    navigator.clipboard.writeText(keyword)
-        .then(() => {
-            showToast('📋 Keyword copied to clipboard!');
-        })
-        .catch(err => {
-            console.error('Failed to copy keyword:', err);
-            showToast('❌ Failed to copy keyword');
-        });
-}
+// Update original emotions object
 function updateOriginalEmotions() {
     // Update happy keywords
     emotions.happy.keywords = emotionsWithScores.happy.keywords.map(k => k.name).sort();
@@ -3343,35 +3257,8 @@ function updateOriginalEmotions() {
     // Update sad keywords
     emotions.sad.keywords = emotionsWithScores.sad.keywords.map(k => k.name).sort();
 }
-const emotionsWithScores = {
-    'happy': {
-        'keywords': emotions.happy.keywords.map(keyword => ({
-            name: keyword,
-            score: 1,
-            notes: ''
-        })),
-        'emoji': '😊',
-        'color': '#4caf50'
-    },
-    'neutral': {
-        'keywords': emotions.neutral.keywords.map(keyword => ({
-            name: keyword,
-            score: 1,
-            notes: ''
-        })),
-        'emoji': '😐',
-        'color': '#ff9800'
-    },
-    'sad': {
-        'keywords': emotions.sad.keywords.map(keyword => ({
-            name: keyword,
-            score: 1,
-            notes: ''
-        })),
-        'emoji': '😢',
-        'color': '#f44336'
-    }
-};
+
+// Delete keyword
 function deleteKeyword() {
     if (editingKeywordIndex === -1 || !editingKeywordEmotion) return;
     
@@ -3390,6 +3277,8 @@ function deleteKeyword() {
         showToast('🗑️ Keyword deleted successfully!');
     }
 }
+
+// Save keyword edit
 function saveKeywordEdit() {
     if (editingKeywordIndex === -1) return;
     
@@ -3487,20 +3376,20 @@ function saveKeywordEdit() {
     showToast('✅ Keyword updated successfully!');
 }
 
-// NEW: Update score display
+// Update score display
 function updateScoreDisplay() {
     const scoreValue = document.getElementById('editKeywordScore').value;
     document.getElementById('currentScoreValue').textContent = scoreValue;
 }
 
-// NEW: Close edit keyword modal
+// Close edit keyword modal
 function closeEditKeywordModal() {
     document.getElementById('editKeywordModal').style.display = 'none';
     editingKeywordIndex = -1;
     editingKeywordEmotion = '';
 }
 
-// NEW: Enhanced populate keyword modal with individual containers
+// Enhanced populate keyword modal with individual containers
 function populateKeywordModal() {
     const container = document.getElementById('keywordsContainer');
     let html = '';
@@ -3564,7 +3453,7 @@ function populateKeywordModal() {
     filterKeywordsByEmotion(currentKeywordFilter);
 }
 
-// NEW: Filter keywords by emotion
+// Filter keywords by emotion
 function filterKeywordsByEmotion(emotion) {
     currentKeywordFilter = emotion;
     
@@ -3613,7 +3502,7 @@ function filterKeywordsByEmotion(emotion) {
     }
 }
 
-// NEW: Enhanced filter keywords with emotion filtering
+// Enhanced filter keywords with emotion filtering
 function filterKeywords(searchTerm) {
     const keywordItems = document.querySelectorAll('.keyword-item');
     
@@ -3664,7 +3553,7 @@ function filterKeywords(searchTerm) {
     }
 }
 
-// NEW: Edit keyword function
+// Edit keyword function
 function editKeyword(emotion, index) {
     editingKeywordIndex = index;
     editingKeywordEmotion = emotion;
@@ -3693,7 +3582,7 @@ function editKeyword(emotion, index) {
     document.getElementById('editKeywordModal').style.display = 'flex';
 }
 
-// NEW: Select emotion in edit modal
+// Select emotion in edit modal
 function selectEditEmotion(emotion) {
     editingKeywordEmotion = emotion;
     document.getElementById('editKeywordEmotion').value = emotion;
@@ -3707,6 +3596,45 @@ function selectEditEmotion(emotion) {
     });
 }
 
+// Copy keyword to clipboard
+function copyKeyword(keyword) {
+    navigator.clipboard.writeText(keyword)
+        .then(() => {
+            showToast('📋 Keyword copied to clipboard!');
+        })
+        .catch(err => {
+            console.error('Failed to copy keyword:', err);
+            showToast('❌ Failed to copy keyword');
+        });
+}
+
+// Copy all keywords to clipboard
+function copyAllKeywords() {
+    let allKeywords = '';
+    
+    for (const [emotion, data] of Object.entries(emotionsWithScores)) {
+        const emotionName = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+        allKeywords += `${emotionName} Keywords:\n`;
+        data.keywords.forEach(keywordObj => {
+            allKeywords += `${keywordObj.name} (Score: ${keywordObj.score})`;
+            if (keywordObj.notes) {
+                allKeywords += ` - ${keywordObj.notes}`;
+            }
+            allKeywords += '\n';
+        });
+        allKeywords += '\n';
+    }
+    
+    navigator.clipboard.writeText(allKeywords.trim())
+        .then(() => {
+            showToast('📋 All keywords copied to clipboard!');
+        })
+        .catch(err => {
+            console.error('Failed to copy keywords:', err);
+            showToast('❌ Failed to copy keywords');
+        });
+}
+
 // Existing modal functions
 function openGuideModal() {
   document.getElementById('guideModal').style.display = 'flex';
@@ -3716,7 +3644,7 @@ function closeGuideModal() {
   document.getElementById('guideModal').style.display = 'none';
 }
 
-// Update openKeywordModal function
+// Open keyword modal
 function openKeywordModal() {
     document.getElementById('keywordModal').style.display = 'flex';
     
@@ -3740,6 +3668,7 @@ function closeKeywordModal() {
     closeEditKeywordModal();
 }
 
+// Open export modal
 function openExportModal() {
   document.getElementById('exportModal').style.display = 'flex';
   // Reset selection
@@ -3764,6 +3693,7 @@ function closeExportModal() {
   document.getElementById('exportModal').style.display = 'none';
 }
 
+// Select export option
 function selectExportOption(format) {
   selectedExportFormat = format;
   document.querySelectorAll('.export-option').forEach(opt => {
@@ -3772,15 +3702,29 @@ function selectExportOption(format) {
   document.querySelector(`.export-option[data-format="${format}"]`).classList.add('selected');
 }
 
-// NEW: Import functions
+// Select import option
 function selectImportOption(format) {
   selectedImportFormat = format;
   document.querySelectorAll('.import-option').forEach(opt => {
     opt.classList.remove('selected');
   });
-  document.querySelector(`.import-option[onclick*="${format}"]`).classList.add('selected');
+  
+  // Find the clicked option
+  const clickedOption = event.target.closest('.import-option');
+  if (clickedOption) {
+    clickedOption.classList.add('selected');
+  }
+  
+  // Update file input accept attribute
+  const fileInput = document.getElementById('importFile');
+  if (format === 'json') {
+    fileInput.accept = '.json';
+  } else {
+    fileInput.accept = '.csv,.txt';
+  }
 }
 
+// Handle file import
 function handleFileImport() {
   const fileInput = document.getElementById('importFile');
   const fileNameDisplay = document.getElementById('selectedFileName');
@@ -3796,6 +3740,7 @@ function handleFileImport() {
   }
 }
 
+// Clear import
 function clearImport() {
   document.getElementById('importFile').value = '';
   document.getElementById('selectedFileName').textContent = 'No file selected';
@@ -3803,6 +3748,230 @@ function clearImport() {
   selectedFile = null;
 }
 
+// Enhanced CSV export
+function exportToCSVEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata, formatNumbers) {
+  // Create CSV headers
+  let headers = ['Company', 'Sector', 'Sad %', 'Neutral %', 'Happy %'];
+  if (includeRAG) headers.push('RAG Status');
+  if (includeTimestamps) headers.push('Last Analyzed');
+  
+  let csvContent = headers.map(h => `"${h}"`).join(',') + '\n';
+  
+  companiesToExport.forEach(company => {
+    const sad = company.sad !== null ? (formatNumbers ? `${company.sad}%` : company.sad) : "N/A";
+    const neutral = company.neutral !== null ? (formatNumbers ? `${company.neutral}%` : company.neutral) : "N/A";
+    const happy = company.happy !== null ? (formatNumbers ? `${company.happy}%` : company.happy) : "N/A";
+    const rag = company.sad !== null && company.happy !== null ? getRAG(company.sad, company.happy) : "N/A";
+    
+    let row = [
+      `"${company.name}"`,
+      `"${company.sector}"`,
+      `"${sad}"`,
+      `"${neutral}"`,
+      `"${happy}"`
+    ];
+    
+    if (includeRAG) row.push(`"${rag}"`);
+    if (includeTimestamps) row.push(`"${new Date().toISOString()}"`);
+    
+    csvContent += row.join(',') + '\n';
+  });
+  
+  if (includeMetadata) {
+    csvContent += '\n' + `"Metadata","Value"` + '\n';
+    csvContent += `"Export Date","${new Date().toISOString()}"` + '\n';
+    csvContent += `"Total Companies","${companiesToExport.length}"` + '\n';
+    csvContent += `"Analyzed Companies","${companiesToExport.filter(c => c.sad !== null).length}"` + '\n';
+    csvContent += `"Export Scope","${document.getElementById('exportScope').value}"` + '\n';
+    csvContent += `"Export Format","${selectedExportFormat}"` + '\n';
+  }
+  
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sentiment_analysis_${new Date().toISOString().split('T')[0]}_${companiesToExport.length}_companies.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  
+  showToast('📤 CSV data exported successfully!');
+}
+
+// Enhanced JSON export
+function exportToJSONEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata) {
+  const exportData = {
+    exportDate: new Date().toISOString(),
+    totalCompanies: companiesToExport.length,
+    analyzedCompanies: companiesToExport.filter(c => c.sad !== null).length,
+    companies: companiesToExport.map(company => {
+      const data = {
+        name: company.name,
+        sector: company.sector,
+        sentiment: {
+          sad: company.sad,
+          neutral: company.neutral,
+          happy: company.happy
+        }
+      };
+      
+      if (includeRAG && company.sad !== null && company.happy !== null) {
+        data.rag = getRAG(company.sad, company.happy);
+      }
+      
+      if (includeTimestamps) {
+        data.lastAnalyzed = new Date().toISOString();
+        data.analysisDate = new Date().toISOString();
+      }
+      
+      return data;
+    })
+  };
+  
+  if (includeMetadata) {
+    exportData.metadata = {
+      totalCompanies: companiesToExport.length,
+      analyzedCompanies: companiesToExport.filter(c => c.sad !== null).length,
+      exportScope: document.getElementById('exportScope').value,
+      exportFormat: selectedExportFormat,
+      version: '1.0.0',
+      emotionKeywords: {
+        happy: emotions.happy.keywords.length,
+        neutral: emotions.neutral.keywords.length,
+        sad: emotions.sad.keywords.length
+      }
+    };
+  }
+  
+  const jsonString = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sentiment_analysis_${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  
+  showToast('📤 JSON data exported successfully!');
+}
+
+// PDF export
+function exportToPDF(companiesToExport, includeRAG, includeTimestamps, includeMetadata) {
+  // Create a simple PDF using jsPDF (you'll need to include jsPDF library)
+  showToast('📊 PDF export requires jsPDF library. For now, exporting as CSV...');
+  
+  // Fallback to CSV export
+  exportToCSVEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata, true);
+}
+
+// Excel export
+function exportToExcel(companiesToExport, includeRAG, includeTimestamps, includeMetadata) {
+  // For Excel export, we can create an enhanced CSV that Excel can open nicely
+  let headers = ['Company', 'Sector', 'Sad %', 'Neutral %', 'Happy %', 'RAG Status'];
+  
+  let csvContent = 'sep=,\n'; // Excel separator
+  csvContent += headers.map(h => `"${h}"`).join(',') + '\n';
+  
+  companiesToExport.forEach(company => {
+    const sad = company.sad !== null ? `${company.sad}%` : "N/A";
+    const neutral = company.neutral !== null ? `${company.neutral}%` : "N/A";
+    const happy = company.happy !== null ? `${company.happy}%` : "N/A";
+    const rag = company.sad !== null && company.happy !== null ? getRAG(company.sad, company.happy) : "N/A";
+    
+    let row = [
+      `"${company.name}"`,
+      `"${company.sector}"`,
+      `"${sad}"`,
+      `"${neutral}"`,
+      `"${happy}"`,
+      `"${rag}"`
+    ];
+    
+    csvContent += row.join(',') + '\n';
+  });
+  
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sentiment_analysis_${new Date().toISOString().split('T')[0]}.xls`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  
+  showToast('📈 Excel file exported successfully!');
+}
+
+// Perform export
+function performExport() {
+  const scope = document.getElementById('exportScope').value;
+  const includeRAG = document.getElementById('includeRAG').checked;
+  const includeTimestamps = document.getElementById('includeTimestamps').checked;
+  const includeMetadata = document.getElementById('includeMetadata').checked;
+  const formatNumbers = document.getElementById('formatNumbers').checked;
+  
+  let companiesToExport = [];
+  
+  // Filter companies based on scope
+  switch(scope) {
+    case 'current':
+      if (currentSector === 'mylist') {
+        companiesToExport = companies;
+      } else {
+        companiesToExport = companies.filter(c => c.sector === currentSector);
+      }
+      break;
+    case 'all':
+      companiesToExport = companies;
+      break;
+    case 'analyzed':
+      companiesToExport = companies.filter(c => c.sad !== null && c.neutral !== null && c.happy !== null);
+      break;
+    case 'custom':
+      // For custom selection, show a prompt for now
+      const selectedNames = prompt('Enter company names to export (comma-separated):');
+      if (selectedNames) {
+        const names = selectedNames.split(',').map(name => name.trim());
+        companiesToExport = companies.filter(c => names.includes(c.name));
+      } else {
+        companiesToExport = companies; // Fallback to all
+      }
+      break;
+  }
+  
+  if (companiesToExport.length === 0) {
+    showToast('⚠️ No companies to export');
+    return;
+  }
+  
+  // Create export data based on format
+  switch(selectedExportFormat) {
+    case 'csv':
+      exportToCSVEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata, formatNumbers);
+      break;
+    case 'json':
+      exportToJSONEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata);
+      break;
+    case 'pdf':
+      exportToPDF(companiesToExport, includeRAG, includeTimestamps, includeMetadata);
+      break;
+    case 'excel':
+      exportToExcel(companiesToExport, includeRAG, includeTimestamps, includeMetadata);
+      break;
+    default:
+      exportToCSVEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata, formatNumbers);
+  }
+  
+  closeExportModal();
+}
+
+// Perform import
 async function performImport() {
   if (!selectedFile) {
     showToast('⚠️ Please select a file to import');
@@ -3820,32 +3989,64 @@ async function performImport() {
     
     if (selectedFile.name.toLowerCase().endsWith('.json')) {
       importedData = JSON.parse(text);
-      // Handle JSON import
+      
+      // Check if this is our export format
       if (importedData.companies && Array.isArray(importedData.companies)) {
-        importedData.companies.forEach(company => {
+        if (importMode === 'replace') {
+          // Replace all companies
+          companies = importedData.companies.map(company => ({
+            name: company.name,
+            sector: company.sector || 'Technology',
+            sad: keepScores ? (company.sentiment?.sad || null) : null,
+            neutral: keepScores ? (company.sentiment?.neutral || null) : null,
+            happy: keepScores ? (company.sentiment?.happy || null) : null
+          }));
+          importCount = companies.length;
+        } else {
+          // Import each company
+          importedData.companies.forEach(company => {
+            const existingIndex = companies.findIndex(c => 
+              c.name.toLowerCase() === company.name.toLowerCase()
+            );
+            
+            if (existingIndex !== -1) {
+              if (importMode === 'update') {
+                // Update existing company
+                if (keepScores && company.sentiment) {
+                  companies[existingIndex].sad = company.sentiment.sad;
+                  companies[existingIndex].neutral = company.sentiment.neutral;
+                  companies[existingIndex].happy = company.sentiment.happy;
+                }
+                companies[existingIndex].sector = company.sector || companies[existingIndex].sector;
+                updateCount++;
+              }
+            } else {
+              // Add new company
+              companies.push({
+                name: company.name,
+                sector: company.sector || 'Technology',
+                sad: keepScores ? (company.sentiment?.sad || null) : null,
+                neutral: keepScores ? (company.sentiment?.neutral || null) : null,
+                happy: keepScores ? (company.sentiment?.happy || null) : null
+              });
+              importCount++;
+            }
+          });
+        }
+      } else if (Array.isArray(importedData)) {
+        // Handle array format
+        importedData.forEach(company => {
           const existingIndex = companies.findIndex(c => 
             c.name.toLowerCase() === company.name.toLowerCase()
           );
           
-          if (existingIndex !== -1) {
-            if (importMode === 'update' || importMode === 'replace') {
-              // Update existing company
-              if (keepScores && company.sentiment) {
-                companies[existingIndex].sad = company.sentiment.sad;
-                companies[existingIndex].neutral = company.sentiment.neutral;
-                companies[existingIndex].happy = company.sentiment.happy;
-              }
-              companies[existingIndex].sector = company.sector || companies[existingIndex].sector;
-              updateCount++;
-            }
-          } else if (importMode !== 'update') {
-            // Add new company
+          if (existingIndex === -1 || importMode === 'replace') {
             companies.push({
               name: company.name,
               sector: company.sector || 'Technology',
-              sad: keepScores ? (company.sentiment?.sad || null) : null,
-              neutral: keepScores ? (company.sentiment?.neutral || null) : null,
-              happy: keepScores ? (company.sentiment?.happy || null) : null
+              sad: company.sad || null,
+              neutral: company.neutral || null,
+              happy: company.happy || null
             });
             importCount++;
           }
@@ -3853,50 +4054,81 @@ async function performImport() {
       }
     } else if (selectedFile.name.toLowerCase().endsWith('.csv')) {
       // Handle CSV import
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const lines = text.split('\n').filter(line => line.trim());
+      if (lines.length === 0) {
+        showToast('⚠️ CSV file is empty');
+        return;
+      }
+      
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
       
       for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-          const companyData = {};
-          
-          headers.forEach((header, index) => {
-            companyData[header.toLowerCase()] = values[index];
-          });
-          
-          const existingIndex = companies.findIndex(c => 
-            c.name.toLowerCase() === companyData.company.toLowerCase()
-          );
-          
-          if (existingIndex !== -1) {
-            if (importMode === 'update' || importMode === 'replace') {
-              // Update existing company
-              if (keepScores) {
-                companies[existingIndex].sad = parseInt(companyData['sad %']) || companies[existingIndex].sad;
-                companies[existingIndex].neutral = parseInt(companyData['neutral %']) || companies[existingIndex].neutral;
-                companies[existingIndex].happy = parseInt(companyData['happy %']) || companies[existingIndex].happy;
-              }
-              companies[existingIndex].sector = companyData.sector || companies[existingIndex].sector;
-              updateCount++;
-            }
-          } else if (importMode !== 'update') {
-            // Add new company
-            companies.push({
-              name: companyData.company,
-              sector: companyData.sector || 'Technology',
-              sad: keepScores ? (parseInt(companyData['sad %']) || null) : null,
-              neutral: keepScores ? (parseInt(companyData['neutral %']) || null) : null,
-              happy: keepScores ? (parseInt(companyData['happy %']) || null) : null
-            });
-            importCount++;
+        const line = lines[i];
+        if (!line.trim()) continue;
+        
+        // Handle quoted CSV values
+        const values = [];
+        let inQuotes = false;
+        let currentValue = '';
+        
+        for (let j = 0; j < line.length; j++) {
+          const char = line[j];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            values.push(currentValue.trim().replace(/"/g, ''));
+            currentValue = '';
+          } else {
+            currentValue += char;
           }
+        }
+        values.push(currentValue.trim().replace(/"/g, ''));
+        
+        const companyData = {};
+        headers.forEach((header, index) => {
+          if (index < values.length) {
+            companyData[header] = values[index];
+          }
+        });
+        
+        if (!companyData.company && !companyData.name) {
+          continue; // Skip if no company name
+        }
+        
+        const companyName = companyData.company || companyData.name || companyData['company name'];
+        const sector = companyData.sector || companyData.industry || 'Technology';
+        
+        const existingIndex = companies.findIndex(c => 
+          c.name.toLowerCase() === companyName.toLowerCase()
+        );
+        
+        if (existingIndex !== -1) {
+          if (importMode === 'update' || importMode === 'replace') {
+            // Update existing company
+            if (keepScores) {
+              companies[existingIndex].sad = parseInt(companyData['sad %'] || companyData.sad) || companies[existingIndex].sad;
+              companies[existingIndex].neutral = parseInt(companyData['neutral %'] || companyData.neutral) || companies[existingIndex].neutral;
+              companies[existingIndex].happy = parseInt(companyData['happy %'] || companyData.happy) || companies[existingIndex].happy;
+            }
+            companies[existingIndex].sector = sector || companies[existingIndex].sector;
+            updateCount++;
+          }
+        } else if (importMode !== 'update') {
+          // Add new company
+          companies.push({
+            name: companyName,
+            sector: sector,
+            sad: keepScores ? (parseInt(companyData['sad %'] || companyData.sad) || null) : null,
+            neutral: keepScores ? (parseInt(companyData['neutral %'] || companyData.neutral) || null) : null,
+            happy: keepScores ? (parseInt(companyData['happy %'] || companyData.happy) || null) : null
+          });
+          importCount++;
         }
       }
     }
     
     if (importMode === 'replace') {
-      companies = importedData.companies || companies;
+      // Already handled in JSON section
     }
     
     renderTable();
@@ -3905,10 +4137,11 @@ async function performImport() {
     
   } catch (error) {
     console.error('Import error:', error);
-    showToast('❌ Error importing file. Please check the format.');
+    showToast('❌ Error importing file. Please check the format and try again.');
   }
 }
 
+// Open compare modal
 function openCompareModal() {
   // Calculate comparison data
   const companiesWithData = companies.filter(c => c.sad !== null && c.neutral !== null && c.happy !== null);
@@ -3974,170 +4207,12 @@ function closeCompareModal() {
   document.getElementById('compareModal').style.display = 'none';
 }
 
-// NEW: Enhanced export function
-function performExport() {
-  const scope = document.getElementById('exportScope').value;
-  const includeRAG = document.getElementById('includeRAG').checked;
-  const includeTimestamps = document.getElementById('includeTimestamps').checked;
-  const includeMetadata = document.getElementById('includeMetadata').checked;
-  const formatNumbers = document.getElementById('formatNumbers').checked;
-  
-  let companiesToExport = [];
-  
-  // Filter companies based on scope
-  switch(scope) {
-    case 'current':
-      if (currentSector === 'mylist') {
-        companiesToExport = companies;
-      } else {
-        companiesToExport = companies.filter(c => c.sector === currentSector);
-      }
-      break;
-    case 'all':
-      companiesToExport = companies;
-      break;
-    case 'analyzed':
-      companiesToExport = companies.filter(c => c.sad !== null && c.neutral !== null && c.happy !== null);
-      break;
-    case 'custom':
-      // For now, export all
-      companiesToExport = companies;
-      break;
-  }
-  
-  if (companiesToExport.length === 0) {
-    showToast('⚠️ No companies to export');
-    return;
-  }
-  
-  // Create export data based on format
-  switch(selectedExportFormat) {
-    case 'csv':
-      exportToCSVEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata, formatNumbers);
-      break;
-    case 'json':
-      exportToJSONEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata);
-      break;
-    case 'pdf':
-      showToast('📊 PDF export coming soon!');
-      break;
-    case 'excel':
-      showToast('📈 Excel export coming soon!');
-      break;
-  }
-  
-  closeExportModal();
-}
-
-// NEW: Enhanced CSV export
-function exportToCSVEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata, formatNumbers) {
-  // Create CSV headers
-  let headers = ['Company', 'Sector', 'Sad %', 'Neutral %', 'Happy %'];
-  if (includeRAG) headers.push('RAG Status');
-  if (includeTimestamps) headers.push('Last Analyzed');
-  
-  let csvContent = headers.map(h => `"${h}"`).join(',') + '\n';
-  
-  companiesToExport.forEach(company => {
-    const sad = formatNumbers && company.sad ? `${company.sad}%` : company.sad || "N/A";
-    const neutral = formatNumbers && company.neutral ? `${company.neutral}%` : company.neutral || "N/A";
-    const happy = formatNumbers && company.happy ? `${company.happy}%` : company.happy || "N/A";
-    const rag = getRAG(company.sad, company.happy);
-    
-    let row = [
-      `"${company.name}"`,
-      `"${company.sector}"`,
-      `"${sad}"`,
-      `"${neutral}"`,
-      `"${happy}"`
-    ];
-    
-    if (includeRAG) row.push(`"${rag}"`);
-    if (includeTimestamps) row.push(`"${new Date().toISOString()}"`);
-    
-    csvContent += row.join(',') + '\n';
-  });
-  
-  if (includeMetadata) {
-    csvContent += '\n' + `"Metadata","Value"` + '\n';
-    csvContent += `"Export Date","${new Date().toISOString()}"` + '\n';
-    csvContent += `"Total Companies","${companiesToExport.length}"` + '\n';
-    csvContent += `"Analyzed Companies","${companiesToExport.filter(c => c.sad !== null).length}"` + '\n';
-  }
-  
-  // Create download link
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `sentiment_analysis_${new Date().toISOString().split('T')[0]}_${scope}_${selectedExportFormat}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
-  
-  showToast('📤 Data exported successfully!');
-}
-
-// NEW: Enhanced JSON export
-function exportToJSONEnhanced(companiesToExport, includeRAG, includeTimestamps, includeMetadata) {
-  const exportData = {
-    exportDate: new Date().toISOString(),
-    totalCompanies: companiesToExport.length,
-    companies: companiesToExport.map(company => {
-      const data = {
-        name: company.name,
-        sector: company.sector,
-        sentiment: {
-          sad: company.sad,
-          neutral: company.neutral,
-          happy: company.happy
-        }
-      };
-      
-      if (includeRAG) {
-        data.rag = getRAG(company.sad, company.happy);
-      }
-      
-      if (includeTimestamps) {
-        data.lastAnalyzed = new Date().toISOString();
-        data.analysisDate = new Date().toISOString();
-      }
-      
-      return data;
-    })
-  };
-  
-  if (includeMetadata) {
-    exportData.metadata = {
-      totalCompanies: companiesToExport.length,
-      analyzedCompanies: companiesToExport.filter(c => c.sad !== null).length,
-      exportScope: document.getElementById('exportScope').value,
-      exportFormat: selectedExportFormat,
-      version: '1.0.0'
-    };
-  }
-  
-  const jsonString = JSON.stringify(exportData, null, 2);
-  const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `sentiment_analysis_${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
-  
-  showToast('📤 JSON data exported successfully!');
-}
-
 function exportComparison() {
   showToast('📊 Comparison exported!');
   closeCompareModal();
 }
 
-// NEW: RAG Editing Functions
+// RAG Editing Functions
 function editRagStatus(companyIndex) {
   const company = companies[companyIndex];
   currentRagEditIndex = companyIndex;
@@ -4209,7 +4284,7 @@ function saveRagEdit() {
   showToast('✅ RAG status updated successfully!');
 }
 
-// NEW: Add Tab Functions
+// Add Tab Functions
 function openAddTabModal() {
   document.getElementById('addTabModal').style.display = 'flex';
   document.getElementById('newTabName').value = '';
@@ -4317,7 +4392,7 @@ function removeCustomTab(tabId, event) {
   }
 }
 
-// NEW: Enhanced Test Modal Functions
+// Enhanced Test Modal Functions
 function openTestModal() {
   document.getElementById('testModal').style.display = 'flex';
   
@@ -4354,7 +4429,7 @@ function closeTestModal() {
   document.getElementById('testModal').style.display = 'none';
 }
 
-// NEW: Add company to test modal
+// Add company to test modal
 function addTestCompany() {
   const companyName = document.getElementById('testCompanyName').value.trim();
   
@@ -4389,7 +4464,7 @@ function addTestCompany() {
   showToast(`✅ "${companyName}" added to test`);
 }
 
-// NEW: Render test companies list
+// Render test companies list
 function renderTestCompaniesList() {
   const container = document.getElementById('testCompaniesList');
   
@@ -4415,14 +4490,14 @@ function renderTestCompaniesList() {
   `).join('');
 }
 
-// NEW: Remove test company
+// Remove test company
 function removeTestCompany(index) {
   testCompanies.splice(index, 1);
   renderTestCompaniesList();
   showToast('🗑️ Company removed from test');
 }
 
-// NEW: Enhanced sentiment analysis test with detailed results
+// Enhanced sentiment analysis test with detailed results
 function runSentimentTest() {
   const textInput = document.getElementById('testTextInput').value;
   
@@ -4520,7 +4595,7 @@ function runSentimentTest() {
   showToast('✅ Sentiment analysis complete!');
 }
 
-// NEW: Enhanced sentiment analysis with neutral detection
+// Enhanced sentiment analysis with neutral detection
 function analyzeTextSentimentEnhanced(text) {
   const lowerText = text.toLowerCase();
   
@@ -4591,7 +4666,7 @@ function analyzeTextSentimentEnhanced(text) {
   };
 }
 
-// NEW: Display top keywords
+// Display top keywords
 function displayTopKeywords(analysis) {
   const container = document.getElementById('topKeywordsContainer');
   
@@ -4608,7 +4683,7 @@ function displayTopKeywords(analysis) {
   `).join('');
 }
 
-// NEW: Enhanced chart animation
+// Enhanced chart animation
 function animateChartBars(happyPercent, sadPercent, neutralPercent) {
   const happyBar = document.getElementById('happyBar');
   const sadBar = document.getElementById('sadBar');
@@ -4625,7 +4700,7 @@ function animateChartBars(happyPercent, sadPercent, neutralPercent) {
   setTimeout(() => neutralBar.style.width = `${neutralPercent}%`, 500);
 }
 
-// NEW: Enhanced pie chart update
+// Enhanced pie chart update
 function updatePieChart(happyPercent, sadPercent, neutralPercent) {
   const pieChart = document.getElementById('sentimentPieChart');
   
@@ -4640,7 +4715,7 @@ function updatePieChart(happyPercent, sadPercent, neutralPercent) {
   )`;
 }
 
-// NEW: Enhanced keyword list population
+// Enhanced keyword list population
 function populateEnhancedKeywordLists(analysis) {
   // Populate positive keywords
   const positiveList = document.getElementById('positiveKeywordsList');
@@ -4661,7 +4736,7 @@ function populateEnhancedKeywordLists(analysis) {
   ).join('');
 }
 
-// NEW: Setup keyword search in test modal
+// Setup keyword search in test modal
 function setupKeywordSearch(analysis) {
   const searchInput = document.getElementById('keywordSearchTest');
   
@@ -4685,7 +4760,7 @@ function setupKeywordSearch(analysis) {
   });
 }
 
-// NEW: Update test companies with analysis
+// Update test companies with analysis
 function updateTestCompaniesWithAnalysis(analysis) {
   testCompanies.forEach(company => {
     // Add detected keywords to each company
@@ -4726,7 +4801,7 @@ function updateTestCompaniesWithAnalysis(analysis) {
   renderTestCompaniesList();
 }
 
-// NEW: Display company test results
+// Display company test results
 function displayCompanyTestResults(analysis) {
   const container = document.getElementById('companyTestResults');
   
@@ -4807,7 +4882,7 @@ function displayCompanyTestResults(analysis) {
   }).join('');
 }
 
-// NEW: Save test results to main companies list
+// Save test results to main companies list
 function saveTestToCompany() {
   if (testCompanies.length === 0) {
     showToast('⚠️ No test companies to save');
@@ -4847,7 +4922,7 @@ function saveTestToCompany() {
   closeTestModal();
 }
 
-// NEW: Enhanced clear test results
+// Enhanced clear test results
 function clearTestResults() {
   document.getElementById('testTextInput').value = '';
   document.getElementById('happyScoreValue').textContent = '0%';
@@ -5189,13 +5264,10 @@ function showQuickStart() {
   renderTable();
   closeGuideModal();
 }
+
+// Initialize on DOM loaded
 document.addEventListener('DOMContentLoaded', function() {
-    const scoreSlider = document.getElementById('editKeywordScore');
-    if (scoreSlider) {
-        scoreSlider.addEventListener('input', updateScoreDisplay);
-    }
-});
-document.addEventListener('DOMContentLoaded', function() {
+  // Event listeners
   document.getElementById('analyzeBtn').addEventListener('click', analyzeAllCompanies);
   document.getElementById('testBtn').addEventListener('click', openTestModal);
   document.getElementById('mylistNameDisplay').addEventListener('click', enableMyListNameEdit);
@@ -5204,10 +5276,10 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('exportBtn').addEventListener('click', () => handleMyListAction('export'));
   document.getElementById('compareBtn').addEventListener('click', () => handleMyListAction('compare'));
   
-  // NEW: Add tab button
+  // Add tab button
   document.getElementById('addTabBtn').addEventListener('click', openAddTabModal);
   
-  // NEW: RAG edit options selection
+  // RAG edit options selection
   document.querySelectorAll('.rag-edit-option').forEach(option => {
     option.addEventListener('click', function() {
       document.querySelectorAll('.rag-edit-option').forEach(opt => opt.classList.remove('selected'));
@@ -5215,7 +5287,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // NEW: Color selection for new tab
+  // Color selection for new tab
   document.querySelectorAll('.color-option').forEach(option => {
     option.addEventListener('click', function() {
       document.querySelectorAll('.color-option').forEach(opt => opt.style.border = '2px solid transparent');
@@ -5235,6 +5307,32 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Setup tab scrolling
   setupTabScroll();
+  
+  // Import file change handler
+  document.getElementById('importFile').addEventListener('change', function(e) {
+    if (this.files.length > 0) {
+      selectedFile = this.files[0];
+      const fileNameDisplay = document.getElementById('selectedFileName');
+      fileNameDisplay.textContent = `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+      fileNameDisplay.style.color = '#667eea';
+    }
+  });
+  
+  // Export option click handlers
+  document.querySelectorAll('.export-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const format = this.getAttribute('data-format');
+      selectExportOption(format);
+    });
+  });
+  
+  // Import option click handlers
+  document.querySelectorAll('.import-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const format = this.getAttribute('onclick').includes('csv') ? 'csv' : 'json';
+      selectImportOption(format);
+    });
+  });
   
   // Modal close on outside click
   const modals = ['guideModal', 'keywordModal', 'exportModal', 'compareModal', 
@@ -5272,6 +5370,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, 3000);
   
+  // Initialize score slider
+  const scoreSlider = document.getElementById('editKeywordScore');
+  if (scoreSlider) {
+    scoreSlider.addEventListener('input', updateScoreDisplay);
+  }
+  
+  // Initial render
   renderTable();
 });
 </script>
