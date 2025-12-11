@@ -2258,26 +2258,40 @@
         <p>Type or paste text below to analyze its sentiment using keyword-based scoring:</p>
         
         <!-- Enhanced Company Input Section -->
-        <div class="test-company-input-section">
-          <h4><span class="icon">🏢</span> Add Company for Analysis</h4>
-          <div class="test-company-input-row">
-            <input type="text" 
-                   class="test-company-input" 
-                   id="testCompanyName" 
-                   placeholder="Enter company name (e.g., Apple)">
-            <button class="add-company-test-btn" onclick="addTestCompany()">
-              <span class="icon">➕</span>
-              <span>Add Company</span>
-            </button>
-          </div>
-          
-          <div class="test-companies-list" id="testCompaniesList">
-            <!-- Test companies will be added here -->
-            <div class="empty-state" style="text-align: center; color: #999; padding: 20px;">
-              No companies added yet. Add a company to test sentiment analysis.
-            </div>
-          </div>
-        </div>
+       <!-- In the test-company-input-section, add sector selection -->
+<div class="test-company-input-section">
+  <h4><span class="icon">🏢</span> Add Company for Analysis</h4>
+  <div class="test-company-input-row">
+    <input type="text" 
+           class="test-company-input" 
+           id="testCompanyName" 
+           placeholder="Enter company name (e.g., Apple)">
+    
+    <select id="testCompanySector" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; background: white;">
+      <option value="Technology">💻 Technology</option>
+      <option value="Semiconductor">💾 Semiconductor</option>
+      <option value="Pharma">💊 Pharma</option>
+      <option value="Electricity">⚡ Electricity</option>
+      <option value="Mining">⛏️ Mining</option>
+      <option value="Automobile">🚗 Automobile</option>
+      <option value="Quantum">⚛️ Quantum</option>
+      <option value="Finance">💰 Finance</option>
+      <option value="Retail">🛍️ Retail</option>
+    </select>
+    
+    <button class="add-company-test-btn" onclick="addTestCompany()">
+      <span class="icon">➕</span>
+      <span>Add Company</span>
+    </button>
+  </div>
+  
+  <div class="test-companies-list" id="testCompaniesList">
+    <!-- Test companies will be added here -->
+    <div class="empty-state" style="text-align: center; color: #999; padding: 20px;">
+      No companies added yet. Add a company to test sentiment analysis.
+    </div>
+  </div>
+</div>
         
         <div class="form-group">
           <label>Test Text Content</label>
@@ -4521,8 +4535,10 @@ function closeTestModal() {
 }
 
 // Add company to test modal
+// Add company to test modal with sector
 function addTestCompany() {
   const companyName = document.getElementById('testCompanyName').value.trim();
+  const companySector = document.getElementById('testCompanySector').value;
   
   if (!companyName) {
     showToast('⚠️ Please enter a company name');
@@ -4535,9 +4551,10 @@ function addTestCompany() {
     return;
   }
   
-  // Add to test companies
+  // Add to test companies with sector
   testCompanies.push({
     name: companyName,
+    sector: companySector,
     keywords: {
       positive: [],
       negative: [],
@@ -4552,10 +4569,11 @@ function addTestCompany() {
   // Update display
   renderTestCompaniesList();
   
-  showToast(`✅ "${companyName}" added to test`);
+  showToast(`✅ "${companyName}" added to test (${companySector})`);
 }
 
 // Render test companies list
+// Render test companies list with sector
 function renderTestCompaniesList() {
   const container = document.getElementById('testCompaniesList');
   
@@ -4568,6 +4586,9 @@ function renderTestCompaniesList() {
     <div class="test-company-item">
       <div>
         <div class="test-company-name">${company.name}</div>
+        <div style="font-size: 11px; color: #667eea; font-weight: 600; margin-top: 2px;">
+          <span class="sector-badge" style="font-size: 10px; padding: 2px 8px;">${company.sector}</span>
+        </div>
         <div class="test-company-keywords">
           ${company.keywords.positive.length > 0 ? `👍 ${company.keywords.positive.length} positive` : ''}
           ${company.keywords.positive.length > 0 && company.keywords.negative.length > 0 ? ' • ' : ''}
@@ -4852,6 +4873,7 @@ function setupKeywordSearch(analysis) {
 }
 
 // Update test companies with analysis
+// Update test companies with analysis
 function updateTestCompaniesWithAnalysis(analysis) {
   testCompanies.forEach(company => {
     // Add detected keywords to each company
@@ -4876,8 +4898,10 @@ function updateTestCompaniesWithAnalysis(analysis) {
       sentence.toLowerCase().includes(company.name.toLowerCase())
     );
     
-    // Store analysis results
+    // Store analysis results with sector
     testResults[company.name] = {
+      name: company.name,
+      sector: company.sector,
       happy: analysis.happyPercent,
       sad: analysis.sadPercent,
       neutral: analysis.neutralPercent,
@@ -4974,11 +4998,16 @@ function displayCompanyTestResults(analysis) {
 }
 
 // Save test results to main companies list
+// Save test results to main companies list
+// Save test results to main companies list with correct sector
 function saveTestToCompany() {
   if (testCompanies.length === 0) {
     showToast('⚠️ No test companies to save');
     return;
   }
+  
+  let savedCount = 0;
+  let updatedCount = 0;
   
   testCompanies.forEach(company => {
     const result = testResults[company.name];
@@ -4990,27 +5019,51 @@ function saveTestToCompany() {
     );
     
     if (existingIndex !== -1) {
-      // Update existing company
+      // Update existing company with new sentiment scores
       companies[existingIndex].sad = result.sad;
       companies[existingIndex].happy = result.happy;
       companies[existingIndex].neutral = result.neutral || (100 - result.sad - result.happy);
+      
+      // Update sector if different
+      if (company.sector && company.sector !== companies[existingIndex].sector) {
+        companies[existingIndex].sector = company.sector;
+      }
+      
+      // Clear loading/empty states
+      delete companies[existingIndex].ragOverride;
+      updatedCount++;
     } else {
-      // Add new company
+      // Add new company with sector from test
       companies.push({
         name: company.name,
-        sector: 'Technology', // Default sector
+        sector: company.sector || 'Technology',
         sad: result.sad,
         happy: result.happy,
         neutral: result.neutral || (100 - result.sad - result.happy)
       });
+      savedCount++;
     }
   });
   
-  renderTable();
-  showToast(`✅ ${testCompanies.length} companies saved to main list!`);
-  
-  // Close test modal
-  closeTestModal();
+  if (savedCount > 0 || updatedCount > 0) {
+    renderTable();
+    
+    let message = '';
+    if (savedCount > 0 && updatedCount > 0) {
+      message = `✅ ${savedCount} new companies added and ${updatedCount} existing companies updated!`;
+    } else if (savedCount > 0) {
+      message = `✅ ${savedCount} new companies saved to main list!`;
+    } else if (updatedCount > 0) {
+      message = `✅ ${updatedCount} existing companies updated with new sentiment scores!`;
+    }
+    
+    showToast(message);
+    
+    // Close test modal
+    closeTestModal();
+  } else {
+    showToast('⚠️ No companies were saved or updated');
+  }
 }
 
 // Enhanced clear test results

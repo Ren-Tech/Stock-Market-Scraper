@@ -3075,3 +3075,4 @@ jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was loo
 2025-12-11 21:02:11,721 INFO: Scraping completed in 15.42 seconds. Total articles: 10 [in C:\src\stock_market_scraper\app.py:4976]
 2025-12-11 21:02:11,721 INFO: Sentiment percentages: {'sad': 10, 'neutral': 60, 'happy': 30} [in C:\src\stock_market_scraper\app.py:4942]
 2025-12-11 21:02:11,721 INFO: Analysis complete for NextEra Energy: {'sad': 10, 'neutral': 60, 'happy': 30} [in C:\src\stock_market_scraper\app.py:5039]
+2025-12-11 21:20:42,983 INFO: Sentiment Analysis Backend startup [in C:\src\stock_market_scraper\app.py:4774]
