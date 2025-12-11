@@ -17,6 +17,7 @@
     font-weight: 600;
     color: #333;
 }
+
 /* Keyword Actions */
 .keyword-actions {
     display: flex;
@@ -2045,7 +2046,7 @@
       <!-- Test Button -->
       <button class="test-btn" id="testBtn">
         <span class="icon">🧪</span>
-        <span>Test</span>
+        <span>Calibrate</span>
       </button>
     </div>
     
@@ -2292,7 +2293,7 @@
           <button class="modal-btn btn-cancel" onclick="closeTestModal()">Close</button>
           <button class="modal-btn btn-save" onclick="runSentimentTest()">
             <span class="icon">🧪</span>
-            Run Test
+            Calibrate
           </button>
         </div>
 
@@ -2466,7 +2467,9 @@
 </div>
 
 <!-- Edit Keyword Modal -->
-<div class="modal-overlay" id="editKeywordModal" style="display: none;">
+<!-- Edit Keyword Modal - Fixed Structure -->
+<!-- Edit Keyword Modal - FIXED STRUCTURE -->
+<div class="modal-overlay" id="editKeywordModalOverlay" style="display: none;">
   <div class="modal edit-keyword-modal">
     <div class="modal-header">
       <h2><span class="icon">✏️</span> Edit Keyword</h2>
@@ -2888,8 +2891,6 @@ const API_URL = window.location.origin;
 let currentEditKeyword = null;
 let currentEditEmotion = null;
 let selectedEditEmotion = null;
-
-// REMOVED: Edit keyword variables deleted
 let currentKeywordFilter = 'all';
 
 // Emotions data - this is your provided keyword data
@@ -3107,12 +3108,31 @@ let countdownInterval = null;
 let estimatedTimeRemaining = 0;
 const TIME_PER_COMPANY = 11.69; // seconds per company
 
-function getRAG(sad, happy) {
+function getRAG(sad, happy, company = null) {
+  // Check for manual RAG override
+  if (company && company.ragOverride) {
+    return company.ragOverride;
+  }
+  
   if (sad === null || happy === null) return '';
   if (happy >= 70) return 'green';
   if (sad >= 70) return 'red';
   return 'yellow';
 }
+// Add this debug function to check if modal elements exist
+function debugModalIssues() {
+  console.log("Checking modal elements...");
+  console.log("editKeywordModalOverlay exists:", document.getElementById('editKeywordModalOverlay') ? "YES" : "NO");
+  console.log("editKeywordModal exists:", document.getElementById('editKeywordModal') ? "YES" : "NO");
+  
+  // Check if there are multiple elements with similar IDs
+  const allElements = document.querySelectorAll('[id*="editKeyword"]');
+  console.log("All elements with 'editKeyword' in ID:", allElements.length);
+  allElements.forEach(el => console.log("  -", el.id));
+}
+
+// Call this in your DOMContentLoaded or when testing
+// debugModalIssues();
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -3126,9 +3146,12 @@ function calculateTotalAnalysisTime() {
   const totalCompanies = companies.length;
   return Math.round(totalCompanies * TIME_PER_COMPANY); // Total seconds
 }
-// Open edit keyword modal
-// Open edit keyword modal
+
+// Open edit keyword modal - FIXED
+// Open edit keyword modal - UPDATED VERSION
 function editKeyword(keyword, emotion) {
+    console.log("editKeyword called with:", keyword, emotion); // Debug
+    
     // Unescape the keyword
     const unescapedKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
     
@@ -3156,13 +3179,28 @@ function editKeyword(keyword, emotion) {
     document.getElementById('scoreWeightSlider').value = 5;
     document.getElementById('scoreWeightValue').textContent = '5';
     
-    // Show modal
-    document.getElementById('editKeywordModal').style.display = 'flex';
+    // Show modal - IMPORTANT: Use correct ID
+    const modal = document.getElementById('editKeywordModalOverlay');
+    if (modal) {
+        modal.style.display = 'flex';
+        console.log("Modal displayed successfully");
+    } else {
+        console.error("Modal not found! ID: editKeywordModalOverlay");
+        // Fallback: try to find any edit modal
+        const fallbackModal = document.querySelector('.modal-overlay[id*="edit"]');
+        if (fallbackModal) {
+            fallbackModal.style.display = 'flex';
+            console.log("Used fallback modal:", fallbackModal.id);
+        }
+    }
 }
 
-// Close edit keyword modal
+// Close edit keyword modal - UPDATED VERSION
 function closeEditKeywordModal() {
-    document.getElementById('editKeywordModal').style.display = 'none';
+    const modal = document.getElementById('editKeywordModalOverlay');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     currentEditKeyword = null;
     currentEditEmotion = null;
     selectedEditEmotion = null;
@@ -3227,7 +3265,6 @@ function saveKeywordEdit() {
     showToast('✅ Keyword updated successfully!');
 }
 
-// Delete keyword with confirmation
 // Delete keyword with confirmation
 function deleteKeyword(keyword, emotion) {
     // Unescape the keyword for display
@@ -3298,6 +3335,7 @@ function loadEmotionsFromLocalStorage() {
         console.error('Error loading from localStorage:', e);
     }
 }
+
 // Function to start countdown timer
 function startCountdownTimer() {
   // Clear any existing timer
@@ -3466,9 +3504,6 @@ function handleMyListAction(action) {
   }
 }
 
-// REMOVED: All edit keyword functions deleted
-
-// Enhanced populate keyword modal with individual containers - EDIT FUNCTIONALITY REMOVED
 // Enhanced populate keyword modal with individual containers
 function populateKeywordModal() {
     const container = document.getElementById('keywordsContainer');
@@ -4269,8 +4304,8 @@ function editRagStatus(companyIndex) {
   // Set modal values
   document.getElementById('ragCompanyName').value = company.name;
   
-  // Determine current RAG
-  const currentRag = getRAG(company.sad, company.happy);
+  // Determine current RAG - check for override first
+  const currentRag = company.ragOverride || getRAG(company.sad, company.happy, company);
   
   // Set selected RAG option
   document.querySelectorAll('.rag-edit-option').forEach(option => {
@@ -4289,6 +4324,10 @@ function editRagStatus(companyIndex) {
   document.getElementById('editRagModal').style.display = 'flex';
 }
 
+
+
+
+
 function closeEditRagModal() {
   document.getElementById('editRagModal').style.display = 'none';
   currentRagEditIndex = -1;
@@ -4302,31 +4341,18 @@ function saveRagEdit() {
   const manualNeutral = document.getElementById('manualNeutral').value;
   const manualHappy = document.getElementById('manualHappy').value;
   
-  // If manual values are provided, update them
+  // Store the selected RAG color
+  companies[currentRagEditIndex].ragOverride = selectedRag;
+  
+  // If manual values are provided, update sentiment percentages
   if (manualSad || manualNeutral || manualHappy) {
     companies[currentRagEditIndex].sad = manualSad ? parseInt(manualSad) : companies[currentRagEditIndex].sad;
     companies[currentRagEditIndex].neutral = manualNeutral ? parseInt(manualNeutral) : companies[currentRagEditIndex].neutral;
     companies[currentRagEditIndex].happy = manualHappy ? parseInt(manualHappy) : companies[currentRagEditIndex].happy;
-  } else {
-    // Otherwise, set based on RAG selection
-    switch(selectedRag) {
-      case 'green':
-        companies[currentRagEditIndex].sad = 10;
-        companies[currentRagEditIndex].neutral = 20;
-        companies[currentRagEditIndex].happy = 70;
-        break;
-      case 'yellow':
-        companies[currentRagEditIndex].sad = 30;
-        companies[currentRagEditIndex].neutral = 40;
-        companies[currentRagEditIndex].happy = 30;
-        break;
-      case 'red':
-        companies[currentRagEditIndex].sad = 70;
-        companies[currentRagEditIndex].neutral = 20;
-        companies[currentRagEditIndex].happy = 10;
-        break;
-    }
   }
+  
+  // Clear any calculated RAG since we have an override
+  delete companies[currentRagEditIndex].calculatedRAG;
   
   renderTable();
   closeEditRagModal();
@@ -4440,7 +4466,14 @@ function removeCustomTab(tabId, event) {
     showToast(`🗑️ Tab removed successfully!`);
   }
 }
-
+function clearRagOverride() {
+  if (currentRagEditIndex === -1) return;
+  
+  delete companies[currentRagEditIndex].ragOverride;
+  renderTable();
+  closeEditRagModal();
+  showToast('🔄 RAG reset to automatic calculation');
+}
 // Enhanced Test Modal Functions
 function openTestModal() {
   document.getElementById('testModal').style.display = 'flex';
@@ -4889,7 +4922,7 @@ function displayCompanyTestResults(analysis) {
               <span class="chart-bar-value">${sadPercent}%</span>
             </div>
             <div class="chart-bar-track">
-              <div class="chart-bar-fill sad" style="width: ${sadPercent}%"></div>
+              <div class="chart-bar-fill sad" style="width: ${sadPercent}%</div>
             </div>
           </div>
           <div class="chart-bar">
@@ -5088,7 +5121,7 @@ function renderTable() {
       sadDisplay = `${c.sad}%`;
       neutralDisplay = `${c.neutral}%`;
       happyDisplay = `${c.happy}%`;
-      const ragStatus = getRAG(c.sad, c.happy);
+      const ragStatus = getRAG(c.sad, c.happy, c);
       ragDisplay = `<div class="rag-dot rag-${ragStatus}" onclick="editRagStatus(${originalIndex})" title="Click to edit RAG status"></div>`;
     }
     
@@ -5302,6 +5335,7 @@ function moveDown(i) {
     showToast('⬇️ Moved down!');
   }
 }
+
 function addNewKeyword() {
     const keyword = prompt('Enter a new keyword:');
     if (keyword && keyword.trim()) {
@@ -5328,6 +5362,7 @@ function addNewKeyword() {
         }
     }
 }
+
 function showQuickStart() {
   showToast('🚀 Starting quick demo...');
   // Add demo companies
@@ -5349,13 +5384,16 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('keywordRefBtn').addEventListener('click', () => handleMyListAction('keyword'));
   document.getElementById('exportBtn').addEventListener('click', () => handleMyListAction('export'));
   document.getElementById('compareBtn').addEventListener('click', () => handleMyListAction('compare'));
-  document.getElementById('editKeywordModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeEditKeywordModal();
-        }
-    });
+  
+  // Add edit keyword modal click handler
+  document.getElementById('editKeywordModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeEditKeywordModal();
+    }
+  });
 
-   loadEmotionsFromLocalStorage();
+  loadEmotionsFromLocalStorage();
+  
   // Add tab button
   document.getElementById('addTabBtn').addEventListener('click', openAddTabModal);
   
@@ -5414,9 +5452,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Modal close on outside click
+  // Modal close on outside click - UPDATED WITH FIXED MODAL ID
   const modals = ['guideModal', 'keywordModal', 'exportModal', 'compareModal', 
-                  'testModal', 'editRagModal', 'addTabModal', 'modalOverlay'];
+                  'testModal', 'editRagModal', 'addTabModal', 'modalOverlay', 
+                  'editKeywordModalOverlay']; // UPDATED ID
+  
   modals.forEach(modalId => {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -5430,7 +5470,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'testModal': closeTestModal,
             'editRagModal': closeEditRagModal,
             'addTabModal': closeAddTabModal,
-            'modalOverlay': closeModal
+            'modalOverlay': closeModal,
+            'editKeywordModalOverlay': closeEditKeywordModal // UPDATED
           }[modalId];
           closeFunc();
         }
