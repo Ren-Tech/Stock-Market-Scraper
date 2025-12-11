@@ -3142,8 +3142,17 @@ function showToast(message) {
 }
 
 // Function to calculate total analysis time
+// Function to calculate total analysis time for current tab
 function calculateTotalAnalysisTime() {
-  const totalCompanies = companies.length;
+  let companiesToAnalyze = [];
+  
+  if (currentSector === 'mylist') {
+    companiesToAnalyze = companies;
+  } else {
+    companiesToAnalyze = companies.filter(c => c.sector === currentSector);
+  }
+  
+  const totalCompanies = companiesToAnalyze.length;
   return Math.round(totalCompanies * TIME_PER_COMPANY); // Total seconds
 }
 
@@ -5147,6 +5156,7 @@ function renderTable() {
 }
 
 // Enhanced analyzeAllCompanies function with countdown
+// Enhanced analyzeAllCompanies function with countdown - MODIFIED TO ANALYZE ONLY CURRENT TAB
 async function analyzeAllCompanies() {
   if (analysisInProgress) {
     showToast('⚠️ Analysis already in progress');
@@ -5170,26 +5180,50 @@ async function analyzeAllCompanies() {
   analyzeBtn.disabled = true;
   analyzeBtn.innerHTML = '<span class="icon">⏳</span><span>Analyzing...</span>';
   
+  // Get companies to analyze based on current tab
+  let companiesToAnalyze = [];
+  if (currentSector === 'mylist') {
+    companiesToAnalyze = companies; // Analyze all for My List
+  } else {
+    companiesToAnalyze = companies.filter(c => c.sector === currentSector);
+  }
+  
+  if (companiesToAnalyze.length === 0) {
+    showToast('⚠️ No companies to analyze in this tab');
+    analysisInProgress = false;
+    analyzeBtn.disabled = false;
+    analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
+    return;
+  }
+  
+  // Calculate estimated time based on companies in current tab
+  estimatedTimeRemaining = Math.round(companiesToAnalyze.length * TIME_PER_COMPANY);
+  
   // Start countdown timer
   startCountdownTimer();
   
   let completed = 0;
-  const total = companies.length;
+  const total = companiesToAnalyze.length;
   
   // Use fixed delay of 11.69 seconds per company
   const delay = 11690; // 11.69 seconds in milliseconds
   
-  for (let i = 0; i < companies.length; i++) {
-    const company = companies[i];
+  for (let i = 0; i < companiesToAnalyze.length; i++) {
+    const company = companiesToAnalyze[i];
+    
+    // Find the index of this company in the main companies array
+    const companyIndex = companies.findIndex(c => c === company);
+    
+    if (companyIndex === -1) continue; // Skip if not found
     
     // Update status in data
-    companies[i].sad = 'loading';
-    companies[i].neutral = 'loading';
-    companies[i].happy = 'loading';
+    companies[companyIndex].sad = 'loading';
+    companies[companyIndex].neutral = 'loading';
+    companies[companyIndex].happy = 'loading';
     renderTable();
     
     timerDisplay.textContent = `Analyzing ${company.name}...`;
-    statusDisplay.textContent = `Processing ${completed + 1} of ${total}`;
+    statusDisplay.textContent = `Processing ${completed + 1} of ${total} (${currentSector === 'mylist' ? 'My List' : currentSector})`;
     
     try {
       const response = await fetch(`${API_URL}/api/analyze-single`, {
@@ -5201,21 +5235,25 @@ async function analyzeAllCompanies() {
       const data = await response.json();
       
       if (data.result) {
-        companies[i].sad = data.result.sad;
-        companies[i].neutral = data.result.neutral;
-        companies[i].happy = data.result.happy;
+        companies[companyIndex].sad = data.result.sad;
+        companies[companyIndex].neutral = data.result.neutral;
+        companies[companyIndex].happy = data.result.happy;
       } else {
-        companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+        companies[companyIndex].sad = null; 
+        companies[companyIndex].neutral = null; 
+        companies[companyIndex].happy = null;
       }
     } catch (error) {
       console.error(`Error analyzing ${company.name}:`, error);
-      companies[i].sad = null; companies[i].neutral = null; companies[i].happy = null;
+      companies[companyIndex].sad = null; 
+      companies[companyIndex].neutral = null; 
+      companies[companyIndex].happy = null;
     }
     
     renderTable();
     completed++;
     
-    if (i < companies.length - 1) {
+    if (i < companiesToAnalyze.length - 1) {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -5224,12 +5262,12 @@ async function analyzeAllCompanies() {
   analyzeBtn.disabled = false;
   analyzeBtn.innerHTML = '<span class="icon">🚀</span><span>Analyze All</span>';
   timerDisplay.textContent = 'Complete!';
-  statusDisplay.textContent = `Analyzed ${total} companies`;
+  statusDisplay.textContent = `Analyzed ${total} companies in ${currentSector === 'mylist' ? 'My List' : currentSector}`;
   
   // Stop countdown timer
   stopCountdownTimer();
   
-  showToast('✅ Analysis completed for all companies!');
+  showToast(`✅ Analysis completed for ${total} companies in ${currentSector === 'mylist' ? 'My List' : currentSector}!`);
 }
 
 function startRefreshTimer(minutes) {
@@ -5414,14 +5452,24 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Tab switching
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      currentSector = this.getAttribute('data-sector');
-      renderTable();
-    });
+// Update the tab switching event listener
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentSector = this.getAttribute('data-sector');
+    renderTable();
+    
+    // Update estimated analysis time for this tab
+    if (!analysisInProgress) {
+      const totalSeconds = calculateTotalAnalysisTime();
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = Math.round(totalSeconds % 60);
+      const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+      document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
+    }
   });
+});
   
   // Setup tab scrolling
   setupTabScroll();
@@ -5480,16 +5528,16 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Calculate and show initial estimated time
-  const totalSeconds = calculateTotalAnalysisTime();
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = Math.round(totalSeconds % 60);
-  const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-  document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
-  setTimeout(() => {
-    if (!analysisInProgress) {
-      document.getElementById('timerDisplay').textContent = 'Ready';
-    }
-  }, 3000);
+const totalSeconds = calculateTotalAnalysisTime();
+const minutes = Math.floor(totalSeconds / 60);
+const seconds = Math.round(totalSeconds % 60);
+const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
+setTimeout(() => {
+  if (!analysisInProgress) {
+    document.getElementById('timerDisplay').textContent = 'Ready';
+  }
+}, 3000);
   
   // Initial render
   renderTable();
