@@ -18,224 +18,19 @@
     color: #333;
 }
 
-/* Keyword Actions */
-.keyword-actions {
-    display: flex;
-    gap: 4px;
-}
-
-.edit-keyword-modal {
-    max-width: 500px;
-    width: 95%;
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.3);
-    animation: modalIn 0.4s ease;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-}
-.keyword-action-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.keyword-action-btn.edit {
-    background: rgba(66, 165, 245, 0.1);
-    color: #42a5f5;
-}
-
-.keyword-action-btn.delete {
-    background: rgba(244, 67, 54, 0.1);
-    color: #f44336;
-}
-
-.keyword-action-btn.edit:hover {
-    background: rgba(66, 165, 245, 0.2);
-    transform: translateY(-1px);
-}
-
-.keyword-action-btn.delete:hover {
-    background: rgba(244, 67, 54, 0.2);
-    transform: translateY(-1px);
-}
-
-/* Edit Keyword Modal Styles */
-/* .edit-keyword-modal {
-    max-width: 500px;
-    width: 95%;
-} */
-
-.edit-keyword-modal .modal-body {
-    padding: 25px;
-}
-
-.edit-keyword-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.edit-keyword-header .emoji {
-    font-size: 24px;
-}
-
-.edit-keyword-header .title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a1a2e;
-}
-
-.keyword-to-edit {
-    background: #f8f9fa;
-    padding: 12px 15px;
-    border-radius: 8px;
-    font-weight: 600;
-    color: #1a1a2e;
-    margin-bottom: 20px;
-    border: 1px solid #e9ecef;
-    word-break: break-word;
-}
-
-/* Emotion Selection Buttons */
-.emotion-select-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.emotion-select-btn {
-    flex: 1;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-weight: 600;
-}
-
-.emotion-select-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.emotion-select-btn.selected {
-    border-color: #667eea;
+/* Keyword weight badge */
+.keyword-weight {
     background: rgba(102, 126, 234, 0.1);
-}
-
-.emotion-select-btn.happy {
-    color: #2e7d32;
-}
-
-.emotion-select-btn.neutral {
-    color: #f57c00;
-}
-
-.emotion-select-btn.sad {
-    color: #c62828;
-}
-
-/* Score Weight Input */
-.score-weight-container {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.score-weight-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    font-weight: 600;
-    color: #1a1a2e;
-}
-
-.score-weight-value {
-    font-size: 18px;
     color: #667eea;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-left: 6px;
 }
 
-.score-slider {
-    width: 100%;
-    height: 8px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: #e0e0e0;
-    border-radius: 4px;
-    outline: none;
-}
+/* REMOVED: Edit Keyword Modal CSS completely */
 
-.score-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #667eea;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-}
-
-.score-slider::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #667eea;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-}
-
-.score-ticks {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
-    font-size: 11px;
-    color: #666;
-}
-
-/* Danger Zone for Delete */
-.danger-zone {
-    background: #ffebee;
-    border: 1px solid #ffcdd2;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 20px;
-}
-
-.danger-zone h4 {
-    color: #c62828;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.danger-zone p {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 15px;
-}
 /* Enhanced Keyword Modal Styles */
 .keyword-tabs-nav {
   display: flex;
@@ -345,6 +140,12 @@
   flex: 1;
 }
 
+.keyword-score-weight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .keyword-score {
   background: rgba(255,255,255,0.8);
   padding: 2px 8px;
@@ -353,7 +154,17 @@
   font-weight: 600;
   min-width: 24px;
   text-align: center;
-  margin-left: 8px;
+}
+
+.keyword-weight-badge {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 8px;
+  min-width: 20px;
+  text-align: center;
 }
 
 .keyword-item.happy .keyword-score {
@@ -396,12 +207,6 @@
   background: rgba(244, 67, 54, 0.15);
   color: #c62828;
 }
-
-/* REMOVED EDIT CSS: .keyword-actions and related styles deleted */
-
-/* REMOVED EDIT CSS: Emotion Select Buttons in Edit Modal deleted */
-
-/* REMOVED EDIT CSS: Score Slider deleted */
 
 /* Danger Button */
 .btn-danger {
@@ -456,6 +261,7 @@
     font-size: 13px;
   }
 }
+
 /* Navigation with Scrollable Tabs */
 .nav-bar-container {
     position: relative;
@@ -906,8 +712,6 @@
     padding: 20px;
 }
 
-/* REMOVED: Edit Keyword Modal CSS deleted */
-
 .modal { 
     background: white; 
     border-radius: 24px; 
@@ -1284,6 +1088,14 @@
     flex: 1;
     overflow-y: auto;
     max-height: calc(90vh - 140px);
+}
+
+/* Imported files info in keyword modal */
+.imported-files-info {
+    padding: 0 30px 15px 30px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 15px;
+    display: none;
 }
 
 .emotion-categories {
@@ -2258,40 +2070,39 @@
         <p>Type or paste text below to analyze its sentiment using keyword-based scoring:</p>
         
         <!-- Enhanced Company Input Section -->
-       <!-- In the test-company-input-section, add sector selection -->
-<div class="test-company-input-section">
-  <h4><span class="icon">🏢</span> Add Company for Analysis</h4>
-  <div class="test-company-input-row">
-    <input type="text" 
-           class="test-company-input" 
-           id="testCompanyName" 
-           placeholder="Enter company name (e.g., Apple)">
-    
-    <select id="testCompanySector" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; background: white;">
-      <option value="Technology">💻 Technology</option>
-      <option value="Semiconductor">💾 Semiconductor</option>
-      <option value="Pharma">💊 Pharma</option>
-      <option value="Electricity">⚡ Electricity</option>
-      <option value="Mining">⛏️ Mining</option>
-      <option value="Automobile">🚗 Automobile</option>
-      <option value="Quantum">⚛️ Quantum</option>
-      <option value="Finance">💰 Finance</option>
-      <option value="Retail">🛍️ Retail</option>
-    </select>
-    
-    <button class="add-company-test-btn" onclick="addTestCompany()">
-      <span class="icon">➕</span>
-      <span>Add Company</span>
-    </button>
-  </div>
-  
-  <div class="test-companies-list" id="testCompaniesList">
-    <!-- Test companies will be added here -->
-    <div class="empty-state" style="text-align: center; color: #999; padding: 20px;">
-      No companies added yet. Add a company to test sentiment analysis.
-    </div>
-  </div>
-</div>
+        <div class="test-company-input-section">
+          <h4><span class="icon">🏢</span> Add Company for Analysis</h4>
+          <div class="test-company-input-row">
+            <input type="text" 
+                   class="test-company-input" 
+                   id="testCompanyName" 
+                   placeholder="Enter company name (e.g., Apple)">
+            
+            <select id="testCompanySector" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; background: white;">
+              <option value="Technology">💻 Technology</option>
+              <option value="Semiconductor">💾 Semiconductor</option>
+              <option value="Pharma">💊 Pharma</option>
+              <option value="Electricity">⚡ Electricity</option>
+              <option value="Mining">⛏️ Mining</option>
+              <option value="Automobile">🚗 Automobile</option>
+              <option value="Quantum">⚛️ Quantum</option>
+              <option value="Finance">💰 Finance</option>
+              <option value="Retail">🛍️ Retail</option>
+            </select>
+            
+            <button class="add-company-test-btn" onclick="addTestCompany()">
+              <span class="icon">➕</span>
+              <span>Add Company</span>
+            </button>
+          </div>
+          
+          <div class="test-companies-list" id="testCompaniesList">
+            <!-- Test companies will be added here -->
+            <div class="empty-state" style="text-align: center; color: #999; padding: 20px;">
+              No companies added yet. Add a company to test sentiment analysis.
+            </div>
+          </div>
+        </div>
         
         <div class="form-group">
           <label>Test Text Content</label>
@@ -2480,87 +2291,27 @@
   </div>
 </div>
 
-<!-- Edit Keyword Modal -->
-<!-- Edit Keyword Modal - Fixed Structure -->
-<!-- Edit Keyword Modal - FIXED STRUCTURE -->
-<div class="modal-overlay" id="editKeywordModalOverlay" style="display: none;">
-  <div class="modal edit-keyword-modal">
-    <div class="modal-header">
-      <h2><span class="icon">✏️</span> Edit Keyword</h2>
-      <button class="modal-close" onclick="closeEditKeywordModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="edit-keyword-header">
-        <span class="emoji" id="currentEmotionEmoji">😊</span>
-        <span class="title" id="editModalTitle">Edit Keyword</span>
-      </div>
-      
-      <div class="keyword-to-edit" id="keywordToEdit">
-        <!-- Keyword will be populated here -->
-      </div>
-      
-      <div class="form-group">
-        <label>Emotion Category</label>
-        <div class="emotion-select-buttons">
-          <button class="emotion-select-btn happy" data-emotion="happy" onclick="selectEmotion('happy')">
-            <span class="icon">😊</span>
-            <span>Happy</span>
-          </button>
-          <button class="emotion-select-btn neutral" data-emotion="neutral" onclick="selectEmotion('neutral')">
-            <span class="icon">😐</span>
-            <span>Neutral</span>
-          </button>
-          <button class="emotion-select-btn sad" data-emotion="sad" onclick="selectEmotion('sad')">
-            <span class="icon">😢</span>
-            <span>Sad</span>
-          </button>
-        </div>
-      </div>
-      
-      <div class="score-weight-container">
-        <div class="score-weight-label">
-          <span>Score Weight</span>
-          <span class="score-weight-value" id="scoreWeightValue">5</span>
-        </div>
-        <input type="range" 
-               min="1" 
-               max="10" 
-               value="5" 
-               class="score-slider" 
-               id="scoreWeightSlider"
-               oninput="updateScoreWeightValue(this.value)">
-        <div class="score-ticks">
-          <span>1 (Low)</span>
-          <span>5 (Medium)</span>
-          <span>10 (High)</span>
-        </div>
-      </div>
-      
-      <div class="danger-zone">
-        <h4><span class="icon">⚠️</span> Danger Zone</h4>
-        <p>Deleting this keyword will remove it from all analyses. This action cannot be undone.</p>
-        <button class="modal-btn btn-danger" onclick="confirmDeleteKeyword()" style="width: 100%;">
-          <span class="icon">🗑️</span>
-          <span>Delete Keyword</span>
-        </button>
-      </div>
-    </div>
-    <div class="modal-actions-sticky">
-      <button class="modal-btn btn-cancel" onclick="closeEditKeywordModal()">Cancel</button>
-      <button class="modal-btn btn-save" onclick="saveKeywordEdit()">
-        <span class="icon">💾</span>
-        <span>Save Changes</span>
-      </button>
-    </div>
-  </div>
-</div>
+<!-- REMOVED: Edit Keyword Modal completely -->
 
-<!-- Enhanced Keyword Reference Modal - EDIT FUNCTIONALITY REMOVED -->
+<!-- Enhanced Keyword Reference Modal with Imported Files Display -->
 <div class="modal-overlay" id="keywordModal" style="display: none;">
   <div class="modal keyword-modal">
     <div class="modal-header">
       <h2><span class="icon">🔑</span> Keyword Reference Guide</h2>
       <button class="modal-close" onclick="closeKeywordModal()">×</button>
+    </div>
+    
+    <!-- Imported Files Info -->
+    <div class="imported-files-info" id="importedFilesInfo">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="icon">📁</span>
+          <span style="font-size: 13px; font-weight: 600;">Imported Keywords:</span>
+        </div>
+        <div id="importedFilesList" style="display: flex; gap: 8px; font-size: 11px;">
+          <!-- Imported files will be listed here -->
+        </div>
+      </div>
     </div>
     
     <!-- Emotion Tabs Navigation -->
@@ -2604,11 +2355,13 @@
         <span class="icon">📋</span>
         <span>Copy All Keywords</span>
       </button>
+      <button class="modal-btn" onclick="exportKeywordsToCSV()" style="background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white;">
+        <span class="icon">📤</span>
+        <span>Export Keywords</span>
+      </button>
     </div>
   </div>
 </div>
-
-<!-- REMOVED: Edit Keyword Dialog deleted -->
 
 <!-- Guide Modal -->
 <div class="modal-overlay" id="guideModal" style="display: none;">
@@ -2665,6 +2418,16 @@
         <h3><span class="icon">📈</span> Understanding the Analysis</h3>
         <p>The tool uses a keyword-based scoring system to determine sentiment. Keywords are categorized as Happy, Neutral, or Sad based on their emotional tone.</p>
         <p>RAG (Red-Amber-Green) status provides a quick visual indicator of overall sentiment. You can override the automatic RAG assessment by clicking on the RAG dot and manually setting the status.</p>
+        
+        <h3><span class="icon">📥</span> Importing Keywords</h3>
+        <p>You can import custom keywords with scores using CSV files. The format should be:</p>
+        <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace;">
+keyword_name,keyword_score
+innovation,8
+growth,7
+decline,9
+        </pre>
+        <p>Imported keywords will be displayed in the Keyword Reference with their scores and source files.</p>
       </div>
     </div>
     <div class="modal-actions-sticky">
@@ -2690,28 +2453,22 @@
         <!-- Import Section -->
         <div style="margin-bottom: 30px;">
           <h3><span class="icon">📥</span> Import Data</h3>
-          <p>Import company data from CSV or JSON files:</p>
+          <p>Import company data or keywords from CSV files only:</p>
           
           <div class="import-section">
             <div class="import-options">
-  <div class="import-option" data-format="csv" onclick="selectImportOption('csv')">
-    <div class="icon">📄</div>
-    <h4>CSV File</h4>
-    <p>Import data from CSV format</p>
-  </div>
-  
-  <div class="import-option" data-format="json" onclick="selectImportOption('json')">
-    <div class="icon">🔧</div>
-    <h4>JSON Format</h4>
-    <p>Import structured JSON data</p>
-  </div>
-</div>
+              <div class="import-option" data-format="csv" onclick="selectImportOption('csv')">
+                <div class="icon">📄</div>
+                <h4>CSV File</h4>
+                <p>Import data from CSV format only</p>
+              </div>
+            </div>
             
             <div style="margin-top: 20px;">
-              <input type="file" id="importFile" accept=".csv,.json,.txt" style="display: none;" onchange="handleFileImport()">
+              <input type="file" id="importFile" accept=".csv" style="display: none;" onchange="handleFileImport()">
               <button class="modal-btn" onclick="document.getElementById('importFile').click()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                 <span class="icon">📁</span>
-                <span>Choose File to Import</span>
+                <span>Choose CSV File to Import</span>
               </button>
               <div id="selectedFileName" style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;"></div>
             </div>
@@ -2745,6 +2502,17 @@
               </button>
             </div>
           </div>
+          
+          <!-- Import Log Section -->
+          <div style="margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 20px;">
+            <h4><span class="icon">📊</span> Import Log</h4>
+            <div id="importLog" style="background: #f8f9fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 12px; max-height: 100px; overflow-y: auto;">
+              No imports yet.
+            </div>
+            <button onclick="clearImportLog()" style="margin-top: 10px; padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; cursor: pointer;">
+              Clear Log
+            </button>
+          </div>
         </div>
         
         <!-- Export Section -->
@@ -2753,30 +2521,30 @@
           <p>Choose how you want to export your sentiment analysis data:</p>
           
           <div class="export-options">
-  <div class="export-option" data-format="csv" onclick="selectExportOption('csv')">
-    <div class="icon">📄</div>
-    <h4>CSV File</h4>
-    <p>Comma-separated values, compatible with Excel and data analysis tools</p>
-  </div>
-  
-  <div class="export-option" data-format="json" onclick="selectExportOption('json')">
-    <div class="icon">🔧</div>
-    <h4>JSON Format</h4>
-    <p>Structured data format for developers and API integration</p>
-  </div>
-  
-  <div class="export-option" data-format="pdf" onclick="selectExportOption('pdf')">
-    <div class="icon">📊</div>
-    <h4>PDF Report</h4>
-    <p>Formatted report with charts and analysis summary</p>
-  </div>
-  
-  <div class="export-option" data-format="excel" onclick="selectExportOption('excel')">
-    <div class="icon">📈</div>
-    <h4>Excel File</h4>
-    <p>Formatted Excel spreadsheet with styling and charts</p>
-  </div>
-</div>
+            <div class="export-option" data-format="csv" onclick="selectExportOption('csv')">
+              <div class="icon">📄</div>
+              <h4>CSV File</h4>
+              <p>Comma-separated values, compatible with Excel and data analysis tools</p>
+            </div>
+            
+            <div class="export-option" data-format="json" onclick="selectExportOption('json')">
+              <div class="icon">🔧</div>
+              <h4>JSON Format</h4>
+              <p>Structured data format for developers and API integration</p>
+            </div>
+            
+            <div class="export-option" data-format="pdf" onclick="selectExportOption('pdf')">
+              <div class="icon">📊</div>
+              <h4>PDF Report</h4>
+              <p>Formatted report with charts and analysis summary</p>
+            </div>
+            
+            <div class="export-option" data-format="excel" onclick="selectExportOption('excel')">
+              <div class="icon">📈</div>
+              <h4>Excel File</h4>
+              <p>Formatted Excel spreadsheet with styling and charts</p>
+            </div>
+          </div>
           
           <div class="form-group" style="margin-top: 20px;">
             <label>Export Scope</label>
@@ -2907,162 +2675,724 @@ let currentEditEmotion = null;
 let selectedEditEmotion = null;
 let currentKeywordFilter = 'all';
 
-// Emotions data - this is your provided keyword data
+// Emotions data - with weight scores
 const emotions = {
     'happy': {
         'keywords': [
-            'ability to attract', 'abundant', 'absolutely', 'accessible', 'acclaimed', 
-            'accommodative', 'achievement', 'admire', 'adore', 'adulation', 'advance', 
-            'advanced', 'advancing', 'amazing', 'approve', 'arousing', 'assure', 
-            'attentive', 'attractive', 'awe-inspiring', 'awesome', 'beaming', 
-            'beloved', 'beneficial', 'best', 'bold', 'booming', 'brainy', 'breakthrough', 
-            'breath-taking', 'bright', 'bright future', 'brilliant', 'buoyant', 
-            'celebration', 'centered', 'champion', 'charming', 'cheerful', 'clever', 
-            'confidence', 'confident', 'constant', 'courage', 'courageous', 
-            'delectable', 'definite', 'delightful', 'dependable', 'developing', 
-            'dignified', 'divine', 'doing well', 'dynamite', 'eager', 'earnings growth', 
-            'ecstatic', 'efficient', 'efficient use of assets', 'electrifying', 
-            'employable', 'empowered', 'endearing', 'enjoyable', 'enriching', 
-            'enthusiastic', 'enticing', 'especial', 'exceptional', 'exciting', 
-            'exhilarating', 'exponential', 'exquisite', 'extraordinary', 
-            'extraordinary good', 'exultant', 'fabulous', 'fascinating', 'favorite', 
-            'fearless', 'fetching', 'financial stability', 'finest', 'flourishing', 
-            'gallant', 'generous', 'generously', 'genuine', 'gleaming', 'goal-oriented', 
-            'godawful', 'good future', 'good judgment', 'good perception', 'good quarter', 
-            'good report', 'great', 'greatest', 'growing', 'growing revenue', 'growth', 
-            'growth potential', 'gumptious', 'happiness', 'happy', 'healthy cash balance', 
-            'high achievement', 'high investment motivation', 'high market share', 
-            'high outcomes', 'high potential', 'high profit margin', 'high reward', 
-            'highest', 'highest quality', 'highly recommend', 'highly recommended', 
-            'ideal', 'imaginative', 'impressively', 'impressive', 'increased', 
-            'increased net income', 'increase in value', 'increase share value', 
-            'increase stock value', 'increasing', 'incredible', 'innovative', 
-            'insightful', 'inspiring', 'instinctive', 'intellectual', 'irreplaceable', 
-            'irresistible', 'jolly', 'jovial', 'joyful', 'joysome', 'judicious', 
-            'just', 'keen', 'knowledgeable', 'lambent', 'laudable', 'leading', 
-            'leading ahead', 'legendary', 'likable', 'lively', 'low debt-to-equity', 
-            'luminous', 'magical', 'magnetic', 'magnificent', 'majestic', 'making headway', 
-            'making progress', 'marvelous', 'masterful', 'meagre', 'miraculous', 
-            'mindful', 'motivated', 'moving up', 'new products', 'numinous', 'on the increase', 
-            'on the rise', 'on-target', 'optimistic', 'orderly', 'organized', 
-            'out-of-this-world', 'outstanding', 'overjoyed', 'paramount', 'perceptive', 
-            'persistent', 'persuasive', 'phenomenal', 'piquant', 'pleasurable', 
-            'poise', 'polished', 'positive', 'positive achievement', 'positive future', 
-            'positive outcomes', 'positive quarter', 'positive return', 'powerful', 
-            'praiseworthy', 'praise', 'proactive', 'productive', 'profit', 
-            'profitable', 'projected price increase', 'prominent', 'promising', 
-            'prompt', 'prospering', 'proud', 'punctual', 'quick-witted', 'radiant', 
-            'rallying', 'rapturous', 'rational', 'razor-sharp', 'reassuring', 
-            'recherche', 'record high', 'refulgent', 'rejoicing', 'reliable', 
-            'remarkable', 'remarkably', 'resilient', 'resourceful', 'respectable', 
-            'return on assets', 'revolutionary', 'rewarding', 'righteous', 'rising', 
-            'rising return on equity', 'sagacious', 'savvy', 'sensational', 
-            'sensationally', 'shrewd', 'sincere', 'skilled', 'smart', 'sound judgment', 
-            'spellbinding', 'spirited', 'spunky', 'steadfast', 'stellar', 'stimulating', 
-            'strong bottom-line', 'strong growth', 'strong profitability', 'struggling', 
-            'struggles', 'succeeding', 'success', 'successful', 'supreme', 'surge', 
-            'surprising', 'surprisingly', 'systematic', 'teeming', 'tenacious', 
-            'thriving', 'trailblazing', 'transcendental', 'triumph', 'tubular', 
-            'upbeat', 'uplifting', 'upstanding', 'valiant', 'very clever', 
-            'very profitable', 'very successful', 'vibrant', 'victorious', 'victory', 
-            'vigor', 'vigorous', 'visionary', 'vivacious', 'well-informed', 'win', 
-            'winner', 'winners', 'wins', 'wise', 'worthy', 'worthy of praise'
-        ].sort(),
+            { keyword: 'ability to attract', weight: 5 },
+            { keyword: 'abundant', weight: 5 },
+            { keyword: 'absolutely', weight: 5 },
+            { keyword: 'accessible', weight: 5 },
+            { keyword: 'acclaimed', weight: 5 },
+            { keyword: 'accommodative', weight: 5 },
+            { keyword: 'achievement', weight: 5 },
+            { keyword: 'admire', weight: 5 },
+            { keyword: 'adore', weight: 5 },
+            { keyword: 'adulation', weight: 5 },
+            { keyword: 'advance', weight: 5 },
+            { keyword: 'advanced', weight: 5 },
+            { keyword: 'advancing', weight: 5 },
+            { keyword: 'amazing', weight: 5 },
+            { keyword: 'approve', weight: 5 },
+            { keyword: 'arousing', weight: 5 },
+            { keyword: 'assure', weight: 5 },
+            { keyword: 'attentive', weight: 5 },
+            { keyword: 'attractive', weight: 5 },
+            { keyword: 'awe-inspiring', weight: 5 },
+            { keyword: 'awesome', weight: 5 },
+            { keyword: 'beaming', weight: 5 },
+            { keyword: 'beloved', weight: 5 },
+            { keyword: 'beneficial', weight: 5 },
+            { keyword: 'best', weight: 5 },
+            { keyword: 'bold', weight: 5 },
+            { keyword: 'booming', weight: 5 },
+            { keyword: 'brainy', weight: 5 },
+            { keyword: 'breakthrough', weight: 5 },
+            { keyword: 'breath-taking', weight: 5 },
+            { keyword: 'bright', weight: 5 },
+            { keyword: 'bright future', weight: 5 },
+            { keyword: 'brilliant', weight: 5 },
+            { keyword: 'buoyant', weight: 5 },
+            { keyword: 'celebration', weight: 5 },
+            { keyword: 'centered', weight: 5 },
+            { keyword: 'champion', weight: 5 },
+            { keyword: 'charming', weight: 5 },
+            { keyword: 'cheerful', weight: 5 },
+            { keyword: 'clever', weight: 5 },
+            { keyword: 'confidence', weight: 5 },
+            { keyword: 'confident', weight: 5 },
+            { keyword: 'constant', weight: 5 },
+            { keyword: 'courage', weight: 5 },
+            { keyword: 'courageous', weight: 5 },
+            { keyword: 'delectable', weight: 5 },
+            { keyword: 'definite', weight: 5 },
+            { keyword: 'delightful', weight: 5 },
+            { keyword: 'dependable', weight: 5 },
+            { keyword: 'developing', weight: 5 },
+            { keyword: 'dignified', weight: 5 },
+            { keyword: 'divine', weight: 5 },
+            { keyword: 'doing well', weight: 5 },
+            { keyword: 'dynamite', weight: 5 },
+            { keyword: 'eager', weight: 5 },
+            { keyword: 'earnings growth', weight: 5 },
+            { keyword: 'ecstatic', weight: 5 },
+            { keyword: 'efficient', weight: 5 },
+            { keyword: 'efficient use of assets', weight: 5 },
+            { keyword: 'electrifying', weight: 5 },
+            { keyword: 'employable', weight: 5 },
+            { keyword: 'empowered', weight: 5 },
+            { keyword: 'endearing', weight: 5 },
+            { keyword: 'enjoyable', weight: 5 },
+            { keyword: 'enriching', weight: 5 },
+            { keyword: 'enthusiastic', weight: 5 },
+            { keyword: 'enticing', weight: 5 },
+            { keyword: 'especial', weight: 5 },
+            { keyword: 'exceptional', weight: 5 },
+            { keyword: 'exciting', weight: 5 },
+            { keyword: 'exhilarating', weight: 5 },
+            { keyword: 'exponential', weight: 5 },
+            { keyword: 'exquisite', weight: 5 },
+            { keyword: 'extraordinary', weight: 5 },
+            { keyword: 'extraordinary good', weight: 5 },
+            { keyword: 'exultant', weight: 5 },
+            { keyword: 'fabulous', weight: 5 },
+            { keyword: 'fascinating', weight: 5 },
+            { keyword: 'favorite', weight: 5 },
+            { keyword: 'fearless', weight: 5 },
+            { keyword: 'fetching', weight: 5 },
+            { keyword: 'financial stability', weight: 5 },
+            { keyword: 'finest', weight: 5 },
+            { keyword: 'flourishing', weight: 5 },
+            { keyword: 'gallant', weight: 5 },
+            { keyword: 'generous', weight: 5 },
+            { keyword: 'generously', weight: 5 },
+            { keyword: 'genuine', weight: 5 },
+            { keyword: 'gleaming', weight: 5 },
+            { keyword: 'goal-oriented', weight: 5 },
+            { keyword: 'godawful', weight: 5 },
+            { keyword: 'good future', weight: 5 },
+            { keyword: 'good judgment', weight: 5 },
+            { keyword: 'good perception', weight: 5 },
+            { keyword: 'good quarter', weight: 5 },
+            { keyword: 'good report', weight: 5 },
+            { keyword: 'great', weight: 5 },
+            { keyword: 'greatest', weight: 5 },
+            { keyword: 'growing', weight: 5 },
+            { keyword: 'growing revenue', weight: 5 },
+            { keyword: 'growth', weight: 5 },
+            { keyword: 'growth potential', weight: 5 },
+            { keyword: 'gumptious', weight: 5 },
+            { keyword: 'happiness', weight: 5 },
+            { keyword: 'happy', weight: 5 },
+            { keyword: 'healthy cash balance', weight: 5 },
+            { keyword: 'high achievement', weight: 5 },
+            { keyword: 'high investment motivation', weight: 5 },
+            { keyword: 'high market share', weight: 5 },
+            { keyword: 'high outcomes', weight: 5 },
+            { keyword: 'high potential', weight: 5 },
+            { keyword: 'high profit margin', weight: 5 },
+            { keyword: 'high reward', weight: 5 },
+            { keyword: 'highest', weight: 5 },
+            { keyword: 'highest quality', weight: 5 },
+            { keyword: 'highly recommend', weight: 5 },
+            { keyword: 'highly recommended', weight: 5 },
+            { keyword: 'ideal', weight: 5 },
+            { keyword: 'imaginative', weight: 5 },
+            { keyword: 'impressively', weight: 5 },
+            { keyword: 'impressive', weight: 5 },
+            { keyword: 'increased', weight: 5 },
+            { keyword: 'increased net income', weight: 5 },
+            { keyword: 'increase in value', weight: 5 },
+            { keyword: 'increase share value', weight: 5 },
+            { keyword: 'increase stock value', weight: 5 },
+            { keyword: 'increasing', weight: 5 },
+            { keyword: 'incredible', weight: 5 },
+            { keyword: 'innovative', weight: 5 },
+            { keyword: 'insightful', weight: 5 },
+            { keyword: 'inspiring', weight: 5 },
+            { keyword: 'instinctive', weight: 5 },
+            { keyword: 'intellectual', weight: 5 },
+            { keyword: 'irreplaceable', weight: 5 },
+            { keyword: 'irresistible', weight: 5 },
+            { keyword: 'jolly', weight: 5 },
+            { keyword: 'jovial', weight: 5 },
+            { keyword: 'joyful', weight: 5 },
+            { keyword: 'joysome', weight: 5 },
+            { keyword: 'judicious', weight: 5 },
+            { keyword: 'just', weight: 5 },
+            { keyword: 'keen', weight: 5 },
+            { keyword: 'knowledgeable', weight: 5 },
+            { keyword: 'lambent', weight: 5 },
+            { keyword: 'laudable', weight: 5 },
+            { keyword: 'leading', weight: 5 },
+            { keyword: 'leading ahead', weight: 5 },
+            { keyword: 'legendary', weight: 5 },
+            { keyword: 'likable', weight: 5 },
+            { keyword: 'lively', weight: 5 },
+            { keyword: 'low debt-to-equity', weight: 5 },
+            { keyword: 'luminous', weight: 5 },
+            { keyword: 'magical', weight: 5 },
+            { keyword: 'magnetic', weight: 5 },
+            { keyword: 'magnificent', weight: 5 },
+            { keyword: 'majestic', weight: 5 },
+            { keyword: 'making headway', weight: 5 },
+            { keyword: 'making progress', weight: 5 },
+            { keyword: 'marvelous', weight: 5 },
+            { keyword: 'masterful', weight: 5 },
+            { keyword: 'meagre', weight: 5 },
+            { keyword: 'miraculous', weight: 5 },
+            { keyword: 'mindful', weight: 5 },
+            { keyword: 'motivated', weight: 5 },
+            { keyword: 'moving up', weight: 5 },
+            { keyword: 'new products', weight: 5 },
+            { keyword: 'numinous', weight: 5 },
+            { keyword: 'on the increase', weight: 5 },
+            { keyword: 'on the rise', weight: 5 },
+            { keyword: 'on-target', weight: 5 },
+            { keyword: 'optimistic', weight: 5 },
+            { keyword: 'orderly', weight: 5 },
+            { keyword: 'organized', weight: 5 },
+            { keyword: 'out-of-this-world', weight: 5 },
+            { keyword: 'outstanding', weight: 5 },
+            { keyword: 'overjoyed', weight: 5 },
+            { keyword: 'paramount', weight: 5 },
+            { keyword: 'perceptive', weight: 5 },
+            { keyword: 'persistent', weight: 5 },
+            { keyword: 'persuasive', weight: 5 },
+            { keyword: 'phenomenal', weight: 5 },
+            { keyword: 'piquant', weight: 5 },
+            { keyword: 'pleasurable', weight: 5 },
+            { keyword: 'poise', weight: 5 },
+            { keyword: 'polished', weight: 5 },
+            { keyword: 'positive', weight: 5 },
+            { keyword: 'positive achievement', weight: 5 },
+            { keyword: 'positive future', weight: 5 },
+            { keyword: 'positive outcomes', weight: 5 },
+            { keyword: 'positive quarter', weight: 5 },
+            { keyword: 'positive return', weight: 5 },
+            { keyword: 'powerful', weight: 5 },
+            { keyword: 'praiseworthy', weight: 5 },
+            { keyword: 'praise', weight: 5 },
+            { keyword: 'proactive', weight: 5 },
+            { keyword: 'productive', weight: 5 },
+            { keyword: 'profit', weight: 5 },
+            { keyword: 'profitable', weight: 5 },
+            { keyword: 'projected price increase', weight: 5 },
+            { keyword: 'prominent', weight: 5 },
+            { keyword: 'promising', weight: 5 },
+            { keyword: 'prompt', weight: 5 },
+            { keyword: 'prospering', weight: 5 },
+            { keyword: 'proud', weight: 5 },
+            { keyword: 'punctual', weight: 5 },
+            { keyword: 'quick-witted', weight: 5 },
+            { keyword: 'radiant', weight: 5 },
+            { keyword: 'rallying', weight: 5 },
+            { keyword: 'rapturous', weight: 5 },
+            { keyword: 'rational', weight: 5 },
+            { keyword: 'razor-sharp', weight: 5 },
+            { keyword: 'reassuring', weight: 5 },
+            { keyword: 'recherche', weight: 5 },
+            { keyword: 'record high', weight: 5 },
+            { keyword: 'refulgent', weight: 5 },
+            { keyword: 'rejoicing', weight: 5 },
+            { keyword: 'reliable', weight: 5 },
+            { keyword: 'remarkable', weight: 5 },
+            { keyword: 'remarkably', weight: 5 },
+            { keyword: 'resilient', weight: 5 },
+            { keyword: 'resourceful', weight: 5 },
+            { keyword: 'respectable', weight: 5 },
+            { keyword: 'return on assets', weight: 5 },
+            { keyword: 'revolutionary', weight: 5 },
+            { keyword: 'rewarding', weight: 5 },
+            { keyword: 'righteous', weight: 5 },
+            { keyword: 'rising', weight: 5 },
+            { keyword: 'rising return on equity', weight: 5 },
+            { keyword: 'sagacious', weight: 5 },
+            { keyword: 'savvy', weight: 5 },
+            { keyword: 'sensational', weight: 5 },
+            { keyword: 'sensationally', weight: 5 },
+            { keyword: 'shrewd', weight: 5 },
+            { keyword: 'sincere', weight: 5 },
+            { keyword: 'skilled', weight: 5 },
+            { keyword: 'smart', weight: 5 },
+            { keyword: 'sound judgment', weight: 5 },
+            { keyword: 'spellbinding', weight: 5 },
+            { keyword: 'spirited', weight: 5 },
+            { keyword: 'spunky', weight: 5 },
+            { keyword: 'steadfast', weight: 5 },
+            { keyword: 'stellar', weight: 5 },
+            { keyword: 'stimulating', weight: 5 },
+            { keyword: 'strong bottom-line', weight: 5 },
+            { keyword: 'strong growth', weight: 5 },
+            { keyword: 'strong profitability', weight: 5 },
+            { keyword: 'struggling', weight: 5 },
+            { keyword: 'struggles', weight: 5 },
+            { keyword: 'succeeding', weight: 5 },
+            { keyword: 'success', weight: 5 },
+            { keyword: 'successful', weight: 5 },
+            { keyword: 'supreme', weight: 5 },
+            { keyword: 'surge', weight: 5 },
+            { keyword: 'surprising', weight: 5 },
+            { keyword: 'surprisingly', weight: 5 },
+            { keyword: 'systematic', weight: 5 },
+            { keyword: 'teeming', weight: 5 },
+            { keyword: 'tenacious', weight: 5 },
+            { keyword: 'thriving', weight: 5 },
+            { keyword: 'trailblazing', weight: 5 },
+            { keyword: 'transcendental', weight: 5 },
+            { keyword: 'triumph', weight: 5 },
+            { keyword: 'tubular', weight: 5 },
+            { keyword: 'upbeat', weight: 5 },
+            { keyword: 'uplifting', weight: 5 },
+            { keyword: 'upstanding', weight: 5 },
+            { keyword: 'valiant', weight: 5 },
+            { keyword: 'very clever', weight: 5 },
+            { keyword: 'very profitable', weight: 5 },
+            { keyword: 'very successful', weight: 5 },
+            { keyword: 'vibrant', weight: 5 },
+            { keyword: 'victorious', weight: 5 },
+            { keyword: 'victory', weight: 5 },
+            { keyword: 'vigor', weight: 5 },
+            { keyword: 'vigorous', weight: 5 },
+            { keyword: 'visionary', weight: 5 },
+            { keyword: 'vivacious', weight: 5 },
+            { keyword: 'well-informed', weight: 5 },
+            { keyword: 'win', weight: 5 },
+            { keyword: 'winner', weight: 5 },
+            { keyword: 'winners', weight: 5 },
+            { keyword: 'wins', weight: 5 },
+            { keyword: 'wise', weight: 5 },
+            { keyword: 'worthy', weight: 5 },
+            { keyword: 'worthy of praise', weight: 5 }
+        ],
         'emoji': '😊'
     },
     'neutral': {
         'keywords': [
-            'according', 'analyst call', 'annual general meeting', 'annual report', 
-            'announced', 'announcement', 'anticipated data', 'audit report', 
-            'balance sheet', 'board meeting', 'business', 'business update', 
-            'cautionary statement', 'company update', 'compliance report', 
-            'conference', 'conference call', 'cookie policy', 'corporate announcement', 
-            'data', 'disclaimer', 'downtime notification', 'earnings', 'earnings call', 
-            'economic data', 'emergency maintenance', 'estimated figures', 
-            'expected report', 'extraordinary meeting', 'final results', 
-            'financial', 'financial results', 'financial statement', 'financial update', 
-            'formal announcement', 'forward looking statement', 'government data', 
-            'industry news', 'industry report', 'information', 'interim report', 
-            'investor presentation', 'launch', 'legal notice', 'management discussion', 
-            'market analysis', 'market announcement', 'market update', 'material information', 
-            'media release', 'meeting', 'meeting minutes', 'non-material information', 
-            'official communication', 'official statement', 'operational update', 
-            'outlook statement', 'performance review', 'planned outage', 'planned release', 
-            'preliminary results', 'press conference', 'press release', 'price sensitive information', 
-            'privacy policy', 'product update', 'projected results', 'proxy statement', 
-            'public statement', 'quarterly', 'quarterly report', 'regulatory filing', 
-            'regulatory news', 'regulatory update', 'release', 'reported', 'reports', 
-            'revised figures', 'risk factors', 'routine maintenance', 'routine update', 
-            'scheduled announcement', 'scheduled downtime', 'sector update', 
-            'service announcement', 'service interruption', 'shareholder meeting', 
-            'shareholder vote', 'special meeting', 'statement', 'statistical release', 
-            'strategic update', 'system maintenance', 'technical update', 'terms and conditions', 
-            'trading update', 'unplanned outage', 'unscheduled downtime', 'update', 
-            'updated guidance', 'updates', 'website update'
-        ].sort(),
+            { keyword: 'according', weight: 3 },
+            { keyword: 'analyst call', weight: 3 },
+            { keyword: 'annual general meeting', weight: 3 },
+            { keyword: 'annual report', weight: 3 },
+            { keyword: 'announced', weight: 3 },
+            { keyword: 'announcement', weight: 3 },
+            { keyword: 'anticipated data', weight: 3 },
+            { keyword: 'audit report', weight: 3 },
+            { keyword: 'balance sheet', weight: 3 },
+            { keyword: 'board meeting', weight: 3 },
+            { keyword: 'business', weight: 3 },
+            { keyword: 'business update', weight: 3 },
+            { keyword: 'cautionary statement', weight: 3 },
+            { keyword: 'company update', weight: 3 },
+            { keyword: 'compliance report', weight: 3 },
+            { keyword: 'conference', weight: 3 },
+            { keyword: 'conference call', weight: 3 },
+            { keyword: 'cookie policy', weight: 3 },
+            { keyword: 'corporate announcement', weight: 3 },
+            { keyword: 'data', weight: 3 },
+            { keyword: 'disclaimer', weight: 3 },
+            { keyword: 'downtime notification', weight: 3 },
+            { keyword: 'earnings', weight: 3 },
+            { keyword: 'earnings call', weight: 3 },
+            { keyword: 'economic data', weight: 3 },
+            { keyword: 'emergency maintenance', weight: 3 },
+            { keyword: 'estimated figures', weight: 3 },
+            { keyword: 'expected report', weight: 3 },
+            { keyword: 'extraordinary meeting', weight: 3 },
+            { keyword: 'final results', weight: 3 },
+            { keyword: 'financial', weight: 3 },
+            { keyword: 'financial results', weight: 3 },
+            { keyword: 'financial statement', weight: 3 },
+            { keyword: 'financial update', weight: 3 },
+            { keyword: 'formal announcement', weight: 3 },
+            { keyword: 'forward looking statement', weight: 3 },
+            { keyword: 'government data', weight: 3 },
+            { keyword: 'industry news', weight: 3 },
+            { keyword: 'industry report', weight: 3 },
+            { keyword: 'information', weight: 3 },
+            { keyword: 'interim report', weight: 3 },
+            { keyword: 'investor presentation', weight: 3 },
+            { keyword: 'launch', weight: 3 },
+            { keyword: 'legal notice', weight: 3 },
+            { keyword: 'management discussion', weight: 3 },
+            { keyword: 'market analysis', weight: 3 },
+            { keyword: 'market announcement', weight: 3 },
+            { keyword: 'market update', weight: 3 },
+            { keyword: 'material information', weight: 3 },
+            { keyword: 'media release', weight: 3 },
+            { keyword: 'meeting', weight: 3 },
+            { keyword: 'meeting minutes', weight: 3 },
+            { keyword: 'non-material information', weight: 3 },
+            { keyword: 'official communication', weight: 3 },
+            { keyword: 'official statement', weight: 3 },
+            { keyword: 'operational update', weight: 3 },
+            { keyword: 'outlook statement', weight: 3 },
+            { keyword: 'performance review', weight: 3 },
+            { keyword: 'planned outage', weight: 3 },
+            { keyword: 'planned release', weight: 3 },
+            { keyword: 'preliminary results', weight: 3 },
+            { keyword: 'press conference', weight: 3 },
+            { keyword: 'press release', weight: 3 },
+            { keyword: 'price sensitive information', weight: 3 },
+            { keyword: 'privacy policy', weight: 3 },
+            { keyword: 'product update', weight: 3 },
+            { keyword: 'projected results', weight: 3 },
+            { keyword: 'proxy statement', weight: 3 },
+            { keyword: 'public statement', weight: 3 },
+            { keyword: 'quarterly', weight: 3 },
+            { keyword: 'quarterly report', weight: 3 },
+            { keyword: 'regulatory filing', weight: 3 },
+            { keyword: 'regulatory news', weight: 3 },
+            { keyword: 'regulatory update', weight: 3 },
+            { keyword: 'release', weight: 3 },
+            { keyword: 'reported', weight: 3 },
+            { keyword: 'reports', weight: 3 },
+            { keyword: 'revised figures', weight: 3 },
+            { keyword: 'risk factors', weight: 3 },
+            { keyword: 'routine maintenance', weight: 3 },
+            { keyword: 'routine update', weight: 3 },
+            { keyword: 'scheduled announcement', weight: 3 },
+            { keyword: 'scheduled downtime', weight: 3 },
+            { keyword: 'sector update', weight: 3 },
+            { keyword: 'service announcement', weight: 3 },
+            { keyword: 'service interruption', weight: 3 },
+            { keyword: 'shareholder meeting', weight: 3 },
+            { keyword: 'shareholder vote', weight: 3 },
+            { keyword: 'special meeting', weight: 3 },
+            { keyword: 'statement', weight: 3 },
+            { keyword: 'statistical release', weight: 3 },
+            { keyword: 'strategic update', weight: 3 },
+            { keyword: 'system maintenance', weight: 3 },
+            { keyword: 'technical update', weight: 3 },
+            { keyword: 'terms and conditions', weight: 3 },
+            { keyword: 'trading update', weight: 3 },
+            { keyword: 'unplanned outage', weight: 3 },
+            { keyword: 'unscheduled downtime', weight: 3 },
+            { keyword: 'update', weight: 3 },
+            { keyword: 'updated guidance', weight: 3 },
+            { keyword: 'updates', weight: 3 },
+            { keyword: 'website update', weight: 3 }
+        ],
         'emoji': '😐'
     },
     'sad': {
         'keywords': [
-            'abate', 'abysmal', 'accounting discrepancies', 'administration', 
-            'adverse', 'alarming', 'annoy', 'anxious', 'apathy', 'appalling', 
-            'atrocious', 'awful', 'bad', 'bad assets', 'bankrupt', 'battle', 
-            'belligerent', 'below', 'below expectation', 'bemoan', 'beneath', 
-            'blame', 'boring', 'broken', 'cash-strapped', 'cheap', 'chronic', 
-            'closed', 'collapse', 'conflict', 'confront', 'contrary', 'contradictory', 
-            'corrosive', 'corrupt', 'criminal', 'crummy', 'curtail', 'curtailment', 
-            'cut', 'cutback', 'cutting', 'damage', 'damaging', 'dangerous', 
-            'dead', 'death', 'deaths', 'debts', 'decaying', 'decrease', 'decreased', 
-            'decreasing', 'defective', 'deficient', 'deficiency', 'deformed', 
-            'dejected', 'deleterious', 'deny', 'depressed', 'deprived', 'destroy', 
-            'destructive', 'detrimental', 'diabolical', 'difficult', 'diminish', 
-            'diminished', 'dirty', 'disadvantageous', 'disagreeable', 'disappointed', 
-            'disastrous', 'disgusting', 'disheveled', 'dishonest', 'dishonorable', 
-            'dismal', 'disobedient', "don't", 'downside', 'dreary', 'dreadful', 
-            'drop', 'dwindle', 'dwindling', 'ebb', 'egregious', 'enraged', 'eroding', 
-            'evil', 'execrable', 'fail', 'failing', 'fall', 'falling', 'falling market share', 
-            'falling off', 'faulty', 'fear', 'feeble', 'fight', 'filthy', 'financial distress', 
-            'financial trouble', 'fired', 'flop', 'foul', 'frighten', 'frightful', 
-            'gawky', 'ghastly', 'going concern warning', 'grave', 'greed', 'grim', 
-            'grimace', 'gross', 'grotesque', 'gruesome', 'guilty', 'haggard', 
-            'harmful', 'hate', 'headwinds', 'hideous', 'high debt', 'high debt levels', 
-            'high overheads', 'hopeless', 'horrendous', 'horrible', 'hostile', 
-            'hurt', 'hurtful', 'ignorant', 'ignore', 'ill', 'immature', 'imminent failure', 
-            'immoral', 'imperfect', 'impossible', 'inability', 'inadequate', 
-            'inane', 'inappropriate', 'inauspicious', 'incompetent', 'ineffectual', 
-            'inefficient', 'inelegant', 'inept', 'inexpert', 'inferior', 'infernal', 
-            'injure', 'injurious', 'inimical', 'insane', 'insipid', 'insidious', 
-            'insolvency', 'insolvent', 'interest payments', 'jealous', 'junk', 
-            'junky', 'lack of innovation', 'lamentable', 'laughable', 'layoffs', 
-            'legal dispute', 'legal disputes', 'legal issues', 'legal issues', 
-            'lessen', 'lessening', 'liabilities', 'life-threatening', 'lose', 
-            'losing', 'losing money', 'loss', 'lousy', 'low', 'low growth', 
-            'low margin', 'low order book', 'low revenue', 'low sales', 'low turnover', 
-            'lower', 'lowering', 'lumpy', 'malicious', 'market value decline', 
-            'menacing', 'messy', 'mischievous', 'miserable', 'misshapen', 'missing', 
-            'misunderstood', 'monstrous', 'naïve', 'nasty', 'naughty', 'negative', 
-            'negative cash flow', 'negative financial state', 'negative order book', 
-            'negate', 'neglect', 'never', 'nondescript', 'nonsense', 'not to par', 
-            'not up to scratch', 'noxious', 'objectionable', 'obliterate', 
-            'obliterated', 'odious', 'offensive', 'oppressive', 'outstanding debts', 
-            'pain', 'parlous', 'pathetic', 'pessimistic', 'perturb', 'petty', 
-            'pitiful', 'poisonous', 'poor', 'poor credit control', 'poor credit ratings', 
-            'poor report', 'poor reports', 'prejudice', 'product call back', 
-            'product call backs', 'questionable', 'quit', 'reduce', 'reducing', 
-            'reducing orders', 'reduction', 'redundancies', 'regrettable', 'reject', 
-            'renege', 'repellant', 'repugnant', 'repulsive', 'revenge', 'revolting', 
-            'rocky', 'rotten', 'rubbish', 'rude', 'ruinous', 'sacking', 'sad', 
-            'scanty', 'second-class', 'second-rate', 'severe', 'severe financial trouble', 
-            'serious decline', 'shoddy', 'shocking', 'shrink', 'shrinking', 'shutdown', 
-            'significant drop', 'slow economic growth', 'stagflation', 'struggling', 
-            'struggles', 'subdued', 'subside', 'substandard', 'suffering', 'substandard', 
-            'terrible', 'terrifying', 'third-rate', 'threatening', 'tragedy', 
-            'troubled', 'unacceptable', 'unfavourable', 'unfavorable', 'unfortunate', 
-            'unhealthy', 'unlucky', 'unpleasant', 'unprofitable', 'unsatisfactory', 
-            'unsuitable', 'unskilled', 'unwelcome', 'unpropitious', 'untoward', 
-            'useless', 'vulnerable', 'wane', 'weak leadership', 'weak management', 
-            'worthless', 'wretched', 'wrong', 'wipe out'
-        ].sort(),
+            { keyword: 'abate', weight: 5 },
+            { keyword: 'abysmal', weight: 5 },
+            { keyword: 'accounting discrepancies', weight: 5 },
+            { keyword: 'administration', weight: 5 },
+            { keyword: 'adverse', weight: 5 },
+            { keyword: 'alarming', weight: 5 },
+            { keyword: 'annoy', weight: 5 },
+            { keyword: 'anxious', weight: 5 },
+            { keyword: 'apathy', weight: 5 },
+            { keyword: 'appalling', weight: 5 },
+            { keyword: 'atrocious', weight: 5 },
+            { keyword: 'awful', weight: 5 },
+            { keyword: 'bad', weight: 5 },
+            { keyword: 'bad assets', weight: 5 },
+            { keyword: 'bankrupt', weight: 5 },
+            { keyword: 'battle', weight: 5 },
+            { keyword: 'belligerent', weight: 5 },
+            { keyword: 'below', weight: 5 },
+            { keyword: 'below expectation', weight: 5 },
+            { keyword: 'bemoan', weight: 5 },
+            { keyword: 'beneath', weight: 5 },
+            { keyword: 'blame', weight: 5 },
+            { keyword: 'boring', weight: 5 },
+            { keyword: 'broken', weight: 5 },
+            { keyword: 'cash-strapped', weight: 5 },
+            { keyword: 'cheap', weight: 5 },
+            { keyword: 'chronic', weight: 5 },
+            { keyword: 'closed', weight: 5 },
+            { keyword: 'collapse', weight: 5 },
+            { keyword: 'conflict', weight: 5 },
+            { keyword: 'confront', weight: 5 },
+            { keyword: 'contrary', weight: 5 },
+            { keyword: 'contradictory', weight: 5 },
+            { keyword: 'corrosive', weight: 5 },
+            { keyword: 'corrupt', weight: 5 },
+            { keyword: 'criminal', weight: 5 },
+            { keyword: 'crummy', weight: 5 },
+            { keyword: 'curtail', weight: 5 },
+            { keyword: 'curtailment', weight: 5 },
+            { keyword: 'cut', weight: 5 },
+            { keyword: 'cutback', weight: 5 },
+            { keyword: 'cutting', weight: 5 },
+            { keyword: 'damage', weight: 5 },
+            { keyword: 'damaging', weight: 5 },
+            { keyword: 'dangerous', weight: 5 },
+            { keyword: 'dead', weight: 5 },
+            { keyword: 'death', weight: 5 },
+            { keyword: 'deaths', weight: 5 },
+            { keyword: 'debts', weight: 5 },
+            { keyword: 'decaying', weight: 5 },
+            { keyword: 'decrease', weight: 5 },
+            { keyword: 'decreased', weight: 5 },
+            { keyword: 'decreasing', weight: 5 },
+            { keyword: 'defective', weight: 5 },
+            { keyword: 'deficient', weight: 5 },
+            { keyword: 'deficiency', weight: 5 },
+            { keyword: 'deformed', weight: 5 },
+            { keyword: 'dejected', weight: 5 },
+            { keyword: 'deleterious', weight: 5 },
+            { keyword: 'deny', weight: 5 },
+            { keyword: 'depressed', weight: 5 },
+            { keyword: 'deprived', weight: 5 },
+            { keyword: 'destroy', weight: 5 },
+            { keyword: 'destructive', weight: 5 },
+            { keyword: 'detrimental', weight: 5 },
+            { keyword: 'diabolical', weight: 5 },
+            { keyword: 'difficult', weight: 5 },
+            { keyword: 'diminish', weight: 5 },
+            { keyword: 'diminished', weight: 5 },
+            { keyword: 'dirty', weight: 5 },
+            { keyword: 'disadvantageous', weight: 5 },
+            { keyword: 'disagreeable', weight: 5 },
+            { keyword: 'disappointed', weight: 5 },
+            { keyword: 'disastrous', weight: 5 },
+            { keyword: 'disgusting', weight: 5 },
+            { keyword: 'disheveled', weight: 5 },
+            { keyword: 'dishonest', weight: 5 },
+            { keyword: 'dishonorable', weight: 5 },
+            { keyword: 'dismal', weight: 5 },
+            { keyword: 'disobedient', weight: 5 },
+            { keyword: "don't", weight: 5 },
+            { keyword: 'downside', weight: 5 },
+            { keyword: 'dreary', weight: 5 },
+            { keyword: 'dreadful', weight: 5 },
+            { keyword: 'drop', weight: 5 },
+            { keyword: 'dwindle', weight: 5 },
+            { keyword: 'dwindling', weight: 5 },
+            { keyword: 'ebb', weight: 5 },
+            { keyword: 'egregious', weight: 5 },
+            { keyword: 'enraged', weight: 5 },
+            { keyword: 'eroding', weight: 5 },
+            { keyword: 'evil', weight: 5 },
+            { keyword: 'execrable', weight: 5 },
+            { keyword: 'fail', weight: 5 },
+            { keyword: 'failing', weight: 5 },
+            { keyword: 'fall', weight: 5 },
+            { keyword: 'falling', weight: 5 },
+            { keyword: 'falling market share', weight: 5 },
+            { keyword: 'falling off', weight: 5 },
+            { keyword: 'faulty', weight: 5 },
+            { keyword: 'fear', weight: 5 },
+            { keyword: 'feeble', weight: 5 },
+            { keyword: 'fight', weight: 5 },
+            { keyword: 'filthy', weight: 5 },
+            { keyword: 'financial distress', weight: 5 },
+            { keyword: 'financial trouble', weight: 5 },
+            { keyword: 'fired', weight: 5 },
+            { keyword: 'flop', weight: 5 },
+            { keyword: 'foul', weight: 5 },
+            { keyword: 'frighten', weight: 5 },
+            { keyword: 'frightful', weight: 5 },
+            { keyword: 'gawky', weight: 5 },
+            { keyword: 'ghastly', weight: 5 },
+            { keyword: 'going concern warning', weight: 5 },
+            { keyword: 'grave', weight: 5 },
+            { keyword: 'greed', weight: 5 },
+            { keyword: 'grim', weight: 5 },
+            { keyword: 'grimace', weight: 5 },
+            { keyword: 'gross', weight: 5 },
+            { keyword: 'grotesque', weight: 5 },
+            { keyword: 'gruesome', weight: 5 },
+            { keyword: 'guilty', weight: 5 },
+            { keyword: 'haggard', weight: 5 },
+            { keyword: 'harmful', weight: 5 },
+            { keyword: 'hate', weight: 5 },
+            { keyword: 'headwinds', weight: 5 },
+            { keyword: 'hideous', weight: 5 },
+            { keyword: 'high debt', weight: 5 },
+            { keyword: 'high debt levels', weight: 5 },
+            { keyword: 'high overheads', weight: 5 },
+            { keyword: 'hopeless', weight: 5 },
+            { keyword: 'horrendous', weight: 5 },
+            { keyword: 'horrible', weight: 5 },
+            { keyword: 'hostile', weight: 5 },
+            { keyword: 'hurt', weight: 5 },
+            { keyword: 'hurtful', weight: 5 },
+            { keyword: 'ignorant', weight: 5 },
+            { keyword: 'ignore', weight: 5 },
+            { keyword: 'ill', weight: 5 },
+            { keyword: 'immature', weight: 5 },
+            { keyword: 'imminent failure', weight: 5 },
+            { keyword: 'immoral', weight: 5 },
+            { keyword: 'imperfect', weight: 5 },
+            { keyword: 'impossible', weight: 5 },
+            { keyword: 'inability', weight: 5 },
+            { keyword: 'inadequate', weight: 5 },
+            { keyword: 'inane', weight: 5 },
+            { keyword: 'inappropriate', weight: 5 },
+            { keyword: 'inauspicious', weight: 5 },
+            { keyword: 'incompetent', weight: 5 },
+            { keyword: 'ineffectual', weight: 5 },
+            { keyword: 'inefficient', weight: 5 },
+            { keyword: 'inelegant', weight: 5 },
+            { keyword: 'inept', weight: 5 },
+            { keyword: 'inexpert', weight: 5 },
+            { keyword: 'inferior', weight: 5 },
+            { keyword: 'infernal', weight: 5 },
+            { keyword: 'injure', weight: 5 },
+            { keyword: 'injurious', weight: 5 },
+            { keyword: 'inimical', weight: 5 },
+            { keyword: 'insane', weight: 5 },
+            { keyword: 'insipid', weight: 5 },
+            { keyword: 'insidious', weight: 5 },
+            { keyword: 'insolvency', weight: 5 },
+            { keyword: 'insolvent', weight: 5 },
+            { keyword: 'interest payments', weight: 5 },
+            { keyword: 'jealous', weight: 5 },
+            { keyword: 'junk', weight: 5 },
+            { keyword: 'junky', weight: 5 },
+            { keyword: 'lack of innovation', weight: 5 },
+            { keyword: 'lamentable', weight: 5 },
+            { keyword: 'laughable', weight: 5 },
+            { keyword: 'layoffs', weight: 5 },
+            { keyword: 'legal dispute', weight: 5 },
+            { keyword: 'legal disputes', weight: 5 },
+            { keyword: 'legal issues', weight: 5 },
+            { keyword: 'legal issues', weight: 5 },
+            { keyword: 'lessen', weight: 5 },
+            { keyword: 'lessening', weight: 5 },
+            { keyword: 'liabilities', weight: 5 },
+            { keyword: 'life-threatening', weight: 5 },
+            { keyword: 'lose', weight: 5 },
+            { keyword: 'losing', weight: 5 },
+            { keyword: 'losing money', weight: 5 },
+            { keyword: 'loss', weight: 5 },
+            { keyword: 'lousy', weight: 5 },
+            { keyword: 'low', weight: 5 },
+            { keyword: 'low growth', weight: 5 },
+            { keyword: 'low margin', weight: 5 },
+            { keyword: 'low order book', weight: 5 },
+            { keyword: 'low revenue', weight: 5 },
+            { keyword: 'low sales', weight: 5 },
+            { keyword: 'low turnover', weight: 5 },
+            { keyword: 'lower', weight: 5 },
+            { keyword: 'lowering', weight: 5 },
+            { keyword: 'lumpy', weight: 5 },
+            { keyword: 'malicious', weight: 5 },
+            { keyword: 'market value decline', weight: 5 },
+            { keyword: 'menacing', weight: 5 },
+            { keyword: 'messy', weight: 5 },
+            { keyword: 'mischievous', weight: 5 },
+            { keyword: 'miserable', weight: 5 },
+            { keyword: 'misshapen', weight: 5 },
+            { keyword: 'missing', weight: 5 },
+            { keyword: 'misunderstood', weight: 5 },
+            { keyword: 'monstrous', weight: 5 },
+            { keyword: 'naïve', weight: 5 },
+            { keyword: 'nasty', weight: 5 },
+            { keyword: 'naughty', weight: 5 },
+            { keyword: 'negative', weight: 5 },
+            { keyword: 'negative cash flow', weight: 5 },
+            { keyword: 'negative financial state', weight: 5 },
+            { keyword: 'negative order book', weight: 5 },
+            { keyword: 'negate', weight: 5 },
+            { keyword: 'neglect', weight: 5 },
+            { keyword: 'never', weight: 5 },
+            { keyword: 'nondescript', weight: 5 },
+            { keyword: 'nonsense', weight: 5 },
+            { keyword: 'not to par', weight: 5 },
+            { keyword: 'not up to scratch', weight: 5 },
+            { keyword: 'noxious', weight: 5 },
+            { keyword: 'objectionable', weight: 5 },
+            { keyword: 'obliterate', weight: 5 },
+            { keyword: 'obliterated', weight: 5 },
+            { keyword: 'odious', weight: 5 },
+            { keyword: 'offensive', weight: 5 },
+            { keyword: 'oppressive', weight: 5 },
+            { keyword: 'outstanding debts', weight: 5 },
+            { keyword: 'pain', weight: 5 },
+            { keyword: 'parlous', weight: 5 },
+            { keyword: 'pathetic', weight: 5 },
+            { keyword: 'pessimistic', weight: 5 },
+            { keyword: 'perturb', weight: 5 },
+            { keyword: 'petty', weight: 5 },
+            { keyword: 'pitiful', weight: 5 },
+            { keyword: 'poisonous', weight: 5 },
+            { keyword: 'poor', weight: 5 },
+            { keyword: 'poor credit control', weight: 5 },
+            { keyword: 'poor credit ratings', weight: 5 },
+            { keyword: 'poor report', weight: 5 },
+            { keyword: 'poor reports', weight: 5 },
+            { keyword: 'prejudice', weight: 5 },
+            { keyword: 'product call back', weight: 5 },
+            { keyword: 'product call backs', weight: 5 },
+            { keyword: 'questionable', weight: 5 },
+            { keyword: 'quit', weight: 5 },
+            { keyword: 'reduce', weight: 5 },
+            { keyword: 'reducing', weight: 5 },
+            { keyword: 'reducing orders', weight: 5 },
+            { keyword: 'reduction', weight: 5 },
+            { keyword: 'redundancies', weight: 5 },
+            { keyword: 'regrettable', weight: 5 },
+            { keyword: 'reject', weight: 5 },
+            { keyword: 'renege', weight: 5 },
+            { keyword: 'repellant', weight: 5 },
+            { keyword: 'repugnant', weight: 5 },
+            { keyword: 'repulsive', weight: 5 },
+            { keyword: 'revenge', weight: 5 },
+            { keyword: 'revolting', weight: 5 },
+            { keyword: 'rocky', weight: 5 },
+            { keyword: 'rotten', weight: 5 },
+            { keyword: 'rubbish', weight: 5 },
+            { keyword: 'rude', weight: 5 },
+            { keyword: 'ruinous', weight: 5 },
+            { keyword: 'sacking', weight: 5 },
+            { keyword: 'sad', weight: 5 },
+            { keyword: 'scanty', weight: 5 },
+            { keyword: 'second-class', weight: 5 },
+            { keyword: 'second-rate', weight: 5 },
+            { keyword: 'severe', weight: 5 },
+            { keyword: 'severe financial trouble', weight: 5 },
+            { keyword: 'serious decline', weight: 5 },
+            { keyword: 'shoddy', weight: 5 },
+            { keyword: 'shocking', weight: 5 },
+            { keyword: 'shrink', weight: 5 },
+            { keyword: 'shrinking', weight: 5 },
+            { keyword: 'shutdown', weight: 5 },
+            { keyword: 'significant drop', weight: 5 },
+            { keyword: 'slow economic growth', weight: 5 },
+            { keyword: 'stagflation', weight: 5 },
+            { keyword: 'struggling', weight: 5 },
+            { keyword: 'struggles', weight: 5 },
+            { keyword: 'subdued', weight: 5 },
+            { keyword: 'subside', weight: 5 },
+            { keyword: 'substandard', weight: 5 },
+            { keyword: 'suffering', weight: 5 },
+            { keyword: 'substandard', weight: 5 },
+            { keyword: 'terrible', weight: 5 },
+            { keyword: 'terrifying', weight: 5 },
+            { keyword: 'third-rate', weight: 5 },
+            { keyword: 'threatening', weight: 5 },
+            { keyword: 'tragedy', weight: 5 },
+            { keyword: 'troubled', weight: 5 },
+            { keyword: 'unacceptable', weight: 5 },
+            { keyword: 'unfavourable', weight: 5 },
+            { keyword: 'unfavorable', weight: 5 },
+            { keyword: 'unfortunate', weight: 5 },
+            { keyword: 'unhealthy', weight: 5 },
+            { keyword: 'unlucky', weight: 5 },
+            { keyword: 'unpleasant', weight: 5 },
+            { keyword: 'unprofitable', weight: 5 },
+            { keyword: 'unsatisfactory', weight: 5 },
+            { keyword: 'unsuitable', weight: 5 },
+            { keyword: 'unskilled', weight: 5 },
+            { keyword: 'unwelcome', weight: 5 },
+            { keyword: 'unpropitious', weight: 5 },
+            { keyword: 'untoward', weight: 5 },
+            { keyword: 'useless', weight: 5 },
+            { keyword: 'vulnerable', weight: 5 },
+            { keyword: 'wane', weight: 5 },
+            { keyword: 'weak leadership', weight: 5 },
+            { keyword: 'weak management', weight: 5 },
+            { keyword: 'worthless', weight: 5 },
+            { keyword: 'wretched', weight: 5 },
+            { keyword: 'wrong', weight: 5 },
+            { keyword: 'wipe out', weight: 5 }
+        ],
         'emoji': '😢'
     }
 };
@@ -3090,6 +3420,11 @@ let companies = [
 // Test companies storage
 let testCompanies = [];
 let testResults = {};
+
+// Import logging system
+let importLog = [];
+let importedFiles = [];
+let keywordScores = {};
 
 let editIndex = -1;
 let analysisInProgress = false;
@@ -3133,20 +3468,6 @@ function getRAG(sad, happy, company = null) {
   if (sad >= 70) return 'red';
   return 'yellow';
 }
-// Add this debug function to check if modal elements exist
-function debugModalIssues() {
-  console.log("Checking modal elements...");
-  console.log("editKeywordModalOverlay exists:", document.getElementById('editKeywordModalOverlay') ? "YES" : "NO");
-  console.log("editKeywordModal exists:", document.getElementById('editKeywordModal') ? "YES" : "NO");
-  
-  // Check if there are multiple elements with similar IDs
-  const allElements = document.querySelectorAll('[id*="editKeyword"]');
-  console.log("All elements with 'editKeyword' in ID:", allElements.length);
-  allElements.forEach(el => console.log("  -", el.id));
-}
-
-// Call this in your DOMContentLoaded or when testing
-// debugModalIssues();
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -3155,7 +3476,6 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// Function to calculate total analysis time
 // Function to calculate total analysis time for current tab
 function calculateTotalAnalysisTime() {
   let companiesToAnalyze = [];
@@ -3168,195 +3488,6 @@ function calculateTotalAnalysisTime() {
   
   const totalCompanies = companiesToAnalyze.length;
   return Math.round(totalCompanies * TIME_PER_COMPANY); // Total seconds
-}
-
-// Open edit keyword modal - FIXED
-// Open edit keyword modal - UPDATED VERSION
-function editKeyword(keyword, emotion) {
-    console.log("editKeyword called with:", keyword, emotion); // Debug
-    
-    // Unescape the keyword
-    const unescapedKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
-    
-    currentEditKeyword = unescapedKeyword;
-    currentEditEmotion = emotion;
-    selectedEditEmotion = emotion;
-    
-    // Update modal content
-    document.getElementById('keywordToEdit').textContent = unescapedKeyword;
-    document.getElementById('editModalTitle').textContent = `Edit "${unescapedKeyword}"`;
-    
-    // Set current emotion
-    const emoji = emotions[emotion].emoji;
-    document.getElementById('currentEmotionEmoji').textContent = emoji;
-    
-    // Update emotion selection
-    document.querySelectorAll('.emotion-select-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (btn.getAttribute('data-emotion') === emotion) {
-            btn.classList.add('selected');
-        }
-    });
-    
-    // Reset score weight to default 5
-    document.getElementById('scoreWeightSlider').value = 5;
-    document.getElementById('scoreWeightValue').textContent = '5';
-    
-    // Show modal - IMPORTANT: Use correct ID
-    const modal = document.getElementById('editKeywordModalOverlay');
-    if (modal) {
-        modal.style.display = 'flex';
-        console.log("Modal displayed successfully");
-    } else {
-        console.error("Modal not found! ID: editKeywordModalOverlay");
-        // Fallback: try to find any edit modal
-        const fallbackModal = document.querySelector('.modal-overlay[id*="edit"]');
-        if (fallbackModal) {
-            fallbackModal.style.display = 'flex';
-            console.log("Used fallback modal:", fallbackModal.id);
-        }
-    }
-}
-
-// Close edit keyword modal - UPDATED VERSION
-function closeEditKeywordModal() {
-    const modal = document.getElementById('editKeywordModalOverlay');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    currentEditKeyword = null;
-    currentEditEmotion = null;
-    selectedEditEmotion = null;
-}
-
-// Select emotion in edit modal
-function selectEmotion(emotion) {
-    selectedEditEmotion = emotion;
-    
-    // Update UI
-    document.querySelectorAll('.emotion-select-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (btn.getAttribute('data-emotion') === emotion) {
-            btn.classList.add('selected');
-        }
-    });
-    
-    // Update emoji
-    const emoji = emotions[emotion].emoji;
-    document.getElementById('currentEmotionEmoji').textContent = emoji;
-}
-
-// Update score weight display
-function updateScoreWeightValue(value) {
-    document.getElementById('scoreWeightValue').textContent = value;
-}
-
-// Save keyword edit
-function saveKeywordEdit() {
-    if (!currentEditKeyword || !selectedEditEmotion) return;
-    
-    // Check if emotion changed
-    if (currentEditEmotion !== selectedEditEmotion) {
-        // Remove from old emotion category
-        const oldIndex = emotions[currentEditEmotion].keywords.indexOf(currentEditKeyword);
-        if (oldIndex !== -1) {
-            emotions[currentEditEmotion].keywords.splice(oldIndex, 1);
-        }
-        
-        // Add to new emotion category
-        if (!emotions[selectedEditEmotion].keywords.includes(currentEditKeyword)) {
-            emotions[selectedEditEmotion].keywords.push(currentEditKeyword);
-            emotions[selectedEditEmotion].keywords.sort();
-        }
-        
-        // Update currentEditEmotion
-        currentEditEmotion = selectedEditEmotion;
-    }
-    
-    // Get score weight (for future use if you want to implement weighted scoring)
-    const scoreWeight = parseInt(document.getElementById('scoreWeightSlider').value);
-    
-    // Save to localStorage for persistence (optional)
-    saveEmotionsToLocalStorage();
-    
-    // Refresh the keyword modal
-    populateKeywordModal();
-    
-    // Close modal
-    closeEditKeywordModal();
-    
-    showToast('✅ Keyword updated successfully!');
-}
-
-// Delete keyword with confirmation
-function deleteKeyword(keyword, emotion) {
-    // Unescape the keyword for display
-    const displayKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
-    
-    if (confirm(`Are you sure you want to delete the keyword "${displayKeyword}"? This action cannot be undone.`)) {
-        // Use the original keyword (unescaped) for searching
-        const originalKeyword = keyword.replace(/\\'/g, "'").replace(/\\"/g, '"');
-        const emotionIndex = emotions[emotion].keywords.indexOf(originalKeyword);
-        if (emotionIndex !== -1) {
-            emotions[emotion].keywords.splice(emotionIndex, 1);
-            
-            // Save to localStorage for persistence
-            saveEmotionsToLocalStorage();
-            
-            // Refresh the keyword modal
-            populateKeywordModal();
-            
-            showToast('🗑️ Keyword deleted successfully!');
-        }
-    }
-}
-
-// Confirm delete from edit modal
-function confirmDeleteKeyword() {
-    if (confirm(`Are you absolutely sure you want to delete "${currentEditKeyword}"? This will affect all future analyses.`)) {
-        const emotionIndex = emotions[currentEditEmotion].keywords.indexOf(currentEditKeyword);
-        if (emotionIndex !== -1) {
-            emotions[currentEditEmotion].keywords.splice(emotionIndex, 1);
-            
-            // Save to localStorage for persistence (optional)
-            saveEmotionsToLocalStorage();
-            
-            // Refresh the keyword modal
-            populateKeywordModal();
-            
-            // Close edit modal
-            closeEditKeywordModal();
-            
-            showToast('🗑️ Keyword deleted successfully!');
-        }
-    }
-}
-
-// Optional: Save emotions to localStorage for persistence
-function saveEmotionsToLocalStorage() {
-    try {
-        localStorage.setItem('sentimentKeywords', JSON.stringify(emotions));
-    } catch (e) {
-        console.error('Error saving to localStorage:', e);
-    }
-}
-
-// Optional: Load emotions from localStorage on startup
-function loadEmotionsFromLocalStorage() {
-    try {
-        const saved = localStorage.getItem('sentimentKeywords');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            // Merge with default emotions
-            Object.keys(parsed).forEach(emotion => {
-                if (emotions[emotion]) {
-                    emotions[emotion].keywords = parsed[emotion].keywords;
-                }
-            });
-        }
-    } catch (e) {
-        console.error('Error loading from localStorage:', e);
-    }
 }
 
 // Function to start countdown timer
@@ -3527,7 +3658,7 @@ function handleMyListAction(action) {
   }
 }
 
-// Enhanced populate keyword modal with individual containers
+// Enhanced populate keyword modal with individual containers and weight scores
 function populateKeywordModal() {
     const container = document.getElementById('keywordsContainer');
     let html = '';
@@ -3543,21 +3674,17 @@ function populateKeywordModal() {
     for (const [emotion, data] of Object.entries(emotions)) {
         const keywords = data.keywords;
         
-        keywords.forEach((keyword, index) => {
-            // Properly escape the keyword for JavaScript
-            const escapedKeyword = keyword.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        keywords.forEach((keywordObj, index) => {
+            const keyword = keywordObj.keyword;
+            const weight = keywordObj.weight;
             
             html += `
     <div class="keyword-item ${emotion}" data-emotion="${emotion}" data-index="${index}" data-keyword="${keyword}">
         <div class="keyword-header">
             <div class="keyword-text">${keyword}</div>
-            <div class="keyword-actions">
-                <button class="keyword-action-btn edit" data-keyword="${keyword}" data-emotion="${emotion}" title="Edit">
-                    <span class="icon">✏️</span>
-                </button>
-                <button class="keyword-action-btn delete" data-keyword="${keyword}" data-emotion="${emotion}" title="Delete">
-                    <span class="icon">🗑️</span>
-                </button>
+            <div class="keyword-score-weight">
+                <div class="keyword-score">${weight}</div>
+                <div class="keyword-weight-badge" title="Weight Score">W:${weight}</div>
             </div>
         </div>
         <div class="keyword-emotion">
@@ -3574,29 +3701,16 @@ function populateKeywordModal() {
     }
     
     container.innerHTML = html;
+    
+    // Add copy functionality
     container.addEventListener('click', function(e) {
-    const editBtn = e.target.closest('.keyword-action-btn.edit');
-    const deleteBtn = e.target.closest('.keyword-action-btn.delete');
-    const copyBtn = e.target.closest('.keyword-action-btn.copy');
-    
-    if (editBtn) {
-        const keyword = editBtn.getAttribute('data-keyword');
-        const emotion = editBtn.getAttribute('data-emotion');
-        editKeyword(keyword, emotion);
-    }
-    
-    if (deleteBtn) {
-        const keyword = deleteBtn.getAttribute('data-keyword');
-        const emotion = deleteBtn.getAttribute('data-emotion');
-        deleteKeyword(keyword, emotion);
-    }
-    
-    if (copyBtn) {
-        const keyword = copyBtn.getAttribute('data-keyword');
-        copyKeyword(keyword);
-    }
-});
-
+        const copyBtn = e.target.closest('.keyword-action-btn.copy');
+        
+        if (copyBtn) {
+            const keyword = copyBtn.getAttribute('data-keyword');
+            copyKeyword(keyword);
+        }
+    });
     
     // Add search functionality
     const searchInput = document.getElementById('keywordSearch');
@@ -3728,8 +3842,8 @@ function copyAllKeywords() {
     for (const [emotion, data] of Object.entries(emotions)) {
         const emotionName = emotion.charAt(0).toUpperCase() + emotion.slice(1);
         allKeywords += `${emotionName} Keywords:\n`;
-        data.keywords.forEach(keyword => {
-            allKeywords += `${keyword}\n`;
+        data.keywords.forEach(keywordObj => {
+            allKeywords += `${keywordObj.keyword} (Weight: ${keywordObj.weight})\n`;
         });
         allKeywords += '\n';
     }
@@ -3742,6 +3856,42 @@ function copyAllKeywords() {
             console.error('Failed to copy keywords:', err);
             showToast('❌ Failed to copy keywords');
         });
+}
+
+// Function to export keywords to CSV
+function exportKeywordsToCSV() {
+  let allKeywords = [];
+  
+  // Collect all keywords with their scores
+  for (const [emotion, data] of Object.entries(emotions)) {
+    data.keywords.forEach(keywordObj => {
+      allKeywords.push({
+        keyword: keywordObj.keyword,
+        score: keywordObj.weight,
+        emotion: emotion
+      });
+    });
+  }
+  
+  // Create CSV content
+  let csvContent = 'keyword_name,keyword_score,emotion\n';
+  
+  allKeywords.forEach(kw => {
+    csvContent += `"${kw.keyword}",${kw.score},"${kw.emotion}"\n`;
+  });
+  
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sentiment_keywords_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  
+  showToast('📤 Keywords exported to CSV!');
 }
 
 // Existing modal functions
@@ -3760,6 +3910,9 @@ function openKeywordModal() {
     // Populate the modal with enhanced keyword data
     populateKeywordModal();
     
+    // Show imported files info
+    updateImportedFilesDisplay();
+    
     // Reset search
     document.getElementById('keywordSearch').value = '';
     
@@ -3775,9 +3928,13 @@ function closeKeywordModal() {
     document.getElementById('keywordModal').style.display = 'none';
 }
 
-// Open export modal
+// Open export modal - MODIFIED TO RESTRICT TO CSV ONLY
 function openExportModal() {
   document.getElementById('exportModal').style.display = 'flex';
+  
+  // Update import log display
+  updateImportLogDisplay();
+  
   // Reset selection
   document.querySelectorAll('.export-option').forEach(opt => {
     opt.classList.remove('selected');
@@ -3786,7 +3943,7 @@ function openExportModal() {
     }
   });
   
-  // Reset import selection
+  // Reset import selection - Only CSV option available
   document.querySelectorAll('.import-option').forEach(opt => {
     opt.classList.remove('selected');
   });
@@ -3809,35 +3966,42 @@ function selectExportOption(format) {
   document.querySelector(`.export-option[data-format="${format}"]`).classList.add('selected');
 }
 
-// Select import option
+// Select import option - RESTRICTED TO CSV ONLY
 function selectImportOption(format) {
-  selectedImportFormat = format;
+  selectedImportFormat = 'csv'; // Only CSV allowed
   document.querySelectorAll('.import-option').forEach(opt => {
     opt.classList.remove('selected');
   });
   
-  // Find the clicked option
-  const clickedOption = event.target.closest('.import-option');
-  if (clickedOption) {
-    clickedOption.classList.add('selected');
+  // Find the CSV option
+  const csvOption = document.querySelector('.import-option[onclick*="csv"]');
+  if (csvOption) {
+    csvOption.classList.add('selected');
   }
   
-  // Update file input accept attribute
+  // Update file input accept attribute to only CSV
   const fileInput = document.getElementById('importFile');
-  if (format === 'json') {
-    fileInput.accept = '.json';
-  } else {
-    fileInput.accept = '.csv,.txt';
-  }
+  fileInput.accept = '.csv';
 }
 
-// Handle file import
+// Handle file import - RESTRICTED TO CSV ONLY
 function handleFileImport() {
   const fileInput = document.getElementById('importFile');
   const fileNameDisplay = document.getElementById('selectedFileName');
   
   if (fileInput.files.length > 0) {
-    selectedFile = fileInput.files[0];
+    const file = fileInput.files[0];
+    // Check if file is CSV
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      showToast('❌ Only CSV files are allowed for import');
+      fileInput.value = '';
+      fileNameDisplay.textContent = 'No file selected';
+      fileNameDisplay.style.color = '#666';
+      selectedFile = null;
+      return;
+    }
+    
+    selectedFile = file;
     fileNameDisplay.textContent = `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`;
     fileNameDisplay.style.color = '#667eea';
   } else {
@@ -4078,95 +4242,205 @@ function performExport() {
   closeExportModal();
 }
 
-// Perform import
-async function performImport() {
-  if (!selectedFile) {
-    showToast('⚠️ Please select a file to import');
+// Update import log display
+function updateImportLogDisplay() {
+  const logContainer = document.getElementById('importLog');
+  
+  if (importLog.length === 0) {
+    logContainer.innerHTML = 'No imports yet.';
     return;
   }
   
+  // Show last 5 imports
+  const recentLogs = importLog.slice(-5).reverse();
+  
+  logContainer.innerHTML = recentLogs.map(log => `
+    <div style="padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+      <div style="display: flex; justify-content: space-between;">
+        <span style="font-weight: 600;">${log.fileName}</span>
+        <span style="color: #667eea; font-size: 11px;">${new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+      </div>
+      <div style="font-size: 11px; color: #666;">
+        ${log.type === 'keywords' ? 'Keywords' : 'Companies'}: ${log.count} ${log.action === 'import' ? 'imported' : log.action}
+      </div>
+    </div>
+  `).join('');
+}
+
+// Update imported files display in keyword modal
+function updateImportedFilesDisplay() {
+  const filesInfo = document.getElementById('importedFilesInfo');
+  const filesList = document.getElementById('importedFilesList');
+  
+  if (importedFiles.length === 0) {
+    filesInfo.style.display = 'none';
+    return;
+  }
+  
+  filesInfo.style.display = 'block';
+  
+  // Show last 3 imported files
+  const recentFiles = importedFiles.slice(-3).reverse();
+  
+  filesList.innerHTML = recentFiles.map(file => `
+    <div style="background: rgba(102, 126, 234, 0.1); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px;">
+      <span class="icon" style="font-size: 10px;">📁</span>
+      <span title="${file.name}">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</span>
+      <span style="color: #667eea; font-weight: 600;">(${file.keywordCount})</span>
+    </div>
+  `).join('');
+  
+  // Add tooltip for more files
+  if (importedFiles.length > 3) {
+    filesList.innerHTML += `
+      <div style="background: #f5f5f5; padding: 4px 8px; border-radius: 6px; cursor: help;" 
+           title="Total ${importedFiles.length} files imported with ${importedFiles.reduce((sum, file) => sum + file.keywordCount, 0)} keywords">
+        +${importedFiles.length - 3} more
+      </div>
+    `;
+  }
+}
+
+// Function to clear import log
+function clearImportLog() {
+  if (confirm('Clear all import history?')) {
+    importLog = [];
+    importedFiles = [];
+    updateImportLogDisplay();
+    updateImportedFilesDisplay();
+    showToast('🗑️ Import log cleared');
+  }
+}
+
+// Function to import keywords from CSV (keyword_name,keyword_score format)
+async function importKeywordsFromCSV(csvText) {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  let importedCount = 0;
+  
+  // Skip header if present
+  const startIndex = lines[0].toLowerCase().includes('keyword') ? 1 : 0;
+  
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    // Parse the line: keyword_name,keyword_score
+    const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
+    
+    if (parts.length >= 2) {
+      const keywordName = parts[0].toLowerCase();
+      const keywordScore = parseInt(parts[1]) || 5; // Default score if not provided
+      
+      // Store keyword score
+      keywordScores[keywordName] = keywordScore;
+      
+      // Update keyword in emotions if it exists
+      let keywordUpdated = false;
+      
+      // Check and update in happy keywords
+      emotions.happy.keywords = emotions.happy.keywords.map(kw => {
+        if (kw.keyword.toLowerCase() === keywordName) {
+          keywordUpdated = true;
+          return { ...kw, weight: keywordScore };
+        }
+        return kw;
+      });
+      
+      // Check and update in neutral keywords
+      emotions.neutral.keywords = emotions.neutral.keywords.map(kw => {
+        if (kw.keyword.toLowerCase() === keywordName) {
+          keywordUpdated = true;
+          return { ...kw, weight: keywordScore };
+        }
+        return kw;
+      });
+      
+      // Check and update in sad keywords
+      emotions.sad.keywords = emotions.sad.keywords.map(kw => {
+        if (kw.keyword.toLowerCase() === keywordName) {
+          keywordUpdated = true;
+          return { ...kw, weight: keywordScore };
+        }
+        return kw;
+      });
+      
+      // If keyword doesn't exist, add it to appropriate category based on score
+      if (!keywordUpdated) {
+        // You could add logic here to determine which category to add it to
+        // For now, let's add it to neutral with the imported score
+        emotions.neutral.keywords.push({
+          keyword: keywordName,
+          weight: keywordScore
+        });
+      }
+      
+      importedCount++;
+    }
+  }
+  
+  return importedCount;
+}
+
+// Perform import - MODIFIED FOR CSV ONLY
+async function performImport() {
+  if (!selectedFile) {
+    showToast('⚠️ Please select a CSV file to import');
+    return;
+  }
+
+  // Ensure it's a CSV file
+  if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
+    showToast('❌ Only CSV files are allowed for import');
+    return;
+  }
+
   const importMode = document.querySelector('input[name="importMode"]:checked').value;
   const keepScores = document.getElementById('importWithScores').checked;
   
   try {
     const text = await selectedFile.text();
-    let importedData;
     let importCount = 0;
     let updateCount = 0;
+    let keywordImportCount = 0;
     
-    if (selectedFile.name.toLowerCase().endsWith('.json')) {
-      importedData = JSON.parse(text);
+    // Check if this is a keyword import (keyword_name,keyword_score format)
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length === 0) {
+      showToast('⚠️ CSV file is empty');
+      return;
+    }
+    
+    // Check first line to determine format
+    const firstLine = lines[0].toLowerCase();
+    const isKeywordImport = firstLine.includes('keyword') && firstLine.includes('score');
+    
+    if (isKeywordImport) {
+      // Handle keyword import: keyword_name,keyword_score format
+      keywordImportCount = await importKeywordsFromCSV(text);
       
-      // Check if this is our export format
-      if (importedData.companies && Array.isArray(importedData.companies)) {
-        if (importMode === 'replace') {
-          // Replace all companies
-          companies = importedData.companies.map(company => ({
-            name: company.name,
-            sector: company.sector || 'Technology',
-            sad: keepScores ? (company.sentiment?.sad || null) : null,
-            neutral: keepScores ? (company.sentiment?.neutral || null) : null,
-            happy: keepScores ? (company.sentiment?.happy || null) : null
-          }));
-          importCount = companies.length;
-        } else {
-          // Import each company
-          importedData.companies.forEach(company => {
-            const existingIndex = companies.findIndex(c => 
-              c.name.toLowerCase() === company.name.toLowerCase()
-            );
-            
-            if (existingIndex !== -1) {
-              if (importMode === 'update') {
-                // Update existing company
-                if (keepScores && company.sentiment) {
-                  companies[existingIndex].sad = company.sentiment.sad;
-                  companies[existingIndex].neutral = company.sentiment.neutral;
-                  companies[existingIndex].happy = company.sentiment.happy;
-                }
-                companies[existingIndex].sector = company.sector || companies[existingIndex].sector;
-                updateCount++;
-              }
-            } else {
-              // Add new company
-              companies.push({
-                name: company.name,
-                sector: company.sector || 'Technology',
-                sad: keepScores ? (company.sentiment?.sad || null) : null,
-                neutral: keepScores ? (company.sentiment?.neutral || null) : null,
-                happy: keepScores ? (company.sentiment?.happy || null) : null
-              });
-              importCount++;
-            }
-          });
-        }
-      } else if (Array.isArray(importedData)) {
-        // Handle array format
-        importedData.forEach(company => {
-          const existingIndex = companies.findIndex(c => 
-            c.name.toLowerCase() === company.name.toLowerCase()
-          );
-          
-          if (existingIndex === -1 || importMode === 'replace') {
-            companies.push({
-              name: company.name,
-              sector: company.sector || 'Technology',
-              sad: company.sad || null,
-              neutral: company.neutral || null,
-              happy: company.happy || null
-            });
-            importCount++;
-          }
-        });
-      }
-    } else if (selectedFile.name.toLowerCase().endsWith('.csv')) {
-      // Handle CSV import
-      const lines = text.split('\n').filter(line => line.trim());
-      if (lines.length === 0) {
-        showToast('⚠️ CSV file is empty');
-        return;
-      }
+      // Add to import log
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        fileName: selectedFile.name,
+        type: 'keywords',
+        count: keywordImportCount,
+        action: 'import'
+      };
+      importLog.push(logEntry);
+      updateImportLogDisplay();
       
+      // Update imported files list
+      importedFiles.push({
+        name: selectedFile.name,
+        date: new Date().toISOString(),
+        keywordCount: keywordImportCount
+      });
+      updateImportedFilesDisplay();
+      
+      showToast(`✅ Imported ${keywordImportCount} keywords from CSV!`);
+      
+    } else {
+      // Handle company data import (original functionality)
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
       
       for (let i = 1; i < lines.length; i++) {
@@ -4232,19 +4506,59 @@ async function performImport() {
           importCount++;
         }
       }
+      
+      if (importMode === 'replace') {
+        // Remove all existing companies and add imported ones
+        companies = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          // Parse CSV line (simplified)
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const companyData = {};
+          headers.forEach((header, index) => {
+            if (index < values.length) {
+              companyData[header] = values[index];
+            }
+          });
+          
+          if (!companyData.company && !companyData.name) continue;
+          
+          const companyName = companyData.company || companyData.name || companyData['company name'];
+          const sector = companyData.sector || companyData.industry || 'Technology';
+          
+          companies.push({
+            name: companyName,
+            sector: sector,
+            sad: keepScores ? (parseInt(companyData['sad %'] || companyData.sad) || null) : null,
+            neutral: keepScores ? (parseInt(companyData['neutral %'] || companyData.neutral) || null) : null,
+            happy: keepScores ? (parseInt(companyData['happy %'] || companyData.happy) || null) : null
+          });
+          importCount++;
+        }
+      }
+      
+      // Add to import log
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        fileName: selectedFile.name,
+        type: 'companies',
+        count: importCount + updateCount,
+        action: importMode
+      };
+      importLog.push(logEntry);
+      updateImportLogDisplay();
+      
+      renderTable();
+      showToast(`✅ Imported ${importCount} new companies, updated ${updateCount} existing companies from CSV`);
     }
     
-    if (importMode === 'replace') {
-      // Already handled in JSON section
-    }
-    
-    renderTable();
-    showToast(`✅ Imported ${importCount} new companies, updated ${updateCount} existing companies`);
     closeExportModal();
     
   } catch (error) {
     console.error('Import error:', error);
-    showToast('❌ Error importing file. Please check the format and try again.');
+    showToast('❌ Error importing CSV file. Please check the format and try again.');
   }
 }
 
@@ -4346,10 +4660,6 @@ function editRagStatus(companyIndex) {
   // Show modal
   document.getElementById('editRagModal').style.display = 'flex';
 }
-
-
-
-
 
 function closeEditRagModal() {
   document.getElementById('editRagModal').style.display = 'none';
@@ -4489,6 +4799,7 @@ function removeCustomTab(tabId, event) {
     showToast(`🗑️ Tab removed successfully!`);
   }
 }
+
 function clearRagOverride() {
   if (currentRagEditIndex === -1) return;
   
@@ -4497,6 +4808,7 @@ function clearRagOverride() {
   closeEditRagModal();
   showToast('🔄 RAG reset to automatic calculation');
 }
+
 // Enhanced Test Modal Functions
 function openTestModal() {
   document.getElementById('testModal').style.display = 'flex';
@@ -4514,16 +4826,16 @@ function openTestModal() {
   const negativeList = document.getElementById('negativeKeywordsList');
   const neutralList = document.getElementById('neutralKeywordsList');
   
-  positiveList.innerHTML = emotions.happy.keywords.slice(0, 30).map(keyword => 
-    `<span class="keyword-tag happy">${keyword}</span>`
+  positiveList.innerHTML = emotions.happy.keywords.slice(0, 30).map(keywordObj => 
+    `<span class="keyword-tag happy">${keywordObj.keyword} (${keywordObj.weight})</span>`
   ).join('');
   
-  negativeList.innerHTML = emotions.sad.keywords.slice(0, 30).map(keyword => 
-    `<span class="keyword-tag sad">${keyword}</span>`
+  negativeList.innerHTML = emotions.sad.keywords.slice(0, 30).map(keywordObj => 
+    `<span class="keyword-tag sad">${keywordObj.keyword} (${keywordObj.weight})</span>`
   ).join('');
   
-  neutralList.innerHTML = emotions.neutral.keywords.slice(0, 30).map(keyword => 
-    `<span class="keyword-tag neutral">${keyword}</span>`
+  neutralList.innerHTML = emotions.neutral.keywords.slice(0, 30).map(keywordObj => 
+    `<span class="keyword-tag neutral">${keywordObj.keyword} (${keywordObj.weight})</span>`
   ).join('');
   
   // Hide results section initially
@@ -4534,7 +4846,6 @@ function closeTestModal() {
   document.getElementById('testModal').style.display = 'none';
 }
 
-// Add company to test modal
 // Add company to test modal with sector
 function addTestCompany() {
   const companyName = document.getElementById('testCompanyName').value.trim();
@@ -4572,7 +4883,6 @@ function addTestCompany() {
   showToast(`✅ "${companyName}" added to test (${companySector})`);
 }
 
-// Render test companies list
 // Render test companies list with sector
 function renderTestCompaniesList() {
   const container = document.getElementById('testCompaniesList');
@@ -4609,7 +4919,7 @@ function removeTestCompany(index) {
   showToast('🗑️ Company removed from test');
 }
 
-// Enhanced sentiment analysis test with detailed results
+// Enhanced sentiment analysis test with detailed results and weight scoring
 function runSentimentTest() {
   const textInput = document.getElementById('testTextInput').value;
   
@@ -4625,8 +4935,8 @@ function runSentimentTest() {
   document.getElementById('pieChartCenter').textContent = '...';
   document.getElementById('confidenceScore').textContent = '...';
   
-  // Analyze text sentiment with enhanced details
-  const analysis = analyzeTextSentimentEnhanced(textInput);
+  // Analyze text sentiment with enhanced details and weight scoring
+  const analysis = analyzeTextSentimentEnhancedWithWeight(textInput);
   
   // Update word count and keyword count
   const wordCount = textInput.trim().split(/\s+/).length;
@@ -4637,11 +4947,11 @@ function runSentimentTest() {
   document.getElementById('analysisDetails').textContent = 
     `Analyzed ${wordCount} words with ${totalKeywords} keywords detected`;
   
-  // Calculate percentages for visualization
-  const totalScore = analysis.happy + analysis.sad + analysis.neutral;
-  const happyPercent = totalScore > 0 ? Math.round((analysis.happy / totalScore) * 100) : 0;
-  const sadPercent = totalScore > 0 ? Math.round((analysis.sad / totalScore) * 100) : 0;
-  const neutralPercent = totalScore > 0 ? Math.round((analysis.neutral / totalScore) * 100) : 0;
+  // Calculate percentages for visualization (using weighted scores)
+  const totalWeight = analysis.happyWeight + analysis.sadWeight + analysis.neutralWeight;
+  const happyPercent = totalWeight > 0 ? Math.round((analysis.happyWeight / totalWeight) * 100) : 0;
+  const sadPercent = totalWeight > 0 ? Math.round((analysis.sadWeight / totalWeight) * 100) : 0;
+  const neutralPercent = totalWeight > 0 ? Math.round((analysis.neutralWeight / totalWeight) * 100) : 0;
   
   // Update text displays
   document.getElementById('happyScoreValue').textContent = `${happyPercent}%`;
@@ -4680,8 +4990,8 @@ function runSentimentTest() {
   document.getElementById('totalNegativeKeywords').textContent = analysis.negativeKeywords.length;
   document.getElementById('totalNeutralKeywords').textContent = analysis.neutralKeywords.length;
   
-  // Show top keywords
-  displayTopKeywords(analysis);
+  // Show top keywords with weight scores
+  displayTopKeywordsWithWeight(analysis);
   
   // Animate chart bars
   animateChartBars(happyPercent, sadPercent, neutralPercent);
@@ -4698,8 +5008,8 @@ function runSentimentTest() {
   // Show company-specific results
   displayCompanyTestResults(analysis);
   
-  // Populate keyword lists
-  populateEnhancedKeywordLists(analysis);
+  // Populate keyword lists with weight scores
+  populateEnhancedKeywordListsWithWeight(analysis);
   
   // Setup keyword search
   setupKeywordSearch(analysis);
@@ -4707,66 +5017,81 @@ function runSentimentTest() {
   showToast('✅ Sentiment analysis complete!');
 }
 
-// Enhanced sentiment analysis with neutral detection
-function analyzeTextSentimentEnhanced(text) {
+// Enhanced sentiment analysis with weight scoring
+function analyzeTextSentimentEnhancedWithWeight(text) {
   const lowerText = text.toLowerCase();
   
   let happyScore = 0;
   let sadScore = 0;
   let neutralScore = 0;
+  let happyWeight = 0;
+  let sadWeight = 0;
+  let neutralWeight = 0;
   const detectedPositive = [];
   const detectedNegative = [];
   const detectedNeutral = [];
   const detectedKeywords = [];
   
-  // Check for happy keywords
-  emotions.happy.keywords.forEach(keyword => {
+  // Check for happy keywords with weight
+  emotions.happy.keywords.forEach(keywordObj => {
+    const keyword = keywordObj.keyword;
+    const weight = keywordObj.weight;
     const regex = new RegExp(`\\b${keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
     const matches = lowerText.match(regex);
     if (matches) {
       happyScore += matches.length;
-      if (!detectedPositive.includes(keyword)) {
-        detectedPositive.push(keyword);
-        detectedKeywords.push({ keyword, score: matches.length, type: 'positive' });
+      happyWeight += matches.length * weight;
+      if (!detectedPositive.find(k => k.keyword === keyword)) {
+        detectedPositive.push({ keyword, weight, count: matches.length });
+        detectedKeywords.push({ keyword, weight, count: matches.length, type: 'positive' });
       }
     }
   });
   
-  // Check for sad keywords
-  emotions.sad.keywords.forEach(keyword => {
+  // Check for sad keywords with weight
+  emotions.sad.keywords.forEach(keywordObj => {
+    const keyword = keywordObj.keyword;
+    const weight = keywordObj.weight;
     const regex = new RegExp(`\\b${keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
     const matches = lowerText.match(regex);
     if (matches) {
       sadScore += matches.length;
-      if (!detectedNegative.includes(keyword)) {
-        detectedNegative.push(keyword);
-        detectedKeywords.push({ keyword, score: matches.length, type: 'negative' });
+      sadWeight += matches.length * weight;
+      if (!detectedNegative.find(k => k.keyword === keyword)) {
+        detectedNegative.push({ keyword, weight, count: matches.length });
+        detectedKeywords.push({ keyword, weight, count: matches.length, type: 'negative' });
       }
     }
   });
   
-  // Check for neutral keywords
-  emotions.neutral.keywords.forEach(keyword => {
+  // Check for neutral keywords with weight
+  emotions.neutral.keywords.forEach(keywordObj => {
+    const keyword = keywordObj.keyword;
+    const weight = keywordObj.weight;
     const regex = new RegExp(`\\b${keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
     const matches = lowerText.match(regex);
     if (matches) {
       neutralScore += matches.length;
-      if (!detectedNeutral.includes(keyword)) {
-        detectedNeutral.push(keyword);
-        detectedKeywords.push({ keyword, score: matches.length, type: 'neutral' });
+      neutralWeight += matches.length * weight;
+      if (!detectedNeutral.find(k => k.keyword === keyword)) {
+        detectedNeutral.push({ keyword, weight, count: matches.length });
+        detectedKeywords.push({ keyword, weight, count: matches.length, type: 'neutral' });
       }
     }
   });
   
-  const totalScore = happyScore + sadScore + neutralScore;
-  const happyPercent = totalScore > 0 ? Math.round((happyScore / totalScore) * 100) : 0;
-  const sadPercent = totalScore > 0 ? Math.round((sadScore / totalScore) * 100) : 0;
-  const neutralPercent = totalScore > 0 ? Math.round((neutralScore / totalScore) * 100) : 0;
+  const totalWeight = happyWeight + sadWeight + neutralWeight;
+  const happyPercent = totalWeight > 0 ? Math.round((happyWeight / totalWeight) * 100) : 0;
+  const sadPercent = totalWeight > 0 ? Math.round((sadWeight / totalWeight) * 100) : 0;
+  const neutralPercent = totalWeight > 0 ? Math.round((neutralWeight / totalWeight) * 100) : 0;
   
   return {
     happy: happyScore,
     sad: sadScore,
     neutral: neutralScore,
+    happyWeight,
+    sadWeight,
+    neutralWeight,
     happyPercent,
     sadPercent,
     neutralPercent,
@@ -4778,19 +5103,19 @@ function analyzeTextSentimentEnhanced(text) {
   };
 }
 
-// Display top keywords
-function displayTopKeywords(analysis) {
+// Display top keywords with weight scores
+function displayTopKeywordsWithWeight(analysis) {
   const container = document.getElementById('topKeywordsContainer');
   
-  // Sort keywords by score (frequency)
+  // Sort keywords by weight (frequency * weight)
   const sortedKeywords = analysis.detectedKeywords
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => (b.count * b.weight) - (a.count * a.weight))
     .slice(0, 15); // Show top 15 keywords
   
   container.innerHTML = sortedKeywords.map(kw => `
-    <div class="top-keyword-tag ${kw.type}" title="Found ${kw.score} time${kw.score > 1 ? 's' : ''}">
+    <div class="top-keyword-tag ${kw.type}" title="Found ${kw.count} time${kw.count > 1 ? 's' : ''} (Weight: ${kw.weight})">
       ${kw.keyword}
-      <span class="score-badge">${kw.score}</span>
+      <span class="score-badge">${kw.count}×${kw.weight}</span>
     </div>
   `).join('');
 }
@@ -4827,24 +5152,24 @@ function updatePieChart(happyPercent, sadPercent, neutralPercent) {
   )`;
 }
 
-// Enhanced keyword list population
-function populateEnhancedKeywordLists(analysis) {
-  // Populate positive keywords
+// Enhanced keyword list population with weight scores
+function populateEnhancedKeywordListsWithWeight(analysis) {
+  // Populate positive keywords with weight
   const positiveList = document.getElementById('positiveKeywordsList');
-  positiveList.innerHTML = analysis.positiveKeywords.slice(0, 30).map(keyword => 
-    `<span class="keyword-tag happy">${keyword}</span>`
+  positiveList.innerHTML = analysis.positiveKeywords.slice(0, 30).map(keywordObj => 
+    `<span class="keyword-tag happy" title="Weight: ${keywordObj.weight}">${keywordObj.keyword} (${keywordObj.weight})</span>`
   ).join('');
   
-  // Populate negative keywords
+  // Populate negative keywords with weight
   const negativeList = document.getElementById('negativeKeywordsList');
-  negativeList.innerHTML = analysis.negativeKeywords.slice(0, 30).map(keyword => 
-    `<span class="keyword-tag sad">${keyword}</span>`
+  negativeList.innerHTML = analysis.negativeKeywords.slice(0, 30).map(keywordObj => 
+    `<span class="keyword-tag sad" title="Weight: ${keywordObj.weight}">${keywordObj.keyword} (${keywordObj.weight})</span>`
   ).join('');
   
-  // Populate neutral keywords
+  // Populate neutral keywords with weight
   const neutralList = document.getElementById('neutralKeywordsList');
-  neutralList.innerHTML = analysis.neutralKeywords.slice(0, 30).map(keyword => 
-    `<span class="keyword-tag neutral">${keyword}</span>`
+  neutralList.innerHTML = analysis.neutralKeywords.slice(0, 30).map(keywordObj => 
+    `<span class="keyword-tag neutral" title="Weight: ${keywordObj.weight}">${keywordObj.keyword} (${keywordObj.weight})</span>`
   ).join('');
 }
 
@@ -4873,22 +5198,21 @@ function setupKeywordSearch(analysis) {
 }
 
 // Update test companies with analysis
-// Update test companies with analysis
 function updateTestCompaniesWithAnalysis(analysis) {
   testCompanies.forEach(company => {
     // Add detected keywords to each company
     company.keywords.positive = analysis.positiveKeywords.filter(kw => 
-      company.name.toLowerCase().includes(kw) || 
+      company.name.toLowerCase().includes(kw.keyword) || 
       analysis.text.toLowerCase().includes(company.name.toLowerCase())
     );
     
     company.keywords.negative = analysis.negativeKeywords.filter(kw => 
-      company.name.toLowerCase().includes(kw) || 
+      company.name.toLowerCase().includes(kw.keyword) || 
       analysis.text.toLowerCase().includes(company.name.toLowerCase())
     );
     
     company.keywords.neutral = analysis.neutralKeywords.filter(kw => 
-      company.name.toLowerCase().includes(kw) || 
+      company.name.toLowerCase().includes(kw.keyword) || 
       analysis.text.toLowerCase().includes(company.name.toLowerCase())
     );
     
@@ -4955,7 +5279,7 @@ function displayCompanyTestResults(analysis) {
               <span class="chart-bar-value">${sadPercent}%</span>
             </div>
             <div class="chart-bar-track">
-              <div class="chart-bar-fill sad" style="width: ${sadPercent}%</div>
+              <div class="chart-bar-fill sad" style="width: ${sadPercent}%"></div>
             </div>
           </div>
           <div class="chart-bar">
@@ -4972,14 +5296,14 @@ function displayCompanyTestResults(analysis) {
         <div style="margin-top: 15px;">
           <div style="font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 10px;">Detected Keywords:</div>
           <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
-            ${result.positiveKeywords.map(keyword => 
-              `<span class="keyword-tag happy" style="font-size: 11px;">${keyword}</span>`
+            ${result.positiveKeywords.map(keywordObj => 
+              `<span class="keyword-tag happy" style="font-size: 11px;">${keywordObj.keyword} (${keywordObj.weight})</span>`
             ).join('')}
-            ${result.negativeKeywords.map(keyword => 
-              `<span class="keyword-tag sad" style="font-size: 11px;">${keyword}</span>`
+            ${result.negativeKeywords.map(keywordObj => 
+              `<span class="keyword-tag sad" style="font-size: 11px;">${keywordObj.keyword} (${keywordObj.weight})</span>`
             ).join('')}
-            ${result.neutralKeywords.map(keyword => 
-              `<span class="keyword-tag neutral" style="font-size: 11px;">${keyword}</span>`
+            ${result.neutralKeywords.map(keywordObj => 
+              `<span class="keyword-tag neutral" style="font-size: 11px;">${keywordObj.keyword} (${keywordObj.weight})</span>`
             ).join('')}
           </div>
           
@@ -4997,8 +5321,6 @@ function displayCompanyTestResults(analysis) {
   }).join('');
 }
 
-// Save test results to main companies list
-// Save test results to main companies list
 // Save test results to main companies list with correct sector
 function saveTestToCompany() {
   if (testCompanies.length === 0) {
@@ -5208,7 +5530,6 @@ function renderTable() {
   `}).join('');
 }
 
-// Enhanced analyzeAllCompanies function with countdown
 // Enhanced analyzeAllCompanies function with countdown - MODIFIED TO ANALYZE ONLY CURRENT TAB
 async function analyzeAllCompanies() {
   if (analysisInProgress) {
@@ -5428,30 +5749,8 @@ function moveDown(i) {
 }
 
 function addNewKeyword() {
-    const keyword = prompt('Enter a new keyword:');
-    if (keyword && keyword.trim()) {
-        const trimmedKeyword = keyword.trim();
-        const emotion = prompt('Select emotion (happy/neutral/sad):');
-        if (emotion && ['happy', 'neutral', 'sad'].includes(emotion.toLowerCase())) {
-            const emotionKey = emotion.toLowerCase();
-            if (!emotions[emotionKey].keywords.includes(trimmedKeyword)) {
-                emotions[emotionKey].keywords.push(trimmedKeyword);
-                emotions[emotionKey].keywords.sort();
-                
-                // Save to localStorage
-                saveEmotionsToLocalStorage();
-                
-                // Refresh modal
-                populateKeywordModal();
-                
-                showToast('✅ New keyword added successfully!');
-            } else {
-                showToast('⚠️ Keyword already exists!');
-            }
-        } else {
-            showToast('⚠️ Please enter a valid emotion (happy, neutral, or sad)');
-        }
-    }
+    // REMOVED: Edit functionality removed
+    showToast('⚠️ Keyword editing has been disabled');
 }
 
 function showQuickStart() {
@@ -5476,15 +5775,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('exportBtn').addEventListener('click', () => handleMyListAction('export'));
   document.getElementById('compareBtn').addEventListener('click', () => handleMyListAction('compare'));
   
-  // Add edit keyword modal click handler
-  document.getElementById('editKeywordModalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeEditKeywordModal();
-    }
-  });
-
-  loadEmotionsFromLocalStorage();
-  
   // Add tab button
   document.getElementById('addTabBtn').addEventListener('click', openAddTabModal);
   
@@ -5505,32 +5795,43 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Tab switching
-// Update the tab switching event listener
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    currentSector = this.getAttribute('data-sector');
-    renderTable();
-    
-    // Update estimated analysis time for this tab
-    if (!analysisInProgress) {
-      const totalSeconds = calculateTotalAnalysisTime();
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = Math.round(totalSeconds % 60);
-      const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-      document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
-    }
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentSector = this.getAttribute('data-sector');
+      renderTable();
+      
+      // Update estimated analysis time for this tab
+      if (!analysisInProgress) {
+        const totalSeconds = calculateTotalAnalysisTime();
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = Math.round(totalSeconds % 60);
+        const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+        document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
+      }
+    });
   });
-});
   
   // Setup tab scrolling
   setupTabScroll();
   
-  // Import file change handler
+  // Import file change handler - RESTRICTED TO CSV ONLY
   document.getElementById('importFile').addEventListener('change', function(e) {
     if (this.files.length > 0) {
-      selectedFile = this.files[0];
+      const file = this.files[0];
+      // Check if file is CSV
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        showToast('❌ Only CSV files are allowed for import');
+        this.value = '';
+        const fileNameDisplay = document.getElementById('selectedFileName');
+        fileNameDisplay.textContent = 'No file selected';
+        fileNameDisplay.style.color = '#666';
+        selectedFile = null;
+        return;
+      }
+      
+      selectedFile = file;
       const fileNameDisplay = document.getElementById('selectedFileName');
       fileNameDisplay.textContent = `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
       fileNameDisplay.style.color = '#667eea';
@@ -5545,18 +5846,16 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
   });
   
-  // Import option click handlers
+  // Import option click handlers - ONLY CSV
   document.querySelectorAll('.import-option').forEach(option => {
     option.addEventListener('click', function() {
-      const format = this.getAttribute('onclick').includes('csv') ? 'csv' : 'json';
-      selectImportOption(format);
+      selectImportOption('csv');
     });
   });
   
-  // Modal close on outside click - UPDATED WITH FIXED MODAL ID
+  // Modal close on outside click
   const modals = ['guideModal', 'keywordModal', 'exportModal', 'compareModal', 
-                  'testModal', 'editRagModal', 'addTabModal', 'modalOverlay', 
-                  'editKeywordModalOverlay']; // UPDATED ID
+                  'testModal', 'editRagModal', 'addTabModal', 'modalOverlay'];
   
   modals.forEach(modalId => {
     const modal = document.getElementById(modalId);
@@ -5571,8 +5870,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
             'testModal': closeTestModal,
             'editRagModal': closeEditRagModal,
             'addTabModal': closeAddTabModal,
-            'modalOverlay': closeModal,
-            'editKeywordModalOverlay': closeEditKeywordModal // UPDATED
+            'modalOverlay': closeModal
           }[modalId];
           closeFunc();
         }
@@ -5581,16 +5879,16 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   });
   
   // Calculate and show initial estimated time
-const totalSeconds = calculateTotalAnalysisTime();
-const minutes = Math.floor(totalSeconds / 60);
-const seconds = Math.round(totalSeconds % 60);
-const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
-setTimeout(() => {
-  if (!analysisInProgress) {
-    document.getElementById('timerDisplay').textContent = 'Ready';
-  }
-}, 3000);
+  const totalSeconds = calculateTotalAnalysisTime();
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
+  const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+  document.getElementById('timerDisplay').textContent = `Est: ${timeStr}`;
+  setTimeout(() => {
+    if (!analysisInProgress) {
+      document.getElementById('timerDisplay').textContent = 'Ready';
+    }
+  }, 3000);
   
   // Initial render
   renderTable();
