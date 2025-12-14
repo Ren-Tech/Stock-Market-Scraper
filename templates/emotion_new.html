@@ -2340,6 +2340,21 @@
       </button>
     </div>
     
+    <!-- Top Used Keywords Section -->
+    <div style="margin: 15px; padding: 12px; background: linear-gradient(135deg, #fff9c4, #ffeb3b); border-radius: 10px; border-left: 4px solid #fbc02d;">
+      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 13px; color: #f57f17;"><span class="icon">⭐</span> Top Used Keywords</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #fdd835;">
+          <div style="font-size: 11px; font-weight: 600; color: #f57f17; margin-bottom: 4px;">🥇 Top 1</div>
+          <div id="topKeyword1" style="font-size: 12px; font-weight: 600; color: #1a1a2e; word-break: break-word;">-</div>
+        </div>
+        <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #fdd835;">
+          <div style="font-size: 11px; font-weight: 600; color: #f57f17; margin-bottom: 4px;">🥈 Top 2</div>
+          <div id="topKeyword2" style="font-size: 12px; font-weight: 600; color: #1a1a2e; word-break: break-word;">-</div>
+        </div>
+      </div>
+    </div>
+
     <div class="keyword-modal-body">
       <div class="keyword-search">
         <input type="text" id="keywordSearch" placeholder="Search keywords...">
@@ -2352,6 +2367,10 @@
       </div>
     </div>
     <div class="modal-actions-sticky">
+      <button class="modal-btn" onclick="openAddKeywordModal()" style="background: linear-gradient(135deg, #4caf50, #388e3c); color: white;">
+        <span class="icon">➕</span>
+        <span>Add Keyword</span>
+      </button>
       <button class="modal-btn btn-cancel" onclick="closeKeywordModal()">Close</button>
       <button class="modal-btn btn-save" onclick="copyAllKeywords()">
         <span class="icon">📋</span>
@@ -2395,6 +2414,37 @@
     <div class="modal-actions" style="display: flex; gap: 8px; margin: 0;">
       <button class="modal-btn btn-cancel" onclick="closeEditKeywordModal()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid #e0e0e0; background: white; color: #666; cursor: pointer; transition: all 0.2s;">Cancel</button>
       <button class="modal-btn btn-save" onclick="saveKeywordEdit()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Keyword Modal -->
+<div class="modal-overlay" id="addKeywordModal" style="display: none;">
+  <div class="modal" style="max-width: 240px; padding: 12px; background: linear-gradient(135deg, #f8f9fa, #ffffff);">
+    <h2 style="margin-bottom: 8px; font-size: 14px; color: #1a1a2e;"><span class="icon">➕</span> Add New</h2>
+    
+    <div class="form-group" style="margin-bottom: 7px;">
+      <label style="font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; display: block;">Keyword</label>
+      <input type="text" id="addKeywordName" placeholder="Enter keyword..." style="background:white; padding: 5px 8px; font-size: 11px; color: #1a1a2e; border: 1px solid #e0e0e0; border-radius: 6px; width: 100%;">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 7px;">
+      <label style="font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; display: block;">Category</label>
+      <select id="addKeywordEmotion" style="width: 100%; padding: 5px 8px; font-size: 11px; border: 1px solid #e0e0e0; border-radius: 6px; background: white; cursor: pointer;">
+        <option value="happy">😊 Happy</option>
+        <option value="neutral">😐 Neutral</option>
+        <option value="sad">😢 Sad</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 9px;">
+      <label style="font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; display: block;">Score (1-5)</label>
+      <input type="number" id="addKeywordScore" min="1" max="5" step="1" value="5" style="width: 100%; padding: 5px 8px; font-size: 11px; border: 1px solid #e0e0e0; border-radius: 6px; text-align: center; font-weight: 600;">
+    </div>
+
+    <div class="modal-actions" style="display: flex; gap: 5px; margin: 0;">
+      <button class="modal-btn btn-cancel" onclick="closeAddKeywordModal()" style="flex: 1; padding: 6px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; border: 1px solid #e0e0e0; background: white; color: #666; cursor: pointer;">Cancel</button>
+      <button class="modal-btn btn-save" onclick="saveNewKeyword()" style="flex: 1; padding: 6px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; border: none; background: linear-gradient(135deg, #4caf50, #388e3c); color: white; cursor: pointer;">Add</button>
     </div>
   </div>
 </div>
@@ -3784,6 +3834,9 @@ function populateKeywordModal() {
         filterKeywords(searchTerm);
     });
     
+    // Update top keywords display
+    updateTopKeywordsDisplay();
+    
     // Apply current filter
     filterKeywordsByEmotion(currentKeywordFilter);
 }
@@ -4047,6 +4100,76 @@ function deleteKeyword(keyword, emotion) {
   showToast('🗑️ Keyword deleted');
   const km = document.getElementById('keywordModal');
   if (km && km.style.display === 'flex') populateKeywordModal();
+}
+
+function openAddKeywordModal() {
+  document.getElementById('addKeywordName').value = '';
+  document.getElementById('addKeywordEmotion').value = 'happy';
+  document.getElementById('addKeywordScore').value = '5';
+  document.getElementById('addKeywordModal').style.display = 'flex';
+}
+
+function closeAddKeywordModal() {
+  document.getElementById('addKeywordModal').style.display = 'none';
+}
+
+function saveNewKeyword() {
+  const keyword = document.getElementById('addKeywordName').value.trim().toLowerCase();
+  const emotion = document.getElementById('addKeywordEmotion').value;
+  const score = parseInt(document.getElementById('addKeywordScore').value) || 5;
+  
+  if (!keyword) {
+    showToast('⚠️ Please enter a keyword');
+    return;
+  }
+  
+  // Check if keyword exists
+  const exists = emotions[emotion].keywords.find(kw => kw.keyword === keyword);
+  if (exists) {
+    showToast('⚠️ Keyword already exists');
+    return;
+  }
+  
+  // Add new keyword
+  emotions[emotion].keywords.push({ keyword: keyword, weight: score });
+  keywordScores[keyword] = score;
+  
+  showToast('✅ Keyword added successfully');
+  closeAddKeywordModal();
+  populateKeywordModal();
+}
+
+function getTopKeywords() {
+  // Get all keywords with their frequency (used in scores)
+  const keywordFreq = {};
+  
+  for (const emotion in emotions) {
+    emotions[emotion].keywords.forEach(kw => {
+      const keyword = kw.keyword;
+      keywordFreq[keyword] = (keywordFreq[keyword] || 0) + kw.weight;
+    });
+  }
+  
+  // Sort by frequency
+  const sorted = Object.entries(keywordFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2);
+  
+  return sorted.map(([keyword, freq]) => ({
+    keyword,
+    frequency: freq
+  }));
+}
+
+function updateTopKeywordsDisplay() {
+  const topKeywords = getTopKeywords();
+  
+  if (topKeywords.length >= 1) {
+    document.getElementById('topKeyword1').textContent = `${topKeywords[0].keyword} (${topKeywords[0].frequency})`;
+  }
+  if (topKeywords.length >= 2) {
+    document.getElementById('topKeyword2').textContent = `${topKeywords[1].keyword} (${topKeywords[1].frequency})`;
+  }
 }
 
 // Open export modal - MODIFIED TO RESTRICT TO CSV ONLY
