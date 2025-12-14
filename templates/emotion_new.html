@@ -724,6 +724,8 @@
     overflow-y: auto;
     margin: auto;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes modalIn { 
@@ -2363,6 +2365,40 @@
   </div>
 </div>
 
+<!-- Edit Keyword Modal -->
+<div class="modal-overlay" id="editKeywordModal" style="display: none;">
+  <div class="modal" style="max-width: 320px; padding: 22px; background: linear-gradient(135deg, #f8f9fa, #ffffff);">
+    <h2 style="margin-bottom: 16px; font-size: 18px; color: #1a1a2e;"><span class="icon">✏️</span> Edit Keyword</h2>
+    
+    <div class="form-group" style="margin-bottom: 12px;">
+      <label style="font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Keyword Name</label>
+      <input type="text" id="editKeywordName" readonly style="background:#f5f5f5; padding: 9px 12px; font-size: 13px; color: #1a1a2e; border: 1px solid #e0e0e0; border-radius: 8px;">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 12px;">
+      <label style="font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Category</label>
+      <select id="editKeywordEmotion" style="width: 100%; padding: 9px 12px; font-size: 13px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s;">
+        <option value="happy">😊 Happy</option>
+        <option value="neutral">😐 Neutral</option>
+        <option value="sad">😢 Sad</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 16px;">
+      <label style="font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Score</label>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <input type="number" id="editKeywordScore" min="1" max="5" step="1" value="5" style="flex: 1; padding: 9px 12px; font-size: 13px; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; font-weight: 600;">
+        <div style="font-size: 11px; color: #999; padding: 0 4px; white-space: nowrap;">1 - 5</div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="display: flex; gap: 8px; margin: 0;">
+      <button class="modal-btn btn-cancel" onclick="closeEditKeywordModal()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid #e0e0e0; background: white; color: #666; cursor: pointer; transition: all 0.2s;">Cancel</button>
+      <button class="modal-btn btn-save" onclick="saveKeywordEdit()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Guide Modal -->
 <div class="modal-overlay" id="guideModal" style="display: none;">
   <div class="modal guide-modal">
@@ -3679,24 +3715,34 @@ function populateKeywordModal() {
             const weight = keywordObj.weight;
             
             html += `
-    <div class="keyword-item ${emotion}" data-emotion="${emotion}" data-index="${index}" data-keyword="${keyword}">
-        <div class="keyword-header">
+        <div class="keyword-item ${emotion}" data-emotion="${emotion}" data-index="${index}" data-keyword="${keyword}">
+          <div class="keyword-header">
             <div class="keyword-text">${keyword}</div>
             <div class="keyword-score-weight">
-                <div class="keyword-score">${weight}</div>
-                <div class="keyword-weight-badge" title="Weight Score">W:${weight}</div>
+              <div class="keyword-score">${weight}</div>
+              <div class="keyword-weight-badge" title="Weight Score">W:${weight}</div>
             </div>
-        </div>
-        <div class="keyword-emotion">
+          </div>
+          <div class="keyword-emotion">
             <span class="icon">${data.emoji}</span>
             <span>${emotion.charAt(0).toUpperCase() + emotion.slice(1)}</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:12px;">
+            <button class="keyword-action-btn copy" data-keyword="${keyword}" style="flex:1; padding:8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; background: rgba(102, 126, 234, 0.1); color: #667eea;">
+              <span class="icon">📋</span>
+              <span>Copy</span>
+            </button>
+            <button class="keyword-action-btn edit" data-keyword="${keyword}" style="flex:1; padding:8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white;">
+              <span class="icon">✏️</span>
+              <span>Edit</span>
+            </button>
+            <button class="keyword-action-btn delete" data-keyword="${keyword}" style="flex:1; padding:8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; background: linear-gradient(135deg, #ef5350, #e53935); color: white;">
+              <span class="icon">🗑️</span>
+              <span>Delete</span>
+            </button>
+          </div>
         </div>
-        <button class="keyword-action-btn copy" data-keyword="${keyword}" style="margin-top: 12px; padding: 6px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; background: rgba(102, 126, 234, 0.1); color: #667eea;">
-            <span class="icon">📋</span>
-            <span>Copy Keyword</span>
-        </button>
-    </div>
-`;
+      `;
         });
     }
     
@@ -3704,12 +3750,31 @@ function populateKeywordModal() {
     
     // Add copy functionality
     container.addEventListener('click', function(e) {
-        const copyBtn = e.target.closest('.keyword-action-btn.copy');
-        
-        if (copyBtn) {
-            const keyword = copyBtn.getAttribute('data-keyword');
-            copyKeyword(keyword);
-        }
+      const btn = e.target.closest('.keyword-action-btn');
+      if (!btn) return;
+
+      if (btn.classList.contains('copy')) {
+        const keyword = btn.getAttribute('data-keyword');
+        copyKeyword(keyword);
+        return;
+      }
+
+      if (btn.classList.contains('edit')) {
+        const item = btn.closest('.keyword-item');
+        const keyword = item.getAttribute('data-keyword');
+        const emotion = item.getAttribute('data-emotion');
+        const index = parseInt(item.getAttribute('data-index'));
+        openEditKeywordModal(keyword, emotion, index);
+        return;
+      }
+
+      if (btn.classList.contains('delete')) {
+        const item = btn.closest('.keyword-item');
+        const keyword = item.getAttribute('data-keyword');
+        const emotion = item.getAttribute('data-emotion');
+        deleteKeyword(keyword, emotion);
+        return;
+      }
     });
     
     // Add search functionality
@@ -3926,6 +3991,62 @@ function openKeywordModal() {
 
 function closeKeywordModal() {
     document.getElementById('keywordModal').style.display = 'none';
+}
+
+// Edit Keyword Modal functions and markup
+function openEditKeywordModal(keyword, emotion, index) {
+  currentEditKeyword = { keyword: keyword, emotion: emotion, index: index };
+  document.getElementById('editKeywordName').value = keyword;
+  document.getElementById('editKeywordEmotion').value = emotion;
+  const scoreInput = document.getElementById('editKeywordScore');
+  const existing = emotions[emotion] && emotions[emotion].keywords[index];
+  scoreInput.value = existing ? (existing.weight || 5) : 5;
+  document.getElementById('editKeywordModal').style.display = 'flex';
+}
+
+function closeEditKeywordModal() {
+  document.getElementById('editKeywordModal').style.display = 'none';
+  currentEditKeyword = null;
+}
+
+function saveKeywordEdit() {
+  if (!currentEditKeyword) return;
+  const newScore = parseInt(document.getElementById('editKeywordScore').value) || 1;
+  const newEmotion = document.getElementById('editKeywordEmotion').value;
+  const { keyword, emotion: oldEmotion, index } = currentEditKeyword;
+
+  keywordScores[keyword.toLowerCase()] = newScore;
+
+  if (newEmotion !== oldEmotion) {
+    emotions[oldEmotion].keywords = emotions[oldEmotion].keywords.filter(kw => kw.keyword !== keyword);
+    const exists = emotions[newEmotion].keywords.find(kw => kw.keyword === keyword);
+    if (exists) {
+      exists.weight = newScore;
+    } else {
+      emotions[newEmotion].keywords.push({ keyword: keyword, weight: newScore });
+    }
+  } else {
+    if (emotions[oldEmotion].keywords[index] && emotions[oldEmotion].keywords[index].keyword === keyword) {
+      emotions[oldEmotion].keywords[index].weight = newScore;
+    } else {
+      const found = emotions[oldEmotion].keywords.find(kw => kw.keyword === keyword);
+      if (found) found.weight = newScore;
+    }
+  }
+
+  showToast('✅ Keyword updated');
+  closeEditKeywordModal();
+  const km = document.getElementById('keywordModal');
+  if (km && km.style.display === 'flex') populateKeywordModal();
+}
+
+function deleteKeyword(keyword, emotion) {
+  if (!confirm(`Delete keyword "${keyword}"?`)) return;
+  emotions[emotion].keywords = emotions[emotion].keywords.filter(kw => kw.keyword !== keyword);
+  delete keywordScores[keyword.toLowerCase()];
+  showToast('🗑️ Keyword deleted');
+  const km = document.getElementById('keywordModal');
+  if (km && km.style.display === 'flex') populateKeywordModal();
 }
 
 // Open export modal - MODIFIED TO RESTRICT TO CSV ONLY
