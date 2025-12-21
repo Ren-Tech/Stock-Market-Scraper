@@ -694,6 +694,22 @@
     color: white;
 }
 
+/* Drag & placeholder styles */
+.dragging-clone {
+  position: fixed;
+  pointer-events: none;
+  z-index: 3000;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  border-radius: 12px;
+  opacity: 0.98;
+}
+.placeholder-row td { 
+  background: rgba(102,126,234,0.04);
+  border: 2px dashed rgba(102,126,234,0.12);
+  height: 56px;
+}
+
 .add-row-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 2px dashed #81c784; cursor: pointer; transition: all 0.3s; color: #2e7d32; font-weight: 600; font-size: 14px; }
 .add-row-btn:hover { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); border-color: #66bb6a; }
 
@@ -2296,6 +2312,24 @@
 <!-- REMOVED: Edit Keyword Modal completely -->
 
 <!-- Enhanced Keyword Reference Modal with Imported Files Display -->
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Confirm Delete</h2>
+      <button class="modal-close" onclick="closeDeleteModal()">×</button>
+    </div>
+    <div style="padding:20px 10px 0 10px;">
+      <p class="modal-message" style="font-size:15px; color:#333; margin-bottom:6px;"></p>
+      <p style="font-size:13px; color:#666; margin-bottom:14px;">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="modal-btn btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button class="modal-btn btn-save" onclick="confirmDeleteCompany()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="keywordModal" style="display: none;">
   <div class="modal keyword-modal">
     <div class="modal-header">
@@ -2413,7 +2447,7 @@
 
     <div class="modal-actions" style="display: flex; gap: 8px; margin: 0;">
       <button class="modal-btn btn-cancel" onclick="closeEditKeywordModal()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid #e0e0e0; background: white; color: #666; cursor: pointer; transition: all 0.2s;">Cancel</button>
-      <button class="modal-btn btn-save" onclick="saveKeywordEdit()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">Save</button>
+      <button class="modal-btn btn-save" id="saveKeywordEditBtn" onclick="saveKeywordEdit()" style="flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);"><span id="saveEditScoreDisplay">Save</span></button>
     </div>
   </div>
 </div>
@@ -2444,7 +2478,7 @@
 
     <div class="modal-actions" style="display: flex; gap: 5px; margin: 0;">
       <button class="modal-btn btn-cancel" onclick="closeAddKeywordModal()" style="flex: 1; padding: 6px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; border: 1px solid #e0e0e0; background: white; color: #666; cursor: pointer;">Cancel</button>
-      <button class="modal-btn btn-save" onclick="saveNewKeyword()" style="flex: 1; padding: 6px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; border: none; background: linear-gradient(135deg, #4caf50, #388e3c); color: white; cursor: pointer;">Add</button>
+      <button class="modal-btn btn-save" id="saveNewKeywordBtn" onclick="saveNewKeyword()" style="flex: 1; padding: 6px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; border: none; background: linear-gradient(135deg, #4caf50, #388e3c); color: white; cursor: pointer;"><span id="saveNewScoreDisplay">Add</span></button>
     </div>
   </div>
 </div>
@@ -2760,6 +2794,37 @@ let currentEditKeyword = null;
 let currentEditEmotion = null;
 let selectedEditEmotion = null;
 let currentKeywordFilter = 'all';
+
+// Safe DOM helpers to avoid exceptions when elements are missing
+function setTextSafe(id, text) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn(`setTextSafe: element not found: ${id}`);
+    return false;
+  }
+  el.textContent = text;
+  return true;
+}
+
+function setHTMLSafe(id, html) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn(`setHTMLSafe: element not found: ${id}`);
+    return false;
+  }
+  el.innerHTML = html;
+  return true;
+}
+
+function setWidthSafe(id, width) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn(`setWidthSafe: element not found: ${id}`);
+    return false;
+  }
+  el.style.width = width;
+  return true;
+}
 
 // Emotions data - with weight scores
 const emotions = {
@@ -4054,6 +4119,17 @@ function openEditKeywordModal(keyword, emotion, index) {
   const scoreInput = document.getElementById('editKeywordScore');
   const existing = emotions[emotion] && emotions[emotion].keywords[index];
   scoreInput.value = existing ? (existing.weight || 5) : 5;
+  
+  // Update button display with score
+  const scoreDisplay = document.getElementById('saveEditScoreDisplay');
+  scoreDisplay.textContent = `Save (${scoreInput.value}/5)`;
+  
+  // Add event listener to update score display on change
+  scoreInput.removeEventListener('change', updateEditScoreDisplay);
+  scoreInput.removeEventListener('input', updateEditScoreDisplay);
+  scoreInput.addEventListener('change', updateEditScoreDisplay);
+  scoreInput.addEventListener('input', updateEditScoreDisplay);
+  
   document.getElementById('editKeywordModal').style.display = 'flex';
 }
 
@@ -4087,30 +4163,58 @@ function saveKeywordEdit() {
     }
   }
 
-  showToast('✅ Keyword updated');
+  showToast(`✅ Keyword updated | Score: ${newScore}/5`);
   closeEditKeywordModal();
   const km = document.getElementById('keywordModal');
   if (km && km.style.display === 'flex') populateKeywordModal();
 }
 
 function deleteKeyword(keyword, emotion) {
-  if (!confirm(`Delete keyword "${keyword}"?`)) return;
-  emotions[emotion].keywords = emotions[emotion].keywords.filter(kw => kw.keyword !== keyword);
-  delete keywordScores[keyword.toLowerCase()];
-  showToast('🗑️ Keyword deleted');
-  const km = document.getElementById('keywordModal');
-  if (km && km.style.display === 'flex') populateKeywordModal();
+  // Use generic delete modal for a nicer UI
+  openGenericDeleteModal(`Delete keyword "${keyword}"?`, function() {
+    emotions[emotion].keywords = emotions[emotion].keywords.filter(kw => kw.keyword !== keyword);
+    delete keywordScores[keyword.toLowerCase()];
+    showToast('🗑️ Keyword deleted');
+    const km = document.getElementById('keywordModal');
+    if (km && km.style.display === 'flex') populateKeywordModal();
+  });
 }
 
 function openAddKeywordModal() {
   document.getElementById('addKeywordName').value = '';
   document.getElementById('addKeywordEmotion').value = 'happy';
-  document.getElementById('addKeywordScore').value = '5';
+  const scoreInput = document.getElementById('addKeywordScore');
+  scoreInput.value = '5';
+  
+  // Update button display with score
+  const scoreDisplay = document.getElementById('saveNewScoreDisplay');
+  scoreDisplay.textContent = `Add (5/5)`;
+  
+  // Add event listener to update score display on change
+  scoreInput.removeEventListener('change', updateAddScoreDisplay);
+  scoreInput.removeEventListener('input', updateAddScoreDisplay);
+  scoreInput.addEventListener('change', updateAddScoreDisplay);
+  scoreInput.addEventListener('input', updateAddScoreDisplay);
+  
   document.getElementById('addKeywordModal').style.display = 'flex';
 }
 
 function closeAddKeywordModal() {
   document.getElementById('addKeywordModal').style.display = 'none';
+}
+
+function updateEditScoreDisplay() {
+  const scoreInput = document.getElementById('editKeywordScore');
+  const score = parseInt(scoreInput.value) || 1;
+  const scoreDisplay = document.getElementById('saveEditScoreDisplay');
+  scoreDisplay.textContent = `Save (${score}/5)`;
+}
+
+function updateAddScoreDisplay() {
+  const scoreInput = document.getElementById('addKeywordScore');
+  const score = parseInt(scoreInput.value) || 5;
+  const scoreDisplay = document.getElementById('saveNewScoreDisplay');
+  scoreDisplay.textContent = `Add (${score}/5)`;
 }
 
 function saveNewKeyword() {
@@ -4134,7 +4238,7 @@ function saveNewKeyword() {
   emotions[emotion].keywords.push({ keyword: keyword, weight: score });
   keywordScores[keyword] = score;
   
-  showToast('✅ Keyword added successfully');
+  showToast(`✅ Keyword added | Score: ${score}/5`);
   closeAddKeywordModal();
   populateKeywordModal();
 }
@@ -5057,8 +5161,12 @@ function clearRagOverride() {
 function openTestModal() {
   document.getElementById('testModal').style.display = 'flex';
   
-  // Clear previous results
+  // Clear previous results completely
   clearTestResults();
+  
+  // Reset form inputs
+  document.getElementById('testTextInput').value = '';
+  document.getElementById('keywordSearchTest').value = '';
   
   // Reset companies list
   testCompanies = [];
@@ -5084,10 +5192,30 @@ function openTestModal() {
   
   // Hide results section initially
   document.getElementById('testResultsSection').style.display = 'none';
+  
+  // Reset search input state and re-attach event listener
+  const searchInput = document.getElementById('keywordSearchTest');
+  searchInput.value = '';
+  // Remove any old event listeners by cloning
+  const newSearchInput = searchInput.cloneNode(true);
+  searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+  // Attach fresh event listener
+  newSearchInput.addEventListener('input', function(e) {
+    filterKeywordsBySearch(e.target.value);
+  });
+  
+  // Ensure focus on text input for better UX
+  setTimeout(() => {
+    document.getElementById('testTextInput').focus();
+  }, 100);
 }
 
 function closeTestModal() {
   document.getElementById('testModal').style.display = 'none';
+  // Reset all state when closing to prevent stale data
+  clearTestResults();
+  testCompanies = [];
+  testResults = {};
 }
 
 // Add company to test modal with sector
@@ -5165,31 +5293,44 @@ function removeTestCompany(index) {
 
 // Enhanced sentiment analysis test with detailed results and weight scoring
 function runSentimentTest() {
-  const textInput = document.getElementById('testTextInput').value;
-  
-  if (!textInput.trim()) {
-    showToast('⚠️ Please enter some text to analyze');
-    return;
-  }
-  
-  // Show loading state
-  document.getElementById('happyScoreValue').textContent = '...';
-  document.getElementById('sadScoreValue').textContent = '...';
-  document.getElementById('neutralScoreValue').textContent = '...';
-  document.getElementById('pieChartCenter').textContent = '...';
-  document.getElementById('confidenceScore').textContent = '...';
-  
-  // Analyze text sentiment with enhanced details and weight scoring
-  const analysis = analyzeTextSentimentEnhancedWithWeight(textInput);
+  try {
+    console.log('runSentimentTest: started');
+    const textInput = document.getElementById('testTextInput').value;
+
+    if (!textInput || !textInput.trim()) {
+      showToast('⚠️ Please enter some text to analyze');
+      console.log('runSentimentTest: no text provided');
+      return;
+    }
+
+    // Ensure results section is visible
+    const resultsSection = document.getElementById('testResultsSection');
+    resultsSection.style.display = 'block';
+
+      // Show loading state
+      setTextSafe('happyScoreValue', '...');
+      setTextSafe('sadScoreValue', '...');
+      setTextSafe('neutralScoreValue', '...');
+      setTextSafe('pieChartCenter', '...');
+      setTextSafe('confidenceScore', '...');
+
+    // Analyze text sentiment with enhanced details and weight scoring
+    const analysis = analyzeTextSentimentEnhancedWithWeight(textInput);
+
+    // Ensure analysis has valid data
+    if (!analysis) {
+      showToast('⚠️ Error analyzing text');
+      console.error('runSentimentTest: analysis returned falsy', analysis);
+      return;
+    }
   
   // Update word count and keyword count
   const wordCount = textInput.trim().split(/\s+/).length;
   const totalKeywords = analysis.detectedKeywords.length;
   
-  document.getElementById('wordCount').textContent = wordCount;
-  document.getElementById('keywordCount').textContent = totalKeywords;
-  document.getElementById('analysisDetails').textContent = 
-    `Analyzed ${wordCount} words with ${totalKeywords} keywords detected`;
+  setTextSafe('wordCount', wordCount);
+  setTextSafe('keywordCount', totalKeywords);
+  setTextSafe('analysisDetails', `Analyzed ${wordCount} words with ${totalKeywords} keywords detected`);
   
   // Calculate percentages for visualization (using weighted scores)
   const totalWeight = analysis.happyWeight + analysis.sadWeight + analysis.neutralWeight;
@@ -5198,18 +5339,18 @@ function runSentimentTest() {
   const neutralPercent = totalWeight > 0 ? Math.round((analysis.neutralWeight / totalWeight) * 100) : 0;
   
   // Update text displays
-  document.getElementById('happyScoreValue').textContent = `${happyPercent}%`;
-  document.getElementById('sadScoreValue').textContent = `${sadPercent}%`;
-  document.getElementById('neutralScoreValue').textContent = `${neutralPercent}%`;
-  document.getElementById('legendHappy').textContent = `${happyPercent}%`;
-  document.getElementById('legendSad').textContent = `${sadPercent}%`;
-  document.getElementById('legendNeutral').textContent = `${neutralPercent}%`;
-  document.getElementById('pieChartCenter').textContent = `${happyPercent}% Pos`;
+  setTextSafe('happyScoreValue', `${happyPercent}%`);
+  setTextSafe('sadScoreValue', `${sadPercent}%`);
+  setTextSafe('neutralScoreValue', `${neutralPercent}%`);
+  setTextSafe('legendHappy', `${happyPercent}%`);
+  setTextSafe('legendSad', `${sadPercent}%`);
+  setTextSafe('legendNeutral', `${neutralPercent}%`);
+  setTextSafe('pieChartCenter', `${happyPercent}% Pos`);
   
   // Update keyword counts
-  document.getElementById('positiveKeywordCount').textContent = `${analysis.positiveKeywords.length} keywords`;
-  document.getElementById('negativeKeywordCount').textContent = `${analysis.negativeKeywords.length} keywords`;
-  document.getElementById('neutralKeywordCount').textContent = `${analysis.neutralKeywords.length} keywords`;
+  setTextSafe('positiveKeywordCount', `${analysis.positiveKeywords.length} keywords`);
+  setTextSafe('negativeKeywordCount', `${analysis.negativeKeywords.length} keywords`);
+  setTextSafe('neutralKeywordCount', `${analysis.neutralKeywords.length} keywords`);
   
   // Update overall sentiment badge
   const overallSentimentBadge = document.getElementById('overallSentimentBadge');
@@ -5226,13 +5367,13 @@ function runSentimentTest() {
   
   // Calculate and display confidence score
   const confidenceScore = Math.min(100, Math.round((totalKeywords / Math.max(wordCount, 1)) * 100 * 3));
-  document.getElementById('confidenceScore').textContent = `${confidenceScore}%`;
-  document.getElementById('confidenceBar').style.width = `${confidenceScore}%`;
+  setTextSafe('confidenceScore', `${confidenceScore}%`);
+  setWidthSafe('confidenceBar', `${confidenceScore}%`);
   
   // Update total keyword statistics
-  document.getElementById('totalPositiveKeywords').textContent = analysis.positiveKeywords.length;
-  document.getElementById('totalNegativeKeywords').textContent = analysis.negativeKeywords.length;
-  document.getElementById('totalNeutralKeywords').textContent = analysis.neutralKeywords.length;
+  setTextSafe('totalPositiveKeywords', analysis.positiveKeywords.length);
+  setTextSafe('totalNegativeKeywords', analysis.negativeKeywords.length);
+  setTextSafe('totalNeutralKeywords', analysis.neutralKeywords.length);
   
   // Show top keywords with weight scores
   displayTopKeywordsWithWeight(analysis);
@@ -5243,9 +5384,6 @@ function runSentimentTest() {
   // Update pie chart
   updatePieChart(happyPercent, sadPercent, neutralPercent);
   
-  // Show results section
-  document.getElementById('testResultsSection').style.display = 'block';
-  
   // Update test companies with analysis results
   updateTestCompaniesWithAnalysis(analysis);
   
@@ -5255,10 +5393,31 @@ function runSentimentTest() {
   // Populate keyword lists with weight scores
   populateEnhancedKeywordListsWithWeight(analysis);
   
-  // Setup keyword search
-  setupKeywordSearch(analysis);
-  
-  showToast('✅ Sentiment analysis complete!');
+  // Reset and setup keyword search fresh for this run
+  const searchInput = document.getElementById('keywordSearchTest');
+  if (searchInput) {
+    searchInput.value = '';
+    // Remove all old listeners and attach only one fresh listener
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    newSearchInput.addEventListener('input', function(e) {
+      filterKeywordsBySearch(e.target.value);
+    });
+  } else {
+    console.warn('runSentimentTest: keywordSearchTest not found');
+  }
+    console.log('runSentimentTest: analysis complete', {
+      happy: analysis.happyPercent,
+      sad: analysis.sadPercent,
+      neutral: analysis.neutralPercent,
+      detected: analysis.detectedKeywords.length
+    });
+
+    showToast('✅ Sentiment analysis complete!');
+  } catch (err) {
+    console.error('runSentimentTest: error', err);
+    showToast('❌ Error during analysis. See console.');
+  }
 }
 
 // Enhanced sentiment analysis with weight scoring
@@ -5324,7 +5483,40 @@ function analyzeTextSentimentEnhancedWithWeight(text) {
     }
   });
   
-  const totalWeight = happyWeight + sadWeight + neutralWeight;
+  let totalWeight = happyWeight + sadWeight + neutralWeight;
+  
+  // If no keywords found in short text, apply character-level sentiment heuristics
+  if (totalWeight === 0 && text.trim().length > 0) {
+    // Check for punctuation and simple positive/negative indicators
+    const exclamationCount = (text.match(/!/g) || []).length;
+    const questionCount = (text.match(/\?/g) || []).length;
+    const words = text.trim().split(/\s+/);
+    
+    // Award small positive weight for exclamations (enthusiasm indicator)
+    if (exclamationCount > 0) {
+      happyWeight += exclamationCount * 2;
+    }
+    
+    // Award small neutral weight for questions (inquiry indicator)
+    if (questionCount > 0) {
+      neutralWeight += questionCount * 1.5;
+    }
+    
+    // Default boost for any non-empty text (ensures results display)
+    if (words.length > 0) {
+      // Assign a baseline neutral sentiment for unmatched text
+      neutralWeight += Math.min(words.length * 0.5, 5);
+    }
+    
+    totalWeight = happyWeight + sadWeight + neutralWeight;
+  }
+  
+  // Ensure at least some weight for display purposes
+  if (totalWeight === 0) {
+    totalWeight = 1;
+    neutralWeight = 1; // Default to neutral if nothing matches
+  }
+  
   const happyPercent = totalWeight > 0 ? Math.round((happyWeight / totalWeight) * 100) : 0;
   const sadPercent = totalWeight > 0 ? Math.round((sadWeight / totalWeight) * 100) : 0;
   const neutralPercent = totalWeight > 0 ? Math.round((neutralWeight / totalWeight) * 100) : 0;
@@ -5421,22 +5613,28 @@ function populateEnhancedKeywordListsWithWeight(analysis) {
 function setupKeywordSearch(analysis) {
   const searchInput = document.getElementById('keywordSearchTest');
   
+  // Attach fresh event listener - don't clone, just attach to existing element
   searchInput.addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase().trim();
+    filterKeywordsBySearch(e.target.value);
+  }, { once: false });
+}
+
+// Helper function to filter keywords by search
+function filterKeywordsBySearch(searchTerm) {
+  const searchTermLower = searchTerm.toLowerCase().trim();
+  
+  // Filter all keyword lists
+  ['positiveKeywordsList', 'negativeKeywordsList', 'neutralKeywordsList'].forEach(listId => {
+    const container = document.getElementById(listId);
+    const keywordTags = container.querySelectorAll('.keyword-tag');
     
-    // Filter all keyword lists
-    ['positiveKeywordsList', 'negativeKeywordsList', 'neutralKeywordsList'].forEach(listId => {
-      const container = document.getElementById(listId);
-      const keywordTags = container.querySelectorAll('.keyword-tag');
-      
-      keywordTags.forEach(tag => {
-        const keyword = tag.textContent.toLowerCase();
-        if (searchTerm === '' || keyword.includes(searchTerm)) {
-          tag.style.display = 'inline-block';
-        } else {
-          tag.style.display = 'none';
-        }
-      });
+    keywordTags.forEach(tag => {
+      const keyword = tag.textContent.toLowerCase();
+      if (searchTermLower === '' || keyword.includes(searchTermLower)) {
+        tag.style.display = 'inline-block';
+      } else {
+        tag.style.display = 'none';
+      }
     });
   });
 }
@@ -5754,7 +5952,7 @@ function renderTable() {
     }
     
     return `
-    <tr>
+    <tr data-index="${originalIndex}" class="draggable-row">
       <td><strong>${i + 1}</strong></td>
       <td class="company-name">${c.name}</td>
       <td><span class="sector-badge">${c.sector}</span></td>
@@ -5765,13 +5963,15 @@ function renderTable() {
       <td>
         <div class="actions-cell">
           <button class="action-btn btn-edit" onclick="editCompany(${originalIndex})" title="Edit">✏️</button>
-          <button class="action-btn btn-delete" onclick="deleteCompany(${originalIndex})" title="Delete">🗑️</button>
-          <button class="action-btn btn-up" onclick="moveUp(${originalIndex})" title="Move Up">↑</button>
-          <button class="action-btn btn-down" onclick="moveDown(${originalIndex})" title="Move Down">↓</button>
+          <button class="action-btn btn-delete" onclick="openDeleteModal(${originalIndex})" title="Delete">🗑️</button>
+          <button class="action-btn btn-drag" data-index="${originalIndex}" title="Hold & drag to reposition">↕</button>
         </div>
       </td>
     </tr>
   `}).join('');
+
+  // After rows are rendered, attach drag handlers for hold-and-drag reordering
+  attachDragHandlers();
 }
 
 // Enhanced analyzeAllCompanies function with countdown - MODIFIED TO ANALYZE ONLY CURRENT TAB
@@ -5968,28 +6168,194 @@ function saveCompany() {
 
 function editCompany(i) { openModal(i); }
 
+// Open edit modal
 function deleteCompany(i) {
-  if (confirm(`Delete "${companies[i].name}"?`)) {
+  // Backwards-compatible: open custom delete modal
+  openDeleteModal(i);
+}
+
+// Open the custom delete confirmation modal
+function openDeleteModal(i) {
+  const modal = document.getElementById('deleteConfirmModal');
+  if (!modal) return;
+  modal.querySelector('.modal-message').textContent = `Delete "${companies[i].name}"?`;
+  modal.dataset.index = i;
+  modal.style.display = 'flex';
+}
+
+// Generic delete callback support
+let __pendingDeleteCallback = null;
+
+function openGenericDeleteModal(message, callback) {
+  __pendingDeleteCallback = typeof callback === 'function' ? callback : null;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (!modal) return;
+  modal.querySelector('.modal-message').textContent = message;
+  modal.dataset.index = '';
+  modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById('deleteConfirmModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  delete modal.dataset.index;
+}
+
+function confirmDeleteCompany() {
+  const modal = document.getElementById('deleteConfirmModal');
+  if (!modal) return;
+  // If a pending callback is set (used for generic deletes like keywords), call it
+  if (__pendingDeleteCallback) {
+    try { __pendingDeleteCallback(); } catch (e) { console.error(e); }
+    __pendingDeleteCallback = null;
+    closeDeleteModal();
+    return;
+  }
+
+  const i = parseInt(modal.dataset.index);
+  if (!isNaN(i) && companies[i]) {
     companies.splice(i, 1);
     renderTable();
     showToast('🗑️ Company deleted!');
   }
+  closeDeleteModal();
 }
 
-function moveUp(i) {
-  if (i > 0) {
-    [companies[i], companies[i-1]] = [companies[i-1], companies[i]];
-    renderTable();
-    showToast('⬆️ Moved up!');
+// Hold-and-drag reordering implementation
+function attachDragHandlers() {
+  // Remove previous handlers to avoid duplicates
+  document.querySelectorAll('.btn-drag').forEach(btn => {
+    btn.onpointerdown = null;
+    btn.onpointerup = null;
+    btn.onpointercancel = null;
+  });
+
+  document.querySelectorAll('.btn-drag').forEach(btn => {
+    btn.addEventListener('pointerdown', onDragPointerDown);
+    btn.addEventListener('pointerup', onDragPointerUp);
+    btn.addEventListener('pointercancel', onDragPointerCancel);
+  });
+}
+
+let __dragState = null;
+
+function onDragPointerDown(e) {
+  e.preventDefault();
+  const btn = e.currentTarget;
+  const tr = btn.closest('tr');
+  if (!tr) return;
+  const pointerId = e.pointerId;
+  tr.setPointerCapture(pointerId);
+  __dragState = { tr, pointerId, longPressTimer: null, ghost: null, placeholder: null };
+  __dragState.longPressTimer = setTimeout(() => startDragging(e), 250);
+}
+
+function onDragPointerUp(e) {
+  if (!__dragState) return;
+  // If long press didn't trigger, treat as click/cancel
+  if (__dragState.longPressTimer) {
+    clearTimeout(__dragState.longPressTimer);
+    try { __dragState.tr.releasePointerCapture(e.pointerId); } catch (err) {}
+    __dragState = null;
+    return;
+  }
+  finishDrag(e);
+}
+
+function onDragPointerCancel(e) {
+  if (!__dragState) return;
+  if (__dragState.longPressTimer) clearTimeout(__dragState.longPressTimer);
+  cleanupDrag();
+}
+
+function startDragging(e) {
+  if (!__dragState) return;
+  const { tr } = __dragState;
+  // Create ghost clone
+  const rect = tr.getBoundingClientRect();
+  const ghost = tr.cloneNode(true);
+  ghost.classList.add('dragging-clone');
+  ghost.style.width = rect.width + 'px';
+  ghost.style.left = (rect.left + rect.width/2) + 'px';
+  ghost.style.top = (rect.top + rect.height/2) + 'px';
+  document.body.appendChild(ghost);
+  // Placeholder
+  const placeholder = document.createElement('tr');
+  placeholder.className = 'placeholder-row';
+  placeholder.innerHTML = '<td colspan="8"></td>';
+  tr.parentNode.insertBefore(placeholder, tr.nextSibling);
+  tr.style.visibility = 'hidden';
+  __dragState.ghost = ghost;
+  __dragState.placeholder = placeholder;
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', finishDrag);
+}
+
+function onDragMove(e) {
+  if (!__dragState || !__dragState.ghost) return;
+  const ghost = __dragState.ghost;
+  ghost.style.left = e.clientX + 'px';
+  ghost.style.top = e.clientY + 'px';
+
+  // Find row under pointer
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  if (!el) return;
+  const targetRow = el.closest('tr');
+  const tbody = document.getElementById('tableBody');
+  if (!targetRow || targetRow === __dragState.placeholder || targetRow === __dragState.tr) return;
+  // Insert placeholder before/after target based on pointer position
+  const targetRect = targetRow.getBoundingClientRect();
+  const before = (e.clientY < targetRect.top + targetRect.height/2);
+  if (before) {
+    tbody.insertBefore(__dragState.placeholder, targetRow);
+  } else {
+    tbody.insertBefore(__dragState.placeholder, targetRow.nextSibling);
   }
 }
 
-function moveDown(i) {
-  if (i < companies.length - 1) {
-    [companies[i], companies[i+1]] = [companies[i+1], companies[i]];
-    renderTable();
-    showToast('⬇️ Moved down!');
+function finishDrag(e) {
+  if (!__dragState) return;
+  const { tr, placeholder, ghost } = __dragState;
+  if (ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
+  if (placeholder && placeholder.parentNode) {
+    placeholder.parentNode.insertBefore(tr, placeholder);
+    placeholder.parentNode.removeChild(placeholder);
   }
+  tr.style.visibility = '';
+  // Rebuild companies order based on DOM
+  const tbody = document.getElementById('tableBody');
+  const newOrder = [];
+  tbody.querySelectorAll('tr.draggable-row').forEach((row) => {
+    const idx = parseInt(row.getAttribute('data-index'));
+    if (!isNaN(idx)) newOrder.push(companies[idx]);
+  });
+  // Replace companies array with reordered list for current view
+  // When currentSector is 'mylist' we can replace companies; otherwise rebuild full companies array preserving other sectors
+  if (currentSector === 'mylist') {
+    companies = newOrder.concat();
+  } else {
+    // rebuild by keeping elements not in current display and inserting reordered ones
+    const remaining = companies.filter(c => c.sector !== currentSector);
+    companies = [];
+    // interleave: take all companies, replace sector slice with newOrder
+    // For simplicity, rebuild as remaining + newOrder
+    companies = remaining.concat(newOrder);
+  }
+  renderTable();
+  showToast('↕️ Reordered');
+  cleanupDrag();
+}
+
+function cleanupDrag() {
+  if (!__dragState) return;
+  try { if (__dragState.tr && __dragState.tr.releasePointerCapture) __dragState.tr.releasePointerCapture(__dragState.pointerId); } catch (e) {}
+  window.removeEventListener('pointermove', onDragMove);
+  window.removeEventListener('pointerup', finishDrag);
+  if (__dragState.ghost && __dragState.ghost.parentNode) __dragState.ghost.parentNode.removeChild(__dragState.ghost);
+  if (__dragState.placeholder && __dragState.placeholder.parentNode) __dragState.placeholder.parentNode.removeChild(__dragState.placeholder);
+  if (__dragState.tr) __dragState.tr.style.visibility = '';
+  __dragState = null;
 }
 
 function addNewKeyword() {

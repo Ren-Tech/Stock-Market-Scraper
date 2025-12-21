@@ -20,6 +20,10 @@ from flask import url_for
 import logging
 from flask import session, flash
 from functools import wraps
+import concurrent.futures
+import hashlib
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 from newspaper import Article
 import json
 from collections import Counter
@@ -65,6 +69,26 @@ USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1'
 ]
+
+# Simple in-memory cache for recent company results to speed repeated/bulk requests
+# Key -> {'timestamp': <epoch>, 'response': <response_dict>}
+CACHE = {}
+CACHE_TTL = 300  # seconds
+
+def _cache_get(key):
+    entry = CACHE.get(key)
+    if not entry:
+        return None
+    if time.time() - entry['timestamp'] > CACHE_TTL:
+        try:
+            del CACHE[key]
+        except KeyError:
+            pass
+        return None
+    return entry['response']
+
+def _cache_set(key, response):
+    CACHE[key] = {'timestamp': time.time(), 'response': response}
 
 NEWS_SOURCE_MAPPING = {
      'www.ft.com': {
@@ -4791,6 +4815,14 @@ def get_headers():
         'Upgrade-Insecure-Requests': '1'
     }
 
+
+# Shared requests session with retries and connection pooling
+SESSION = requests.Session()
+retries = Retry(total=3, backoff_factor=0.3, status_forcelist=[429, 500, 502, 503, 504])
+adapter = HTTPAdapter(max_retries=retries, pool_connections=100, pool_maxsize=100)
+SESSION.mount('http://', adapter)
+SESSION.mount('https://', adapter)
+
 def analyze_sentiment(text):
     """Analyze sentiment using TextBlob"""
     try:
@@ -4817,7 +4849,7 @@ def scrape_google_news(company_name, max_results=10):
         
         app.logger.info(f"Scraping Google News for: {company_name}")
         
-        response = requests.get(url, headers=get_headers(), timeout=10)
+        response = SESSION.get(url, headers=get_headers(), timeout=10)
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
             
@@ -4853,7 +4885,7 @@ def scrape_bing_news(company_name, max_results=10):
         
         app.logger.info(f"Scraping Bing News for: {company_name}")
         
-        response = requests.get(url, headers=get_headers(), timeout=10)
+        response = SESSION.get(url, headers=get_headers(), timeout=10)
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
             
@@ -4889,7 +4921,7 @@ def scrape_yahoo_finance(company_name, max_results=10):
         
         app.logger.info(f"Scraping Yahoo Finance for: {company_name}")
         
-        response = requests.get(url, headers=get_headers(), timeout=10)
+        response = SESSION.get(url, headers=get_headers(), timeout=10)
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
             
@@ -4948,29 +4980,26 @@ def scrape_all_sources(company_name):
     start_time = time.time()
     
     all_articles = []
-    
-    # Scrape Google News
-    try:
-        google_articles = scrape_google_news(company_name, max_results=8)
-        all_articles.extend(google_articles)
-        time.sleep(random.uniform(1, 2))  # Delay between requests
-    except Exception as e:
-        app.logger.error(f"Failed to scrape Google News: {str(e)}")
-    
-    # Scrape Bing News
-    try:
-        bing_articles = scrape_bing_news(company_name, max_results=8)
-        all_articles.extend(bing_articles)
-        time.sleep(random.uniform(1, 2))
-    except Exception as e:
-        app.logger.error(f"Failed to scrape Bing News: {str(e)}")
-    
-    # Scrape Yahoo Finance
-    try:
-        yahoo_articles = scrape_yahoo_finance(company_name, max_results=8)
-        all_articles.extend(yahoo_articles)
-    except Exception as e:
-        app.logger.error(f"Failed to scrape Yahoo Finance: {str(e)}")
+    # Run site scrapers concurrently to reduce latency
+    scrapers = [
+        (scrape_google_news, {'company_name': company_name, 'max_results': 8}),
+        (scrape_bing_news, {'company_name': company_name, 'max_results': 8}),
+        (scrape_yahoo_finance, {'company_name': company_name, 'max_results': 8}),
+    ]
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        future_to_name = {
+            executor.submit(func, kwargs['company_name'], kwargs.get('max_results', 10)): func.__name__
+            for func, kwargs in scrapers
+        }
+        for fut in concurrent.futures.as_completed(future_to_name):
+            name = future_to_name[fut]
+            try:
+                articles = fut.result()
+                if articles:
+                    all_articles.extend(articles)
+            except Exception as e:
+                app.logger.error(f"Failed to run scraper {name} for {company_name}: {e}")
     
     elapsed_time = time.time() - start_time
     app.logger.info(f"Scraping completed in {elapsed_time:.2f} seconds. Total articles: {len(all_articles)}")
@@ -5002,19 +5031,26 @@ def analyze_single():
     try:
         data = request.get_json()
         company_name = data.get('company_name', '').strip()
-        
+
         if not company_name:
             app.logger.warning("Empty company name received")
             return jsonify({'error': 'Company name is required'}), 400
-        
+
         app.logger.info(f"Analyzing sentiment for: {company_name}")
-        
+
+        # Check cache first
+        cache_key = hashlib.sha256(company_name.encode('utf-8')).hexdigest()
+        cached = _cache_get(cache_key)
+        if cached:
+            app.logger.info(f"Returning cached result for {company_name}")
+            return jsonify(cached)
+
         # Scrape all sources
         articles = scrape_all_sources(company_name)
-        
+
         if not articles:
             app.logger.warning(f"No articles found for: {company_name}")
-            return jsonify({
+            resp = {
                 'company': company_name,
                 'result': {
                     'sad': 0,
@@ -5022,12 +5058,15 @@ def analyze_single():
                     'happy': 0
                 },
                 'articles_count': 0,
-                'message': 'No articles found'
-            })
-        
+                'message': 'No articles found',
+                'timestamp': datetime.now().isoformat()
+            }
+            _cache_set(cache_key, resp)
+            return jsonify(resp)
+
         # Calculate sentiment percentages
         percentages = calculate_sentiment_percentages(articles)
-        
+
         response = {
             'company': company_name,
             'result': percentages,
@@ -5035,10 +5074,11 @@ def analyze_single():
             'articles': articles[:10],  # Return first 10 articles for reference
             'timestamp': datetime.now().isoformat()
         }
-        
+
+        _cache_set(cache_key, response)
         app.logger.info(f"Analysis complete for {company_name}: {percentages}")
         return jsonify(response)
-        
+
     except Exception as e:
         app.logger.error(f"Error in analyze_single: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
@@ -5049,51 +5089,135 @@ def analyze_batch():
     try:
         data = request.get_json()
         companies = data.get('companies', [])
-        
+
         if not companies:
             return jsonify({'error': 'Companies list is required'}), 400
-        
+
         app.logger.info(f"Batch analysis started for {len(companies)} companies")
-        
-        results = []
-        for company_data in companies:
+
+        def _process_company(company_data):
             company_name = company_data.get('name', '').strip()
-            
             if not company_name:
-                continue
-            
+                return None
+
+            cache_key = hashlib.sha256(company_name.encode('utf-8')).hexdigest()
+            cached = _cache_get(cache_key)
+            if cached:
+                app.logger.debug(f"Using cache for {company_name}")
+                return {
+                    'company': company_name,
+                    'sector': company_data.get('sector', ''),
+                    **cached
+                }
+
             try:
                 articles = scrape_all_sources(company_name)
                 percentages = calculate_sentiment_percentages(articles)
-                
-                results.append({
+                result = {
                     'company': company_name,
                     'sector': company_data.get('sector', ''),
                     'result': percentages,
-                    'articles_count': len(articles)
-                })
-                
-                # Delay between companies to avoid rate limiting
-                time.sleep(random.uniform(2, 4))
-                
+                    'articles_count': len(articles),
+                    'timestamp': datetime.now().isoformat()
+                }
+                _cache_set(cache_key, result)
+                return result
+
             except Exception as e:
                 app.logger.error(f"Error analyzing {company_name}: {str(e)}")
-                results.append({
+                return {
                     'company': company_name,
                     'sector': company_data.get('sector', ''),
                     'error': str(e)
-                })
-        
+                }
+
+        results = []
+        # Allow higher concurrency for bulk loads; tune as needed for your environment
+        max_workers = min(20, max(1, len(companies)))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(_process_company, c) for c in companies]
+            for fut in concurrent.futures.as_completed(futures):
+                try:
+                    res = fut.result()
+                    if res:
+                        results.append(res)
+                except Exception as e:
+                    app.logger.error(f"Worker error in batch processing: {e}")
+
         app.logger.info(f"Batch analysis completed. Processed {len(results)} companies")
-        
+
         return jsonify({
             'results': results,
             'total': len(results),
             'timestamp': datetime.now().isoformat()
         })
-        
+
     except Exception as e:
         app.logger.error(f"Error in analyze_batch: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/analyze-bulk', methods=['POST'])
+def analyze_bulk():
+    """Faster bulk analysis for a simple list of company names.
+
+    Request JSON: {"company_names": ["Company A", "Company B", ...]}
+    """
+    try:
+        data = request.get_json() or {}
+        names = data.get('company_names') or data.get('companies') or []
+        # Accept list of strings or list of objects with name key
+        company_list = []
+        for item in names:
+            if isinstance(item, str):
+                company_list.append({'name': item})
+            elif isinstance(item, dict) and item.get('name'):
+                company_list.append({'name': item.get('name'), 'sector': item.get('sector', '')})
+
+        if not company_list:
+            return jsonify({'error': 'company_names list is required'}), 400
+
+        app.logger.info(f"Bulk analysis started for {len(company_list)} companies")
+
+        def _process_simple(company_obj):
+            name = company_obj.get('name', '').strip()
+            if not name:
+                return None
+            cache_key = hashlib.sha256(name.encode('utf-8')).hexdigest()
+            cached = _cache_get(cache_key)
+            if cached:
+                return {'company': name, 'sector': company_obj.get('sector', ''), **cached}
+
+            articles = scrape_all_sources(name)
+            percentages = calculate_sentiment_percentages(articles)
+            resp = {
+                'company': name,
+                'sector': company_obj.get('sector', ''),
+                'result': percentages,
+                'articles_count': len(articles),
+                'articles': articles[:5],
+                'timestamp': datetime.now().isoformat()
+            }
+            _cache_set(cache_key, resp)
+            return resp
+
+        results = []
+        max_workers = min(40, max(2, len(company_list)))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(_process_simple, c) for c in company_list]
+            for fut in concurrent.futures.as_completed(futures):
+                try:
+                    r = fut.result()
+                    if r:
+                        results.append(r)
+                except Exception as e:
+                    app.logger.error(f"Error in bulk worker: {e}")
+
+        app.logger.info(f"Bulk analysis completed. Processed {len(results)} companies")
+        return jsonify({'results': results, 'total': len(results), 'timestamp': datetime.now().isoformat()})
+
+    except Exception as e:
+        app.logger.error(f"Error in analyze_bulk: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/health', methods=['GET'])
