@@ -18,6 +18,7 @@
     color: #333;
 }
 
+
 /* Keyword weight badge */
 .keyword-weight {
     background: rgba(102, 126, 234, 0.1);
@@ -2794,7 +2795,8 @@ let currentEditKeyword = null;
 let currentEditEmotion = null;
 let selectedEditEmotion = null;
 let currentKeywordFilter = 'all';
-
+let calibratedText = ""; // Store the text from calibrate modal
+let calibratedKeywords = []; // Store keywords detected from calibration// Store keywords detected from calibration
 // Safe DOM helpers to avoid exceptions when elements are missing
 function setTextSafe(id, text) {
   const el = document.getElementById(id);
@@ -3810,24 +3812,95 @@ function handleMyListAction(action) {
 }
 
 // Enhanced populate keyword modal with individual containers and weight scores
+// Enhanced populate keyword modal with individual containers and weight scores
 function populateKeywordModal() {
     const container = document.getElementById('keywordsContainer');
     let html = '';
     
-    // Update keyword counts
-    const allCount = emotions.happy.keywords.length + emotions.neutral.keywords.length + emotions.sad.keywords.length;
-    document.getElementById('allKeywordCount').textContent = allCount;
-    document.getElementById('happyKeywordCount').textContent = emotions.happy.keywords.length;
-    document.getElementById('neutralKeywordCount').textContent = emotions.neutral.keywords.length;
-    document.getElementById('sadKeywordCount').textContent = emotions.sad.keywords.length;
+    // Update keyword counts (include calibrated keywords)
+    const allKeywordsCount = emotions.happy.keywords.length + emotions.neutral.keywords.length + emotions.sad.keywords.length + calibratedKeywords.length;
+    document.getElementById('allKeywordCount').textContent = allKeywordsCount;
+    document.getElementById('happyKeywordCount').textContent = emotions.happy.keywords.length + calibratedKeywords.filter(k => k.emotion === 'happy').length;
+    document.getElementById('neutralKeywordCount').textContent = emotions.neutral.keywords.length + calibratedKeywords.filter(k => k.emotion === 'neutral').length;
+    document.getElementById('sadKeywordCount').textContent = emotions.sad.keywords.length + calibratedKeywords.filter(k => k.emotion === 'sad').length;
     
-    // Create keyword items for all emotions
+    // Add calibrated keywords header if there are any
+    if (calibratedKeywords.length > 0) {
+        html += `
+        <div style="grid-column: 1 / -1; margin-bottom: 15px; padding: 15px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 12px; border-left: 4px solid #ff9800;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f57c00;">
+                    <span class="icon">🧪</span>
+                    <span>Keywords from Calibration (${calibratedKeywords.length})</span>
+                </div>
+                <button onclick="addAllCalibratedKeywords()" 
+                        style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white; border: none; border-radius: 8px; 
+                               padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+                    <span class="icon">➕</span>
+                    <span>Add All</span>
+                </button>
+            </div>
+            <div style="font-size: 12px; color: #f57c00;">
+                From: "${calibratedText.substring(0, 80)}${calibratedText.length > 80 ? '...' : ''}"
+            </div>
+        </div>
+        `;
+    }
+    
+    // Create keyword items for calibrated keywords (show them first)
+    calibratedKeywords.forEach((keywordObj, index) => {
+        const keyword = keywordObj.keyword;
+        const weight = keywordObj.weight;
+        const emotion = keywordObj.emotion;
+        const data = emotions[emotion];
+        
+        html += `
+        <div class="keyword-item ${emotion} calibrated-keyword" data-emotion="${emotion}" data-calibrated="true" data-index="${index}" data-keyword="${keyword}">
+          <div class="keyword-header">
+            <div class="keyword-text" style="color: #f57c00; font-weight: 700;">${keyword}</div>
+            <div class="keyword-score-weight">
+              <div class="keyword-score">${weight}</div>
+              <div class="keyword-weight-badge" title="Weight Score">W:${weight}</div>
+              <div class="keyword-weight-badge" style="background: rgba(255, 152, 0, 0.2); color: #f57c00;" title="From Calibration">🧪</div>
+            </div>
+          </div>
+          <div class="keyword-emotion">
+            <span class="icon">${data.emoji}</span>
+            <span>${emotion.charAt(0).toUpperCase() + emotion.slice(1)} (Calibrated)</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:12px;">
+            <button class="keyword-action-btn copy" data-keyword="${keyword}" style="flex:1; padding:8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; background: rgba(102, 126, 234, 0.1); color: #667eea;">
+              <span class="icon">📋</span>
+              <span>Copy</span>
+            </button>
+            <button class="keyword-action-btn add" data-keyword="${keyword}" data-emotion="${emotion}" data-weight="${weight}" style="flex:1; padding:8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; background: linear-gradient(135deg, #4caf50, #388e3c); color: white;">
+              <span class="icon">➕</span>
+              <span>Add to DB</span>
+            </button>
+            <button class="keyword-action-btn delete" data-keyword="${keyword}" style="flex:1; padding:8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; background: linear-gradient(135deg, #ef5350, #e53935); color: white;">
+              <span class="icon">🗑️</span>
+              <span>Remove</span>
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    
+    // Create keyword items for all emotions (regular keywords)
     for (const [emotion, data] of Object.entries(emotions)) {
         const keywords = data.keywords;
         
         keywords.forEach((keywordObj, index) => {
             const keyword = keywordObj.keyword;
             const weight = keywordObj.weight;
+            
+            // Check if this keyword is already in calibrated keywords
+            const isCalibrated = calibratedKeywords.some(k => k.keyword === keyword && k.emotion === emotion);
+            
+            if (isCalibrated) {
+                // Skip duplicates - already shown in calibrated section
+                return;
+            }
             
             html += `
         <div class="keyword-item ${emotion}" data-emotion="${emotion}" data-index="${index}" data-keyword="${keyword}">
@@ -3863,7 +3936,7 @@ function populateKeywordModal() {
     
     container.innerHTML = html;
     
-    // Add copy functionality
+    // Add event listeners for calibrated keyword actions
     container.addEventListener('click', function(e) {
       const btn = e.target.closest('.keyword-action-btn');
       if (!btn) return;
@@ -3871,6 +3944,14 @@ function populateKeywordModal() {
       if (btn.classList.contains('copy')) {
         const keyword = btn.getAttribute('data-keyword');
         copyKeyword(keyword);
+        return;
+      }
+
+      if (btn.classList.contains('add')) {
+        const keyword = btn.getAttribute('data-keyword');
+        const emotion = btn.getAttribute('data-emotion');
+        const weight = btn.getAttribute('data-weight');
+        addCalibratedKeywordToDB(keyword, emotion, weight);
         return;
       }
 
@@ -3886,8 +3967,14 @@ function populateKeywordModal() {
       if (btn.classList.contains('delete')) {
         const item = btn.closest('.keyword-item');
         const keyword = item.getAttribute('data-keyword');
-        const emotion = item.getAttribute('data-emotion');
-        deleteKeyword(keyword, emotion);
+        const isCalibrated = item.getAttribute('data-calibrated') === 'true';
+        
+        if (isCalibrated) {
+          removeCalibratedKeyword(keyword);
+        } else {
+          const emotion = item.getAttribute('data-emotion');
+          deleteKeyword(keyword, emotion);
+        }
         return;
       }
     });
@@ -3905,7 +3992,6 @@ function populateKeywordModal() {
     // Apply current filter
     filterKeywordsByEmotion(currentKeywordFilter);
 }
-
 // Filter keywords by emotion
 function filterKeywordsByEmotion(emotion) {
     currentKeywordFilter = emotion;
@@ -3954,7 +4040,78 @@ function filterKeywordsByEmotion(emotion) {
         if (emptyState) emptyState.remove();
     }
 }
+// Add calibrated keyword to main database
+function addCalibratedKeywordToDB(keyword, emotion, weight) {
+    // Check if keyword already exists in the emotion category
+    const exists = emotions[emotion].keywords.find(kw => kw.keyword === keyword);
+    
+    if (exists) {
+        // Update existing keyword weight
+        exists.weight = parseInt(weight) || exists.weight;
+        showToast(`✅ Keyword "${keyword}" updated in database`);
+    } else {
+        // Add new keyword
+        emotions[emotion].keywords.push({ keyword: keyword, weight: parseInt(weight) || 5 });
+        showToast(`✅ Keyword "${keyword}" added to ${emotion} database`);
+    }
+    
+    // Remove from calibrated keywords array
+    calibratedKeywords = calibratedKeywords.filter(k => k.keyword !== keyword);
+    
+    // Refresh the keyword modal display
+    populateKeywordModal();
+}
 
+// Add all calibrated keywords to database
+function addAllCalibratedKeywords() {
+    if (calibratedKeywords.length === 0) {
+        showToast('⚠️ No calibrated keywords to add');
+        return;
+    }
+    
+    let addedCount = 0;
+    let updatedCount = 0;
+    
+    calibratedKeywords.forEach(kw => {
+        const exists = emotions[kw.emotion].keywords.find(k => k.keyword === kw.keyword);
+        
+        if (exists) {
+            exists.weight = kw.weight;
+            updatedCount++;
+        } else {
+            emotions[kw.emotion].keywords.push({ keyword: kw.keyword, weight: kw.weight });
+            addedCount++;
+        }
+    });
+    
+    // Clear calibrated keywords after adding
+    calibratedKeywords = [];
+    
+    showToast(`✅ Added ${addedCount} new keywords, updated ${updatedCount} existing keywords`);
+    populateKeywordModal();
+}
+
+// Remove calibrated keyword (not from database, just from calibrated list)
+function removeCalibratedKeyword(keyword) {
+    calibratedKeywords = calibratedKeywords.filter(k => k.keyword !== keyword);
+    showToast(`🗑️ Removed "${keyword}" from calibrated list`);
+    populateKeywordModal();
+}
+
+// Clear all calibrated keywords
+function clearAllCalibratedKeywords() {
+    if (calibratedKeywords.length === 0) {
+        showToast('⚠️ No calibrated keywords to clear');
+        return;
+    }
+    
+    if (confirm(`Clear all ${calibratedKeywords.length} calibrated keywords?`)) {
+        calibratedKeywords = [];
+        calibratedText = "";
+        showToast('🧹 All calibrated keywords cleared');
+        populateKeywordModal();
+    }
+}
 // Enhanced filter keywords with emotion filtering
 function filterKeywords(searchTerm) {
     const keywordItems = document.querySelectorAll('.keyword-item');
@@ -4096,6 +4253,9 @@ function openKeywordModal() {
     // Show imported files info
     updateImportedFilesDisplay();
     
+    // Show calibrated text if available
+    displayCalibratedTextInKeywordsModal();
+    
     // Reset search
     document.getElementById('keywordSearch').value = '';
     
@@ -4106,11 +4266,141 @@ function openKeywordModal() {
     });
     document.querySelector('.keyword-tab-btn[data-emotion="all"]').classList.add('active');
 }
-
 function closeKeywordModal() {
     document.getElementById('keywordModal').style.display = 'none';
 }
+function displayCalibratedTextInKeywordsModal() {
+    const keywordModalBody = document.querySelector('.keyword-modal-body');
+    
+    // Remove any existing calibrated text section
+    const existingSection = document.getElementById('calibratedTextSection');
+    if (existingSection) {
+        existingSection.remove();
+    }
+    
+    // If there's calibrated text, add it to the modal
+    if (calibratedText && calibratedText.trim() !== '') {
+        const calibratedSection = document.createElement('div');
+        calibratedSection.id = 'calibratedTextSection';
+        calibratedSection.style.cssText = `
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff9800;
+            border: 1px solid #ffcc80;
+        `;
+        
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #f57c00; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span class="icon">🧪</span>
+                    <span>Calibrated Text from Test</span>
+                </h3>
+                <button onclick="clearCalibratedText()" 
+                        style="background: #ff9800; color: white; border: none; border-radius: 6px; 
+                               padding: 4px 10px; font-size: 11px; cursor: pointer; font-weight: 600;">
+                    Clear
+                </button>
+            </div>
+            
+            <div style="background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; 
+                        border: 1px solid #ffcc80; max-height: 150px; overflow-y: auto;">
+                <p style="margin: 0; color: #333; font-size: 13px; line-height: 1.5;">${calibratedText}</p>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        font-size: 12px; color: #f57c00; font-weight: 600;">
+                <div style="display: flex; gap: 15px;">
+                    <span>Words: ${calibratedText.split(/\s+/).length}</span>
+                    <span>Keywords detected: ${calibratedKeywords.length}</span>
+                </div>
+                <button onclick="addKeywordsFromCalibratedText()" 
+                        style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white; 
+                               border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; 
+                               cursor: pointer; font-weight: 600;">
+                    <span class="icon">➕</span> Add Keywords
+                </button>
+            </div>
+        `;
+        
+        // Add detected keywords if available
+        if (calibratedKeywords.length > 0) {
+            html += `
+                <div style="margin-top: 15px; border-top: 1px solid #ffcc80; padding-top: 15px;">
+                    <div style="font-size: 13px; font-weight: 600; color: #f57c00; margin-bottom: 10px;">
+                        Detected Keywords:
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${calibratedKeywords.slice(0, 10).map(kw => `
+                            <span class="keyword-tag ${kw.type}" 
+                                  style="font-size: 11px; padding: 4px 8px;">
+                                ${kw.keyword} (${kw.type}, w:${kw.weight})
+                            </span>
+                        `).join('')}
+                        ${calibratedKeywords.length > 10 ? `
+                            <span style="font-size: 11px; color: #999; align-self: center;">
+                                +${calibratedKeywords.length - 10} more
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        calibratedSection.innerHTML = html;
+        
+        // Insert at the beginning of the modal body
+        if (keywordModalBody) {
+            keywordModalBody.insertBefore(calibratedSection, keywordModalBody.firstChild);
+        }
+    }
+}
 
+function clearCalibratedText() {
+    calibratedText = "";
+    calibratedKeywords = [];
+    
+    // Remove the section from the modal
+    const existingSection = document.getElementById('calibratedTextSection');
+    if (existingSection) {
+        existingSection.remove();
+    }
+    
+    showToast('🧹 Calibrated text cleared');
+}
+
+function addKeywordsFromCalibratedText() {
+    if (calibratedKeywords.length === 0) {
+        showToast('⚠️ No keywords to add from calibrated text');
+        return;
+    }
+    
+    // Open add keyword modal with first keyword pre-filled
+    const firstKeyword = calibratedKeywords[0];
+    openAddKeywordModalWithData(firstKeyword.keyword, firstKeyword.type);
+    
+    showToast(`📝 ${calibratedKeywords.length} keywords available to add`);
+}
+
+function openAddKeywordModalWithData(keyword, emotion) {
+    document.getElementById('addKeywordName').value = keyword;
+    document.getElementById('addKeywordEmotion').value = emotion || 'neutral';
+    const scoreInput = document.getElementById('addKeywordScore');
+    scoreInput.value = '5';
+    
+    // Update button display
+    const scoreDisplay = document.getElementById('saveNewScoreDisplay');
+    scoreDisplay.textContent = `Add (5/5)`;
+    
+    // Attach event listener
+    scoreInput.removeEventListener('change', updateAddScoreDisplay);
+    scoreInput.removeEventListener('input', updateAddScoreDisplay);
+    scoreInput.addEventListener('change', updateAddScoreDisplay);
+    scoreInput.addEventListener('input', updateAddScoreDisplay);
+    
+    document.getElementById('addKeywordModal').style.display = 'flex';
+}
 // Edit Keyword Modal functions and markup
 function openEditKeywordModal(keyword, emotion, index) {
   currentEditKeyword = { keyword: keyword, emotion: emotion, index: index };
@@ -5292,6 +5582,8 @@ function removeTestCompany(index) {
 }
 
 // Enhanced sentiment analysis test with detailed results and weight scoring
+// Enhanced sentiment analysis test with detailed results and weight scoring
+// Enhanced sentiment analysis test with detailed results and weight scoring
 function runSentimentTest() {
   try {
     console.log('runSentimentTest: started');
@@ -5303,16 +5595,19 @@ function runSentimentTest() {
       return;
     }
 
+    // Store calibrated text globally
+    calibratedText = textInput.trim();
+    
     // Ensure results section is visible
     const resultsSection = document.getElementById('testResultsSection');
     resultsSection.style.display = 'block';
 
-      // Show loading state
-      setTextSafe('happyScoreValue', '...');
-      setTextSafe('sadScoreValue', '...');
-      setTextSafe('neutralScoreValue', '...');
-      setTextSafe('pieChartCenter', '...');
-      setTextSafe('confidenceScore', '...');
+    // Show loading state
+    setTextSafe('happyScoreValue', '...');
+    setTextSafe('sadScoreValue', '...');
+    setTextSafe('neutralScoreValue', '...');
+    setTextSafe('pieChartCenter', '...');
+    setTextSafe('confidenceScore', '...');
 
     // Analyze text sentiment with enhanced details and weight scoring
     const analysis = analyzeTextSentimentEnhancedWithWeight(textInput);
@@ -5323,6 +5618,17 @@ function runSentimentTest() {
       console.error('runSentimentTest: analysis returned falsy', analysis);
       return;
     }
+    
+    // Store detected keywords from analysis for use in keyword modal
+    calibratedKeywords = analysis.detectedKeywords.map(kw => ({
+      keyword: kw.keyword,
+      weight: kw.weight,
+      type: kw.type,
+      emotion: kw.type === 'positive' ? 'happy' : kw.type === 'negative' ? 'sad' : 'neutral',
+      count: kw.count
+    }));
+    
+    console.log('Calibrated keywords stored:', calibratedKeywords);
   
   // Update word count and keyword count
   const wordCount = textInput.trim().split(/\s+/).length;
@@ -5406,6 +5712,7 @@ function runSentimentTest() {
   } else {
     console.warn('runSentimentTest: keywordSearchTest not found');
   }
+    
     console.log('runSentimentTest: analysis complete', {
       happy: analysis.happyPercent,
       sad: analysis.sadPercent,
@@ -5413,13 +5720,13 @@ function runSentimentTest() {
       detected: analysis.detectedKeywords.length
     });
 
-    showToast('✅ Sentiment analysis complete!');
+    showToast(`✅ Sentiment analysis complete! ${calibratedKeywords.length} keywords detected. Open Keywords modal to see them.`);
+    
   } catch (err) {
     console.error('runSentimentTest: error', err);
     showToast('❌ Error during analysis. See console.');
   }
 }
-
 // Enhanced sentiment analysis with weight scoring
 function analyzeTextSentimentEnhancedWithWeight(text) {
   const lowerText = text.toLowerCase();
@@ -5823,12 +6130,16 @@ function saveTestToCompany() {
     
     showToast(message);
     
-    // Close test modal
-    closeTestModal();
+    // DON'T close test modal automatically - let user see the calibrated text
+    // closeTestModal();
+    
+    // Show message about calibrated text being available
+    showToast('📝 Calibrated text is now available in Keywords modal');
   } else {
     showToast('⚠️ No companies were saved or updated');
   }
 }
+
 
 // Enhanced clear test results
 function clearTestResults() {
